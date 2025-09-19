@@ -1,0 +1,40 @@
+Crear Variables de entorno.
+python -m venv venv
+
+Activar el entorno
+.\venv\Scripts\Activate
+
+Instalar Requirimientos.
+pip install -r requirements.txt
+
+Actualizar requirements
+pip freeze > requirements.txt
+
+Crear un .env con el siguiente contenido:
+//
+DB_NAME=serjus_rrhh
+DB_USER=root
+DB_PASSWORD=contraseña
+DB_HOST=127.0.0.1
+DB_PORT=3306
+SECRET_KEY=django-insecure-&#)ubnxpe=9fo3cpirliy8t-%5v##e7g_v-x@q!*5en=csmhv&
+DEBUG=True
+//
+
+crear basededatos
+mysql -u root -p -e "CREATE DATABASE serjus_rrhh CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+
+usar el SQL
+mysql -u root -p serjus_rrhh < Generated.sql
+
+CREAR APP
+python manage.py startapp rrhh
+
+GENERAR MODELOS
+python manage.py basededatos > rrhh/models.py
+
+Migrar Crear Migraciones
+python manage.py makemigrations
+
+Trasladar Migraciones
+python manage.py migrate 
