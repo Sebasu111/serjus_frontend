@@ -4,7 +4,7 @@ from .views import EmpleadocapacitacionViewSet, EvaluacionViewSet, Evaluacioncri
 from .views import (
     AusenciaViewSet, ContratoViewSet, ConvocatoriaViewSet, DocumentoViewSet,
     EquipoViewSet, HistorialpuestoViewSet, IdiomaViewSet,
-    InduccionViewSet, InducciondocumentoViewSet
+    InduccionViewSet, InducciondocumentoViewSet, PuestoViewSet, RolViewSet, TerminacionlaboralViewSet, TipodocumentoViewSet, UsuarioViewSet
 )
 
 router = routers.DefaultRouter()
@@ -23,5 +23,10 @@ router.register(r'historialpuestos', HistorialpuestoViewSet)
 router.register(r'idiomas', IdiomaViewSet)
 router.register(r'inducciones', InduccionViewSet)
 router.register(r'inducciondocumentos', InducciondocumentoViewSet)
+router.register(r'puestos', PuestoViewSet)
+router.register(r'roles', RolViewSet)
+router.register(r'terminacionlaboral', TerminacionlaboralViewSet)
+router.register(r'tipodocumento', TipodocumentoViewSet)
+router.register(r'usuarios', UsuarioViewSet)
 
 urlpatterns = router.urls
