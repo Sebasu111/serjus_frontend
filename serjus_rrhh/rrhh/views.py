@@ -6,12 +6,12 @@ from .serializers import EmpleadocapacitacionSerializer, EvaluacionSerializer, E
 from .models import (
     Ausencia, Contrato, Convocatoria, Documento,
     Equipo, Historialpuesto, Idioma,
-    Induccion, Inducciondocumento
+    Induccion, Inducciondocumento, Puesto, Rol, Terminacionlaboral, Tipodocumento, Usuario
 )
 from .serializers import (
     AusenciaSerializer, ContratoSerializer, ConvocatoriaSerializer, DocumentoSerializer,
     EquipoSerializer, HistorialpuestoSerializer, IdiomaSerializer,
-    InduccionSerializer, InducciondocumentoSerializer
+    InduccionSerializer, InducciondocumentoSerializer, PuestoSerializer, RolSerializer, TerminacionlaboralSerializer, TipodocumentoSerializer, UsuarioSerializer
 )
 
 class EmpleadoViewSet(viewsets.ModelViewSet):
@@ -73,3 +73,23 @@ class InduccionViewSet(viewsets.ModelViewSet):
 class InducciondocumentoViewSet(viewsets.ModelViewSet):
     queryset = Inducciondocumento.objects.all()
     serializer_class = InducciondocumentoSerializer
+
+class PuestoViewSet(viewsets.ModelViewSet):
+    queryset = Puesto.objects.all()
+    serializer_class = PuestoSerializer
+
+class RolViewSet(viewsets.ModelViewSet):
+    queryset = Rol.objects.all()
+    serializer_class = RolSerializer
+
+class TerminacionlaboralViewSet(viewsets.ModelViewSet):
+    queryset = Terminacionlaboral.objects.all()
+    serializer_class = TerminacionlaboralSerializer
+
+class TipodocumentoViewSet(viewsets.ModelViewSet):
+    queryset = Tipodocumento.objects.all()
+    serializer_class = TipodocumentoSerializer
+
+class UsuarioViewSet(viewsets.ModelViewSet):
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
