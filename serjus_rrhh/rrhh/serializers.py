@@ -4,7 +4,7 @@ from .models import Capacitacion, Empleadocapacitacion, Evaluacion, Evaluacioncr
 from .models import (
     Ausencia, Contrato, Convocatoria, Documento, 
     Equipo, Historialpuesto, Idioma, 
-    Induccion, Inducciondocumento, Puesto, Rol, Terminacionlaboral, Tipodocumento, Usuario
+    Induccion, Inducciondocumento, Puesto, Rol, Terminacionlaboral, Tipodocumento, Usuario, Estado
 )
 
 class EmpleadoSerializer(serializers.ModelSerializer):
@@ -120,4 +120,9 @@ class TipodocumentoSerializer(serializers.ModelSerializer):
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
+        fields = '__all__'  
+
+class EstadoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Estado
         fields = '__all__'  

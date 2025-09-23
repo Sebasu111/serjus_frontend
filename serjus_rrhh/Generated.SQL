@@ -1,6 +1,6 @@
 ﻿/*
 Created: 6/09/2025
-Modified: 11/09/2025
+Modified: 23/09/2025
 Model: MySQL 8.0
 Database: MySQL 8.0
 */
@@ -29,7 +29,8 @@ CREATE TABLE `Empleado`
   `numeroHijos` Int NOT NULL,
   `numeroIggs` Varchar(50),
   `idEquipo` Int,
-  `estado` Varchar(50) NOT NULL,
+  `idEstado` Int NOT NULL,
+  `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
   `updatedAt` Timestamp NOT NULL,
@@ -72,7 +73,7 @@ CREATE TABLE `Puesto`
 
 CREATE TABLE `HistorialPuesto`
 (
-  `idHistorialPuesto` Char(20) NOT NULL,
+  `idHistorialPuesto` Int NOT NULL AUTO_INCREMENT,
   `idEmpleado` Int NOT NULL,
   `idPuesto` Int NOT NULL,
   `fechaInicio` Date NOT NULL,
@@ -82,7 +83,8 @@ CREATE TABLE `HistorialPuesto`
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
-  `updatedAt` Timestamp NOT NULL
+  `updatedAt` Timestamp NOT NULL,
+  PRIMARY KEY (`idHistorialPuesto`)
 )
 ;
 
@@ -90,9 +92,6 @@ CREATE INDEX `IX_Relationship1` ON `HistorialPuesto` (`idEmpleado`)
 ;
 
 CREATE INDEX `IX_Relationship2` ON `HistorialPuesto` (`idPuesto`)
-;
-
-ALTER TABLE `HistorialPuesto` ADD PRIMARY KEY (`idHistorialPuesto`)
 ;
 
 -- Table Rol
@@ -103,6 +102,7 @@ CREATE TABLE `Rol`
   `nombreRol` Varchar(100) NOT NULL,
   `descripcion` Varchar(150) NOT NULL,
   `estado` Bit(1) NOT NULL,
+  `idEstado` Int NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
   `updatedAt` Timestamp NOT NULL,
@@ -118,6 +118,7 @@ CREATE TABLE `Usuario`
   `nombreUsuario` Varchar(100) NOT NULL,
   `contrasena` Varchar(150) NOT NULL,
   `estado` Bit(1) NOT NULL,
+  `idEstado` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
   `updatedAt` Timestamp NOT NULL,
   `idRol` Int,
@@ -143,6 +144,7 @@ CREATE TABLE `Ausencia`
   `fechaInicio` Date NOT NULL,
   `fechaFin` Date,
   `idDocumento` Int NOT NULL,
+  `idEstado` Int NOT NULL,
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
@@ -170,6 +172,7 @@ CREATE TABLE `Aspirante`
   `direccion` Varchar(150) NOT NULL,
   `idIdioma` Int,
   `idPuebloCultura` Int,
+  `idEstado` Int NOT NULL,
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
@@ -194,7 +197,8 @@ CREATE TABLE `Convocatoria`
   `descripcion` Varchar(150) NOT NULL,
   `fechaInicio` Date NOT NULL,
   `fechaFin` Date NOT NULL,
-  `estado` Varchar(50) NOT NULL,
+  `idEstado` Int NOT NULL,
+  `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
   `updatedAt` Timestamp NOT NULL,
@@ -213,7 +217,8 @@ CREATE TABLE `Postulacion`
   `idAspirante` Int NOT NULL,
   `idConvocatoria` Int NOT NULL,
   `fechaPostulacion` Date NOT NULL,
-  `estado` Varchar(50) NOT NULL,
+  `idEstado` Int NOT NULL,
+  `estado` Bit(1) NOT NULL,
   `observacion` Varchar(150) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
@@ -253,6 +258,7 @@ CREATE TABLE `Evaluacion`
   `fechaEvaluacion` Datetime NOT NULL,
   `puntajeTotal` Decimal(10,2) NOT NULL,
   `observacion` Varchar(150) NOT NULL,
+  `idEstado` Int NOT NULL,
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
@@ -295,18 +301,15 @@ CREATE INDEX `IX_Relationship17` ON `EvaluacionCriterio` (`idEvaluacion`)
 CREATE TABLE `Induccion`
 (
   `idInduccion` Int NOT NULL AUTO_INCREMENT,
-  `idEmpleado` Int,
   `fechaInicio` Date NOT NULL,
   `fechaFin` Date NOT NULL,
-  `estado` Varchar(20) NOT NULL,
+  `idEstado` Int NOT NULL,
+  `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
   `updatedAt` Timestamp NOT NULL,
   PRIMARY KEY (`idInduccion`)
 )
-;
-
-CREATE INDEX `IX_Relationship22` ON `Induccion` (`idEmpleado`)
 ;
 
 -- Table Documento
@@ -340,6 +343,7 @@ CREATE TABLE `TipoDocumento`
 (
   `idTipoDocumento` Int NOT NULL AUTO_INCREMENT,
   `nombreTipo` Varchar(150) NOT NULL,
+  `cantidadRepetir` Int NOT NULL,
   `descripcion` Varchar(150) NOT NULL,
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
@@ -358,11 +362,12 @@ CREATE TABLE `InduccionDocumento`
   `idDocumento` Int NOT NULL,
   `fechaAsignado` Date NOT NULL,
   `fechaCompletado` Date,
-  `idInforme` Int NOT NULL,
-  `estado` Varchar(20) NOT NULL,
+  `idEstado` Int NOT NULL,
+  `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
   `updatedAt` Timestamp NOT NULL,
+  `idEmpleado` Int,
   PRIMARY KEY (`idInduccionDocumento`)
 )
 ;
@@ -371,6 +376,9 @@ CREATE INDEX `IX_Relationship23` ON `InduccionDocumento` (`idInduccion`)
 ;
 
 CREATE INDEX `IX_Relationship24` ON `InduccionDocumento` (`idDocumento`)
+;
+
+CREATE INDEX `IX_Relationship49` ON `InduccionDocumento` (`idEmpleado`)
 ;
 
 -- Table Capacitacion
@@ -384,6 +392,7 @@ CREATE TABLE `Capacitacion`
   `fechaFin` Date NOT NULL,
   `institucionFacilitadora` Varchar(150) NOT NULL,
   `montoEjecutado` Decimal(10,2) NOT NULL,
+  `idEstado` Int NOT NULL,
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
@@ -399,9 +408,10 @@ CREATE TABLE `EmpleadoCapacitacion`
   `idEmpleadoCapacitacion` Int NOT NULL AUTO_INCREMENT,
   `idEmpleado` Int NOT NULL,
   `idCapacitacion` Int NOT NULL,
+  `asistencia` Bit(1) NOT NULL,
   `observacion` Varchar(150) NOT NULL,
-  `fechaEnvio` Date NOT NULL,
-  `estado` Varchar(50) NOT NULL,
+  `idEstado` Int NOT NULL,
+  `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
   `updatedAt` Timestamp NOT NULL,
@@ -420,20 +430,22 @@ CREATE INDEX `IX_Relationship25` ON `EmpleadoCapacitacion` (`idEmpleado`)
 CREATE TABLE `TerminacionLaboral`
 (
   `idTerminacionLaboral` Int NOT NULL AUTO_INCREMENT,
-  `idEmpleado` Int,
   `tipoTerminacion` Varchar(20) NOT NULL,
   `fechaTerminacion` Date NOT NULL,
+  `causa` Varchar(150) NOT NULL,
   `observacion` Varchar(150) NOT NULL,
   `idDocumento` Int NOT NULL,
+  `idEstado` Int NOT NULL,
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
   `updatedAt` Timestamp NOT NULL,
+  `idContrato` Int,
   PRIMARY KEY (`idTerminacionLaboral`)
 )
 ;
 
-CREATE INDEX `IX_Relationship46` ON `TerminacionLaboral` (`idEmpleado`)
+CREATE INDEX `IX_Relationship52` ON `TerminacionLaboral` (`idContrato`)
 ;
 
 -- Table Contrato
@@ -441,10 +453,13 @@ CREATE INDEX `IX_Relationship46` ON `TerminacionLaboral` (`idEmpleado`)
 CREATE TABLE `Contrato`
 (
   `idContrato` Int NOT NULL AUTO_INCREMENT,
-  `idHistorialPuesto` Char(20),
+  `idHistorialPuesto` Int,
   `fechaInicio` Date NOT NULL,
-  `fechaFin` Date NOT NULL,
+  `fechaFin` Date,
+  `fechaFirma` Date NOT NULL,
   `tipoContrato` Varchar(50) NOT NULL,
+  `observacion` Varchar(150) NOT NULL,
+  `idEstado` Int NOT NULL,
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
@@ -508,7 +523,8 @@ CREATE TABLE `Amonestacion`
   `tipo` Varchar(20) NOT NULL,
   `fechaAmonestacion` Date NOT NULL,
   `motivo` Varchar(150) NOT NULL,
-  `idDocumento` Longblob NOT NULL,
+  `idDocumento` Int NOT NULL,
+  `idEstado` Int NOT NULL,
   `estado` Bit(1) NOT NULL,
   `idUsuario` Int NOT NULL,
   `createdAt` Timestamp NOT NULL,
@@ -518,6 +534,21 @@ CREATE TABLE `Amonestacion`
 ;
 
 CREATE INDEX `IX_Relationship43` ON `Amonestacion` (`idEmpleado`)
+;
+
+-- Table Estado
+
+CREATE TABLE `Estado`
+(
+  `idEstado` Int NOT NULL AUTO_INCREMENT,
+  `nombreEstado` Varchar(20) NOT NULL,
+  `descripcion` Varchar(50) NOT NULL,
+  `estado` Bit(1) NOT NULL,
+  `idUsuario` Int NOT NULL,
+  `createdAt` Timestamp NOT NULL,
+  `updatedAt` Timestamp NOT NULL,
+  PRIMARY KEY (`idEstado`)
+)
 ;
 
 -- Create foreign keys (relationships) section -------------------------------------------------
@@ -561,9 +592,6 @@ ALTER TABLE `Evaluacion` ADD CONSTRAINT `Relationship19` FOREIGN KEY (`idEmplead
 ALTER TABLE `Documento` ADD CONSTRAINT `Relationship21` FOREIGN KEY (`idTipoDocumento`) REFERENCES `TipoDocumento` (`idTipoDocumento`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ;
 
-ALTER TABLE `Induccion` ADD CONSTRAINT `Relationship22` FOREIGN KEY (`idEmpleado`) REFERENCES `Empleado` (`idEmpleado`) ON DELETE RESTRICT ON UPDATE RESTRICT
-;
-
 ALTER TABLE `InduccionDocumento` ADD CONSTRAINT `Relationship23` FOREIGN KEY (`idInduccion`) REFERENCES `Induccion` (`idInduccion`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ;
 
@@ -597,12 +625,14 @@ ALTER TABLE `Evaluacion` ADD CONSTRAINT `Relationship44` FOREIGN KEY (`idPostula
 ALTER TABLE `Documento` ADD CONSTRAINT `Relationship45` FOREIGN KEY (`idEmpleado`) REFERENCES `Empleado` (`idEmpleado`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ;
 
-ALTER TABLE `TerminacionLaboral` ADD CONSTRAINT `Relationship46` FOREIGN KEY (`idEmpleado`) REFERENCES `Empleado` (`idEmpleado`) ON DELETE RESTRICT ON UPDATE RESTRICT
-;
-
 ALTER TABLE `Aspirante` ADD CONSTRAINT `Relationship47` FOREIGN KEY (`idIdioma`) REFERENCES `Idioma` (`idIdioma`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ;
 
 ALTER TABLE `Aspirante` ADD CONSTRAINT `Relationship48` FOREIGN KEY (`idPuebloCultura`) REFERENCES `PuebloCultura` (`idPuebloCultura`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ;
 
+ALTER TABLE `InduccionDocumento` ADD CONSTRAINT `Relationship49` FOREIGN KEY (`idEmpleado`) REFERENCES `Empleado` (`idEmpleado`) ON DELETE RESTRICT ON UPDATE RESTRICT
+;
+
+ALTER TABLE `TerminacionLaboral` ADD CONSTRAINT `Relationship52` FOREIGN KEY (`idContrato`) REFERENCES `Contrato` (`idContrato`) ON DELETE RESTRICT ON UPDATE RESTRICT
+;
