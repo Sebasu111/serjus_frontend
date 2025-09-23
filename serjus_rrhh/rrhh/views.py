@@ -6,12 +6,12 @@ from .serializers import EmpleadocapacitacionSerializer, EvaluacionSerializer, E
 from .models import (
     Ausencia, Contrato, Convocatoria, Documento,
     Equipo, Historialpuesto, Idioma,
-    Induccion, Inducciondocumento, Puesto, Rol, Terminacionlaboral, Tipodocumento, Usuario
+    Induccion, Inducciondocumento, Puesto, Rol, Terminacionlaboral, Tipodocumento, Usuario, Estado
 )
 from .serializers import (
     AusenciaSerializer, ContratoSerializer, ConvocatoriaSerializer, DocumentoSerializer,
     EquipoSerializer, HistorialpuestoSerializer, IdiomaSerializer,
-    InduccionSerializer, InducciondocumentoSerializer, PuestoSerializer, RolSerializer, TerminacionlaboralSerializer, TipodocumentoSerializer, UsuarioSerializer
+    InduccionSerializer, InducciondocumentoSerializer, PuestoSerializer, RolSerializer, TerminacionlaboralSerializer, TipodocumentoSerializer, UsuarioSerializer, EstadoSerializer
 )
 
 class EmpleadoViewSet(viewsets.ModelViewSet):
@@ -93,3 +93,7 @@ class TipodocumentoViewSet(viewsets.ModelViewSet):
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
+
+class EstadoViewSet(viewsets.ModelViewSet):
+    queryset = Estado.objects.all()
+    serializer_class = EstadoSerializer
