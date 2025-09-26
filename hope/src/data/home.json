@@ -180,7 +180,12 @@
                 "title": "Standard",
                 "price": "<h2><sup>$</sup>29</h2><span class='period'>/ month</span>",
                 "excerpt": "Free with 14 days trial, then you can choose plan",
-                "pricingList": ["3 Cleaners", "All House Cleaning", "All Rooms", "Equipment Cleaning"],
+                "pricingList": [
+                    "3 Cleaners",
+                    "All House Cleaning",
+                    "All Rooms",
+                    "Equipment Cleaning"
+                ],
                 "btnClassOption": "btn-theme btn-border active"
             },
             {
@@ -198,7 +203,13 @@
                 "title": "Ultimate",
                 "price": "<h2><sup>$</sup>99</h2><span class='period'>/ month</span>",
                 "excerpt": "Free with 14 days trial, then you can choose plan",
-                "pricingList": ["5 Cleaners", "All Office Cleaning", "All Rooms", "Equipments Cleaning", "Exterior Glasses"],
+                "pricingList": [
+                    "5 Cleaners",
+                    "All Office Cleaning",
+                    "All Rooms",
+                    "Equipments Cleaning",
+                    "Exterior Glasses"
+                ],
                 "btnClassOption": "btn-theme btn-border"
             }
         ]

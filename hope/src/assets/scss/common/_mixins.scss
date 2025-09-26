@@ -1,15 +1,19 @@
 // placeholder
 @mixin placeholder {
-    &::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    &::-webkit-input-placeholder {
+        /* Chrome/Opera/Safari */
         @content;
     }
-    &::-moz-placeholder { /* Firefox 19+ */
+    &::-moz-placeholder {
+        /* Firefox 19+ */
         @content;
     }
-    &:-ms-input-placeholder { /* IE 10+ */
+    &:-ms-input-placeholder {
+        /* IE 10+ */
         @content;
     }
-    &:-moz-placeholder { /* Firefox 18- */
+    &:-moz-placeholder {
+        /* Firefox 18- */
         @content;
     }
 }
@@ -39,58 +43,87 @@
 
 // gradient
 @mixin gradient-bg() {
-    background-color: rgb(233,77,4);
-    background-image: linear-gradient( 90deg, rgb(233,77,4) 0%, rgb(238,168,73) 100%);
-    background-image: -moz-linear-gradient( 90deg, rgb(233,77,4) 0%, rgb(238,168,73) 100%);
-    background-image: -webkit-linear-gradient( 90deg, rgb(233,77,4) 0%, rgb(238,168,73) 100%);
-    background-image: -ms-linear-gradient( 90deg, rgb(233,77,4) 0%, rgb(238,168,73) 100%);
+    background-color: rgb(233, 77, 4);
+    background-image: linear-gradient(
+        90deg,
+        rgb(233, 77, 4) 0%,
+        rgb(238, 168, 73) 100%
+    );
+    background-image: -moz-linear-gradient(
+        90deg,
+        rgb(233, 77, 4) 0%,
+        rgb(238, 168, 73) 100%
+    );
+    background-image: -webkit-linear-gradient(
+        90deg,
+        rgb(233, 77, 4) 0%,
+        rgb(238, 168, 73) 100%
+    );
+    background-image: -ms-linear-gradient(
+        90deg,
+        rgb(233, 77, 4) 0%,
+        rgb(238, 168, 73) 100%
+    );
 }
 @mixin gradient-bg-hover() {
-    background-color: rgb(238,168,73);
-    background-image: linear-gradient( -90deg, rgb(233,77,4) 0%, rgb(238,168,73) 100%);
-    background-image: -moz-linear-gradient( -90deg, rgb(233,77,4) 0%, rgb(238,168,73) 100%);
-    background-image: -webkit-linear-gradient( -90deg, rgb(233,77,4) 0%, rgb(238,168,73) 100%);
-    background-image: -ms-linear-gradient( -90deg, rgb(233,77,4) 0%, rgb(238,168,73) 100%);
+    background-color: rgb(238, 168, 73);
+    background-image: linear-gradient(
+        -90deg,
+        rgb(233, 77, 4) 0%,
+        rgb(238, 168, 73) 100%
+    );
+    background-image: -moz-linear-gradient(
+        -90deg,
+        rgb(233, 77, 4) 0%,
+        rgb(238, 168, 73) 100%
+    );
+    background-image: -webkit-linear-gradient(
+        -90deg,
+        rgb(233, 77, 4) 0%,
+        rgb(238, 168, 73) 100%
+    );
+    background-image: -ms-linear-gradient(
+        -90deg,
+        rgb(233, 77, 4) 0%,
+        rgb(238, 168, 73) 100%
+    );
 }
-
-
 
 @mixin transition($time) {
     transition: all $time;
-  }
-  
-  @mixin transform($value) {
+}
+
+@mixin transform($value) {
     transform: $value;
-  }
-  @mixin border-radius($value) {
+}
+@mixin border-radius($value) {
     border-radius: $value;
-  }
-  
-  // Placeholder Mixins
-  @mixin placeholder {
+}
+
+// Placeholder Mixins
+@mixin placeholder {
     &::placeholder {
-      @content;
+        @content;
     }
-  }
-  
-  // media queries
-  $units: 1px !default;
-  
-  @mixin max-screen($res-first, $res-last: $res-first) {
+}
+
+// media queries
+$units: 1px !default;
+
+@mixin max-screen($res-first, $res-last: $res-first) {
     @if $res-first == $res-last {
-      @media screen and (max-width: if(unitless($res-first), $res-first*$units, $res-first)) {
-        @content;
-      }
+        @media screen and (max-width: if(unitless($res-first), $res-first*$units, $res-first)) {
+            @content;
+        }
     } @else if $res-first < $res-last {
-      @media screen and (min-width: if(unitless($res-first), $res-first*$units, $res-first)) and (max-width: if(unitless($res-last), $res-last*$units, $res-last)) {
-        @content;
-      }
+        @media screen and (min-width: if(unitless($res-first), $res-first*$units, $res-first)) and (max-width: if(unitless($res-last), $res-last*$units, $res-last)) {
+            @content;
+        }
     }
-  }
-  
-  @mixin min-screen($res) {
+}
+
+@mixin min-screen($res) {
     @media screen and (min-width: if(unitless($res), $res*$units, $res)) {
-      @content;
+        @content;
     }
-  }
-  
+}
