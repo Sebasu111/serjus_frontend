@@ -21,7 +21,7 @@ class Amonestacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'amonestacion'
 
 
@@ -44,7 +44,7 @@ class Aspirante(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'aspirante'
 
 
@@ -62,7 +62,7 @@ class Ausencia(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'ausencia'
 
 
@@ -80,7 +80,7 @@ class Capacitacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'capacitacion'
 
 
@@ -97,7 +97,7 @@ class Contrato(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True) # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'contrato'
 
 
@@ -114,7 +114,7 @@ class Convocatoria(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'convocatoria'
 
 
@@ -128,7 +128,7 @@ class Criterioevaluacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'criterioevaluacion'
 
 
@@ -146,7 +146,7 @@ class Documento(models.Model):
     idempleado = models.ForeignKey('Empleado', models.DO_NOTHING, db_column='idEmpleado', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'documento'
 
 
@@ -175,15 +175,15 @@ class Empleado(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'empleado'
 
 
 class Empleadocapacitacion(models.Model):
     idempleadocapacitacion = models.AutoField(db_column='idEmpleadoCapacitacion', primary_key=True)  # Field name made lowercase.
-    idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado')  # Field name made lowercase.
-    idcapacitacion = models.ForeignKey(Capacitacion, models.DO_NOTHING, db_column='idCapacitacion')  # Field name made lowercase.
-    asistencia = models.TextField()  # This field type is a guess.
+    idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado', blank = True, null = True)  # Field name made lowercase.
+    idcapacitacion = models.ForeignKey(Capacitacion, models.DO_NOTHING, db_column='idCapacitacion', blank=True, null=True)  # Field name made lowercase.
+    asistencia = models.TextField(blank=True, null=True)  # This field type is a guess.
     observacion = models.CharField(max_length=150)
     fechaenvio = models.DateField(db_column='fechaEnvio')  # Field name made lowercase.
     estado = models.BooleanField(default=True)
@@ -192,7 +192,7 @@ class Empleadocapacitacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'empleadocapacitacion'
 
 
@@ -206,7 +206,7 @@ class Equipo(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'equipo'
 
 
@@ -220,7 +220,7 @@ class Estado(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'estado'
 
 
@@ -238,14 +238,14 @@ class Evaluacion(models.Model):
     idpostulacion = models.ForeignKey('Postulacion', models.DO_NOTHING, db_column='idPostulacion', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'evaluacion'
 
 
 class Evaluacioncriterio(models.Model):
     idevaluacioncriterio = models.AutoField(db_column='idEvaluacionCriterio', primary_key=True)  # Field name made lowercase.
-    idevaluacion = models.ForeignKey(Evaluacion, models.DO_NOTHING, db_column='idEvaluacion')  # Field name made lowercase.
-    idcriterioevaluacion = models.ForeignKey(Criterioevaluacion, models.DO_NOTHING, db_column='idCriterioEvaluacion')  # Field name made lowercase.
+    idevaluacion = models.ForeignKey(Evaluacion, models.DO_NOTHING, db_column='idEvaluacion', blank = True, null = True)  # Field name made lowercase.
+    idcriterioevaluacion = models.ForeignKey(Criterioevaluacion, models.DO_NOTHING, db_column='idCriterioEvaluacion', blank = True, null = True)  # Field name made lowercase.
     puntajecriterio = models.DecimalField(db_column='puntajeCriterio', max_digits=10, decimal_places=2)  # Field name made lowercase.
     estado = models.BooleanField(default=True)  # This field type is a guess.
     idusuario = models.IntegerField(db_column='idUsuario')  # Field name made lowercase.
@@ -253,14 +253,14 @@ class Evaluacioncriterio(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'evaluacioncriterio'
 
 
 class Historialpuesto(models.Model):
     idhistorialpuesto = models.AutoField(db_column='idHistorialPuesto', primary_key=True)  # Field name made lowercase.
-    idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado')  # Field name made lowercase.
-    idpuesto = models.ForeignKey('Puesto', models.DO_NOTHING, db_column='idPuesto')  # Field name made lowercase.
+    idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado', blank = True, null = True)  # Field name made lowercase.
+    idpuesto = models.ForeignKey('Puesto', models.DO_NOTHING, db_column='idPuesto', blank = True, null = True)  # Field name made lowercase.
     fechainicio = models.DateField(db_column='fechaInicio')  # Field name made lowercase.
     fechafin = models.DateField(db_column='fechaFin', blank=True, null=True)  # Field name made lowercase.
     salario = models.DecimalField(max_digits=10, decimal_places=2)
@@ -271,7 +271,7 @@ class Historialpuesto(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'historialpuesto'
 
 
@@ -284,7 +284,7 @@ class Idioma(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'idioma'
 
 
@@ -298,14 +298,14 @@ class Induccion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'induccion'
 
 
 class Inducciondocumento(models.Model):
     idinducciondocumento = models.AutoField(db_column='idInduccionDocumento', primary_key=True)  # Field name made lowercase.
-    idinduccion = models.ForeignKey(Induccion, models.DO_NOTHING, db_column='idInduccion')  # Field name made lowercase.
-    iddocumento = models.ForeignKey(Documento, models.DO_NOTHING, db_column='idDocumento')  # Field name made lowercase.
+    idinduccion = models.ForeignKey(Induccion, models.DO_NOTHING, db_column='idInduccion', blank=True, null=True)  # Field name made lowercase.
+    iddocumento = models.ForeignKey(Documento, models.DO_NOTHING, db_column='idDocumento', blank=True, null=True)  # Field name made lowercase.
     fechaasignado = models.DateField(db_column='fechaAsignado')  # Field name made lowercase.
     fechacompletado = models.DateField(db_column='fechaCompletado', blank=True, null=True)  # Field name made lowercase.
     idinforme = models.IntegerField(db_column='idInforme')  # Field name made lowercase.
@@ -316,14 +316,14 @@ class Inducciondocumento(models.Model):
     idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'inducciondocumento'
 
 
 class Postulacion(models.Model):
     idpostulacion = models.AutoField(db_column='idPostulacion', primary_key=True)  # Field name made lowercase.
-    idaspirante = models.ForeignKey(Aspirante, models.DO_NOTHING, db_column='idAspirante')  # Field name made lowercase.
-    idconvocatoria = models.ForeignKey(Convocatoria, models.DO_NOTHING, db_column='idConvocatoria')  # Field name made lowercase.
+    idaspirante = models.ForeignKey(Aspirante, models.DO_NOTHING, db_column='idAspirante', blank=True, null=True)  # Field name made lowercase.
+    idconvocatoria = models.ForeignKey(Convocatoria, models.DO_NOTHING, db_column='idConvocatoria', blank=True, null=True)  # Field name made lowercase.
     fechapostulacion = models.DateField(db_column='fechaPostulacion')  # Field name made lowercase.
     estado = models.BooleanField(default=True)
     observacion = models.CharField(max_length=150)
@@ -332,7 +332,7 @@ class Postulacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'postulacion'
 
 
@@ -345,7 +345,7 @@ class Pueblocultura(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'pueblocultura'
 
 
@@ -360,7 +360,7 @@ class Puesto(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'puesto'
 
 
@@ -374,7 +374,7 @@ class Rol(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'rol'
 
 
@@ -382,7 +382,7 @@ class Terminacionlaboral(models.Model):
     idterminacionlaboral = models.AutoField(db_column='idTerminacionLaboral', primary_key=True)  # Field name made lowercase.
     tipoterminacion = models.CharField(db_column='tipoTerminacion', max_length=20)  # Field name made lowercase.
     fechaterminacion = models.DateField(db_column='fechaTerminacion')  # Field name made lowercase.
-    causa = models.CharField(max_length=150)
+    causa = models.CharField(max_length=150, blank=True, null=True)
     observacion = models.CharField(max_length=150)
     iddocumento = models.IntegerField(db_column='idDocumento')  # Field name made lowercase.
     estado = models.BooleanField(default=True)  # This field type is a guess.
@@ -392,14 +392,14 @@ class Terminacionlaboral(models.Model):
     idcontrato = models.ForeignKey(Contrato, models.DO_NOTHING, db_column='idContrato', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'terminacionlaboral'
 
 
 class Tipodocumento(models.Model):
     idtipodocumento = models.AutoField(db_column='idTipoDocumento', primary_key=True)  # Field name made lowercase.
     nombretipo = models.CharField(db_column='nombreTipo', max_length=150)  # Field name made lowercase.
-    cantidadrepetir = models.IntegerField(db_column='cantidadRepetir')  # Field name made lowercase.
+    cantidadrepetir = models.IntegerField(db_column='cantidadRepetir', blank=True, null=True)  # Field name made lowercase.
     descripcion = models.CharField(max_length=150)
     estado = models.BooleanField(default=True)  # This field type is a guess.
     idusuario = models.IntegerField(db_column='idUsuario')  # Field name made lowercase.
@@ -407,7 +407,7 @@ class Tipodocumento(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'tipodocumento'
 
 
@@ -422,5 +422,5 @@ class Usuario(models.Model):
     idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed=True
         db_table = 'usuario'

@@ -7,7 +7,6 @@ from drf_spectacular.views import (
 )
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
     path("api/", include("rrhh.urls")),
 
     # Schema y documentación
