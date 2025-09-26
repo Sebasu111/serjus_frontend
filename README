@@ -21,10 +21,10 @@ SECRET_KEY=django-insecure-&#)ubnxpe=9fo3cpirliy8t-%5v##e7g_v-x@q!*5en=csmhv&
 DEBUG=True
 //
 
-crear basededatos
+crear basededatos poweshell
 mysql -u root -p -e "CREATE DATABASE serjus_rrhh CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 
-usar el SQL
+usar el SQL poweshell
 mysql -u root -p serjus_rrhh < Generated.sql
 
 CREAR APP

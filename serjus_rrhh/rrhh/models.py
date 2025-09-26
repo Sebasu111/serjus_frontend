@@ -21,7 +21,7 @@ class Amonestacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'amonestacion'
 
 
@@ -44,7 +44,7 @@ class Aspirante(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'aspirante'
 
 
@@ -62,7 +62,7 @@ class Ausencia(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'ausencia'
 
 
@@ -80,7 +80,7 @@ class Capacitacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'capacitacion'
 
 
@@ -97,7 +97,7 @@ class Contrato(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True) # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'contrato'
 
 
@@ -114,7 +114,7 @@ class Convocatoria(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'convocatoria'
 
 
@@ -128,7 +128,7 @@ class Criterioevaluacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'criterioevaluacion'
 
 
@@ -146,7 +146,7 @@ class Documento(models.Model):
     idempleado = models.ForeignKey('Empleado', models.DO_NOTHING, db_column='idEmpleado', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'documento'
 
 
@@ -175,7 +175,7 @@ class Empleado(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'empleado'
 
 
@@ -192,7 +192,7 @@ class Empleadocapacitacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'empleadocapacitacion'
 
 
@@ -206,7 +206,7 @@ class Equipo(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'equipo'
 
 
@@ -220,7 +220,7 @@ class Estado(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'estado'
 
 
@@ -238,7 +238,7 @@ class Evaluacion(models.Model):
     idpostulacion = models.ForeignKey('Postulacion', models.DO_NOTHING, db_column='idPostulacion', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'evaluacion'
 
 
@@ -253,7 +253,7 @@ class Evaluacioncriterio(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'evaluacioncriterio'
 
 
@@ -271,7 +271,7 @@ class Historialpuesto(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'historialpuesto'
 
 
@@ -284,7 +284,7 @@ class Idioma(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'idioma'
 
 
@@ -298,7 +298,7 @@ class Induccion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'induccion'
 
 
@@ -316,7 +316,7 @@ class Inducciondocumento(models.Model):
     idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'inducciondocumento'
 
 
@@ -332,7 +332,7 @@ class Postulacion(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'postulacion'
 
 
@@ -345,7 +345,7 @@ class Pueblocultura(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'pueblocultura'
 
 
@@ -360,7 +360,7 @@ class Puesto(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'puesto'
 
 
@@ -374,7 +374,7 @@ class Rol(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'rol'
 
 
@@ -392,7 +392,7 @@ class Terminacionlaboral(models.Model):
     idcontrato = models.ForeignKey(Contrato, models.DO_NOTHING, db_column='idContrato', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'terminacionlaboral'
 
 
@@ -407,7 +407,7 @@ class Tipodocumento(models.Model):
     updatedat = models.DateTimeField(db_column='updatedAt', auto_now=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'tipodocumento'
 
 
@@ -422,5 +422,5 @@ class Usuario(models.Model):
     idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'usuario'
