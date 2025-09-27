@@ -35,12 +35,33 @@ const MainMenu = () => {
                         <li>
                             <NavLink
                                 className="sub-menu-link"
-                                to={
-                                    process.env.PUBLIC_URL +
-                                    "/service-details/1"
-                                }
+                                to={process.env.PUBLIC_URL + "/Estados"}
                             >
-                                Service Details
+                                Estados
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
+                                className="sub-menu-link"
+                                to={process.env.PUBLIC_URL + "/Puesto"}
+                            >
+                                Puesto
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
+                                className="sub-menu-link"
+                                to={process.env.PUBLIC_URL + "/Roles"}
+                            >
+                                Roles
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
+                                className="sub-menu-link"
+                                to={process.env.PUBLIC_URL + "/TiposDocumento"}
+                            >
+                                Tipos de Documentos
                             </NavLink>
                         </li>
                     </ul>

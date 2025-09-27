@@ -23,6 +23,10 @@ import BlogAuthor from "./templates/blog-author";
 import ContactPage from "./pages/contact";
 import NavScrollTop from "./components/nav-scroll-top";
 import IdiomasContainer from "./components/Idiomas/IdiomasContainer";
+import EstadosContainer from "./components/Estados/EstadosContainer";
+import PuestoContainer from "./components/Puesto/PuestoContainer";
+import RolesContainer from "./components/Roles/RolesContainer";
+import TiposDocContainer from "./components/TiposDocumento/TiposDocContainer";
 
 const App = () => {
     useEffect(() => {
@@ -52,10 +56,20 @@ const App = () => {
                         component={IdiomasContainer}
                     />
                     <Route
-                        path={`${
-                            process.env.PUBLIC_URL + "/service-details/:id"
-                        }`}
-                        component={ServiceDetails}
+                        path={`${process.env.PUBLIC_URL + "/Estados"}`}
+                        component={EstadosContainer}
+                    />
+                    <Route
+                        path={`${process.env.PUBLIC_URL + "/Puesto"}`}
+                        component={PuestoContainer}
+                    />
+                    <Route
+                        path={`${process.env.PUBLIC_URL + "/Roles"}`}
+                        component={RolesContainer}
+                    />
+                    <Route
+                        path={`${process.env.PUBLIC_URL + "/TiposDocumento"}`}
+                        component={TiposDocContainer}
                     />
                     <Route
                         path={`${process.env.PUBLIC_URL + "/blog"}`}
