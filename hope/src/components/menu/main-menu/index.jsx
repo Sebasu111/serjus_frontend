@@ -74,6 +74,60 @@ const MainMenu = () => {
                 Tipos de Documentos
               </NavLink>
             </li>
+            <li>
+              <NavLink
+                to={`${base}/PuebloCultura`}
+                className="sub-menu-link"
+                activeClassName="active"
+              >
+                Pueblo y cultura
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to={`${base}/TerminacionLaboral`}
+                className="sub-menu-link"
+                activeClassName="active"
+              >
+                TerminacionLaboral
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to={`${base}/Amonestacion`}
+                className="sub-menu-link"
+                activeClassName="active"
+              >
+                Amonestacion
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to={`${base}/Ausencia`}
+                className="sub-menu-link"
+                activeClassName="active"
+              >
+                Ausencia
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to={`${base}/CriterioEvaluacion`}
+                className="sub-menu-link"
+                activeClassName="active"
+              >
+                Criterio de Evaluacion
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to={`${base}/EvaluacionCriterio`}
+                className="sub-menu-link"
+                activeClassName="active"
+              >
+                Evaluacion de Criterio
+              </NavLink>
+            </li>
           </ul>
         </li>
 

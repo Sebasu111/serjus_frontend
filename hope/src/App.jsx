@@ -29,6 +29,12 @@ import EstadosContainer from "./components/Estados/EstadosContainer";
 import PuestoContainer from "./components/Puesto/PuestoContainer";
 import RolesContainer from "./components/Roles/RolesContainer";
 import TiposDocContainer from "./components/TiposDocumento/TiposDocContainer";
+import PuebloCulturaContainer from "./components/PuebloCultura/PuebloCulturaContainer";
+import TerminacionLaboralContainer from "./components/TerminacionLaboral/TerminacionLaboralContainer";
+import AmonestacionContainer from "./components/Amonestacion/AmonestacionContainer";
+import AusenciaContainer from "./components/Ausencia/AusenciaContainer";
+import CriterioEvaluacionContainer from "./components/CriterioEvaluacion/CriterioEvaluacionContainer";
+import EvaluacionCriterioContainer from "./components/EvaluacionCriterio/EvaluacionCriterioContainer";
 
 import EmpleadosContainer from "./containers/empleados";
 import HistorialPuestoContainer from "./containers/historial-puesto";
@@ -38,50 +44,111 @@ import DocumentosContainer from "./containers/documentos";
 const base = process.env.PUBLIC_URL || "";
 
 const App = () => {
-  useEffect(() => {
-    AOS.init({
-      offset: 80,
-      duration: 1000,
-      once: true,
-      easing: "ease",
-    });
-    AOS.refresh();
-  }, []);
+    useEffect(() => {
+        AOS.init({
+            offset: 80,
+            duration: 1000,
+            once: true,
+            easing: "ease",
+        });
+        AOS.refresh();
+    }, []);
 
-  return (
-    <Router>
-      <NavScrollTop>
-        <Switch>
-          <Route exact path={`${base}/`} component={HomePage} />
-          <Route path={`${base}/about`} component={AboutPage} />
+    return (
+        <Router>
+            <NavScrollTop>
+                <Switch>
+                    <Route exact path={`${base}/`} component={HomePage} />
+                    <Route path={`${base}/about`} component={AboutPage} />
 
-          {/* Gestión de datos */}
-          <Route path={`${base}/Idiomas`} component={IdiomasContainer} />
-          <Route path={`${base}/Estados`} component={EstadosContainer} />
-          <Route path={`${base}/Puesto`} component={PuestoContainer} />
-          <Route path={`${base}/Roles`} component={RolesContainer} />
-          <Route path={`${base}/TiposDocumento`} component={TiposDocContainer} />
+                    {/* Gestión de datos */}
+                    <Route
+                        path={`${base}/Idiomas`}
+                        component={IdiomasContainer}
+                    />
+                    <Route
+                        path={`${base}/Estados`}
+                        component={EstadosContainer}
+                    />
+                    <Route
+                        path={`${base}/Puesto`}
+                        component={PuestoContainer}
+                    />
+                    <Route path={`${base}/Roles`} component={RolesContainer} />
+                    <Route
+                        path={`${base}/TiposDocumento`}
+                        component={TiposDocContainer}
+                    />
+                    <Route
+                        path={`${base}/PuebloCultura`}
+                        component={PuebloCulturaContainer}
+                    />
+                    <Route
+                        path={`${base}/TerminacionLaboral`}
+                        component={TerminacionLaboralContainer}
+                    />
+                    <Route
+                        path={`${base}/Amonestacion`}
+                        component={AmonestacionContainer}
+                    />
+                    <Route
+                        path={`${base}/Ausencia`}
+                        component={AusenciaContainer}
+                    />
+                    <Route
+                        path={`${base}/CriterioEvaluacion`}
+                        component={CriterioEvaluacionContainer}
+                    />
+                    <Route
+                        path={`${base}/EvaluacionCriterio`}
+                        component={EvaluacionCriterioContainer}
+                    />
 
-          {/* Nuevos */}
-          <Route exact path={`${base}/Empleados`} component={EmpleadosContainer} />
-          <Route exact path={`${base}/HistorialPuesto`} component={HistorialPuestoContainer} />
-          <Route exact path={`${base}/Contratos`} component={ContratosContainer} />
-          <Route exact path={`${base}/Documentos`} component={DocumentosContainer} />
+                    {/* Nuevos */}
+                    <Route
+                        exact
+                        path={`${base}/Empleados`}
+                        component={EmpleadosContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/HistorialPuesto`}
+                        component={HistorialPuestoContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Contratos`}
+                        component={ContratosContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Documentos`}
+                        component={DocumentosContainer}
+                    />
 
-          {/* Blog */}
-          <Route path={`${base}/blog`} component={BlogPage} />
-          <Route path={`${base}/category/:slug`} component={BlogCategory} />
-          <Route path={`${base}/tag/:slug`} component={BlogTag} />
-          <Route path={`${base}/date/:date`} component={BlogDate} />
-          <Route path={`${base}/author/:author`} component={BlogAuthor} />
-          <Route path={`${base}/blog-details/:id`} component={BlogDetailsPage} />
+                    {/* Blog */}
+                    <Route path={`${base}/blog`} component={BlogPage} />
+                    <Route
+                        path={`${base}/category/:slug`}
+                        component={BlogCategory}
+                    />
+                    <Route path={`${base}/tag/:slug`} component={BlogTag} />
+                    <Route path={`${base}/date/:date`} component={BlogDate} />
+                    <Route
+                        path={`${base}/author/:author`}
+                        component={BlogAuthor}
+                    />
+                    <Route
+                        path={`${base}/blog-details/:id`}
+                        component={BlogDetailsPage}
+                    />
 
-          {/* Otros */}
-          <Route path={`${base}/contact`} component={ContactPage} />
-        </Switch>
-      </NavScrollTop>
-    </Router>
-  );
+                    {/* Otros */}
+                    <Route path={`${base}/contact`} component={ContactPage} />
+                </Switch>
+            </NavScrollTop>
+        </Router>
+    );
 };
 
 export default App;
