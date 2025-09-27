@@ -18,17 +18,18 @@ const MainMenu = () => {
                 <li>
                     <NavLink
                         className="main-menu-link"
-                        to={process.env.PUBLIC_URL + "/service"}
+                        to={process.env.PUBLIC_URL + ""}
                     >
-                        Services
+                        Gestion de Datos
                     </NavLink>
                     <ul className="sub-menu">
                         <li>
                             <NavLink
                                 className="sub-menu-link"
-                                to={process.env.PUBLIC_URL + "/service"}
+                                activeClassName="active"
+                                to={process.env.PUBLIC_URL + "/Idiomas"}
                             >
-                                Services
+                                Idiomas
                             </NavLink>
                         </li>
                         <li>

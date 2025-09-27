@@ -22,6 +22,7 @@ import BlogDate from "./templates/blog-date";
 import BlogAuthor from "./templates/blog-author";
 import ContactPage from "./pages/contact";
 import NavScrollTop from "./components/nav-scroll-top";
+import IdiomasContainer from "./components/Idiomas/IdiomasContainer";
 
 const App = () => {
     useEffect(() => {
@@ -47,8 +48,8 @@ const App = () => {
                         component={AboutPage}
                     />
                     <Route
-                        path={`${process.env.PUBLIC_URL + "/service"}`}
-                        component={ServicePage}
+                        path={`${process.env.PUBLIC_URL + "/Idiomas"}`}
+                        component={IdiomasContainer}
                     />
                     <Route
                         path={`${
