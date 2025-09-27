@@ -8,7 +8,7 @@
 from django.db import models
 
 
-class Amonestacion(models.Model):
+class Amonestacion(models.Model): #YA
     idamonestacion = models.AutoField(db_column='idAmonestacion', primary_key=True)  # Field name made lowercase.
     idempleado = models.ForeignKey('Empleado', models.DO_NOTHING, db_column='idEmpleado', blank=True, null=True)  # Field name made lowercase.
     tipo = models.CharField(max_length=20)
@@ -48,7 +48,7 @@ class Aspirante(models.Model):
         db_table = 'aspirante'
 
 
-class Ausencia(models.Model):
+class Ausencia(models.Model): #YA
     idausencia = models.AutoField(db_column='idAusencia', primary_key=True)  # Field name made lowercase.
     idempleado = models.ForeignKey('Empleado', models.DO_NOTHING, db_column='idEmpleado', blank=True, null=True)  # Field name made lowercase.
     tipo = models.CharField(max_length=50)
@@ -84,7 +84,7 @@ class Capacitacion(models.Model):
         db_table = 'capacitacion'
 
 
-class Contrato(models.Model):
+class Contrato(models.Model): #YA
     idcontrato = models.AutoField(db_column='idContrato', primary_key=True)  # Field name made lowercase.
     idhistorialpuesto = models.ForeignKey('Historialpuesto', models.DO_NOTHING, db_column='idHistorialPuesto', blank=True, null=True)  # Field name made lowercase.
     fechainicio = models.DateField(db_column='fechaInicio')  # Field name made lowercase.
@@ -132,7 +132,7 @@ class Criterioevaluacion(models.Model):
         db_table = 'criterioevaluacion'
 
 
-class Documento(models.Model):
+class Documento(models.Model): #YA
     iddocumento = models.AutoField(db_column='idDocumento', primary_key=True)  # Field name made lowercase.
     idtipodocumento = models.ForeignKey('Tipodocumento', models.DO_NOTHING, db_column='idTipoDocumento', blank=True, null=True)  # Field name made lowercase.
     archivo = models.TextField()
@@ -150,7 +150,7 @@ class Documento(models.Model):
         db_table = 'documento'
 
 
-class Empleado(models.Model):
+class Empleado(models.Model): #YA
     idempleado = models.AutoField(db_column='idEmpleado', primary_key=True)  # Field name made lowercase.
     idaspirante = models.ForeignKey(Aspirante, models.DO_NOTHING, db_column='idAspirante', blank=True, null=True)  # Field name made lowercase.
     dpi = models.CharField(max_length=13)
@@ -210,7 +210,7 @@ class Equipo(models.Model):
         db_table = 'equipo'
 
 
-class Estado(models.Model):
+class Estado(models.Model): #YA
     idestado = models.AutoField(db_column='idEstado', primary_key=True)  # Field name made lowercase.
     nombreestado = models.CharField(db_column='nombreEstado', max_length=20)  # Field name made lowercase.
     descripcion = models.CharField(max_length=50)
@@ -257,7 +257,7 @@ class Evaluacioncriterio(models.Model):
         db_table = 'evaluacioncriterio'
 
 
-class Historialpuesto(models.Model):
+class Historialpuesto(models.Model): #YA
     idhistorialpuesto = models.AutoField(db_column='idHistorialPuesto', primary_key=True)  # Field name made lowercase.
     idempleado = models.ForeignKey(Empleado, models.DO_NOTHING, db_column='idEmpleado', blank = True, null = True)  # Field name made lowercase.
     idpuesto = models.ForeignKey('Puesto', models.DO_NOTHING, db_column='idPuesto', blank = True, null = True)  # Field name made lowercase.
@@ -275,7 +275,7 @@ class Historialpuesto(models.Model):
         db_table = 'historialpuesto'
 
 
-class Idioma(models.Model):
+class Idioma(models.Model): #YA
     ididioma = models.AutoField(db_column='idIdioma', primary_key=True)  # Field name made lowercase.
     nombreidioma = models.CharField(db_column='nombreIdioma', max_length=20)  # Field name made lowercase.
     estado = models.BooleanField(default=True)  # This field type is a guess.
@@ -336,7 +336,7 @@ class Postulacion(models.Model):
         db_table = 'postulacion'
 
 
-class Pueblocultura(models.Model):
+class Pueblocultura(models.Model): #Ya
     idpueblocultura = models.AutoField(db_column='idPuebloCultura', primary_key=True)  # Field name made lowercase.
     nombrepueblo = models.CharField(db_column='nombrePueblo', max_length=20)  # Field name made lowercase.
     estado = models.BooleanField(default=True)  # This field type is a guess.
@@ -349,7 +349,7 @@ class Pueblocultura(models.Model):
         db_table = 'pueblocultura'
 
 
-class Puesto(models.Model):
+class Puesto(models.Model): #YA
     idpuesto = models.AutoField(db_column='idPuesto', primary_key=True)  # Field name made lowercase.
     nombrepuesto = models.CharField(db_column='nombrePuesto', max_length=100)  # Field name made lowercase.
     descripcion = models.CharField(max_length=150)
@@ -364,7 +364,7 @@ class Puesto(models.Model):
         db_table = 'puesto'
 
 
-class Rol(models.Model):
+class Rol(models.Model): #YA
     idrol = models.AutoField(db_column='idRol', primary_key=True)  # Field name made lowercase.
     nombrerol = models.CharField(db_column='nombreRol', max_length=100)  # Field name made lowercase.
     descripcion = models.CharField(max_length=150)
@@ -378,7 +378,7 @@ class Rol(models.Model):
         db_table = 'rol'
 
 
-class Terminacionlaboral(models.Model):
+class Terminacionlaboral(models.Model): #YA
     idterminacionlaboral = models.AutoField(db_column='idTerminacionLaboral', primary_key=True)  # Field name made lowercase.
     tipoterminacion = models.CharField(db_column='tipoTerminacion', max_length=20)  # Field name made lowercase.
     fechaterminacion = models.DateField(db_column='fechaTerminacion')  # Field name made lowercase.
@@ -395,8 +395,8 @@ class Terminacionlaboral(models.Model):
         managed=True
         db_table = 'terminacionlaboral'
 
-
-class Tipodocumento(models.Model):
+ 
+class Tipodocumento(models.Model): #YA
     idtipodocumento = models.AutoField(db_column='idTipoDocumento', primary_key=True)  # Field name made lowercase.
     nombretipo = models.CharField(db_column='nombreTipo', max_length=150)  # Field name made lowercase.
     cantidadrepetir = models.IntegerField(db_column='cantidadRepetir', blank=True, null=True)  # Field name made lowercase.

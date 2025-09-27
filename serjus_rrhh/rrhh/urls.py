@@ -4,10 +4,13 @@ from .views import EmpleadocapacitacionViewSet, EvaluacionViewSet, Evaluacioncri
 from .views import (
     AusenciaViewSet, ContratoViewSet, ConvocatoriaViewSet, DocumentoViewSet,
     EquipoViewSet, HistorialpuestoViewSet, IdiomaViewSet,
-    InduccionViewSet, InducciondocumentoViewSet, PuestoViewSet, RolViewSet, TerminacionlaboralViewSet, TipodocumentoViewSet, UsuarioViewSet, EstadoViewSet
+    InduccionViewSet, InducciondocumentoViewSet, PuestoViewSet, RolViewSet, TerminacionlaboralViewSet, TipodocumentoViewSet, UsuarioViewSet, EstadoViewSet, PuebloViewSet,
+    CriterioevaluacionViewSet
 )
 
 router = routers.DefaultRouter()
+router.register(r'criterioevaluacion', CriterioevaluacionViewSet)
+router.register(r'pueblocultura', PuebloViewSet)
 router.register(r'empleados', EmpleadoViewSet)
 router.register(r'amonestaciones', AmonestacionViewSet)
 router.register(r'aspirantes', AspiranteViewSet)

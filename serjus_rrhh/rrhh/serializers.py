@@ -4,8 +4,13 @@ from .models import Capacitacion, Empleadocapacitacion, Evaluacion, Evaluacioncr
 from .models import (
     Ausencia, Contrato, Convocatoria, Documento, 
     Equipo, Historialpuesto, Idioma, 
-    Induccion, Inducciondocumento, Puesto, Rol, Terminacionlaboral, Tipodocumento, Usuario, Estado
+    Induccion, Inducciondocumento, Puesto, Rol, Terminacionlaboral, Tipodocumento, Usuario, Estado, Pueblocultura
 )
+
+class PuebloSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pueblocultura
+        fields = '__all__'
 
 class EmpleadoSerializer(serializers.ModelSerializer):
     class Meta:
