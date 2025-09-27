@@ -7,7 +7,7 @@ from .models import (
     Ausencia, Contrato, Convocatoria, Documento,
     Equipo, Historialpuesto, Idioma,
     Induccion, Inducciondocumento, Puesto, Rol,
-    Terminacionlaboral, Tipodocumento, Usuario, Estado
+    Terminacionlaboral, Tipodocumento, Usuario, Estado, Pueblocultura, Criterioevaluacion
 )
 
 from .serializers import (
@@ -16,8 +16,31 @@ from .serializers import (
     AusenciaSerializer, ContratoSerializer, ConvocatoriaSerializer, DocumentoSerializer,
     EquipoSerializer, HistorialpuestoSerializer, IdiomaSerializer,
     InduccionSerializer, InducciondocumentoSerializer, PuestoSerializer, RolSerializer,
-    TerminacionlaboralSerializer, TipodocumentoSerializer, UsuarioSerializer, EstadoSerializer
+    TerminacionlaboralSerializer, TipodocumentoSerializer, UsuarioSerializer, EstadoSerializer, PuebloSerializer, CriterioevaluacionSerializer
 )
+
+@extend_schema_view(
+    list=extend_schema(tags=["CriterioEvaluacion"]),
+    retrieve=extend_schema(tags=["CriterioEvaluacion"]),
+    update=extend_schema(tags=["CriterioEvaluacion"]),
+    create=extend_schema(tags=["CriterioEvaluacion"]),
+)
+class CriterioevaluacionViewSet(viewsets.ModelViewSet):
+    queryset = Criterioevaluacion.objects.all()
+    serializer_class = CriterioevaluacionSerializer
+    http_method_names = ['get', 'put', 'post']
+
+@extend_schema_view(
+    list=extend_schema(tags=["Pueblo y cultura"]),
+    retrieve=extend_schema(tags=["Pueblo y cultura"]),
+    update=extend_schema(tags=["Pueblo y cultura"]),
+    create=extend_schema(tags=["Pueblo y cultura"]),
+)
+class PuebloViewSet(viewsets.ModelViewSet):
+    queryset = Pueblocultura.objects.all()
+    serializer_class = PuebloSerializer
+    http_method_names = ['get', 'put', 'post']
+
 
 
 # ----------------- Recursos Humanos -----------------
@@ -275,3 +298,5 @@ class IdiomaViewSet(viewsets.ModelViewSet):
     queryset = Idioma.objects.all()
     serializer_class = IdiomaSerializer
     http_method_names = ['get', 'put', 'post']
+    
+
