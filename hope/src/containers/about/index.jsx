@@ -1,270 +1,338 @@
-import React from "react";
-import AboutData from "../../data/about.json";
-import ServiceData from "../../data/service.json";
-import { LightgalleryItem, LightgalleryProvider } from "react-lightgallery";
-import { Link } from "react-router-dom";
-import { flatDeep, slugify, containsObject } from "../../utils";
-import AboutAddress from "../../components/about-address";
+// containers/idiomas/index.jsx
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Layout from "../../layouts/index.jsx";
+import Header from "../../layouts/header";
+import Footer from "../../layouts/footer";
+import ScrollToTop from "../../components/scroll-to-top";
+import SEO from "../../components/seo";
 
-const AboutContainer = () => {
-    const cats = ServiceData.map((item) => {
-        return item.categories;
-    });
-    let singleCatArray = flatDeep(cats);
-    let categories = [];
-    singleCatArray.forEach((cat) => {
-        const obj = {
-            title: cat.trim(),
-            slug: slugify(cat),
-            count: 1,
-        };
-        const objIndex = containsObject(obj, categories);
-        if (objIndex !== -1) {
-            const prevCount = categories[objIndex].count;
-            categories[objIndex] = {
-                title: cat.trim(),
-                slug: slugify(cat),
-                count: prevCount + 1,
-            };
-        } else {
-            categories.push(obj);
+const IdiomasContainer = () => {
+    const [nombreIdioma, setNombreIdioma] = useState("");
+    const [estado, setEstado] = useState(true);
+    const [mensaje, setMensaje] = useState("");
+    const [idiomas, setIdiomas] = useState([]);
+    const [editingId, setEditingId] = useState(null);
+    const [showForm, setShowForm] = useState(true);
+    const [fade, setFade] = useState(true);
+
+    useEffect(() => fetchIdiomas(), []);
+
+    const fetchIdiomas = async () => {
+        try {
+            const res = await axios.get("http://127.0.0.1:8000/api/idiomas/");
+            setIdiomas(res.data);
+        } catch (error) {
+            console.error(error);
         }
-    });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const data = { nombreidioma: nombreIdioma, estado, idusuario: 1 };
+            if (editingId) {
+                await axios.put(
+                    `http://127.0.0.1:8000/api/idiomas/${editingId}/`,
+                    data
+                );
+                setMensaje("Idioma actualizado correctamente");
+            } else {
+                await axios.post("http://127.0.0.1:8000/api/idiomas/", data);
+                setMensaje("Idioma registrado correctamente");
+            }
+            setNombreIdioma("");
+            setEstado(true);
+            setEditingId(null);
+            fetchIdiomas();
+
+            // Pasar a tabla con animación
+            setFade(false);
+            setTimeout(() => {
+                setShowForm(false);
+                setFade(true);
+            }, 300);
+        } catch {
+            setMensaje("Error al registrar el idioma");
+        }
+    };
+
+    const handleEdit = (idioma) => {
+        setNombreIdioma(idioma.nombreidioma);
+        setEstado(idioma.estado);
+        setEditingId(idioma.ididioma);
+
+        // Pasar a formulario con animación
+        setFade(false);
+        setTimeout(() => {
+            setShowForm(true);
+            setFade(true);
+        }, 300);
+    };
+
+    const toggleView = () => {
+        setFade(false);
+        setTimeout(() => {
+            setShowForm(!showForm);
+            setFade(true);
+        }, 300);
+    };
+
     return (
-        <div className="about-area">
-            <div className="container">
-                <div className="row">
-                    <div className="col-lg-12">
-                        <p className="text-pra" data-aos="fade-up">
-                            {AboutData[0].pageTitle}
-                        </p>
+        <Layout>
+            <SEO title="Hope – Idiomas" />
+            <div
+                className="wrapper"
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: "100vh",
+                }}
+            >
+                <Header />
+
+                <main
+                    style={{
+                        flex: 1,
+                        padding: "60px 20px",
+                        background: "#f0f2f5",
+                    }}
+                >
+                    <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+                        {/* Botón alternar */}
                         <div
-                            className="service-list-content"
-                            data-aos="fade-up"
-                            data-aos-duration="1200"
+                            style={{
+                                marginBottom: "20px",
+                                textAlign: "center",
+                            }}
                         >
-                            <h4 className="title">{AboutData[1].title}</h4>
-                            {AboutData[1].excerpt.map((single, i) => {
-                                return (
-                                    <div
-                                        key={i}
-                                        className="desc"
-                                        dangerouslySetInnerHTML={{
-                                            __html: single,
-                                        }}
-                                    />
-                                );
-                            })}
-                            <div
-                                className="service-list"
-                                data-aos="fade-up"
-                                data-aos-duration="1200"
+                            <button
+                                onClick={toggleView}
+                                style={{
+                                    padding: "10px 20px",
+                                    borderRadius: "8px",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    background: "#007bff",
+                                    color: "#fff",
+                                    fontWeight: "600",
+                                }}
                             >
-                                <ul>
-                                    {ServiceData.slice(0, 4).map(
-                                        (single, i) => {
-                                            return (
-                                                <li key={i}>
-                                                    <Link
-                                                        to={
-                                                            process.env
-                                                                .PUBLIC_URL +
-                                                            `/service-details/${slugify(
-                                                                single.id
-                                                            )}`
-                                                        }
-                                                    >
-                                                        {single.title}
-                                                    </Link>
-                                                </li>
-                                            );
-                                        }
-                                    )}
-                                </ul>
-                                <ul>
-                                    {ServiceData.slice(4, 8).map(
-                                        (single, i) => {
-                                            return (
-                                                <li key={i}>
-                                                    <Link
-                                                        to={
-                                                            process.env
-                                                                .PUBLIC_URL +
-                                                            `/service-details/${slugify(
-                                                                single.id
-                                                            )}`
-                                                        }
-                                                    >
-                                                        {single.title}
-                                                    </Link>
-                                                </li>
-                                            );
-                                        }
-                                    )}
-                                </ul>
-                                <ul>
-                                    {ServiceData.slice(0, 4).map(
-                                        (single, i) => {
-                                            return (
-                                                <li key={i}>
-                                                    <Link
-                                                        to={
-                                                            process.env
-                                                                .PUBLIC_URL +
-                                                            `/service-details/${slugify(
-                                                                single.id
-                                                            )}`
-                                                        }
-                                                    >
-                                                        {single.title}
-                                                    </Link>
-                                                </li>
-                                            );
-                                        }
-                                    )}
-                                </ul>
-                            </div>
+                                {showForm
+                                    ? "Ver Tabla de Idiomas"
+                                    : "Registrar Nuevo Idioma"}
+                            </button>
                         </div>
+
+                        {/* 👇 SOLO aquí va la animación */}
                         <div
-                            className="office-center-content"
-                            data-aos="fade-up"
-                            data-aos-duration="1200"
+                            style={{
+                                opacity: fade ? 1 : 0,
+                                transition: "opacity 0.4s",
+                            }}
                         >
-                            <h4 className="title">{AboutData[2].title}</h4>
-                            {AboutData[2].excerpt.map((single, i) => {
-                                return (
-                                    <div
-                                        key={i}
-                                        className="desc"
-                                        dangerouslySetInnerHTML={{
-                                            __html: single,
+                            {showForm ? (
+                                // --- FORMULARIO ---
+                                <div
+                                    style={{
+                                        background: "#fff",
+                                        padding: "40px",
+                                        borderRadius: "12px",
+                                        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                                        marginBottom: "40px",
+                                    }}
+                                >
+                                    <h2
+                                        style={{
+                                            textAlign: "center",
+                                            marginBottom: "30px",
                                         }}
-                                    />
-                                );
-                            })}
-                            <div className="row">
-                                <div className="col-md-6" data-aos="fade-up">
-                                    <div className="gallery-item mb-30">
-                                        <LightgalleryProvider>
-                                            <LightgalleryItem
-                                                group="any"
-                                                src={
-                                                    process.env.PUBLIC_URL +
-                                                    AboutData[3].gallery
-                                                        .imageOne
-                                                }
+                                    >
+                                        {editingId
+                                            ? "Editar idioma"
+                                            : "Registrar un nuevo idioma"}
+                                    </h2>
+                                    {mensaje && (
+                                        <p
+                                            style={{
+                                                textAlign: "center",
+                                                color: mensaje.includes("Error")
+                                                    ? "red"
+                                                    : "green",
+                                                marginBottom: "20px",
+                                                fontWeight: "bold",
+                                            }}
+                                        >
+                                            {mensaje}
+                                        </p>
+                                    )}
+                                    <form onSubmit={handleSubmit}>
+                                        <div style={{ marginBottom: "20px" }}>
+                                            <label
+                                                htmlFor="nombreIdioma"
+                                                style={{
+                                                    display: "block",
+                                                    marginBottom: "8px",
+                                                    fontWeight: "600",
+                                                }}
                                             >
-                                                <div className="thumb">
-                                                    <div className="lightbox-image">
-                                                        <img
-                                                            src={
-                                                                process.env
-                                                                    .PUBLIC_URL +
-                                                                AboutData[3]
-                                                                    .gallery
-                                                                    .imageOne
-                                                            }
-                                                            alt="gallery"
-                                                        />
-                                                    </div>
-                                                    <div className="overlay">
-                                                        <i className="icofont-plus"></i>
-                                                    </div>
-                                                </div>
-                                            </LightgalleryItem>
-                                        </LightgalleryProvider>
-                                    </div>
+                                                Nombre del idioma
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="nombreIdioma"
+                                                value={nombreIdioma}
+                                                onChange={(e) =>
+                                                    setNombreIdioma(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                required
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "12px 15px",
+                                                    borderRadius: "8px",
+                                                    border: "1px solid #ccc",
+                                                    fontSize: "16px",
+                                                }}
+                                            />
+                                        </div>
+                                        <div
+                                            style={{
+                                                marginBottom: "30px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "10px",
+                                            }}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="estado"
+                                                checked={estado}
+                                                onChange={(e) =>
+                                                    setEstado(e.target.checked)
+                                                }
+                                                style={{
+                                                    width: "18px",
+                                                    height: "18px",
+                                                }}
+                                            />
+                                            <label
+                                                htmlFor="estado"
+                                                style={{
+                                                    fontWeight: "600",
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                Activo
+                                            </label>
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            style={{
+                                                width: "100%",
+                                                padding: "12px 0",
+                                                background: "#007bff",
+                                                color: "#fff",
+                                                border: "none",
+                                                borderRadius: "8px",
+                                                fontSize: "16px",
+                                                fontWeight: "600",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            {editingId
+                                                ? "Actualizar Idioma"
+                                                : "Guardar Idioma"}
+                                        </button>
+                                    </form>
                                 </div>
+                            ) : (
+                                // --- TABLA ---
                                 <div
-                                    className="col-md-6"
-                                    data-aos="fade-up"
-                                    data-aos-duration="600"
+                                    style={{
+                                        background: "#fff",
+                                        borderRadius: "12px",
+                                        padding: "20px 30px",
+                                        boxShadow:
+                                            "0 4px 20px rgba(0,0,0,0.08)",
+                                        maxHeight: "600px",
+                                        overflowY: "auto",
+                                    }}
                                 >
-                                    <div className="gallery-item mb-30">
-                                        <LightgalleryProvider>
-                                            <LightgalleryItem
-                                                group="any"
-                                                src={
-                                                    process.env.PUBLIC_URL +
-                                                    AboutData[3].gallery
-                                                        .imageTwo
-                                                }
+                                    <h3
+                                        style={{
+                                            marginBottom: "20px",
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        Idiomas Registrados
+                                    </h3>
+                                    <ul
+                                        style={{
+                                            listStyle: "none",
+                                            padding: 0,
+                                        }}
+                                    >
+                                        {idiomas.map((idioma) => (
+                                            <li
+                                                key={idioma.ididioma}
+                                                style={{
+                                                    display: "flex",
+                                                    justifyContent:
+                                                        "space-between",
+                                                    alignItems: "center",
+                                                    padding: "12px 10px",
+                                                    borderBottom:
+                                                        "1px solid #eee",
+                                                }}
                                             >
-                                                <div className="thumb">
-                                                    <div className="lightbox-image">
-                                                        <img
-                                                            src={
-                                                                process.env
-                                                                    .PUBLIC_URL +
-                                                                AboutData[3]
-                                                                    .gallery
-                                                                    .imageTwo
-                                                            }
-                                                            alt="gallery"
-                                                        />
-                                                    </div>
-                                                    <div className="overlay">
-                                                        <i className="icofont-plus"></i>
-                                                    </div>
-                                                </div>
-                                            </LightgalleryItem>
-                                        </LightgalleryProvider>
-                                    </div>
+                                                <span>
+                                                    {idioma.nombreidioma}{" "}
+                                                    <span
+                                                        style={{
+                                                            color: idioma.estado
+                                                                ? "green"
+                                                                : "red",
+                                                            fontWeight: "600",
+                                                        }}
+                                                    >
+                                                        {idioma.estado
+                                                            ? "(Activo)"
+                                                            : "(Inactivo)"}
+                                                    </span>
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleEdit(idioma)
+                                                    }
+                                                    style={{
+                                                        padding: "5px 12px",
+                                                        background: "#ffc107",
+                                                        color: "#fff",
+                                                        border: "none",
+                                                        borderRadius: "5px",
+                                                        cursor: "pointer",
+                                                        fontSize: "14px",
+                                                    }}
+                                                >
+                                                    Editar
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-                                <div
-                                    className="col-md-12"
-                                    data-aos="fade-up"
-                                    data-aos-duration="1200"
-                                >
-                                    <div className="gallery-item">
-                                        <LightgalleryProvider>
-                                            <LightgalleryItem
-                                                group="any"
-                                                src={
-                                                    process.env.PUBLIC_URL +
-                                                    AboutData[3].gallery
-                                                        .imageThree
-                                                }
-                                            >
-                                                <div className="thumb">
-                                                    <div className="lightbox-image">
-                                                        <img
-                                                            src={
-                                                                process.env
-                                                                    .PUBLIC_URL +
-                                                                AboutData[3]
-                                                                    .gallery
-                                                                    .imageThree
-                                                            }
-                                                            alt="gallery"
-                                                        />
-                                                    </div>
-                                                    <div className="overlay">
-                                                        <i className="icofont-plus"></i>
-                                                    </div>
-                                                </div>
-                                            </LightgalleryItem>
-                                        </LightgalleryProvider>
-                                    </div>
-                                </div>
-                            </div>
-                            <div
-                                className="office-address-content"
-                                data-aos="fade-up"
-                                data-aos-duration="1200"
-                            >
-                                {AboutData[4].address.map((single, i) => {
-                                    return (
-                                        <AboutAddress key={i} data={single} />
-                                    );
-                                })}
-                            </div>
+                            )}
                         </div>
                     </div>
-                </div>
+                </main>
+
+                <Footer />
+                <ScrollToTop />
             </div>
-        </div>
+        </Layout>
     );
 };
 
-export default AboutContainer;
+export default IdiomasContainer;
