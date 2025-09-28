@@ -40,6 +40,12 @@ import EmpleadosContainer from "./containers/empleados";
 import HistorialPuestoContainer from "./containers/historial-puesto";
 import ContratosContainer from "./containers/contratos";
 import DocumentosContainer from "./containers/documentos";
+import AspirantesContainer from "./containers/aspirantes";
+import ConvocatoriasContainer from "./containers/convocatorias";
+import EvaluacionesContainer from "./containers/evaluaciones";
+import EquiposContainer from "./containers/equipos";
+import EmpleadoCapacitacionContainer from "./containers/empleado-capacitacion";
+
 
 const base = process.env.PUBLIC_URL || "";
 
@@ -124,6 +130,31 @@ const App = () => {
                         exact
                         path={`${base}/Documentos`}
                         component={DocumentosContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Aspirantes`}
+                        component={AspirantesContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Convocatorias`}
+                        component={ConvocatoriasContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Evaluaciones`}
+                        component={EvaluacionesContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Equipos`}
+                        component={EquiposContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/EmpleadoCapacitacion`}
+                        component={EmpleadoCapacitacionContainer}
                     />
 
                     {/* Blog */}

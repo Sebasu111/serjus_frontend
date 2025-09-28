@@ -168,6 +168,52 @@ const MainMenu = () => {
             Documentos
           </NavLink>
         </li>
+        <li>
+          <NavLink
+            to={`${base}/Aspirantes`}
+            className="main-menu-link"
+            activeClassName="active"
+          >
+            Aspirantes
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to={`${base}/Convocatorias`}
+            className="main-menu-link"
+            activeClassName="active"
+          >
+            Convocatorias
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to={`${base}/Evaluaciones`}
+            className="main-menu-link"
+            activeClassName="active"
+          >
+            Evaluaciones
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to={`${base}/Equipos`}
+            className="main-menu-link"
+            activeClassName="active"
+          >
+            Equipos
+          </NavLink>
+        </li>
+
+        <li>
+          <NavLink
+            to={`${base}/EmpleadoCapacitacion`}
+            className="main-menu-link"
+            activeClassName="active"
+          >
+            Empleado-Capacitación
+          </NavLink>
+        </li>
 
         <li className="has-submenu">
           <NavLink
