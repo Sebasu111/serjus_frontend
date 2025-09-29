@@ -131,7 +131,7 @@ const MainMenu = () => {
           </ul>
         </li>
 
-        {/* Nuevos */}
+        {/* 1 */}
         <li>
           <NavLink
             to={`${base}/Empleados`}
@@ -168,6 +168,8 @@ const MainMenu = () => {
             Documentos
           </NavLink>
         </li>
+
+        {/* 2 */}
         <li>
           <NavLink
             to={`${base}/Aspirantes`}
@@ -204,7 +206,6 @@ const MainMenu = () => {
             Equipos
           </NavLink>
         </li>
-
         <li>
           <NavLink
             to={`${base}/EmpleadoCapacitacion`}
@@ -212,6 +213,35 @@ const MainMenu = () => {
             activeClassName="active"
           >
             Empleado-Capacitación
+          </NavLink>
+        </li>
+
+        {/* 3 */}
+        <li>
+          <NavLink
+            to={`${base}/Inducciones`}
+            className="main-menu-link"
+            activeClassName="active"
+          >
+            Inducciones
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to={`${base}/InduccionDocumentos`}
+            className="main-menu-link"
+            activeClassName="active"
+          >
+            Inducción
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to={`${base}/Usuarios`}
+            className="main-menu-link"
+            activeClassName="active"
+          >
+            Usuarios
           </NavLink>
         </li>
 

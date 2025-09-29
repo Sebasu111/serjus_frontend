@@ -36,16 +36,23 @@ import AusenciaContainer from "./components/Ausencia/AusenciaContainer";
 import CriterioEvaluacionContainer from "./components/CriterioEvaluacion/CriterioEvaluacionContainer";
 import EvaluacionCriterioContainer from "./components/EvaluacionCriterio/EvaluacionCriterioContainer";
 
+//1
 import EmpleadosContainer from "./containers/empleados";
 import HistorialPuestoContainer from "./containers/historial-puesto";
 import ContratosContainer from "./containers/contratos";
 import DocumentosContainer from "./containers/documentos";
+//2
 import AspirantesContainer from "./containers/aspirantes";
 import ConvocatoriasContainer from "./containers/convocatorias";
 import EvaluacionesContainer from "./containers/evaluaciones";
 import EquiposContainer from "./containers/equipos";
 import EmpleadoCapacitacionContainer from "./containers/empleado-capacitacion";
-
+//3
+import InduccionesContainer from "./containers/inducciones";
+import InduccionDocumentosContainer from "./containers/induccion-documentos";
+import PostulacionesContainer from "./containers/postulaciones";
+import CapacitacionesContainer from "./containers/capacitaciones";
+import UsuariosContainer from "./containers/usuarios";
 
 const base = process.env.PUBLIC_URL || "";
 
@@ -110,7 +117,7 @@ const App = () => {
                         component={EvaluacionCriterioContainer}
                     />
 
-                    {/* Nuevos */}
+                    {/* 1 */}
                     <Route
                         exact
                         path={`${base}/Empleados`}
@@ -131,6 +138,7 @@ const App = () => {
                         path={`${base}/Documentos`}
                         component={DocumentosContainer}
                     />
+                    {/* 2 */}
                     <Route
                         exact
                         path={`${base}/Aspirantes`}
@@ -155,6 +163,22 @@ const App = () => {
                         exact
                         path={`${base}/EmpleadoCapacitacion`}
                         component={EmpleadoCapacitacionContainer}
+                    />
+                    {/* 3 */}
+                    <Route
+                        exact
+                        path={`${base}/Inducciones`}
+                        component={InduccionesContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/InduccionDocumentos`}
+                        component={InduccionDocumentosContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Usuarios`}
+                        component={UsuariosContainer}
                     />
 
                     {/* Blog */}
