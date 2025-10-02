@@ -1,27 +1,5 @@
 [
     {
-        "headerInfo": [
-            {
-                "id": 1,
-                "icon": "icofont-clock-time",
-                "title": "working hours",
-                "info": "MON - FRI: 9.00 - 21.00"
-            },
-            {
-                "id": 2,
-                "icon": "icofont-ui-call",
-                "title": "hotline 24/7",
-                "info": "+0123-45-67-890"
-            },
-            {
-                "id": 3,
-                "icon": "icofont-envelope",
-                "title": "email us",
-                "info": "demo@yourmail.com"
-            }
-        ]
-    },
-    {
         "slider": [
             {
                 "id": 1,
