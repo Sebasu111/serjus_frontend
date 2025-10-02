@@ -24,7 +24,9 @@ const AmonestacionContainer = () => {
 
     const fetchAmonestaciones = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/amonestaciones/");
+            const res = await axios.get(
+                "http://127.0.0.1:8000/api/amonestaciones/"
+            );
             const data = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
@@ -58,7 +60,10 @@ const AmonestacionContainer = () => {
                 );
                 setMensaje("Amonestación actualizada correctamente");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/amonestaciones/", data);
+                await axios.post(
+                    "http://127.0.0.1:8000/api/amonestaciones/",
+                    data
+                );
                 setMensaje("Amonestación registrada correctamente");
             }
 
@@ -73,7 +78,10 @@ const AmonestacionContainer = () => {
 
             fetchAmonestaciones();
         } catch (error) {
-            console.error("Error al guardar amonestación:", error.response?.data || error);
+            console.error(
+                "Error al guardar amonestación:",
+                error.response?.data || error
+            );
             setMensaje("Error al registrar la amonestación");
         }
     };
@@ -90,7 +98,8 @@ const AmonestacionContainer = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de desactivar esta amonestación?")) return;
+        if (!window.confirm("¿Estás seguro de desactivar esta amonestación?"))
+            return;
         try {
             const amon = amonestaciones.find((a) => a.idamonestacion === id);
             if (!amon) return;
@@ -103,7 +112,10 @@ const AmonestacionContainer = () => {
             setMensaje("Amonestación desactivada correctamente");
             fetchAmonestaciones();
         } catch (error) {
-            console.error("Error al desactivar amonestación:", error.response?.data || error);
+            console.error(
+                "Error al desactivar amonestación:",
+                error.response?.data || error
+            );
             setMensaje("Error al desactivar la amonestación");
         }
     };
@@ -121,7 +133,10 @@ const AmonestacionContainer = () => {
             setMensaje("Amonestación activada correctamente");
             fetchAmonestaciones();
         } catch (error) {
-            console.error("Error al activar amonestación:", error.response?.data || error);
+            console.error(
+                "Error al activar amonestación:",
+                error.response?.data || error
+            );
             setMensaje("Error al activar la amonestación");
         }
     };
@@ -131,11 +146,21 @@ const AmonestacionContainer = () => {
             <SEO title="Hope – Amonestaciones" />
             <div
                 className="wrapper"
-                style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: "100vh",
+                }}
             >
                 <Header />
 
-                <main style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5" }}>
+                <main
+                    style={{
+                        flex: 1,
+                        padding: "60px 20px",
+                        background: "#f0f2f5",
+                    }}
+                >
                     <div style={{ maxWidth: "900px", margin: "0 auto" }}>
                         {/* --- FORMULARIO --- */}
                         <div
@@ -147,14 +172,23 @@ const AmonestacionContainer = () => {
                                 marginBottom: "40px",
                             }}
                         >
-                            <h2 style={{ textAlign: "center", marginBottom: "30px" }}>
-                                {editingId ? "Editar Amonestación" : "Registrar nueva Amonestación"}
+                            <h2
+                                style={{
+                                    textAlign: "center",
+                                    marginBottom: "30px",
+                                }}
+                            >
+                                {editingId
+                                    ? "Editar Amonestación"
+                                    : "Registrar nueva Amonestación"}
                             </h2>
                             {mensaje && (
                                 <p
                                     style={{
                                         textAlign: "center",
-                                        color: mensaje.includes("Error") ? "red" : "green",
+                                        color: mensaje.includes("Error")
+                                            ? "red"
+                                            : "green",
                                         marginBottom: "20px",
                                         fontWeight: "bold",
                                     }}
@@ -168,8 +202,13 @@ const AmonestacionContainer = () => {
                                     <input
                                         type="number"
                                         value={idEmpleado}
-                                        onChange={(e) => setIdEmpleado(e.target.value)}
-                                        style={{ width: "100%", padding: "10px" }}
+                                        onChange={(e) =>
+                                            setIdEmpleado(e.target.value)
+                                        }
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
                                     />
                                 </div>
 
@@ -178,9 +217,14 @@ const AmonestacionContainer = () => {
                                     <input
                                         type="text"
                                         value={tipo}
-                                        onChange={(e) => setTipo(e.target.value)}
+                                        onChange={(e) =>
+                                            setTipo(e.target.value)
+                                        }
                                         required
-                                        style={{ width: "100%", padding: "10px" }}
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
                                     />
                                 </div>
 
@@ -189,9 +233,14 @@ const AmonestacionContainer = () => {
                                     <input
                                         type="date"
                                         value={fechaAmonestacion}
-                                        onChange={(e) => setFechaAmonestacion(e.target.value)}
+                                        onChange={(e) =>
+                                            setFechaAmonestacion(e.target.value)
+                                        }
                                         required
-                                        style={{ width: "100%", padding: "10px" }}
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
                                     />
                                 </div>
 
@@ -200,9 +249,14 @@ const AmonestacionContainer = () => {
                                     <input
                                         type="text"
                                         value={motivo}
-                                        onChange={(e) => setMotivo(e.target.value)}
+                                        onChange={(e) =>
+                                            setMotivo(e.target.value)
+                                        }
                                         required
-                                        style={{ width: "100%", padding: "10px" }}
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
                                     />
                                 </div>
 
@@ -211,9 +265,14 @@ const AmonestacionContainer = () => {
                                     <input
                                         type="text"
                                         value={idDocumento}
-                                        onChange={(e) => setIdDocumento(e.target.value)}
+                                        onChange={(e) =>
+                                            setIdDocumento(e.target.value)
+                                        }
                                         required
-                                        style={{ width: "100%", padding: "10px" }}
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
                                     />
                                 </div>
 
@@ -221,7 +280,9 @@ const AmonestacionContainer = () => {
                                     <input
                                         type="checkbox"
                                         checked={estadoActivo}
-                                        onChange={(e) => setEstadoActivo(e.target.checked)}
+                                        onChange={(e) =>
+                                            setEstadoActivo(e.target.checked)
+                                        }
                                     />{" "}
                                     Activo
                                 </div>
@@ -255,48 +316,157 @@ const AmonestacionContainer = () => {
                                 overflowY: "auto",
                             }}
                         >
-                            <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
+                            <h3
+                                style={{
+                                    marginBottom: "20px",
+                                    textAlign: "center",
+                                }}
+                            >
                                 Amonestaciones Registradas
                             </h3>
-                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                            <table
+                                style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                }}
+                            >
                                 <thead>
                                     <tr>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Empleado</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Tipo</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Fecha</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Motivo</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Documento</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Estado</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Acciones</th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
+                                            }}
+                                        >
+                                            Empleado
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
+                                            }}
+                                        >
+                                            Tipo
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
+                                            }}
+                                        >
+                                            Fecha
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
+                                            }}
+                                        >
+                                            Motivo
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
+                                            }}
+                                        >
+                                            Documento
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
+                                            }}
+                                        >
+                                            Estado
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
+                                            }}
+                                        >
+                                            Acciones
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {amonestaciones.length > 0 ? (
                                         amonestaciones.map((a) => (
                                             <tr key={a.idamonestacion}>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
                                                     {a.idempleado || "N/A"}
                                                 </td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{a.tipo}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{a.fechaamonestacion}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{a.motivo}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{a.iddocumento}</td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {a.tipo}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {a.fechaamonestacion}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {a.motivo}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {a.iddocumento}
+                                                </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        color: a.estado ? "green" : "red",
+                                                        color: a.estado
+                                                            ? "green"
+                                                            : "red",
                                                         fontWeight: "600",
                                                     }}
                                                 >
-                                                    {a.estado ? "Activo" : "Inactivo"}
+                                                    {a.estado
+                                                        ? "Activo"
+                                                        : "Inactivo"}
                                                 </td>
-                                                <td style={{ padding: "10px", textAlign: "center" }}>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        textAlign: "center",
+                                                    }}
+                                                >
                                                     <button
-                                                        onClick={() => handleEdit(a)}
+                                                        onClick={() =>
+                                                            handleEdit(a)
+                                                        }
                                                         style={{
                                                             padding: "6px 14px",
-                                                            background: "#ffc107",
+                                                            background:
+                                                                "#ffc107",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
@@ -308,13 +478,20 @@ const AmonestacionContainer = () => {
                                                     </button>
                                                     {a.estado ? (
                                                         <button
-                                                            onClick={() => handleDelete(a.idamonestacion)}
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    a.idamonestacion
+                                                                )
+                                                            }
                                                             style={{
-                                                                padding: "6px 14px",
-                                                                background: "#dc3545",
+                                                                padding:
+                                                                    "6px 14px",
+                                                                background:
+                                                                    "#dc3545",
                                                                 color: "#fff",
                                                                 border: "none",
-                                                                borderRadius: "5px",
+                                                                borderRadius:
+                                                                    "5px",
                                                                 cursor: "pointer",
                                                             }}
                                                         >
@@ -322,13 +499,20 @@ const AmonestacionContainer = () => {
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            onClick={() => handleActivate(a.idamonestacion)}
+                                                            onClick={() =>
+                                                                handleActivate(
+                                                                    a.idamonestacion
+                                                                )
+                                                            }
                                                             style={{
-                                                                padding: "6px 14px",
-                                                                background: "#28a745",
+                                                                padding:
+                                                                    "6px 14px",
+                                                                background:
+                                                                    "#28a745",
                                                                 color: "#fff",
                                                                 border: "none",
-                                                                borderRadius: "5px",
+                                                                borderRadius:
+                                                                    "5px",
                                                                 cursor: "pointer",
                                                             }}
                                                         >
@@ -340,8 +524,15 @@ const AmonestacionContainer = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
-                                                No hay amonestaciones registradas
+                                            <td
+                                                colSpan="7"
+                                                style={{
+                                                    textAlign: "center",
+                                                    padding: "20px",
+                                                }}
+                                            >
+                                                No hay amonestaciones
+                                                registradas
                                             </td>
                                         </tr>
                                     )}
