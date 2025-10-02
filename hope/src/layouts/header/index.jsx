@@ -30,54 +30,6 @@ const Header = () => {
     return (
         <Fragment>
             <header className="header">
-                <div className="header-top d-none d-lg-block">
-                    <div className="container">
-                        <div className="row row-cols-2">
-                            <div className="col">
-                                <p>
-                                    <i className="icofont-google-map"></i>{" "}
-                                    <span>ADDRESS:</span> 568 Elizaberth Str,
-                                    London, UK
-                                </p>
-                            </div>
-                            <div className="col">
-                                <ul className="social-links text-end">
-                                    <li>
-                                        <SocialIcon
-                                            path="https://twitter.com/"
-                                            icon="icofont-twitter"
-                                        />
-                                    </li>
-                                    <li>
-                                        <SocialIcon
-                                            path="https://www.facebook.com/"
-                                            icon="icofont-facebook"
-                                        />
-                                    </li>
-                                    <li>
-                                        <SocialIcon
-                                            path="https://www.instagram.com/"
-                                            icon="icofont-instagram"
-                                        />
-                                    </li>
-                                    <li>
-                                        <SocialIcon
-                                            path="https://rss.com/"
-                                            icon="icofont-rss-feed"
-                                        />
-                                    </li>
-                                    <li>
-                                        <SocialIcon
-                                            path="https://www.youtube.com/"
-                                            icon="icofont-play-alt-1"
-                                        />
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div className={`header-middle mobile-sticky`}>
                     <div className="container">
                         <div className="row">
@@ -101,11 +53,6 @@ const Header = () => {
                                                 }
                                             )}
                                     </ul>
-                                    <Button
-                                        path={process.env.PUBLIC_URL + "/"}
-                                        classOption="book-now-btn d-none d-sm-inline-block d-lg-none"
-                                        text="book an appointment"
-                                    />
                                     <div className="mobile-menu-toggle d-lg-none">
                                         <button
                                             onClick={onCanvasHandler}
@@ -140,11 +87,6 @@ const Header = () => {
                             <div className="col-lg-12">
                                 <div className="d-flex flex-wrap align-items-center justify-content-between">
                                     <MainMenu />
-                                    <Button
-                                        path={process.env.PUBLIC_URL + "/"}
-                                        classOption="book-now-btn"
-                                        text="book an appointment"
-                                    />
                                 </div>
                             </div>
                         </div>
@@ -161,11 +103,6 @@ const Header = () => {
                             <div className="col-lg-12">
                                 <div className="d-flex flex-wrap align-items-center justify-content-between">
                                     <MainMenu />
-                                    <Button
-                                        path={process.env.PUBLIC_URL + "/"}
-                                        classOption="book-now-btn"
-                                        text="book an appointment"
-                                    />
                                 </div>
                             </div>
                         </div>

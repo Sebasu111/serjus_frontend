@@ -1,5 +1,5 @@
 .header {
-    background: #8f1b1b;
+    background: #1b488f;
 }
 
 // header top
@@ -152,7 +152,7 @@
     color: #fff;
     text-transform: uppercase;
     padding: 15px 30px;
-    background: #6d0101;
+    background: #1b488f;
     display: inline-block;
 
     &:hover {
@@ -286,7 +286,7 @@
         li {
             .main-menu-link {
                 &:hover {
-                    color: #6d0101;
+                    color: #1b488f;
                 }
 
                 &::before {
@@ -295,7 +295,7 @@
                     left: 0;
                     width: 0%;
                     height: 2px;
-                    background: #6d0101;
+                    background: #1b488f;
                     content: "";
                     transition: all 0.3s;
                 }
@@ -304,7 +304,7 @@
             &.active,
             &:hover {
                 .main-menu-link {
-                    color: #6d0101;
+                    color: #1b488f;
 
                     &::before {
                         width: 100%;

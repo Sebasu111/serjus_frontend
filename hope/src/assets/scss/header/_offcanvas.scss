@@ -127,7 +127,7 @@ body {
                 line-height: 30px;
                 color: $color-dark;
                 &:hover {
-                    color: #6d0101;
+                    color: #1b488f;
                 }
             }
             .offcanvas-submenu {
@@ -229,11 +229,11 @@ body {
 .offcanvas-social {
     a {
         color: $color-white;
-        background: #6d0101;
+        background: #1b488f;
         &:hover {
             background: transparent;
-            color: #6d0101;
-            border-color: #6d0101 !important;
+            color: #1b488f;
+            border-color: #1b488f !important;
         }
     }
 }

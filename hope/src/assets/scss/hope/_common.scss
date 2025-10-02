@@ -54,7 +54,7 @@
             font-size: 25px;
         }
         span {
-            color: #8f1b1b;
+            color: #1b488f;
             font-weight: $font-weight-bold;
         }
     }
@@ -208,8 +208,8 @@
 /*-------- Button Style Css --------*/
 
 .btn-theme {
-    background-color: #8f1b1b;
-    border-color: #8f1b1b;
+    background-color: #1b488f;
+    border-color: #1b488f;
     border-radius: 0;
     color: $white;
     display: inline-block;
@@ -233,8 +233,8 @@
 
     &:hover,
     &:focus {
-        background-color: #8f1b1b;
-        border-color: #8f1b1b;
+        background-color: #1b488f;
+        border-color: #1b488f;
         color: $white;
     }
 
