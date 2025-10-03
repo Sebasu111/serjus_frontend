@@ -1,12 +1,15 @@
+from django.urls import path, include
 from rest_framework import routers
-from .views import EmpleadoViewSet, AmonestacionViewSet, AspiranteViewSet
-from .views import EmpleadocapacitacionViewSet, EvaluacionViewSet, EvaluacioncriterioViewSet
 from .views import (
+    EmpleadoViewSet, AmonestacionViewSet, AspiranteViewSet,
+    EmpleadocapacitacionViewSet, EvaluacionViewSet, EvaluacioncriterioViewSet,
     AusenciaViewSet, ContratoViewSet, ConvocatoriaViewSet, DocumentoViewSet,
     EquipoViewSet, HistorialpuestoViewSet, IdiomaViewSet,
-    InduccionViewSet, InducciondocumentoViewSet, PuestoViewSet, RolViewSet, TerminacionlaboralViewSet, TipodocumentoViewSet, UsuarioViewSet, EstadoViewSet, PuebloViewSet,
-    CriterioevaluacionViewSet
+    InduccionViewSet, InducciondocumentoViewSet, PuestoViewSet, RolViewSet, 
+    TerminacionlaboralViewSet, TipodocumentoViewSet, UsuarioViewSet, EstadoViewSet, 
+    PuebloViewSet, CriterioevaluacionViewSet,
 )
+from .viewspersonalizadas import  login_usuario  
 
 router = routers.DefaultRouter()
 router.register(r'criterioevaluacion', CriterioevaluacionViewSet)
@@ -33,4 +36,7 @@ router.register(r'tipodocumento', TipodocumentoViewSet)
 router.register(r'usuarios', UsuarioViewSet)
 router.register(r'estados', EstadoViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),  
+    path('login/', login_usuario),   
+]

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Empleado, Amonestacion, Aspirante
+from django.contrib.auth.hashers import make_password
 from .models import Capacitacion, Empleadocapacitacion, Evaluacion, Evaluacioncriterio, Criterioevaluacion, Postulacion
 from .models import (
     Ausencia, Contrato, Convocatoria, Documento, 
@@ -125,7 +126,26 @@ class TipodocumentoSerializer(serializers.ModelSerializer):
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = '__all__'  
+        fields = '__all__'
+        extra_kwargs = {
+            'contrasena': {'required': False}, 
+        }
+
+    def create(self, validated_data):
+        if 'contrasena' in validated_data:
+            validated_data['contrasena'] = make_password(validated_data['contrasena'])
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        contrasena = validated_data.pop('contrasena', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        if contrasena:
+            instance.contrasena = make_password(contrasena)
+
+        instance.save()
+        return instance
 
 class EstadoSerializer(serializers.ModelSerializer):
     class Meta:
