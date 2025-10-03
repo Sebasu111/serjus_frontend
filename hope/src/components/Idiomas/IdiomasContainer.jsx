@@ -43,11 +43,15 @@ const IdiomasContainer = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Obtener idUsuario desde sessionStorage
+            const idUsuario = sessionStorage.getItem("idUsuario");
+
             const data = {
                 nombreidioma: nombreIdioma,
                 estado: true,
-                idusuario: 1,
+                idusuario: idUsuario,
             };
+
             if (editingId) {
                 await axios.put(
                     `http://127.0.0.1:8000/api/idiomas/${editingId}/`,
@@ -58,6 +62,7 @@ const IdiomasContainer = () => {
                 await axios.post("http://127.0.0.1:8000/api/idiomas/", data);
                 setMensaje("Idioma registrado correctamente");
             }
+
             setNombreIdioma("");
             setEditingId(null);
             setIdiomaActivoEditando(true);
@@ -80,7 +85,6 @@ const IdiomasContainer = () => {
         setMostrarFormulario(true);
     };
 
-    // Validación: solo letras y espacios
     const handleNombreChange = (e) => {
         const regex = /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]*$/;
         if (regex.test(e.target.value)) {
@@ -95,10 +99,12 @@ const IdiomasContainer = () => {
             const idioma = idiomas.find((i) => i.ididioma === id);
             if (!idioma) return;
 
+            const idUsuario = sessionStorage.getItem("idUsuario");
+
             await axios.put(`http://127.0.0.1:8000/api/idiomas/${id}/`, {
                 nombreidioma: idioma.nombreidioma,
                 estado: false,
-                idusuario: idioma.idusuario,
+                idusuario: idUsuario,
             });
 
             setMensaje("Idioma desactivado correctamente");
@@ -115,10 +121,12 @@ const IdiomasContainer = () => {
             const idioma = idiomas.find((i) => i.ididioma === id);
             if (!idioma) return;
 
+            const idUsuario = sessionStorage.getItem("idUsuario");
+
             await axios.put(`http://127.0.0.1:8000/api/idiomas/${id}/`, {
                 nombreidioma: idioma.nombreidioma,
                 estado: true,
-                idusuario: idioma.idusuario,
+                idusuario: idUsuario,
             });
 
             setMensaje("Idioma activado correctamente");
@@ -217,7 +225,7 @@ const IdiomasContainer = () => {
                                     const value = Number(e.target.value);
                                     setElementosPorPagina(
                                         value > 0 ? value : 1
-                                    ); // nunca menos de 1
+                                    );
                                     setPaginaActual(1);
                                 }}
                                 style={{

@@ -15,6 +15,7 @@ import "lightgallery.js/dist/css/lightgallery.css";
 
 // Páginas principales
 import HomePage from "./pages/index";
+import LoginPage from "./pages/LoginPage"; 
 import AboutPage from "./pages/about";
 import ServicePage from "./pages/service";
 import ContactPage from "./pages/contact";
@@ -43,6 +44,7 @@ import AmonestacionContainer from "./components/Amonestacion/AmonestacionContain
 import AusenciaContainer from "./components/Ausencia/AusenciaContainer";
 import CriterioEvaluacionContainer from "./components/CriterioEvaluacion/CriterioEvaluacionContainer";
 import EvaluacionCriterioContainer from "./components/EvaluacionCriterio/EvaluacionCriterioContainer";
+import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 
 // Gestión de empleados
 import EmpleadosContainer from "./containers/empleados";
@@ -67,73 +69,41 @@ const App = () => {
         <Router>
             <NavScrollTop>
                 <Switch>
-                    {/* Páginas principales */}
-                    <Route exact path={`${base}/`} component={HomePage} />
+                    {/* Página inicial: Login */}
+                    <Route exact path={`${base}/`} component={LoginPage} />
+
+                    {/* HomePage movido a /home */}
+                    <Route path={`${base}/home`} component={HomePage} />
+                    <Route path={`${base}/about`} component={AboutPage} />
+                    <Route path={`${base}/service`} component={ServicePage} />
+                    <Route path={`${base}/contact`} component={ContactPage} />
+                    <Route path={`${base}/blog`} component={BlogPage} />
+                    <Route path={`${base}/service-details/:id`} component={ServiceDetails} />
+                    <Route path={`${base}/blog-details/:id`} component={BlogDetailsPage} />
+                    <Route path={`${base}/category/:slug`} component={BlogCategory} />
+                    <Route path={`${base}/tag/:slug`} component={BlogTag} />
+                    <Route path={`${base}/date/:date`} component={BlogDate} />
+                    <Route path={`${base}/author/:author`} component={BlogAuthor} />
 
                     {/* Gestión de catálogos */}
-                    <Route
-                        path={`${base}/Idiomas`}
-                        component={IdiomasContainer}
-                    />
-                    <Route
-                        path={`${base}/Estados`}
-                        component={EstadosContainer}
-                    />
-                    <Route
-                        path={`${base}/Puesto`}
-                        component={PuestoContainer}
-                    />
+                    <Route path={`${base}/Idiomas`} component={IdiomasContainer} />
+                    <Route path={`${base}/Estados`} component={EstadosContainer} />
+                    <Route path={`${base}/Puesto`} component={PuestoContainer} />
                     <Route path={`${base}/Roles`} component={RolesContainer} />
-                    <Route
-                        path={`${base}/TiposDocumento`}
-                        component={TiposDocContainer}
-                    />
-                    <Route
-                        path={`${base}/PuebloCultura`}
-                        component={PuebloCulturaContainer}
-                    />
-                    <Route
-                        path={`${base}/TerminacionLaboral`}
-                        component={TerminacionLaboralContainer}
-                    />
-                    <Route
-                        path={`${base}/Amonestacion`}
-                        component={AmonestacionContainer}
-                    />
-                    <Route
-                        path={`${base}/Ausencia`}
-                        component={AusenciaContainer}
-                    />
-                    <Route
-                        path={`${base}/CriterioEvaluacion`}
-                        component={CriterioEvaluacionContainer}
-                    />
-                    <Route
-                        path={`${base}/EvaluacionCriterio`}
-                        component={EvaluacionCriterioContainer}
-                    />
+                    <Route path={`${base}/TiposDocumento`} component={TiposDocContainer} />
+                    <Route path={`${base}/PuebloCultura`} component={PuebloCulturaContainer} />
+                    <Route path={`${base}/TerminacionLaboral`} component={TerminacionLaboralContainer} />
+                    <Route path={`${base}/Amonestacion`} component={AmonestacionContainer} />
+                    <Route path={`${base}/Ausencia`} component={AusenciaContainer} />
+                    <Route path={`${base}/CriterioEvaluacion`} component={CriterioEvaluacionContainer} />
+                    <Route path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} />
 
                     {/* Gestión de empleados */}
-                    <Route
-                        exact
-                        path={`${base}/Empleados`}
-                        component={EmpleadosContainer}
-                    />
-                    <Route
-                        exact
-                        path={`${base}/HistorialPuesto`}
-                        component={HistorialPuestoContainer}
-                    />
-                    <Route
-                        exact
-                        path={`${base}/Contratos`}
-                        component={ContratosContainer}
-                    />
-                    <Route
-                        exact
-                        path={`${base}/Documentos`}
-                        component={DocumentosContainer}
-                    />
+                    <Route exact path={`${base}/Usuarios`} component={UsuariosContainer} />
+                    <Route exact path={`${base}/Empleados`} component={EmpleadosContainer} />
+                    <Route exact path={`${base}/HistorialPuesto`} component={HistorialPuestoContainer} />
+                    <Route exact path={`${base}/Contratos`} component={ContratosContainer} />
+                    <Route exact path={`${base}/Documentos`} component={DocumentosContainer} />
                 </Switch>
             </NavScrollTop>
         </Router>
