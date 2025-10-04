@@ -4,6 +4,7 @@ import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
+import SidebarMenu from "../../components/menu/main-menu/index.jsx"; // tu sidebar lateral
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 
@@ -43,9 +44,7 @@ const IdiomasContainer = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Obtener idUsuario desde sessionStorage
             const idUsuario = sessionStorage.getItem("idUsuario");
-
             const data = {
                 nombreidioma: nombreIdioma,
                 estado: true,
@@ -92,7 +91,6 @@ const IdiomasContainer = () => {
         }
     };
 
-    // Borrado lógico (desactivar)
     const handleDelete = async (id) => {
         if (!window.confirm("¿Estás seguro de desactivar este idioma?")) return;
         try {
@@ -115,7 +113,6 @@ const IdiomasContainer = () => {
         }
     };
 
-    // Activar idioma
     const handleActivate = async (id) => {
         try {
             const idioma = idiomas.find((i) => i.ididioma === id);
@@ -137,7 +134,6 @@ const IdiomasContainer = () => {
         }
     };
 
-    // --- FILTRO + PAGINACIÓN ---
     const idiomasFiltrados = idiomas.filter((i) =>
         i.nombreidioma.toLowerCase().includes(busqueda.toLowerCase())
     );
@@ -153,332 +149,357 @@ const IdiomasContainer = () => {
         <Layout>
             <SEO title="Hope – Idiomas" />
             <div
-                className="wrapper"
                 style={{
                     display: "flex",
-                    flexDirection: "column",
                     minHeight: "100vh",
                 }}
             >
-                <Header />
-                <main
+                {/* Sidebar lateral */}
+                <SidebarMenu />
+
+                {/* Contenedor principal: header + main + footer */}
+                <div
                     style={{
                         flex: 1,
-                        padding: "40px 20px",
-                        background: "#f0f2f5",
+                        display: "flex",
+                        flexDirection: "column",
                     }}
                 >
-                    <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-                        <h2
-                            style={{
-                                marginBottom: "20px",
-                                textAlign: "center",
-                            }}
-                        >
-                            Idiomas Registrados
-                        </h2>
+                    <Header />
 
-                        {mensaje && (
-                            <p
+                    <main
+                        style={{
+                            flex: 1,
+                            padding: "40px 20px",
+                            background: "#f0f2f5",
+                        }}
+                    >
+                        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+                            <h2
                                 style={{
-                                    textAlign: "center",
-                                    color: mensaje.includes("Error")
-                                        ? "red"
-                                        : "green",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                {mensaje}
-                            </p>
-                        )}
-
-                        {/* --- BUSCADOR Y INPUT PARA LÍMITE --- */}
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                marginBottom: "15px",
-                            }}
-                        >
-                            <input
-                                type="text"
-                                placeholder="Buscar idioma..."
-                                value={busqueda}
-                                onChange={(e) => {
-                                    setBusqueda(e.target.value);
-                                    setPaginaActual(1); // reset página al buscar
-                                }}
-                                style={{
-                                    flex: 1,
-                                    padding: "10px",
-                                    borderRadius: "6px",
-                                    border: "1px solid #ccc",
-                                    marginRight: "10px",
-                                }}
-                            />
-
-                            <input
-                                type="number"
-                                min="1"
-                                value={elementosPorPagina}
-                                onChange={(e) => {
-                                    const value = Number(e.target.value);
-                                    setElementosPorPagina(
-                                        value > 0 ? value : 1
-                                    );
-                                    setPaginaActual(1);
-                                }}
-                                style={{
-                                    width: "80px",
-                                    padding: "10px",
-                                    borderRadius: "6px",
-                                    border: "1px solid #ccc",
+                                    marginBottom: "20px",
                                     textAlign: "center",
                                 }}
-                            />
-                        </div>
-
-                        {/* --- TABLA --- */}
-                        <div
-                            style={{
-                                background: "#fff",
-                                borderRadius: "12px",
-                                padding: "20px 30px",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                            }}
-                        >
-                            <table
-                                style={{
-                                    width: "100%",
-                                    borderCollapse: "collapse",
-                                }}
                             >
-                                <thead>
-                                    <tr>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
-                                                textAlign: "left",
-                                            }}
-                                        >
-                                            Nombre
-                                        </th>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
-                                                textAlign: "center",
-                                            }}
-                                        >
-                                            Estado
-                                        </th>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
-                                                textAlign: "center",
-                                            }}
-                                        >
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {idiomasPaginados.length > 0 ? (
-                                        idiomasPaginados.map((idioma) => (
-                                            <tr key={idioma.ididioma}>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {idioma.nombreidioma}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        textAlign: "center",
-                                                        color: idioma.estado
-                                                            ? "green"
-                                                            : "red",
-                                                        fontWeight: "600",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {idioma.estado
-                                                        ? "Activo"
-                                                        : "Inactivo"}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        textAlign: "center",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    <button
-                                                        onClick={() =>
-                                                            handleEdit(idioma)
-                                                        }
-                                                        disabled={
-                                                            !idioma.estado
-                                                        }
-                                                        style={{
-                                                            padding: "6px 14px",
-                                                            background:
-                                                                idioma.estado
-                                                                    ? "#0054fd"
-                                                                    : "#6c757d",
-                                                            color: "#fff",
-                                                            border: "none",
-                                                            borderRadius: "5px",
-                                                            cursor: idioma.estado
-                                                                ? "pointer"
-                                                                : "not-allowed",
-                                                            marginRight: "6px",
-                                                        }}
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    {idioma.estado ? (
-                                                        <button
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    idioma.ididioma
-                                                                )
-                                                            }
-                                                            style={{
-                                                                padding:
-                                                                    "6px 14px",
-                                                                background:
-                                                                    "#dc3545",
-                                                                color: "#fff",
-                                                                border: "none",
-                                                                borderRadius:
-                                                                    "5px",
-                                                            }}
-                                                        >
-                                                            Eliminar
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() =>
-                                                                handleActivate(
-                                                                    idioma.ididioma
-                                                                )
-                                                            }
-                                                            style={{
-                                                                padding:
-                                                                    "6px 14px",
-                                                                background:
-                                                                    "#28a745",
-                                                                color: "#fff",
-                                                                border: "none",
-                                                                borderRadius:
-                                                                    "5px",
-                                                            }}
-                                                        >
-                                                            Activar
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td
-                                                colSpan="3"
-                                                style={{
-                                                    textAlign: "center",
-                                                    padding: "20px",
-                                                }}
-                                            >
-                                                No hay idiomas registrados
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                Idiomas Registrados
+                            </h2>
 
-                            {/* --- PAGINACIÓN --- */}
-                            {totalPaginas > 1 && (
-                                <div
+                            {mensaje && (
+                                <p
                                     style={{
-                                        marginTop: "20px",
                                         textAlign: "center",
+                                        color: mensaje.includes("Error")
+                                            ? "red"
+                                            : "green",
+                                        fontWeight: "bold",
                                     }}
                                 >
-                                    {Array.from(
-                                        { length: totalPaginas },
-                                        (_, i) => (
-                                            <button
-                                                key={i + 1}
-                                                onClick={() =>
-                                                    setPaginaActual(i + 1)
-                                                }
+                                    {mensaje}
+                                </p>
+                            )}
+
+                            {/* BUSCADOR Y INPUT PARA LÍMITE */}
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    marginBottom: "15px",
+                                }}
+                            >
+                                <input
+                                    type="text"
+                                    placeholder="Buscar idioma..."
+                                    value={busqueda}
+                                    onChange={(e) => {
+                                        setBusqueda(e.target.value);
+                                        setPaginaActual(1);
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        marginRight: "10px",
+                                    }}
+                                />
+
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={elementosPorPagina}
+                                    onChange={(e) => {
+                                        const value = Number(e.target.value);
+                                        setElementosPorPagina(
+                                            value > 0 ? value : 1
+                                        );
+                                        setPaginaActual(1);
+                                    }}
+                                    style={{
+                                        width: "80px",
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        textAlign: "center",
+                                    }}
+                                />
+                            </div>
+
+                            {/* TABLA */}
+                            <div
+                                style={{
+                                    background: "#fff",
+                                    borderRadius: "12px",
+                                    padding: "20px 30px",
+                                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                }}
+                            >
+                                <table
+                                    style={{
+                                        width: "100%",
+                                        borderCollapse: "collapse",
+                                    }}
+                                >
+                                    <thead>
+                                        <tr>
+                                            <th
                                                 style={{
-                                                    margin: "0 5px",
-                                                    padding: "6px 12px",
-                                                    border: "1px solid #007bff",
-                                                    background:
-                                                        paginaActual === i + 1
-                                                            ? "#007bff"
-                                                            : "#fff",
-                                                    color:
-                                                        paginaActual === i + 1
-                                                            ? "#fff"
-                                                            : "#007bff",
-                                                    borderRadius: "5px",
-                                                    cursor: "pointer",
+                                                    borderBottom:
+                                                        "2px solid #eee",
+                                                    padding: "10px",
+                                                    textAlign: "left",
                                                 }}
                                             >
-                                                {i + 1}
-                                            </button>
-                                        )
-                                    )}
-                                </div>
-                            )}
+                                                Nombre
+                                            </th>
+                                            <th
+                                                style={{
+                                                    borderBottom:
+                                                        "2px solid #eee",
+                                                    padding: "10px",
+                                                    textAlign: "center",
+                                                }}
+                                            >
+                                                Estado
+                                            </th>
+                                            <th
+                                                style={{
+                                                    borderBottom:
+                                                        "2px solid #eee",
+                                                    padding: "10px",
+                                                    textAlign: "center",
+                                                }}
+                                            >
+                                                Acciones
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {idiomasPaginados.length > 0 ? (
+                                            idiomasPaginados.map((idioma) => (
+                                                <tr key={idioma.ididioma}>
+                                                    <td
+                                                        style={{
+                                                            padding: "10px",
+                                                            borderBottom:
+                                                                "1px solid #f0f0f0",
+                                                        }}
+                                                    >
+                                                        {idioma.nombreidioma}
+                                                    </td>
+                                                    <td
+                                                        style={{
+                                                            padding: "10px",
+                                                            textAlign: "center",
+                                                            color: idioma.estado
+                                                                ? "green"
+                                                                : "red",
+                                                            fontWeight: "600",
+                                                            borderBottom:
+                                                                "1px solid #f0f0f0",
+                                                        }}
+                                                    >
+                                                        {idioma.estado
+                                                            ? "Activo"
+                                                            : "Inactivo"}
+                                                    </td>
+                                                    <td
+                                                        style={{
+                                                            padding: "10px",
+                                                            textAlign: "center",
+                                                            borderBottom:
+                                                                "1px solid #f0f0f0",
+                                                        }}
+                                                    >
+                                                        <button
+                                                            onClick={() =>
+                                                                handleEdit(
+                                                                    idioma
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !idioma.estado
+                                                            }
+                                                            style={{
+                                                                padding:
+                                                                    "6px 14px",
+                                                                background:
+                                                                    idioma.estado
+                                                                        ? "#0054fd"
+                                                                        : "#6c757d",
+                                                                color: "#fff",
+                                                                border: "none",
+                                                                borderRadius:
+                                                                    "5px",
+                                                                cursor: idioma.estado
+                                                                    ? "pointer"
+                                                                    : "not-allowed",
+                                                                marginRight:
+                                                                    "6px",
+                                                            }}
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                        {idioma.estado ? (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        idioma.ididioma
+                                                                    )
+                                                                }
+                                                                style={{
+                                                                    padding:
+                                                                        "6px 14px",
+                                                                    background:
+                                                                        "#dc3545",
+                                                                    color: "#fff",
+                                                                    border: "none",
+                                                                    borderRadius:
+                                                                        "5px",
+                                                                }}
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleActivate(
+                                                                        idioma.ididioma
+                                                                    )
+                                                                }
+                                                                style={{
+                                                                    padding:
+                                                                        "6px 14px",
+                                                                    background:
+                                                                        "#28a745",
+                                                                    color: "#fff",
+                                                                    border: "none",
+                                                                    borderRadius:
+                                                                        "5px",
+                                                                }}
+                                                            >
+                                                                Activar
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td
+                                                    colSpan="3"
+                                                    style={{
+                                                        textAlign: "center",
+                                                        padding: "20px",
+                                                    }}
+                                                >
+                                                    No hay idiomas registrados
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+
+                                {/* PAGINACIÓN */}
+                                {totalPaginas > 1 && (
+                                    <div
+                                        style={{
+                                            marginTop: "20px",
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        {Array.from(
+                                            { length: totalPaginas },
+                                            (_, i) => (
+                                                <button
+                                                    key={i + 1}
+                                                    onClick={() =>
+                                                        setPaginaActual(i + 1)
+                                                    }
+                                                    style={{
+                                                        margin: "0 5px",
+                                                        padding: "6px 12px",
+                                                        border: "1px solid #007bff",
+                                                        background:
+                                                            paginaActual ===
+                                                            i + 1
+                                                                ? "#007bff"
+                                                                : "#fff",
+                                                        color:
+                                                            paginaActual ===
+                                                            i + 1
+                                                                ? "#fff"
+                                                                : "#007bff",
+                                                        borderRadius: "5px",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    {i + 1}
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* BOTÓN NUEVO */}
+                            <button
+                                onClick={() => setMostrarFormulario(true)}
+                                style={{
+                                    marginTop: "20px",
+                                    padding: "12px 20px",
+                                    background: "#007bff",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontWeight: "600",
+                                }}
+                            >
+                                Nuevo Idioma
+                            </button>
                         </div>
+                    </main>
 
-                        {/* --- BOTÓN NUEVO --- */}
-                        <button
-                            onClick={() => setMostrarFormulario(true)}
-                            style={{
-                                marginTop: "20px",
-                                padding: "12px 20px",
-                                background: "#007bff",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "8px",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                            }}
-                        >
-                            Nuevo Idioma
-                        </button>
-                    </div>
-                </main>
+                    <Footer />
+                </div>
 
-                {/* --- MODAL LATERAL --- */}
+                {/* MODAL LATERAL */}
                 {mostrarFormulario && (
                     <div
                         style={{
                             position: "fixed",
-                            top: 0,
-                            left: 0,
-                            bottom: 0,
-                            width: "350px",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            width: "400px",
+                            maxWidth: "90%",
                             background: "#fff",
-                            boxShadow: "2px 0 15px rgba(0,0,0,0.2)",
+                            boxShadow: "0 0 20px rgba(0,0,0,0.2)",
                             padding: "30px",
                             zIndex: 1000,
                             display: "flex",
                             flexDirection: "column",
+                            borderRadius: "12px",
                         }}
                     >
                         <h3
@@ -552,7 +573,6 @@ const IdiomasContainer = () => {
                     </div>
                 )}
 
-                <Footer />
                 <ScrollToTop />
             </div>
         </Layout>

@@ -15,7 +15,7 @@ import "lightgallery.js/dist/css/lightgallery.css";
 
 // Páginas principales
 import HomePage from "./pages/index";
-import LoginPage from "./pages/LoginPage"; 
+import LoginPage from "./pages/LoginPage";
 import AboutPage from "./pages/about";
 import ServicePage from "./pages/service";
 import ContactPage from "./pages/contact";
@@ -95,7 +95,6 @@ import TerminacionLaboralContainer from "./components/TerminacionLaboral/Termina
 // =============================================================
 import DocumentosContainer from "./containers/documentos";
 
-
 // =============================================================
 // APP PRINCIPAL
 // =============================================================
@@ -103,93 +102,167 @@ import DocumentosContainer from "./containers/documentos";
 const base = process.env.PUBLIC_URL || "";
 
 const App = () => {
-  useEffect(() => {
-    AOS.init({
-      offset: 80,
-      duration: 1000,
-      once: true,
-      easing: "ease",
-    });
-    AOS.refresh();
-  }, []);
+    useEffect(() => {
+        AOS.init({
+            offset: 80,
+            duration: 1000,
+            once: true,
+            easing: "ease",
+        });
+        AOS.refresh();
+    }, []);
 
-  return (
-    <Router>
-      <NavScrollTop>
-        <Switch>
-
-          {/* ==============================
+    return (
+        <Router>
+            <NavScrollTop>
+                <Switch>
+                    {/* ==============================
               PÁGINAS PÚBLICAS
           ===============================*/}
-          <Route exact path={`${base}/`} component={LoginPage} />
-          <Route path={`${base}/home`} component={HomePage} />
-          <Route path={`${base}/about`} component={AboutPage} />
-          <Route path={`${base}/service`} component={ServicePage} />
-          <Route path={`${base}/contact`} component={ContactPage} />
-          <Route path={`${base}/blog`} component={BlogPage} />
+                    <Route exact path={`${base}/`} component={LoginPage} />
+                    <Route path={`${base}/home`} component={HomePage} />
+                    <Route path={`${base}/about`} component={AboutPage} />
+                    <Route path={`${base}/service`} component={ServicePage} />
+                    <Route path={`${base}/contact`} component={ContactPage} />
+                    <Route path={`${base}/blog`} component={BlogPage} />
 
-          {/* Templates */}
-          <Route path={`${base}/service-details/:id`} component={ServiceDetails} />
-          <Route path={`${base}/blog-details/:id`} component={BlogDetailsPage} />
-          <Route path={`${base}/category/:slug`} component={BlogCategory} />
-          <Route path={`${base}/tag/:slug`} component={BlogTag} />
-          <Route path={`${base}/date/:date`} component={BlogDate} />
-          <Route path={`${base}/author/:author`} component={BlogAuthor} />
+                    {/* Templates */}
+                    <Route
+                        path={`${base}/service-details/:id`}
+                        component={ServiceDetails}
+                    />
+                    <Route
+                        path={`${base}/blog-details/:id`}
+                        component={BlogDetailsPage}
+                    />
+                    <Route
+                        path={`${base}/category/:slug`}
+                        component={BlogCategory}
+                    />
+                    <Route path={`${base}/tag/:slug`} component={BlogTag} />
+                    <Route path={`${base}/date/:date`} component={BlogDate} />
+                    <Route
+                        path={`${base}/author/:author`}
+                        component={BlogAuthor}
+                    />
 
-          {/* ==============================
+                    {/* ==============================
               PERSONAL
           ===============================*/}
-          <Route exact path={`${base}/Empleados`} component={EmpleadosContainer} />
-          <Route exact path={`${base}/Contratos`} component={ContratosContainer} />
-          <Route exact path={`${base}/HistorialPuesto`} component={HistorialPuestoContainer} />
-          {/* <Route exact path={`${base}/Equipo`} component={EquipoContainer} /> */}
-          <Route exact path={`${base}/Usuarios`} component={UsuariosContainer} />
+                    <Route
+                        exact
+                        path={`${base}/Empleados`}
+                        component={EmpleadosContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Contratos`}
+                        component={ContratosContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/HistorialPuesto`}
+                        component={HistorialPuestoContainer}
+                    />
+                    {/* <Route exact path={`${base}/Equipo`} component={EquipoContainer} /> */}
+                    <Route
+                        exact
+                        path={`${base}/Usuarios`}
+                        component={UsuariosContainer}
+                    />
 
-          {/* ==============================
+                    {/* ==============================
               RECLUTAMIENTO
           ===============================*/}
-          {/* <Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} /> */}
-          {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
-          {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
+                    {/* <Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} /> */}
+                    {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
+                    {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
 
-          {/* ==============================
+                    {/* ==============================
               INTEGRACIÓN
           ===============================*/}
-          {/* <Route exact path={`${base}/Induccion`} component={InduccionContainer} /> */}
-          {/* <Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} /> */}
+                    {/* <Route exact path={`${base}/Induccion`} component={InduccionContainer} /> */}
+                    {/* <Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} /> */}
 
-          {/* ==============================
+                    {/* ==============================
               DESEMPEÑO
           ===============================*/}
-          <Route exact path={`${base}/CriterioEvaluacion`} component={CriterioEvaluacionContainer} />
-          <Route exact path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} />
+                    <Route
+                        exact
+                        path={`${base}/CriterioEvaluacion`}
+                        component={CriterioEvaluacionContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/EvaluacionCriterio`}
+                        component={EvaluacionCriterioContainer}
+                    />
 
-          {/* ==============================
+                    {/* ==============================
               CONTROL DISCIPLINARIO
           ===============================*/}
-          <Route exact path={`${base}/Ausencia`} component={AusenciaContainer} />
-          <Route exact path={`${base}/Amonestacion`} component={AmonestacionContainer} />
+                    <Route
+                        exact
+                        path={`${base}/Ausencia`}
+                        component={AusenciaContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Amonestacion`}
+                        component={AmonestacionContainer}
+                    />
 
-          {/* ==============================
+                    {/* ==============================
               AUXILIAR (Catálogos y tablas de apoyo)
           ===============================*/}
-          <Route exact path={`${base}/Idiomas`} component={IdiomasContainer} />
-          <Route exact path={`${base}/Estados`} component={EstadosContainer} />
-          <Route exact path={`${base}/Puesto`} component={PuestoContainer} />
-          <Route exact path={`${base}/Roles`} component={RolesContainer} />
-          <Route exact path={`${base}/TiposDocumento`} component={TiposDocContainer} />
-          <Route exact path={`${base}/PuebloCultura`} component={PuebloCulturaContainer} />
-          <Route exact path={`${base}/TerminacionLaboral`} component={TerminacionLaboralContainer} />
+                    <Route
+                        exact
+                        path={`${base}/Idiomas`}
+                        component={IdiomasContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Estados`}
+                        component={EstadosContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Puesto`}
+                        component={PuestoContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Roles`}
+                        component={RolesContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/TiposDocumento`}
+                        component={TiposDocContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/PuebloCultura`}
+                        component={PuebloCulturaContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/TerminacionLaboral`}
+                        component={TerminacionLaboralContainer}
+                    />
 
-          {/* ==============================
+                    {/* ==============================
               DOCUMENTOS
           ===============================*/}
-          <Route exact path={`${base}/Documentos`} component={DocumentosContainer} />
-
-        </Switch>
-      </NavScrollTop>
-    </Router>
-  );
+                    <Route
+                        exact
+                        path={`${base}/Documentos`}
+                        component={DocumentosContainer}
+                    />
+                </Switch>
+            </NavScrollTop>
+        </Router>
+    );
 };
 
 export default App;

@@ -1,254 +1,160 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
+import "./sidebar-menu.css";
 
 const base = process.env.PUBLIC_URL || "";
 
-const MainMenu = () => {
-  return (
-    <nav>
-      <ul className="main-menu">
+const SidebarMenu = () => {
+    // Estado para controlar submenús abiertos
+    const [openMenu, setOpenMenu] = useState(null);
 
-        {/* =======================================================
-            PERSONAL
-        ======================================================== */}
-        <li className="has-submenu">
-          <NavLink
-            to={`${base}/Empleados`}
-            className="main-menu-link"
-            activeClassName="active"
-          >
-            Personal
-          </NavLink>
-          <ul className="sub-menu">
+    const toggleSubmenu = (menuName) => {
+        setOpenMenu(openMenu === menuName ? null : menuName);
+    };
 
-            {/* Empleados */}
-            <li className="has-submenu">
-              <ul>
+    return (
+        <nav className="sidebar-menu">
+            <ul className="sidebar-menu-list">
+                {/* Botón Home */}
                 <li>
-                  <NavLink to={`${base}/Empleados`} className="sub-menu-link">
-                    Empleados
-                  </NavLink>
+                    <NavLink
+                        to={`${base}/home`}
+                        className="sidebar-menu-link home-link"
+                        activeClassName="active"
+                        style={{
+                            fontWeight: "700",
+                            color: "#ffffffff",
+                            marginBottom: "15px",
+                            display: "block",
+                        }}
+                    >
+                        Inicio
+                    </NavLink>
                 </li>
+
+                {/* Gestión de Usuarios y Seguridad */}
                 <li>
-                  <NavLink to={`${base}/Contratos`} className="sub-menu-link">
-                    Contrato
-                  </NavLink>
+                    <div
+                        className="sidebar-menu-link"
+                        onClick={() => toggleSubmenu("usuarios")}
+                    >
+                        Gestión de Usuarios
+                    </div>
+                    {openMenu === "usuarios" && (
+                        <ul className="sidebar-submenu">
+                            <li>
+                                <NavLink to={`${base}/Usuarios`} className="sidebar-submenu-link">
+                                    Usuarios
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Roles`} className="sidebar-submenu-link">
+                                    Roles y Permisos
+                                </NavLink>
+                            </li>
+                        </ul>
+                    )}
                 </li>
+
+                {/* Gestión de Catálogos */}
                 <li>
-                  <NavLink
-                    to={`${base}/HistorialPuesto`}
-                    className="sub-menu-link"
-                  >
-                    Historial de Puesto
-                  </NavLink>
+                    <div
+                        className="sidebar-menu-link"
+                        onClick={() => toggleSubmenu("catalogos")}
+                    >
+                        Gestión de Catálogos
+                    </div>
+                    {openMenu === "catalogos" && (
+                        <ul className="sidebar-submenu">
+                            <li><NavLink to={`${base}/Idiomas`} className="sidebar-submenu-link">Idiomas</NavLink></li>
+                            <li><NavLink to={`${base}/Estados`} className="sidebar-submenu-link">Estados</NavLink></li>
+                            <li><NavLink to={`${base}/Puesto`} className="sidebar-submenu-link">Puestos</NavLink></li>
+                            <li><NavLink to={`${base}/TiposDocumento`} className="sidebar-submenu-link">Tipos de Documentos</NavLink></li>
+                            <li><NavLink to={`${base}/PuebloCultura`} className="sidebar-submenu-link">Pueblos y Culturas</NavLink></li>
+                        </ul>
+                    )}
                 </li>
-              </ul>
-            </li>
 
-            {/* Equipo */}
-            <li>
-              <NavLink to={`${base}/Equipos`} className="sub-menu-link">
-                Equipo
-              </NavLink>
-            </li>
+                {/* Gestión de Empleados */}
+                <li>
+                    <div
+                        className="sidebar-menu-link"
+                        onClick={() => toggleSubmenu("empleados")}
+                    >
+                        Gestión de Empleados
+                    </div>
+                    {openMenu === "empleados" && (
+                        <ul className="sidebar-submenu">
+                            <li><NavLink to={`${base}/Empleados`} className="sidebar-submenu-link">Empleados</NavLink></li>
+                            <li><NavLink to={`${base}/HistorialPuesto`} className="sidebar-submenu-link">Historial de Puestos</NavLink></li>
+                            <li><NavLink to={`${base}/Contratos`} className="sidebar-submenu-link">Contratos</NavLink></li>
+                            <li><NavLink to={`${base}/Documentos`} className="sidebar-submenu-link">Documentos</NavLink></li>
+                        </ul>
+                    )}
+                </li>
 
-            {/* Usuarios */}
-            <li>
-              <NavLink to={`${base}/Usuarios`} className="sub-menu-link">
-                Usuarios
-              </NavLink>
-            </li>
-          </ul>
-        </li>
+                {/* Recursos Humanos */}
+                <li>
+                    <div
+                        className="sidebar-menu-link"
+                        onClick={() => toggleSubmenu("rrhh")}
+                    >
+                        Recursos Humanos
+                    </div>
+                    {openMenu === "rrhh" && (
+                        <ul className="sidebar-submenu">
+                            <li><NavLink to={`${base}/Amonestacion`} className="sidebar-submenu-link">Amonestaciones</NavLink></li>
+                            <li><NavLink to={`${base}/Ausencia`} className="sidebar-submenu-link">Ausencias</NavLink></li>
+                            <li><NavLink to={`${base}/TerminacionLaboral`} className="sidebar-submenu-link">Terminación Laboral</NavLink></li>
+                        </ul>
+                    )}
+                </li>
 
-        {/* =======================================================
-            RECLUTAMIENTO
-        ======================================================== */}
-        <li className="has-submenu">
-          <NavLink
-            to={`${base}/Convocatorias`}
-            className="main-menu-link"
-            activeClassName="active"
-          >
-            Reclutamiento
-          </NavLink>
-          <ul className="sub-menu">
-            <li>
-              <NavLink to={`${base}/Convocatorias`} className="sub-menu-link">
-                Convocatorias
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to={`${base}/Aspirantes`} className="sub-menu-link">
-                Aspirantes
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to={`${base}/Seleccion`} className="sub-menu-link">
-                Selección / Contratación
-              </NavLink>
-            </li>
-          </ul>
-        </li>
+                {/* Selección y Capacitación */}
+                <li>
+                    <div
+                        className="sidebar-menu-link"
+                        onClick={() => toggleSubmenu("seleccion")}
+                    >
+                        Selección y Capacitación
+                    </div>
+                    {openMenu === "seleccion" && (
+                        <ul className="sidebar-submenu">
+                            <li><NavLink to={`${base}/Aspirantes`} className="sidebar-submenu-link">Aspirantes</NavLink></li>
+                            <li><NavLink to={`${base}/Convocatorias`} className="sidebar-submenu-link">Convocatorias</NavLink></li>
+                            <li><NavLink to={`${base}/Evaluaciones`} className="sidebar-submenu-link">Evaluaciones</NavLink></li>
+                            <li><NavLink to={`${base}/CriterioEvaluacion`} className="sidebar-submenu-link">Criterios de Evaluación</NavLink></li>
+                            <li><NavLink to={`${base}/EvaluacionCriterio`} className="sidebar-submenu-link">Evaluación por Criterios</NavLink></li>
+                            <li><NavLink to={`${base}/EmpleadoCapacitacion`} className="sidebar-submenu-link">Empleado - Capacitación</NavLink></li>
+                            <li><NavLink to={`${base}/Inducciones`} className="sidebar-submenu-link">Inducciones</NavLink></li>
+                            <li><NavLink to={`${base}/InduccionDocumentos`} className="sidebar-submenu-link">Documentos de Inducción</NavLink></li>
+                        </ul>
+                    )}
+                </li>
 
-        {/* =======================================================
-            INTEGRACIÓN
-        ======================================================== */}
-        <li className="has-submenu">
-          <NavLink
-            to={`${base}/Induccion`}
-            className="main-menu-link"
-            activeClassName="active"
-          >
-            Integración
-          </NavLink>
-          <ul className="sub-menu">
-            <li>
-              <NavLink to={`${base}/Induccion`} className="sub-menu-link">
-                Inducción
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to={`${base}/Capacitacion`} className="sub-menu-link">
-                Capacitación
-              </NavLink>
-            </li>
-          </ul>
-        </li>
-
-        {/* =======================================================
-            DESEMPEÑO
-        ======================================================== */}
-        <li className="has-submenu">
-          <NavLink
-            to={`${base}/EvaluacionCriterio`}
-            className="main-menu-link"
-            activeClassName="active"
-          >
-            Desempeño
-          </NavLink>
-          <ul className="sub-menu">
-            <li>
-              <NavLink to={`${base}/Evaluaciones`} className="sub-menu-link">
-                Evaluaciones
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to={`${base}/CriterioEvaluacion`}
-                className="sub-menu-link"
-              >
-                Criterios
-              </NavLink>
-            </li>
-          </ul>
-        </li>
-
-        {/* =======================================================
-            CONTROL DISCIPLINARIO
-        ======================================================== */}
-        <li className="has-submenu">
-          <NavLink
-            to={`${base}/Amonestacion`}
-            className="main-menu-link"
-            activeClassName="active"
-          >
-            Control Disciplinario
-          </NavLink>
-          <ul className="sub-menu">
-            <li>
-              <NavLink to={`${base}/Ausencia`} className="sub-menu-link">
-                Ausencias
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to={`${base}/Amonestacion`} className="sub-menu-link">
-                Amonestaciones
-              </NavLink>
-            </li>
-          </ul>
-        </li>
-
-        {/* =======================================================
-            AUXILIAR
-        ======================================================== */}
-        <li className="has-submenu">
-          <NavLink
-            to={`${base}/Puesto`}
-            className="main-menu-link"
-            activeClassName="active"
-          >
-            Auxiliar
-          </NavLink>
-          <ul className="sub-menu">
-            <li>
-              <NavLink to={`${base}/PuebloCultura`} className="sub-menu-link">
-                Pueblos / Culturas
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to={`${base}/Idiomas`} className="sub-menu-link">
-                Idiomas
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to={`${base}/Puesto`} className="sub-menu-link">
-                Puestos
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to={`${base}/Estados`} className="sub-menu-link">
-                Estados
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to={`${base}/TiposDocumento`}
-                className="sub-menu-link"
-              >
-                Tipos de Documentos
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to={`${base}/TerminacionLaboral`}
-                className="sub-menu-link"
-              >
-                Terminación Laboral
-              </NavLink>
-            </li>
-          </ul>
-        </li>
-
-        {/* =======================================================
-            INFORMES
-        ======================================================== */}
-        <li>
-          <NavLink
-            to={`${base}/Informes`}
-            className="main-menu-link"
-            activeClassName="active"
-          >
-            Informes
-          </NavLink>
-        </li>
-
-        {/* =======================================================
-            DOCUMENTOS
-        ======================================================== */}
-        <li>
-          <NavLink
-            to={`${base}/Documentos`}
-            className="main-menu-link"
-            activeClassName="active"
-          >
-            Documentos
-          </NavLink>
-        </li>
-
-      </ul>
-    </nav>
-  );
+                {/* Equipos */}
+                <li>
+                    <NavLink to={`${base}/Equipos`} className="sidebar-menu-link">Equipos</NavLink>
+                </li>
+                {/* Cerrar Sesion */}
+                <li>
+                    <NavLink
+                        to={`${base}/`}
+                        className="sidebar-menu-link home-link"
+                        activeClassName="active"
+                        style={{
+                            fontWeight: "700",
+                            color: "#ffffffff",
+                            marginBottom: "15px",
+                            display: "block",
+                        }}
+                    >
+                        Cerrar Sesion
+                    </NavLink>
+                </li>
+            </ul>
+        </nav>
+    );
 };
 
-export default MainMenu;
+export default SidebarMenu;
