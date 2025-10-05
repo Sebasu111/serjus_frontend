@@ -339,3 +339,44 @@
         font-size: 13px;
     }
 }
+/* Usuario en header */
+.header-user {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    .user-name {
+        margin-left: 8px;
+        font-weight: 500;
+        color: #fff;
+    }
+
+    .user-dropdown {
+        position: absolute;
+        top: 120%;
+        right: 0;
+        background: #1b488f;
+        list-style: none;
+        margin: 0;
+        padding: 10px 0;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+        min-width: 150px;
+
+        li {
+            padding: 8px 20px;
+
+            a {
+                color: #fff;
+                text-decoration: none;
+                display: block;
+
+                &:hover {
+                    background: #374151;
+                }
+            }
+        }
+    }
+}

@@ -1,35 +1,52 @@
-import React, { useEffect, useState, Fragment } from "react";
-import Logo from "../../components/logo";
+import React, { Fragment, useState } from "react";
 import HeaderContactInfo from "../../components/header-contact-info";
 import HomeData from "../../data/home.json";
 import MobileMenu from "../../components/menu/mobile-menu";
 import MenuOverlay from "../../components/menu/menu-overlay";
+import { FaUserCircle } from "react-icons/fa";
 
-const HeaderTop = () => {
-    const [ofcanvasShow, setOffcanvasShow] = useState(false);
-    const onCanvasHandler = () => setOffcanvasShow(prev => !prev);
+const HeaderTop = ({ username = "Usuario" }) => {
+    const [ofcanvasShow, setOfcanvasShow] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+    const onCanvasHandler = () => setOfcanvasShow(prev => !prev);
+    const toggleUserMenu = () => setUserMenuOpen(prev => !prev);
 
     return (
         <Fragment>
             <div className="header-top">
                 <div className="container">
                     <div className="header-middle-content d-flex justify-content-between align-items-center">
-                        <div className="header-logo">
-                            <Logo image={`${process.env.PUBLIC_URL}/img/logo.png`} />
-                        </div>
 
+                        {/* Info de contacto o redes */}
                         <ul className="media-wrap d-none d-lg-flex">
                             {HomeData[0].headerInfo &&
                                 HomeData[0].headerInfo.map((single, key) => (
                                     <HeaderContactInfo key={key} data={single} />
-                                ))}
+                                ))
+                            }
                         </ul>
 
+                        {/* Usuario */}
+                        <div className="header-user" onClick={toggleUserMenu}>
+                            <FaUserCircle size={28} color="#fff" />
+                            <span className="user-name">{username}</span>
+
+                            {userMenuOpen && (
+                                <ul className="user-dropdown">
+                                    <li><a href="/profile">Perfil</a></li>
+                                    <li><a href="/">Cerrar sesión</a></li>
+                                </ul>
+                            )}
+                        </div>
+
+                        {/* Botón para menú móvil */}
                         <div className="mobile-menu-toggle d-lg-none">
                             <button onClick={onCanvasHandler} className="offcanvas-toggle">
-                                {/* SVG del botón */}
+                                {/* Aquí puede ir un icono tipo hamburguesa */}
                             </button>
                         </div>
+
                     </div>
                 </div>
 
