@@ -1,15 +1,24 @@
-/* sidebar-menu.css */
 .sidebar-menu {
-    position: fixed;       /* Fijo en la pantalla */
-    top: 0;                /* Comienza desde la parte superior */
-    left: 0;               /* Pegado a la izquierda */
-    width: 250px;          /* Ancho del sidebar */
-    height: 100vh;         /* Alto completo */
-    background: #1f2937;   /* Fondo */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    background: #1b488f; /* mismo color que el header */
     color: #fff;
-    overflow-y: auto;      /* Scroll si hay muchos ítems */
+    overflow-y: auto;
     padding: 20px 0;
-    z-index: 1000;         /* Por encima del contenido */
+    z-index: 1000;
+}
+
+.sidebar-logo {
+    text-align: center;
+    margin-bottom: 30px;
+
+    img {
+        max-width: 150px;
+        height: auto;
+    }
 }
 
 .sidebar-menu-list {
@@ -19,16 +28,21 @@
 }
 
 .sidebar-menu-link {
-    display: block;
+    display: flex;
+    align-items: center;
     padding: 12px 20px;
     cursor: pointer;
     font-weight: 500;
     color: #fff;
-    transition: background 0.3s;
+    transition: background 0.3s, color 0.3s;
 }
 
 .sidebar-menu-link:hover {
     background: #374151;
+}
+
+.menu-icon {
+    margin-right: 10px;
 }
 
 .sidebar-submenu {
@@ -49,12 +63,20 @@
     color: #fff;
 }
 
+.logout-link {
+    margin-top: 30px;
+    font-weight: 700;
+    &:hover {
+        background: #000;
+    }
+}
+
 /* Ajuste del contenido principal para que no quede debajo del sidebar */
 .main-content {
-    margin-left: 250px;  /* mismo ancho del sidebar */
+    margin-left: 250px;
     padding: 20px;
 }
 
 header, footer, .main-content {
-    margin-left: 250px; /* mismo ancho del sidebar */
+    margin-left: 250px;
 }
