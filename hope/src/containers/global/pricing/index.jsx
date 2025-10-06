@@ -11,8 +11,7 @@ const PricingContainer = ({ pricingClassOption }) => {
                     <div className="col-lg-12">
                         <SectionTitle
                             classOption="text-center"
-                            subTitle="Pricing List"
-                            title="<span>Protect</span> With Health Care Card"
+                            title="<span>Bienvenido</span> al sistema de gestión de recursos humanos ASERJUS"
                         />
                     </div>
                 </div>

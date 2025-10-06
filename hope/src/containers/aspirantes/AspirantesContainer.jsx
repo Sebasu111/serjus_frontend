@@ -47,8 +47,8 @@ const AspirantesContainer = () => {
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
+          ? res.data.results
+          : [];
       setAspirantes(data);
     } catch (error) {
       console.error("Error al cargar aspirantes:", error);
@@ -333,16 +333,16 @@ const AspirantesContainer = () => {
                   <div>
                     <label>Nombre</label>
                     <input name="nombreaspirante" value={form.nombreaspirante} onChange={handleChange} required />
-                    
+
                     <label>Apellido</label>
                     <input name="apellidoaspirante" value={form.apellidoaspirante} onChange={handleChange} required />
-                    
+
                     <label>NIT</label>
                     <input name="nit" value={form.nit} onChange={handleChange} required />
-                    
+
                     <label>DPI</label>
                     <input name="dpi" value={form.dpi} onChange={handleChange} />
-                    
+
                     <label>Género</label>
                     <select name="genero" value={form.genero} onChange={handleChange} required>
                       <option value="">Seleccione...</option>
@@ -356,19 +356,19 @@ const AspirantesContainer = () => {
                   <div>
                     <label>Email</label>
                     <input name="email" type="email" value={form.email} onChange={handleChange} required />
-                    
+
                     <label>Fecha de Nacimiento</label>
                     <input name="fechanacimiento" type="date" value={form.fechanacimiento} onChange={handleChange} />
-                    
+
                     <label>Teléfono</label>
                     <input name="telefono" value={form.telefono} onChange={handleChange} />
-                    
+
                     <label>Dirección</label>
                     <input name="direccion" value={form.direccion} onChange={handleChange} />
-                    
+
                     <label>ID Idioma</label>
                     <input name="ididioma" type="number" value={form.ididioma} onChange={handleChange} />
-                    
+
                     <label>ID Pueblo/Cultura</label>
                     <input name="idpueblocultura" type="number" value={form.idpueblocultura} onChange={handleChange} />
                   </div>

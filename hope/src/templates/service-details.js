@@ -3,7 +3,6 @@ import Layout from "../layouts/index.jsx";
 import Header from "../layouts/header";
 import Footer from "../layouts/footer";
 import Breadcrumb from "../containers/global/breadcrumb/index.jsx";
-import ServiceDetailsContainer from "../containers/service-details";
 import ServiceData from "../data/service.json";
 import PropTypes from "prop-types";
 import ScrollToTop from "../components/scroll-to-top";

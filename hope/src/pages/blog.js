@@ -3,7 +3,6 @@ import Layout from "../layouts/index.jsx";
 import Header from "../layouts/header";
 import Breadcrumb from "../containers/global/breadcrumb";
 import Footer from "../layouts/footer";
-import BlogListContainer from "../containers/blog/blog-list/index.jsx";
 import ScrollToTop from "../components/scroll-to-top";
 import SEO from "../components/seo";
 

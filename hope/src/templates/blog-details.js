@@ -3,8 +3,6 @@ import React from "react";
 import Layout from "../layouts/index.jsx";
 import Header from "../layouts/header";
 import Breadcrumb from "../containers/global/breadcrumb/index.jsx";
-import BlogDetailsContainer from "../containers/blog/blog-details";
-import CommentContainer from "../containers/comment-container/index.jsx";
 import Footer from "../layouts/footer";
 import BlogData from "../data/blog.json";
 import ScrollToTop from "../components/scroll-to-top";
