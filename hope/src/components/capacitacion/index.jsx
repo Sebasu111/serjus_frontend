@@ -93,6 +93,7 @@ const CapacitacionContainer = () => {
     };
 
     const handleEdit = (c) => {
+        if (!c.estado) return; // bloquea edición si está desactivada
         setNombreEvento(c.nombreevento || "");
         setLugar(c.lugar || "");
         setFechaInicio(c.fechainicio || "");
@@ -103,23 +104,24 @@ const CapacitacionContainer = () => {
         setMostrarFormulario(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("¿Está seguro de desactivar esta capacitación?")) return;
+    const handleDelete = async (id, estadoActual) => {
+        const accion = estadoActual ? "desactivar" : "activar";
+        if (!window.confirm(`¿Está seguro de ${accion} esta capacitación?`)) return;
         try {
             const cap = capacitaciones.find((c) => (c.idcapacitacion || c.id) === id);
             const idUsuario = sessionStorage.getItem("idUsuario");
 
             await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${id}/`, {
                 ...cap,
-                estado: false,
+                estado: !estadoActual, // invierte el estado
                 idusuario: idUsuario,
             });
 
-            setMensaje("Capacitación desactivada correctamente");
+            setMensaje(`Capacitación ${accion} correctamente`);
             fetchCapacitaciones();
         } catch (error) {
             console.error(error);
-            setMensaje("Error al desactivar capacitación");
+            setMensaje(`Error al ${accion} capacitación`);
         }
     };
 
@@ -199,11 +201,44 @@ const CapacitacionContainer = () => {
                                                     <td>{c.lugar}</td>
                                                     <td>{c.fechainicio} - {c.fechafin}</td>
                                                     <td>{c.institucionfacilitadora}</td>
-                                                    <td>Q {c.montoejecutado || 0}</td>
+                                                    <td>{c.montoejecutado || 0}</td>
                                                     <td>
-                                                        <button onClick={() => handleEdit(c)} style={{ marginRight: "6px" }}>Editar</button>
-                                                        <button onClick={() => handleDelete(id)} style={{ marginRight: "6px" }}>Eliminar</button>
+                                                        {/* BOTÓN EDITAR */}
+                                                        <button
+                                                            onClick={() => handleEdit(c)}
+                                                            style={{
+                                                                marginRight: "6px",
+                                                                padding: "6px 12px",
+                                                                border: "none",
+                                                                borderRadius: "5px",
+                                                                cursor: c.estado ? "pointer" : "not-allowed",
+                                                                background: c.estado ? "#007bff" : "#6c757d", // azul si activo, gris si desactivado
+                                                                color: "#fff",
+                                                                fontWeight: "500"
+                                                            }}
+                                                            disabled={!c.estado} // deshabilitado si no está activo
+                                                        >
+                                                            Editar
+                                                        </button>
+
+                                                        {/* BOTÓN ELIMINAR / ACTIVAR */}
+                                                        <button
+                                                            onClick={() => handleDelete(id, c.estado)}
+                                                            style={{
+                                                                marginRight: "6px",
+                                                                padding: "6px 12px",
+                                                                border: "none",
+                                                                borderRadius: "5px",
+                                                                cursor: "pointer",
+                                                                background: c.estado ? "#dc3545" : "#28a745", // rojo si activo, verde si desactivado
+                                                                color: "#fff",
+                                                                fontWeight: "500"
+                                                            }}
+                                                        >
+                                                            {c.estado ? "Eliminar" : "Activar"}
+                                                        </button>
                                                     </td>
+
                                                 </tr>
                                             );
                                         }) : (
@@ -251,29 +286,124 @@ const CapacitacionContainer = () => {
 
                 {/* MODAL CREAR / EDITAR */}
                 {mostrarFormulario && (
-                    <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "500px", maxWidth: "95%", background: "#fff", padding: "30px", boxShadow: "0 0 20px rgba(0,0,0,0.2)", borderRadius: "12px", zIndex: 1000 }}>
-                        <h3 style={{ textAlign: "center", marginBottom: "20px" }}>{editingId ? "Editar Capacitación" : "Registrar Capacitación"}</h3>
-                        <form onSubmit={handleSubmit}>
-                            <input placeholder="Nombre del evento" value={nombreEvento} onChange={(e) => setNombreEvento(e.target.value)} />
-                            <input placeholder="Lugar" value={lugar} onChange={(e) => setLugar(e.target.value)} />
-                            <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-                            <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
-                            <input placeholder="Institución facilitadora" value={institucion} onChange={(e) => setInstitucion(e.target.value)} />
-                            <input type="number" placeholder="Monto ejecutado" value={monto} onChange={(e) => setMonto(e.target.value)} />
-                            <button type="submit" style={{ marginTop: "15px", width: "100%" }}>{editingId ? "Actualizar" : "Guardar"}</button>
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            width: "500px",
+                            maxWidth: "95%",
+                            background: "#fff",
+                            padding: "30px",
+                            boxShadow: "0 0 20px rgba(0,0,0,0.2)",
+                            borderRadius: "12px",
+                            zIndex: 1000,
+                            display: "flex",
+                            flexDirection: "column"
+                        }}
+                    >
+                        <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
+                            {editingId ? "Editar Capacitación" : "Registrar Capacitación"}
+                        </h3>
+                        <form onSubmit={handleSubmit} style={{ flex: 1 }}>
+                            <div style={{ marginBottom: "15px" }}>
+                                <label style={{ display: "block", marginBottom: "6px" }}>Nombre del evento</label>
+                                <input
+                                    value={nombreEvento}
+                                    onChange={(e) => setNombreEvento(e.target.value)}
+                                    required
+                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: "15px" }}>
+                                <label style={{ display: "block", marginBottom: "6px" }}>Lugar</label>
+                                <input
+                                    value={lugar}
+                                    onChange={(e) => setLugar(e.target.value)}
+                                    required
+                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                                />
+                            </div>
+                            <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: "block", marginBottom: "6px" }}>Fecha Inicio</label>
+                                    <input
+                                        type="date"
+                                        value={fechaInicio}
+                                        onChange={(e) => setFechaInicio(e.target.value)}
+                                        required
+                                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                                    />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: "block", marginBottom: "6px" }}>Fecha Fin</label>
+                                    <input
+                                        type="date"
+                                        value={fechaFin}
+                                        onChange={(e) => setFechaFin(e.target.value)}
+                                        required
+                                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                                    />
+                                </div>
+                            </div>
+                            <div style={{ marginBottom: "15px" }}>
+                                <label style={{ display: "block", marginBottom: "6px" }}>Institución facilitadora</label>
+                                <input
+                                    value={institucion}
+                                    onChange={(e) => setInstitucion(e.target.value)}
+                                    required
+                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: "15px" }}>
+                                <label style={{ display: "block", marginBottom: "6px" }}>Monto ejecutado</label>
+                                <input
+                                    type="number"
+                                    value={monto}
+                                    onChange={(e) => setMonto(e.target.value)}
+                                    required
+                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                style={{
+                                    width: "100%",
+                                    padding: "10px",
+                                    background: "#007bff",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontWeight: "600"
+                                }}
+                            >
+                                {editingId ? "Actualizar" : "Guardar"}
+                            </button>
                         </form>
-                        <button onClick={() => setMostrarFormulario(false)} style={{ marginTop: "10px", width: "100%" }}>Cerrar</button>
+                        <button
+                            onClick={() => setMostrarFormulario(false)}
+                            style={{
+                                marginTop: "10px",
+                                padding: "10px",
+                                background: "#6c757d",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                            }}
+                        >
+                            Cerrar
+                        </button>
                     </div>
                 )}
 
                 {/* MODAL ASIGNAR CAPACITACIÓN */}
                 {mostrarAsignacion && (
-                    <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "600px", maxWidth: "95%", background: "#fff", padding: "30px", boxShadow: "0 0 20px rgba(0,0,0,0.2)", borderRadius: "12px", zIndex: 1000 }}>
-                        <h3 style={{ textAlign: "center", marginBottom: "20px" }}>Asignar Capacitación</h3>
-                        <AsignarCapacitacion />
-                        <button onClick={() => setMostrarAsignacion(false)} style={{ marginTop: "10px", width: "100%" }}>Cerrar</button>
-                    </div>
+                    <AsignarCapacitacion onClose={() => setMostrarAsignacion(false)} />
                 )}
+
 
                 <ScrollToTop />
             </div>
