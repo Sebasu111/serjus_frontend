@@ -33,7 +33,7 @@ import BlogAuthor from "./templates/blog-author";
 import NavScrollTop from "./components/nav-scroll-top";
 
 // =============================================================
-// 📁 PERSONAL
+//   PERSONAL
 // =============================================================
 
 // Empleados
@@ -47,34 +47,34 @@ import HistorialPuestoContainer from "./containers/historial-puesto";
 import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 
 // =============================================================
-// 📁 RECLUTAMIENTO
+//   RECLUTAMIENTO
 // =============================================================
 
-// import ConvocatoriasContainer from "./containers/convocatorias";
+import ConvocatoriasContainer from "./containers/convocatorias/ConvocatoriasContainer";
 // import AspirantesContainer from "./containers/aspirantes";
 // import SeleccionContainer from "./containers/seleccion";
 
 // =============================================================
-// 📁 INTEGRACIÓN
+//   INTEGRACIÓN
 // =============================================================
 
 // import InduccionContainer from "./containers/induccion";
 // import CapacitacionContainer from "./containers/capacitacion";
 
 // =============================================================
-// 📁 DESEMPEÑO
+//   DESEMPEÑO
 // =============================================================
 import CriterioEvaluacionContainer from "./components/CriterioEvaluacion/CriterioEvaluacionContainer";
 import EvaluacionCriterioContainer from "./components/EvaluacionCriterio/EvaluacionCriterioContainer";
 
 // =============================================================
-// 📁 CONTROL DISCIPLINARIO
+//   CONTROL DISCIPLINARIO
 // =============================================================
 import AusenciaContainer from "./components/Ausencia/AusenciaContainer";
 import AmonestacionContainer from "./components/Amonestacion/AmonestacionContainer";
 
 // =============================================================
-// 📁 AUXILIAR (catálogos, tablas de apoyo, etc.)
+//   AUXILIAR (catálogos, tablas de apoyo, etc.)
 // =============================================================
 import IdiomasContainer from "./components/Idiomas/IdiomasContainer";
 import EstadosContainer from "./components/Estados/EstadosContainer";
@@ -85,15 +85,15 @@ import PuebloCulturaContainer from "./components/PuebloCultura/PuebloCulturaCont
 import TerminacionLaboralContainer from "./components/TerminacionLaboral/TerminacionLaboralContainer";
 
 // =============================================================
-// 📁 INFORMES (pendiente)
+//   INFORMES (pendiente)
 // =============================================================
 
 // import InformesContainer from "./containers/informes";
 
 // =============================================================
-// 📁 DOCUMENTOS
+//   DOCUMENTOS
 // =============================================================
-import DocumentosContainer from "./containers/documentos";
+import DocumentosContainer from "./containers/documentos/DocumentosContainer";
 
 // =============================================================
 // APP PRINCIPAL
@@ -174,7 +174,7 @@ const App = () => {
                     {/* ==============================
               RECLUTAMIENTO
           ===============================*/}
-                    {/* <Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} /> */}
+                    {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
                     {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
                     {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
 
