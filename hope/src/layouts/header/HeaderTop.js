@@ -32,12 +32,6 @@ const HeaderTop = ({ username = "Usuario" }) => {
                             <FaUserCircle size={28} color="#fff" />
                             <span className="user-name">{username}</span>
 
-                            {userMenuOpen && (
-                                <ul className="user-dropdown">
-                                    <li><a href="/profile">Perfil</a></li>
-                                    <li><a href="/">Cerrar sesión</a></li>
-                                </ul>
-                            )}
                         </div>
 
                         {/* Botón para menú móvil */}
