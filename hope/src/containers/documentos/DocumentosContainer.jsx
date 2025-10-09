@@ -29,6 +29,8 @@ const DocumentosContainer = () => {
     const [empleados, setEmpleados] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
+    const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
+    const [documentoAEliminar, setDocumentoAEliminar] = useState(null);
 
     // Paginación y búsqueda
     const [paginaActual, setPaginaActual] = useState(1);
@@ -215,6 +217,7 @@ const DocumentosContainer = () => {
             showToast("Error al registrar o actualizar el documento", error);
         }
     };
+
     const handleEdit = (row) => {
         // Fill form with row data; archivoFile null (user may upload new file)
         const today = row.fechasubida ?? new Date().toISOString().slice(0, 10);
@@ -231,6 +234,40 @@ const DocumentosContainer = () => {
         setEditingId(row.iddocumento);
         setMostrarFormulario(true);
     };
+
+    const handleDeleteArchivo = async (id) => {
+        if (!window.confirm("¿Seguro que deseas eliminar el archivo del documento?")) return;
+
+        try {
+            const formData = new FormData();
+            formData.append("borrar_archivo", "true");
+            formData.append("nombrearchivo", form.nombrearchivo + " (archivo eliminado)");
+            formData.append("fechasubida", form.fechasubida);
+            formData.append("idusuario", form.idusuario);
+            formData.append("idtipodocumento", form.idtipodocumento);
+            formData.append("idempleado", form.idempleado);
+            formData.append("mimearchivo", "-----");
+
+            await axios.put(`${API}/documentos/${id}/`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            showToast("Archivo eliminado correctamente");
+            setForm((f) => ({
+            ...f,
+            archivoFile: null,
+            mimearchivo: "-----",
+            nombrearchivo: f.nombrearchivo + " (archivo eliminado)",
+            }));
+
+            fetchDocumentos();
+        } catch (error) {
+            console.error("Error al eliminar archivo:", error.response?.data || error);
+            showToast("No se pudo eliminar el archivo", error);
+        }
+        };
+
+
 
     const downloadFile = async (archivo_url, nombre) => {
         try {
@@ -413,7 +450,7 @@ const DocumentosContainer = () => {
                                             documentosPaginados.map((d) => (
                                                 <tr key={d.iddocumento}>
                                                     <td style={tdStyle}>
-                                                        {d.nombrearchivo}
+                                                    {d.archivo_url ? d.nombrearchivo : `${d.nombrearchivo} (sin archivo)`}
                                                     </td>
                                                     <td style={tdStyle}>
                                                         {d.mimearchivo}
@@ -755,6 +792,27 @@ const DocumentosContainer = () => {
                                         ? "Sube un archivo solo si deseas reemplazar el existente."
                                         : ""}
                                 </small>
+                                {editingId && form.nombrearchivo && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                    setDocumentoAEliminar(editingId);
+                                    setMostrarModalEliminar(true);
+                                    }}
+                                    style={{
+                                    marginTop: "10px",
+                                    background: "#fb8500",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    padding: "8px 12px",
+                                    cursor: "pointer",
+                                    width: "100%",
+                                    }}
+                                >
+                                    Eliminar archivo actual
+                                </button>
+                                )}
                             </div>
 
                             {/* 5. Fecha de subida */}
@@ -818,6 +876,78 @@ const DocumentosContainer = () => {
                     </div>
                 )}
 
+                {mostrarModalEliminar && (
+                    <div
+                        style={{
+                        paddingLeft: "225px",
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        background: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 2000,
+                        }}
+                    >
+                        <div
+                        style={{
+                            background: "#fff",
+                            padding: "25px",
+                            borderRadius: "12px",
+                            width: "400px",
+                            textAlign: "center",
+                            boxShadow: "0 0 15px rgba(0,0,0,0.3)",
+                        }}
+                        >
+                        <h3 style={{ marginBottom: "15px" }}>
+                            ¿Eliminar el archivo actual?
+                        </h3>
+                        <p style={{ color: "#555", marginBottom: "20px" }}>
+                            Esta acción eliminará el archivo asociado al documento, 
+                            pero conservará el registro.
+                        </p>
+
+                        <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+                            <button
+                            onClick={async () => {
+                                await handleDeleteArchivo(documentoAEliminar);
+                                setMostrarModalEliminar(false);
+                                setDocumentoAEliminar(null);
+                            }}
+                            style={{
+                                background: "#fb8500",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "6px",
+                                padding: "8px 20px",
+                                cursor: "pointer",
+                            }}
+                            >
+                            Sí, eliminar
+                            </button>
+                            <button
+                            onClick={() => {
+                                setMostrarModalEliminar(false);
+                                setDocumentoAEliminar(null);
+                            }}
+                            style={{
+                                background: "#ccc",
+                                color: "#333",
+                                border: "none",
+                                borderRadius: "6px",
+                                padding: "8px 20px",
+                                cursor: "pointer",
+                            }}
+                            >
+                            Cancelar
+                            </button>
+                        </div>
+                        </div>
+                    </div>
+                    )}
                 <ToastContainer />
                 <ScrollToTop />
             </div>
