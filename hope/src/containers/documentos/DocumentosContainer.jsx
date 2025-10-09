@@ -54,8 +54,8 @@ const DocumentosContainer = () => {
                 : [];
             setDocumentos(data);
         } catch (error) {
-            console.error("Error al cargar documentos:", error);
-            showToast("Error al cargar los documentos", error);
+            console.error("Error al cargar documentos:", "error");
+            showToast("Error al cargar los documentos", "error");
             setDocumentos([]);
         }
     };
@@ -71,7 +71,7 @@ const DocumentosContainer = () => {
             setTiposDocumento(data);
         } catch (error) {
             console.error("Error al cargar tipos de documento:", error);
-            showToast("Error al cargar tipos de documento:", error);
+            showToast("Error al cargar tipos de documento:", "error");
             setTiposDocumento([]);
         }
     };
@@ -87,7 +87,7 @@ const DocumentosContainer = () => {
             setEmpleados(data);
         } catch (error) {
             console.error("Error al cargar empleados:", error);
-            showToast("Error al cargar empleados:", error);
+            showToast("Error al cargar empleados:", "error");
             setEmpleados([]);
         }
     };
@@ -214,7 +214,7 @@ const DocumentosContainer = () => {
                 e.response?.data || error
             );
             setMensaje("Error al registrar o actualizar el documento");
-            showToast("Error al registrar o actualizar el documento", error);
+            showToast("Error al registrar o actualizar el documento", "error");
         }
     };
 
@@ -263,7 +263,7 @@ const DocumentosContainer = () => {
             fetchDocumentos();
         } catch (error) {
             console.error("Error al eliminar archivo:", error.response?.data || error);
-            showToast("No se pudo eliminar el archivo", error);
+            showToast("No se pudo eliminar el archivo", "error");
         }
         };
 
@@ -286,7 +286,7 @@ const DocumentosContainer = () => {
             showToast("Descarga iniciada");
         } catch (error) {
             console.error("Error al descargar:", error);
-            showToast("No se pudo descargar el archivo", error);
+            showToast("No se pudo descargar el archivo", "error");
             setMensaje("No se pudo descargar el archivo");
         }
     };
