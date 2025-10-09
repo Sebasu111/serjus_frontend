@@ -1,5 +1,4 @@
 import SectionTitle from "../../../components/section-title";
-import PricingItem from "../../../components/pricing";
 import HomeData from "../../../data/home.json";
 import PropTypes from "prop-types";
 

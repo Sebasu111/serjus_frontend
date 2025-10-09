@@ -16,18 +16,7 @@ import "lightgallery.js/dist/css/lightgallery.css";
 // Páginas principales
 import HomePage from "./pages/index";
 import LoginPage from "./pages/LoginPage";
-import AboutPage from "./pages/about";
-import ServicePage from "./pages/service";
-import ContactPage from "./pages/contact";
-import BlogPage from "./pages/blog";
 
-// Templates
-import ServiceDetails from "./templates/service-details";
-import BlogDetailsPage from "./templates/blog-details";
-import BlogCategory from "./templates/blog-category";
-import BlogTag from "./templates/blog-tag";
-import BlogDate from "./templates/blog-date";
-import BlogAuthor from "./templates/blog-author";
 
 // Componentes generales
 import NavScrollTop from "./components/nav-scroll-top";
@@ -121,31 +110,6 @@ const App = () => {
           ===============================*/}
                     <Route exact path={`${base}/`} component={LoginPage} />
                     <Route path={`${base}/home`} component={HomePage} />
-                    <Route path={`${base}/about`} component={AboutPage} />
-                    <Route path={`${base}/service`} component={ServicePage} />
-                    <Route path={`${base}/contact`} component={ContactPage} />
-                    <Route path={`${base}/blog`} component={BlogPage} />
-
-                    {/* Templates */}
-                    <Route
-                        path={`${base}/service-details/:id`}
-                        component={ServiceDetails}
-                    />
-                    <Route
-                        path={`${base}/blog-details/:id`}
-                        component={BlogDetailsPage}
-                    />
-                    <Route
-                        path={`${base}/category/:slug`}
-                        component={BlogCategory}
-                    />
-                    <Route path={`${base}/tag/:slug`} component={BlogTag} />
-                    <Route path={`${base}/date/:date`} component={BlogDate} />
-                    <Route
-                        path={`${base}/author/:author`}
-                        component={BlogAuthor}
-                    />
-
                     {/* ==============================
               PERSONAL
           ===============================*/}

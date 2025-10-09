@@ -1,6 +1,5 @@
 import React, { Fragment, useState, useEffect } from "react";
 import { useHistory } from "react-router-dom"; // ✅ v5
-import HeaderContactInfo from "../../components/header-contact-info";
 import HomeData from "../../data/home.json";
 import MobileMenu from "../../components/menu/mobile-menu";
 import MenuOverlay from "../../components/menu/menu-overlay";

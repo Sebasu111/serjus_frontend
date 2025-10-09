@@ -59,7 +59,7 @@ const UsuariosContainer = () => {
         } catch (error) {
             console.error("Error al cargar usuarios:", error);
             setUsuarios([]);
-            showToast("Error al cargar los usuarios", error);
+            showToast("Error al cargar los usuarios", "error");
         }
     };
 
@@ -72,7 +72,7 @@ const UsuariosContainer = () => {
             setRoles(data);
         } catch (error) {
             console.error("Error al cargar roles:", error);
-            showToast("Error al cargar roles:", error);
+            showToast("Error al cargar roles:", "error");
         }
     };
 
@@ -85,7 +85,7 @@ const UsuariosContainer = () => {
             setEmpleados(data);
         } catch (error) {
             console.error("Error al cargar empleados:", error);
-            showToast("Error al cargar empleados:", error);
+            showToast("Error al cargar empleados:", "error");
         }
     };
 
@@ -138,7 +138,7 @@ const UsuariosContainer = () => {
             if (editingUsuario) {
                 // Evitar que se edite el usuario logueado
                 if (editingUsuario.idusuario === idUsuarioLogueado) {
-                    showToast("No puedes editar tu propio usuario desde aquí");
+                    showToast("No puedes editar tu propio usuario desde aquí", "error");
                     return;
                 }
                 await axios.put(`${API}${editingUsuario.idusuario}/`, payload);
@@ -166,17 +166,17 @@ const UsuariosContainer = () => {
                 "Error al guardar usuario:",
                 error.response?.data || error
             );
-            showToast("Error al registrar/actualizar usuario");
+            showToast("Error al registrar/actualizar usuario", "error");
         }
     };
 
     const handleEdit = (usuario) => {
         if (!usuario.estado) {
-            showToast("No se puede editar un usuario inactivo");
+            showToast("No se puede editar un usuario inactivo", "error");
             return;
         }
         if (usuario.idusuario === idUsuarioLogueado) {
-            showToast("No puedes editar tu propio usuario desde aquí");
+            showToast("No puedes editar tu propio usuario desde aquí", "error");
             return;
         }
         setForm({
@@ -194,7 +194,7 @@ const UsuariosContainer = () => {
 
    const handleDelete = (id) => {
         if (id === idUsuarioLogueado) {
-            showToast("No puedes desactivar tu propio usuario");
+            showToast("No puedes desactivar tu propio usuario", "error");
             return;
         }
         const usuario = usuarios.find((u) => u.idusuario === id);
@@ -216,7 +216,7 @@ const UsuariosContainer = () => {
             fetchUsuarios();
         } catch (error) {
             console.error("Error al desactivar usuario:", error);
-            showToast("Error al desactivar el usuario");
+            showToast("Error al desactivar el usuario", "error");
         } finally {
             setMostrarConfirmacion(false);
             setUsuarioSeleccionado(null);
@@ -225,7 +225,7 @@ const UsuariosContainer = () => {
 
     const handleActivate = async (id) => {
         if (id === idUsuarioLogueado) {
-            showToast("No puedes desactivar/activar tu propio usuario");
+            showToast("No puedes desactivar/activar tu propio usuario", "error");
             return;
         }
         try {
@@ -237,7 +237,7 @@ const UsuariosContainer = () => {
             fetchUsuarios();
         } catch (error) {
             console.error("Error al activar usuario:", error);
-            showToast("Error al activar el usuario");
+            showToast("Error al activar el usuario", "error");
         }
     };
 
