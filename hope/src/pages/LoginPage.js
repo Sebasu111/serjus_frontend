@@ -1,14 +1,16 @@
-// pages/LoginPage.js
+// pages/LoginPage.js 
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom"; // ✅ usar useHistory
+import { useHistory } from "react-router-dom"; 
 import SEO from "../components/seo";
 import axios from "axios";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai"; // 👈 Solo react-icons
 
 const LoginPage = () => {
   const history = useHistory();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,20 +21,16 @@ const LoginPage = () => {
       });
 
       if (!res.data.success) {
-        setMensaje(res.data.message);
+        setMensaje("Usuario y/o contraseña inválidos"); // 👈 unificado
         return;
       }
 
       const usuario = res.data.usuario;
-
-      // Guardar en localStorage todo el usuario
       localStorage.setItem("usuarioLogueado", JSON.stringify(usuario));
-
-      // Guardar solo el idusuario en sessionStorage
       sessionStorage.setItem("idUsuario", usuario.idusuario);
 
       setMensaje("");
-      history.push("/home"); // redirige al Home
+      history.push("/home"); 
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       setMensaje("Error al iniciar sesión. Intenta más tarde");
@@ -77,16 +75,33 @@ const LoginPage = () => {
               />
             </div>
 
-            <div style={{ marginBottom: "30px" }}>
+            <div style={{ marginBottom: "30px", position: "relative" }}>
               <label htmlFor="password" style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>Contraseña</label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                style={{ width: "100%", padding: "12px 15px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "16px" }}
+                style={{ width: "100%", padding: "12px 45px 12px 15px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "16px" }}
               />
+              {/* 👇 Botón de ver/ocultar con react-icons */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "38px",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "20px",
+                  color: "#666"
+                }}
+              >
+                {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+              </button>
             </div>
 
             <button type="submit" style={{ width: "100%", padding: "12px 0", background: "#007bff", color: "#fff", border: "none", borderRadius: "8px", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>

@@ -4,7 +4,6 @@ import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
-import SidebarMenu from "../../components/menu/main-menu/index.jsx"; // tu sidebar lateral
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 
@@ -31,8 +30,8 @@ const IdiomasContainer = () => {
             const data = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
-                ? res.data.results
-                : [];
+                    ? res.data.results
+                    : [];
             setIdiomas(data);
         } catch (error) {
             console.error("Error al cargar idiomas:", error);
@@ -154,8 +153,6 @@ const IdiomasContainer = () => {
                     minHeight: "100vh",
                 }}
             >
-                {/* Sidebar lateral */}
-                <SidebarMenu />
 
                 {/* Contenedor principal: header + main + footer */}
                 <div
@@ -441,12 +438,12 @@ const IdiomasContainer = () => {
                                                         border: "1px solid #007bff",
                                                         background:
                                                             paginaActual ===
-                                                            i + 1
+                                                                i + 1
                                                                 ? "#007bff"
                                                                 : "#fff",
                                                         color:
                                                             paginaActual ===
-                                                            i + 1
+                                                                i + 1
                                                                 ? "#fff"
                                                                 : "#007bff",
                                                         borderRadius: "5px",

@@ -5,7 +5,6 @@ import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
-import SidebarMenu from "../../components/menu/main-menu/index.jsx";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -41,8 +40,8 @@ const ConvocatoriasContainer = () => {
             const data = Array.isArray(r.data)
                 ? r.data
                 : Array.isArray(r.data?.results)
-                ? r.data.results
-                : [];
+                    ? r.data.results
+                    : [];
             setRows(data);
         } catch (e) {
             console.error("Error convocatorias:", e);
@@ -145,7 +144,7 @@ const ConvocatoriasContainer = () => {
         <Layout>
             <SEO title="Hope – Convocatorias" />
             <div style={{ display: "flex", minHeight: "100vh" }}>
-                <SidebarMenu />
+
                 <div
                     style={{
                         flex: 1,
@@ -313,10 +312,10 @@ const ConvocatoriasContainer = () => {
                                                     >
                                                         {r.fechafin
                                                             ? new Date(
-                                                                  r.fechafin
-                                                              ).toLocaleDateString(
-                                                                  "es-ES"
-                                                              )
+                                                                r.fechafin
+                                                            ).toLocaleDateString(
+                                                                "es-ES"
+                                                            )
                                                             : "-"}
                                                     </td>
                                                     <td
@@ -438,12 +437,12 @@ const ConvocatoriasContainer = () => {
                                                         border: "1px solid #007bff",
                                                         background:
                                                             paginaActual ===
-                                                            i + 1
+                                                                i + 1
                                                                 ? "#007bff"
                                                                 : "#fff",
                                                         color:
                                                             paginaActual ===
-                                                            i + 1
+                                                                i + 1
                                                                 ? "#fff"
                                                                 : "#007bff",
                                                         borderRadius: 5,

@@ -29,7 +29,7 @@
     li {
         display: inline-block;
 
-        & + li {
+        &+li {
             margin-left: 20px;
         }
 
@@ -77,11 +77,12 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start; // ⬅ quitar space-between
 }
 
+
 .media-list {
-    & + .media-list {
+    &+.media-list {
         @include min-screen(992) {
             margin-left: 50px;
         }
@@ -177,7 +178,7 @@
     li {
         position: relative;
 
-        & + li {
+        &+li {
             margin-left: 35px;
         }
 
@@ -190,6 +191,7 @@
         }
 
         a {
+
             &.active,
             &:hover {
                 &::before {
@@ -237,7 +239,7 @@
     transition: all ease-in-out 0.3s;
 
     li {
-        & + li {
+        &+li {
             margin-left: 0;
             margin-top: 10px;
         }
@@ -339,43 +341,43 @@
         font-size: 13px;
     }
 }
-/* Usuario en header */
+
 .header-user {
     cursor: pointer;
     display: flex;
     align-items: center;
     position: relative;
+}
 
-    .user-name {
-        margin-left: 8px;
-        font-weight: 500;
-        color: #fff;
-    }
+.header-user .user-name {
+    margin-left: 8px;
+    font-weight: 600;
+    color: #000;
+}
 
-    .user-dropdown {
-        position: absolute;
-        top: 120%;
-        right: 0;
-        background: #1b488f;
-        list-style: none;
-        margin: 0;
-        padding: 10px 0;
-        border-radius: 4px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        z-index: 1000;
-        min-width: 150px;
+.header-user .user-dropdown {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    background: #1b488f;
+    list-style: none;
+    margin: 0;
+    padding: 10px 0;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 150px;
 
-        li {
-            padding: 8px 20px;
+    li {
+        padding: 8px 20px;
 
-            a {
-                color: #fff;
-                text-decoration: none;
-                display: block;
+        a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
 
-                &:hover {
-                    background: #374151;
-                }
+            &:hover {
+                background: #374151;
             }
         }
     }

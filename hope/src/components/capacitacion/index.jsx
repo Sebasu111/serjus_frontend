@@ -3,7 +3,6 @@ import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
-import SidebarMenu from "../../components/menu/main-menu/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import AsignarCapacitacion from "./AsignarCapacitacion";
@@ -148,7 +147,7 @@ const CapacitacionContainer = () => {
         <Layout>
             <SEO title="Hope – Capacitación" />
             <div style={{ display: "flex", minHeight: "100vh" }}>
-                <SidebarMenu />
+
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
                     <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
