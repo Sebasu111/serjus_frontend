@@ -59,7 +59,7 @@ const UsuariosContainer = () => {
         } catch (error) {
             console.error("Error al cargar usuarios:", error);
             setUsuarios([]);
-            showToast("Error al cargar los usuarios");
+            showToast("Error al cargar los usuarios", error);
         }
     };
 
@@ -72,6 +72,7 @@ const UsuariosContainer = () => {
             setRoles(data);
         } catch (error) {
             console.error("Error al cargar roles:", error);
+            showToast("Error al cargar roles:", error);
         }
     };
 
@@ -84,6 +85,7 @@ const UsuariosContainer = () => {
             setEmpleados(data);
         } catch (error) {
             console.error("Error al cargar empleados:", error);
+            showToast("Error al cargar empleados:", error);
         }
     };
 
@@ -252,6 +254,7 @@ const UsuariosContainer = () => {
 
         return nombreCoincide || estadoCoincide;
     });
+
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
     const usuariosPaginados = usuariosFiltrados.slice(
@@ -264,7 +267,7 @@ const UsuariosContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Usuarios" />
+            <SEO title="Usuarios" />
             <div
                 className="wrapper"
                 style={{
@@ -939,6 +942,7 @@ const UsuariosContainer = () => {
                 {mostrarConfirmacion && (
                     <div
                         style={{
+                            paddingLeft: "250px",
                             position: "fixed",
                             top: 0,
                             left: 0,

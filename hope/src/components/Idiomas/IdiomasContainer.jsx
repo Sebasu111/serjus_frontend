@@ -5,7 +5,10 @@ import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
+import { X } from "lucide-react";
 import SEO from "../../components/seo";
+import { showToast } from "../../utils/toast.js";
+import { ToastContainer } from "react-toastify";
 
 const IdiomasContainer = () => {
     const [nombreIdioma, setNombreIdioma] = useState("");
@@ -14,6 +17,8 @@ const IdiomasContainer = () => {
     const [editingId, setEditingId] = useState(null);
     const [idiomaActivoEditando, setIdiomaActivoEditando] = useState(true);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
+    const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+    const [idiomaSeleccionado, setIdiomaSeleccionado] = useState(null);
 
     // Paginación y búsqueda
     const [paginaActual, setPaginaActual] = useState(1);
@@ -30,13 +35,13 @@ const IdiomasContainer = () => {
             const data = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
-                    ? res.data.results
-                    : [];
+                ? res.data.results
+                : [];
             setIdiomas(data);
         } catch (error) {
             console.error("Error al cargar idiomas:", error);
             setIdiomas([]);
-            setMensaje("Error al cargar los idiomas");
+            showToast("Error al cargar los idiomas", error);
         }
     };
 
@@ -55,10 +60,10 @@ const IdiomasContainer = () => {
                     `http://127.0.0.1:8000/api/idiomas/${editingId}/`,
                     data
                 );
-                setMensaje("Idioma actualizado correctamente");
+                showToast("Idioma actualizado correctamente");
             } else {
                 await axios.post("http://127.0.0.1:8000/api/idiomas/", data);
-                setMensaje("Idioma registrado correctamente");
+                showToast("Idioma registrado correctamente");
             }
 
             setNombreIdioma("");
@@ -68,13 +73,13 @@ const IdiomasContainer = () => {
             fetchIdiomas();
         } catch (error) {
             console.error("Error al guardar idioma:", error);
-            setMensaje("Error al registrar el idioma");
+            showToast("Error al registrar el idioma", error);
         }
     };
 
     const handleEdit = (idioma) => {
         if (!idioma.estado) {
-            setMensaje("No se puede editar un idioma inactivo");
+            showToast("No se puede editar un idioma inactivo");
             return;
         }
         setNombreIdioma(idioma.nombreidioma);
@@ -90,25 +95,33 @@ const IdiomasContainer = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de desactivar este idioma?")) return;
+    const handleDelete = (idioma) => {
+        setIdiomaSeleccionado(idioma);
+        setMostrarConfirmacion(true);
+    };
+
+    const confirmarDesactivacionIdioma = async () => {
+        if (!idiomaSeleccionado) return;
+
         try {
-            const idioma = idiomas.find((i) => i.ididioma === id);
-            if (!idioma) return;
-
             const idUsuario = sessionStorage.getItem("idUsuario");
+            await axios.put(
+                `http://127.0.0.1:8000/api/idiomas/${idiomaSeleccionado.ididioma}/`,
+                {
+                    nombreidioma: idiomaSeleccionado.nombreidioma,
+                    estado: false,
+                    idusuario: idUsuario,
+                }
+            );
 
-            await axios.put(`http://127.0.0.1:8000/api/idiomas/${id}/`, {
-                nombreidioma: idioma.nombreidioma,
-                estado: false,
-                idusuario: idUsuario,
-            });
-
-            setMensaje("Idioma desactivado correctamente");
+            showToast("Idioma desactivado correctamente");
             fetchIdiomas();
         } catch (error) {
             console.error("Error al desactivar idioma:", error);
-            setMensaje("Error al desactivar el idioma");
+            showToast("Error al desactivar el idioma");
+        } finally {
+            setMostrarConfirmacion(false);
+            setIdiomaSeleccionado(null);
         }
     };
 
@@ -125,17 +138,29 @@ const IdiomasContainer = () => {
                 idusuario: idUsuario,
             });
 
-            setMensaje("Idioma activado correctamente");
+            showToast("Idioma activado correctamente");
             fetchIdiomas();
         } catch (error) {
             console.error("Error al activar idioma:", error);
-            setMensaje("Error al activar el idioma");
+            showToast("Error al activar el idioma");
         }
     };
 
-    const idiomasFiltrados = idiomas.filter((i) =>
-        i.nombreidioma.toLowerCase().includes(busqueda.toLowerCase())
-    );
+    const idiomasFiltrados = idiomas.filter((i) => {
+        const textoBusqueda = busqueda.toLowerCase().trim();
+
+        // Verifica que nombreidioma exista antes de usar toLowerCase
+        const nombreCoincide =
+            i.nombreidioma?.toLowerCase().includes(textoBusqueda) || false;
+
+        // Convertir el estado booleano a texto legible
+        const estadoTexto = i.estado ? "activo" : "inactivo";
+
+        // Coincide si el texto buscado aparece parcial o completamente
+        const estadoCoincide = estadoTexto.startsWith(textoBusqueda);
+
+        return nombreCoincide || estadoCoincide;
+    });
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
@@ -146,14 +171,13 @@ const IdiomasContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Idiomas" />
+            <SEO title="Idiomas" />
             <div
                 style={{
                     display: "flex",
                     minHeight: "100vh",
                 }}
             >
-
                 {/* Contenedor principal: header + main + footer */}
                 <div
                     style={{
@@ -171,7 +195,13 @@ const IdiomasContainer = () => {
                             background: "#f0f2f5",
                         }}
                     >
-                        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+                        <div
+                            style={{
+                                maxWidth: "900px",
+                                margin: "0 auto",
+                                paddingLeft: "250px",
+                            }}
+                        >
                             <h2
                                 style={{
                                     marginBottom: "20px",
@@ -201,6 +231,7 @@ const IdiomasContainer = () => {
                                     display: "flex",
                                     justifyContent: "space-between",
                                     marginBottom: "15px",
+                                    alignItems: "center",
                                 }}
                             >
                                 <input
@@ -220,25 +251,21 @@ const IdiomasContainer = () => {
                                     }}
                                 />
 
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={elementosPorPagina}
-                                    onChange={(e) => {
-                                        const value = Number(e.target.value);
-                                        setElementosPorPagina(
-                                            value > 0 ? value : 1
-                                        );
-                                        setPaginaActual(1);
-                                    }}
+                                <button
+                                    onClick={() => setMostrarFormulario(true)}
                                     style={{
-                                        width: "80px",
-                                        padding: "10px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #ccc",
-                                        textAlign: "center",
+                                        padding: "10px 20px",
+                                        background: "#219ebc",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                        fontWeight: "600",
+                                        whiteSpace: "nowrap",
                                     }}
-                                />
+                                >
+                                    Nuevo Idioma
+                                </button>
                             </div>
 
                             {/* TABLA */}
@@ -341,7 +368,7 @@ const IdiomasContainer = () => {
                                                                     "6px 14px",
                                                                 background:
                                                                     idioma.estado
-                                                                        ? "#0054fd"
+                                                                        ? "#fb8500"
                                                                         : "#6c757d",
                                                                 color: "#fff",
                                                                 border: "none",
@@ -360,14 +387,14 @@ const IdiomasContainer = () => {
                                                             <button
                                                                 onClick={() =>
                                                                     handleDelete(
-                                                                        idioma.ididioma
+                                                                        idioma
                                                                     )
                                                                 }
                                                                 style={{
                                                                     padding:
                                                                         "6px 14px",
                                                                     background:
-                                                                        "#dc3545",
+                                                                        "#fb8500",
                                                                     color: "#fff",
                                                                     border: "none",
                                                                     borderRadius:
@@ -387,7 +414,7 @@ const IdiomasContainer = () => {
                                                                     padding:
                                                                         "6px 14px",
                                                                     background:
-                                                                        "#28a745",
+                                                                        "#ffb703",
                                                                     color: "#fff",
                                                                     border: "none",
                                                                     borderRadius:
@@ -435,17 +462,17 @@ const IdiomasContainer = () => {
                                                     style={{
                                                         margin: "0 5px",
                                                         padding: "6px 12px",
-                                                        border: "1px solid #007bff",
+                                                        border: "1px solid #219ebc",
                                                         background:
                                                             paginaActual ===
-                                                                i + 1
-                                                                ? "#007bff"
+                                                            i + 1
+                                                                ? "#219ebc"
                                                                 : "#fff",
                                                         color:
                                                             paginaActual ===
-                                                                i + 1
+                                                            i + 1
                                                                 ? "#fff"
-                                                                : "#007bff",
+                                                                : "#219ebc",
                                                         borderRadius: "5px",
                                                         cursor: "pointer",
                                                     }}
@@ -458,22 +485,47 @@ const IdiomasContainer = () => {
                                 )}
                             </div>
 
-                            {/* BOTÓN NUEVO */}
-                            <button
-                                onClick={() => setMostrarFormulario(true)}
+                            {/* --- LÍMITE --- */}
+                            <div
                                 style={{
                                     marginTop: "20px",
-                                    padding: "12px 20px",
-                                    background: "#007bff",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                    fontWeight: "600",
+                                    textAlign: "center",
                                 }}
                             >
-                                Nuevo Idioma
-                            </button>
+                                <label
+                                    style={{
+                                        marginRight: "10px",
+                                        fontWeight: "600",
+                                    }}
+                                >
+                                    Mostrar:
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={elementosPorPagina}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(
+                                            /\D/g,
+                                            ""
+                                        );
+                                        const numero =
+                                            val === "" ? "" : Number(val);
+                                        setElementosPorPagina(
+                                            numero > 0 ? numero : 1
+                                        );
+                                        setPaginaActual(1);
+                                    }}
+                                    onFocus={(e) => e.target.select()}
+                                    style={{
+                                        width: "80px",
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        textAlign: "center",
+                                    }}
+                                />
+                            </div>
                         </div>
                     </main>
 
@@ -487,8 +539,8 @@ const IdiomasContainer = () => {
                             position: "fixed",
                             top: "50%",
                             left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            width: "400px",
+                            transform: "translate(-15%, -50%)",
+                            width: "350px",
                             maxWidth: "90%",
                             background: "#fff",
                             boxShadow: "0 0 20px rgba(0,0,0,0.2)",
@@ -540,7 +592,7 @@ const IdiomasContainer = () => {
                                     width: "100%",
                                     padding: "10px",
                                     background: idiomaActivoEditando
-                                        ? "#007bff"
+                                        ? "#219ebc"
                                         : "#6c757d",
                                     color: "#fff",
                                     border: "none",
@@ -556,20 +608,99 @@ const IdiomasContainer = () => {
                         <button
                             onClick={() => setMostrarFormulario(false)}
                             style={{
-                                marginTop: "10px",
-                                padding: "10px",
-                                background: "#6c757d",
-                                color: "#fff",
+                                position: "absolute",
+                                top: "10px",
+                                right: "15px",
+                                background: "transparent",
                                 border: "none",
-                                borderRadius: "6px",
                                 cursor: "pointer",
                             }}
+                            title="Cerrar"
                         >
-                            Cerrar
+                            <X size={24} color="#555" />
                         </button>
                     </div>
                 )}
 
+                {/* Modal de eliminación */}
+                {mostrarConfirmacion && (
+                    <div
+                        style={{
+                            paddingLeft: "250px",
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100vw",
+                            height: "100vh",
+                            background: "rgba(0,0,0,0.4)",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            zIndex: 2000,
+                        }}
+                    >
+                        <div
+                            style={{
+                                background: "#fff",
+                                padding: "30px",
+                                borderRadius: "10px",
+                                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+                                textAlign: "center",
+                                width: "350px",
+                            }}
+                        >
+                            <h3 style={{ marginBottom: "15px", color: "#333" }}>
+                                Confirmar desactivación
+                            </h3>
+                            <p style={{ marginBottom: "25px", color: "#555" }}>
+                                ¿Seguro que deseas desactivar el idioma{" "}
+                                <strong>
+                                    {idiomaSeleccionado?.nombreidioma}
+                                </strong>
+                                ?
+                            </p>
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    gap: "15px",
+                                }}
+                            >
+                                <button
+                                    onClick={confirmarDesactivacionIdioma}
+                                    style={{
+                                        background: "#fb8500",
+                                        color: "#fff",
+                                        padding: "10px 20px",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Sí, desactivar
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        setMostrarConfirmacion(false)
+                                    }
+                                    style={{
+                                        background: "#6c757d",
+                                        color: "#fff",
+                                        padding: "10px 20px",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <ToastContainer />
                 <ScrollToTop />
             </div>
         </Layout>
