@@ -39,9 +39,9 @@ const IdiomasContainer = () => {
                 : [];
             setIdiomas(data);
         } catch (error) {
-            console.error("Error al cargar idiomas:", error);
+            console.error("Error al cargar idiomas:", "error");
             setIdiomas([]);
-            showToast("Error al cargar los idiomas", error);
+            showToast("Error al cargar los idiomas", "error");
         }
     };
 
@@ -72,8 +72,8 @@ const IdiomasContainer = () => {
             setMostrarFormulario(false);
             fetchIdiomas();
         } catch (error) {
-            console.error("Error al guardar idioma:", error);
-            showToast("Error al registrar el idioma", error);
+            console.error("Error al guardar idioma:", "error");
+            showToast("Error al registrar el idioma", "error");
         }
     };
 
@@ -118,7 +118,7 @@ const IdiomasContainer = () => {
             fetchIdiomas();
         } catch (error) {
             console.error("Error al desactivar idioma:", error);
-            showToast("Error al desactivar el idioma");
+            showToast("Error al desactivar el idioma", "error");
         } finally {
             setMostrarConfirmacion(false);
             setIdiomaSeleccionado(null);
@@ -142,7 +142,7 @@ const IdiomasContainer = () => {
             fetchIdiomas();
         } catch (error) {
             console.error("Error al activar idioma:", error);
-            showToast("Error al activar el idioma");
+            showToast("Error al activar el idioma", "error");
         }
     };
 
