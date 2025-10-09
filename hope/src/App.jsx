@@ -182,7 +182,7 @@ const App = () => {
               INTEGRACIÓN
           ===============================*/}
                     {/* <Route exact path={`${base}/Induccion`} component={InduccionContainer} /> */}
-                    {<Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} /> }
+                    {<Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />}
 
                     {/* ==============================
               DESEMPEÑO
