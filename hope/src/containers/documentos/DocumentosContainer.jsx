@@ -2,11 +2,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header/index.jsx";
-import Footer from "../../layouts/footer/index.jsx";
-import SidebarMenu from "../../components/menu/main-menu/index.jsx";
-import ScrollToTop from "../../components/scroll-to-top/index.jsx";
-import SEO from "../../components/seo/index.jsx";
+import Header from "../../layouts/header";
+import Footer from "../../layouts/footer";
+import ScrollToTop from "../../components/scroll-to-top";
+import { X } from "lucide-react";
+import SEO from "../../components/seo";
+import { showToast } from "../../utils/toast.js";
+import { ToastContainer } from "react-toastify";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -18,15 +20,17 @@ const DocumentosContainer = () => {
         idusuario: sessionStorage.getItem("idUsuario") || "",
         idtipodocumento: "",
         idempleado: "",
-        archivo: "",
         archivoFile: null,
     });
+
     const [mensaje, setMensaje] = useState("");
     const [documentos, setDocumentos] = useState([]);
     const [tiposDocumento, setTiposDocumento] = useState([]);
     const [empleados, setEmpleados] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+    // Paginación y búsqueda
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
@@ -35,6 +39,7 @@ const DocumentosContainer = () => {
         fetchDocumentos();
         fetchTiposDocumento();
         fetchEmpleados();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchDocumentos = async () => {
@@ -46,9 +51,10 @@ const DocumentosContainer = () => {
                 ? r.data.results
                 : [];
             setDocumentos(data);
-        } catch (e) {
-            console.error("Error al cargar documentos:", e);
-            setMensaje("Error al cargar los documentos");
+        } catch (error) {
+            console.error("Error al cargar documentos:", error);
+            showToast("Error al cargar los documentos", error);
+            setDocumentos([]);
         }
     };
 
@@ -61,8 +67,10 @@ const DocumentosContainer = () => {
                 ? r.data.results
                 : [];
             setTiposDocumento(data);
-        } catch (e) {
-            console.error("Error al cargar tipos de documento:", e);
+        } catch (error) {
+            console.error("Error al cargar tipos de documento:", error);
+            showToast("Error al cargar tipos de documento:", error);
+            setTiposDocumento([]);
         }
     };
 
@@ -75,8 +83,10 @@ const DocumentosContainer = () => {
                 ? r.data.results
                 : [];
             setEmpleados(data);
-        } catch (e) {
-            console.error("Error al cargar empleados:", e);
+        } catch (error) {
+            console.error("Error al cargar empleados:", error);
+            showToast("Error al cargar empleados:", error);
+            setEmpleados([]);
         }
     };
 
@@ -84,10 +94,11 @@ const DocumentosContainer = () => {
         const { name, files, value } = e.target;
         if (files && files.length > 0) {
             const file = files[0];
+            const extension = file.name.split(".").pop().toLowerCase();
             setForm((f) => ({
                 ...f,
                 archivoFile: file,
-                mimearchivo: file.type,
+                mimearchivo: extension,
                 nombrearchivo: file.name,
             }));
         } else {
@@ -98,73 +109,123 @@ const DocumentosContainer = () => {
         }
     };
 
+    const openNewForm = () => {
+        // preset fecha subida a hoy en formato YYYY-MM-DD
+        const today = new Date().toISOString().slice(0, 10);
+        setForm((f) => ({
+            ...f,
+            nombrearchivo: "",
+            mimearchivo: "",
+            fechasubida: today,
+            idusuario: sessionStorage.getItem("idUsuario") || "",
+            idtipodocumento: "",
+            idempleado: "",
+            archivoFile: null,
+        }));
+        setEditingId(null);
+        setMostrarFormulario(true);
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "-";
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validaciones básicas
         if (
             !form.nombrearchivo ||
-            !form.mimearchivo ||
             !form.fechasubida ||
             !form.idtipodocumento ||
             !form.idempleado ||
-            (!form.archivoFile && !editingId)
+            (!form.archivoFile && !editingId) // Solo obligatorio si es nuevo
         ) {
             setMensaje("Todos los campos son obligatorios");
+            showToast("Todos los campos son obligatorios");
             return;
         }
 
-        const idUsuario = sessionStorage.getItem("idUsuario"); // <- obtener dinámicamente
+        const idUsuario = sessionStorage.getItem("idUsuario");
         const formData = new FormData();
-        if (form.archivoFile) formData.append("archivo", form.archivoFile);
-        formData.append("nombrearchivo", form.nombrearchivo);
-        formData.append("mimearchivo", form.mimearchivo.slice(0, 10));
+
+        let nombreFinal = form.nombrearchivo;
+        let extension = form.mimearchivo;
+
+        // Si hay un archivo nuevo, procesamos y agregamos al FormData
+        if (form.archivoFile) {
+            extension = form.archivoFile.name.split(".").pop().toLowerCase();
+            if (!nombreFinal.endsWith(`.${extension}`)) {
+                nombreFinal = `${nombreFinal}.${extension}`;
+            }
+            formData.append("archivo", form.archivoFile);
+        } else if (editingId) {
+            // Si estamos editando y no hay archivo nuevo, solo preservamos el nombre y extensión
+            if (!nombreFinal.endsWith(`.${extension}`)) {
+                nombreFinal = `${nombreFinal}.${extension}`;
+            }
+        }
+
+        formData.append("nombrearchivo", nombreFinal);
+        formData.append("mimearchivo", extension);
         formData.append("fechasubida", form.fechasubida);
         formData.append("estado", true);
-        formData.append("idusuario", idUsuario); // <- aquí
+        formData.append("idusuario", idUsuario);
         formData.append("idtipodocumento", form.idtipodocumento);
         formData.append("idempleado", form.idempleado);
 
         try {
             if (editingId) {
+                // PUT: actualizar documento
                 await axios.put(`${API}/documentos/${editingId}/`, formData, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
-                setMensaje("Documento actualizado correctamente");
+                showToast("Documento actualizado correctamente");
             } else {
+                // POST: nuevo documento
                 await axios.post(`${API}/documentos/`, formData, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
-                setMensaje("Documento registrado correctamente");
+                showToast("Documento registrado correctamente");
             }
 
+            // Reset form
             setForm({
                 nombrearchivo: "",
                 mimearchivo: "",
                 fechasubida: "",
-                idusuario: sessionStorage.getItem("idUsuario") || "", // reset también
                 idtipodocumento: "",
                 idempleado: "",
-                archivo: "",
                 archivoFile: null,
             });
             setEditingId(null);
             setMostrarFormulario(false);
             fetchDocumentos();
-        } catch (e) {
-            console.error("Error al guardar documento:", e.response?.data || e);
+        } catch (error) {
+            console.error(
+                "Error al guardar documento:",
+                e.response?.data || error
+            );
             setMensaje("Error al registrar o actualizar el documento");
+            showToast("Error al registrar o actualizar el documento", error);
         }
     };
-
     const handleEdit = (row) => {
+        // Fill form with row data; archivoFile null (user may upload new file)
+        const today = row.fechasubida ?? new Date().toISOString().slice(0, 10);
         setForm({
             nombrearchivo: row.nombrearchivo ?? "",
             mimearchivo: row.mimearchivo ?? "",
-            fechasubida: row.fechasubida ?? "",
-            idusuario: row.idusuario ?? 1,
+            fechasubida: today,
+            idusuario:
+                row.idusuario ?? (sessionStorage.getItem("idUsuario") || ""),
             idtipodocumento: row.idtipodocumento ?? "",
             idempleado: row.idempleado ?? "",
-            archivo: row.archivo ?? "",
             archivoFile: null,
         });
         setEditingId(row.iddocumento);
@@ -185,8 +246,10 @@ const DocumentosContainer = () => {
             document.body.appendChild(link);
             link.click();
             link.remove();
-        } catch (err) {
-            console.error("Error al descargar:", err);
+            showToast("Descarga iniciada");
+        } catch (error) {
+            console.error("Error al descargar:", error);
+            showToast("No se pudo descargar el archivo", error);
             setMensaje("No se pudo descargar el archivo");
         }
     };
@@ -201,15 +264,21 @@ const DocumentosContainer = () => {
         indexOfFirst,
         indexOfLast
     );
-    const totalPaginas = Math.ceil(
-        documentosFiltrados.length / elementosPorPagina
+    const totalPaginas = Math.max(
+        1,
+        Math.ceil(documentosFiltrados.length / elementosPorPagina)
     );
 
     return (
         <Layout>
-            <SEO title="Hope – Documentos" />
-            <div style={{ display: "flex", minHeight: "100vh" }}>
-                <SidebarMenu />
+            <SEO title="Documentos" />
+            <div
+                style={{
+                    display: "flex",
+                    minHeight: "100vh",
+                }}
+            >
+                {/* Contenedor principal: header + main + footer */}
                 <div
                     style={{
                         flex: 1,
@@ -218,6 +287,7 @@ const DocumentosContainer = () => {
                     }}
                 >
                     <Header />
+
                     <main
                         style={{
                             flex: 1,
@@ -225,7 +295,13 @@ const DocumentosContainer = () => {
                             background: "#f0f2f5",
                         }}
                     >
-                        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+                        <div
+                            style={{
+                                maxWidth: "1000px",
+                                margin: "0 auto",
+                                paddingLeft: "225px",
+                            }}
+                        >
                             <h2
                                 style={{
                                     marginBottom: "20px",
@@ -249,11 +325,13 @@ const DocumentosContainer = () => {
                                 </p>
                             )}
 
+                            {/* BUSCADOR Y BOTON NUEVO */}
                             <div
                                 style={{
                                     display: "flex",
                                     justifyContent: "space-between",
                                     marginBottom: "15px",
+                                    alignItems: "center",
                                 }}
                             >
                                 <input
@@ -264,32 +342,38 @@ const DocumentosContainer = () => {
                                         setBusqueda(e.target.value);
                                         setPaginaActual(1);
                                     }}
-                                    style={inputStyle}
-                                />
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={elementosPorPagina}
-                                    onChange={(e) => {
-                                        const value = Number(e.target.value);
-                                        setElementosPorPagina(
-                                            value > 0 ? value : 1
-                                        );
-                                        setPaginaActual(1);
-                                    }}
                                     style={{
-                                        ...inputStyle,
-                                        width: "80px",
-                                        textAlign: "center",
+                                        flex: 1,
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        marginRight: "10px",
                                     }}
                                 />
+
+                                <button
+                                    onClick={openNewForm}
+                                    style={{
+                                        padding: "10px 20px",
+                                        background: "#219ebc",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                        fontWeight: "600",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    Nuevo Documento
+                                </button>
                             </div>
 
+                            {/* TABLA */}
                             <div
                                 style={{
                                     background: "#fff",
                                     borderRadius: "12px",
-                                    padding: "20px 30px",
+                                    padding: "30px",
                                     boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                                 }}
                             >
@@ -297,12 +381,20 @@ const DocumentosContainer = () => {
                                     style={{
                                         width: "100%",
                                         borderCollapse: "collapse",
+                                        borderSpacing: "0 8px",
                                     }}
                                 >
                                     <thead>
                                         <tr>
                                             <th style={thStyle}>Nombre</th>
-                                            <th style={thStyle}>MIME</th>
+                                            <th
+                                                style={{
+                                                    ...thStyle,
+                                                    textAlign: "left",
+                                                }}
+                                            >
+                                                MIME
+                                            </th>
                                             <th style={thStyle}>Fecha</th>
                                             <th style={thStyle}>Empleado</th>
                                             <th style={thStyle}>Tipo</th>
@@ -327,7 +419,9 @@ const DocumentosContainer = () => {
                                                         {d.mimearchivo}
                                                     </td>
                                                     <td style={tdStyle}>
-                                                        {d.fechasubida}
+                                                        {formatDate(
+                                                            d.fechasubida
+                                                        )}
                                                     </td>
                                                     <td style={tdStyle}>
                                                         {empleados.find(
@@ -370,27 +464,41 @@ const DocumentosContainer = () => {
                                                         }}
                                                     >
                                                         {d.archivo_url && (
-                                                            <button
-                                                                onClick={() =>
-                                                                    downloadFile(
-                                                                        d.archivo_url,
-                                                                        d.nombrearchivo
-                                                                    )
-                                                                }
+                                                            <div
                                                                 style={{
-                                                                    padding:
-                                                                        "6px 14px",
-                                                                    background:
-                                                                        "#17a2b8",
-                                                                    color: "#fff",
-                                                                    borderRadius:
-                                                                        "5px",
-                                                                    border: "none",
-                                                                    cursor: "pointer",
+                                                                    display:
+                                                                        "flex",
+                                                                    justifyContent:
+                                                                        "center",
+                                                                    gap: "8px",
                                                                 }}
                                                             >
-                                                                Descargar
-                                                            </button>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        downloadFile(
+                                                                            d.archivo_url,
+                                                                            d.nombrearchivo
+                                                                        )
+                                                                    }
+                                                                    style={
+                                                                        btnStyleDescargar
+                                                                    }
+                                                                >
+                                                                    Descargar
+                                                                </button>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        handleEdit(
+                                                                            d
+                                                                        )
+                                                                    }
+                                                                    style={
+                                                                        btnStyleEditar
+                                                                    }
+                                                                >
+                                                                    Editar
+                                                                </button>
+                                                            </div>
                                                         )}
                                                     </td>
                                                 </tr>
@@ -412,204 +520,305 @@ const DocumentosContainer = () => {
                                     </tbody>
                                 </table>
 
-                                {/* --- paginación --- */}
-                                {documentosFiltrados.length >
-                                    elementosPorPagina && (
+                                {/* PAGINACIÓN */}
+                                {totalPaginas > 1 && (
                                     <div
                                         style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            marginTop: "15px",
+                                            marginTop: "20px",
+                                            textAlign: "center",
                                         }}
                                     >
-                                        <button
-                                            onClick={() =>
-                                                setPaginaActual((prev) =>
-                                                    Math.max(prev - 1, 1)
-                                                )
-                                            }
-                                            disabled={paginaActual === 1}
-                                            style={{
-                                                padding: "8px 12px",
-                                                background:
-                                                    paginaActual === 1
-                                                        ? "#ccc"
-                                                        : "#007bff",
-                                                color: "#fff",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                cursor:
-                                                    paginaActual === 1
-                                                        ? "default"
-                                                        : "pointer",
-                                            }}
-                                        >
-                                            Anterior
-                                        </button>
-
-                                        <span>
-                                            Página {paginaActual} de{" "}
-                                            {totalPaginas}
-                                        </span>
-
-                                        <button
-                                            onClick={() =>
-                                                setPaginaActual((prev) =>
-                                                    Math.min(
-                                                        prev + 1,
-                                                        totalPaginas
-                                                    )
-                                                )
-                                            }
-                                            disabled={
-                                                paginaActual === totalPaginas
-                                            }
-                                            style={{
-                                                padding: "8px 12px",
-                                                background:
-                                                    paginaActual ===
-                                                    totalPaginas
-                                                        ? "#ccc"
-                                                        : "#007bff",
-                                                color: "#fff",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                cursor:
-                                                    paginaActual ===
-                                                    totalPaginas
-                                                        ? "default"
-                                                        : "pointer",
-                                            }}
-                                        >
-                                            Siguiente
-                                        </button>
+                                        {Array.from(
+                                            { length: totalPaginas },
+                                            (_, i) => (
+                                                <button
+                                                    key={i + 1}
+                                                    onClick={() =>
+                                                        setPaginaActual(i + 1)
+                                                    }
+                                                    style={{
+                                                        margin: "0 5px",
+                                                        padding: "6px 12px",
+                                                        border: "1px solid #219ebc",
+                                                        background:
+                                                            paginaActual ===
+                                                            i + 1
+                                                                ? "#219ebc"
+                                                                : "#fff",
+                                                        color:
+                                                            paginaActual ===
+                                                            i + 1
+                                                                ? "#fff"
+                                                                : "#219ebc",
+                                                        borderRadius: "5px",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    {i + 1}
+                                                </button>
+                                            )
+                                        )}
                                     </div>
                                 )}
                             </div>
 
-                            <button
-                                onClick={() => setMostrarFormulario(true)}
+                            {/* LÍMITE */}
+                            <div
                                 style={{
                                     marginTop: "20px",
-                                    padding: "12px 20px",
-                                    background: "#007bff",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                    fontWeight: "600",
+                                    textAlign: "center",
                                 }}
                             >
-                                Nuevo Documento
-                            </button>
+                                <label
+                                    style={{
+                                        marginRight: "10px",
+                                        fontWeight: "600",
+                                    }}
+                                >
+                                    Mostrar:
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={elementosPorPagina}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(
+                                            /\D/g,
+                                            ""
+                                        );
+                                        const numero =
+                                            val === "" ? "" : Number(val);
+                                        setElementosPorPagina(
+                                            numero > 0 ? numero : 1
+                                        );
+                                        setPaginaActual(1);
+                                    }}
+                                    onFocus={(e) => e.target.select()}
+                                    style={{
+                                        width: "80px",
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        textAlign: "center",
+                                    }}
+                                />
+                            </div>
                         </div>
                     </main>
+
                     <Footer />
                 </div>
 
+                {/* MODAL LATERAL */}
                 {mostrarFormulario && (
-                    <div style={modalStyle}>
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-15%, -50%)",
+                            width: "420px",
+                            maxWidth: "90%",
+                            background: "#fff",
+                            boxShadow: "0 0 20px rgba(0,0,0,0.2)",
+                            padding: "30px",
+                            zIndex: 1000,
+                            display: "flex",
+                            flexDirection: "column",
+                            borderRadius: "12px",
+                        }}
+                    >
                         <h3
                             style={{
-                                textAlign: "center",
                                 marginBottom: "20px",
+                                textAlign: "center",
                             }}
                         >
                             {editingId
                                 ? "Editar documento"
                                 : "Registrar documento"}
                         </h3>
-                        <form onSubmit={handleSubmit}>
-                            <label>Nombre</label>
-                            <input
-                                name="nombrearchivo"
-                                value={form.nombrearchivo}
-                                onChange={onChange}
-                                required
-                                style={inputStyle}
-                            />
 
-                            <label>MIME</label>
-                            <input
-                                name="mimearchivo"
-                                value={form.mimearchivo}
-                                onChange={onChange}
-                                required
-                                style={inputStyle}
-                            />
+                        <form onSubmit={handleSubmit} style={{ flex: 1 }}>
+                            {/* 1. Nombre del archivo */}
+                            <div style={{ marginBottom: "12px" }}>
+                                <label
+                                    style={{
+                                        display: "block",
+                                        marginBottom: "6px",
+                                    }}
+                                >
+                                    Nombre del archivo
+                                </label>
+                                <input
+                                    name="nombrearchivo"
+                                    value={form.nombrearchivo}
+                                    onChange={onChange}
+                                    required
+                                    style={{
+                                        width: "100%",
+                                        padding: "10px",
+                                        border: "1px solid #ccc",
+                                        borderRadius: "6px",
+                                    }}
+                                />
+                            </div>
 
-                            <label>Fecha de subida</label>
-                            <input
-                                type="date"
-                                name="fechasubida"
-                                value={form.fechasubida}
-                                onChange={onChange}
-                                required
-                                style={inputStyle}
-                            />
+                            {/* 2. Tipo de documento (select) */}
+                            <div style={{ marginBottom: "12px" }}>
+                                <label
+                                    style={{
+                                        display: "block",
+                                        marginBottom: "6px",
+                                    }}
+                                >
+                                    Tipo de documento
+                                </label>
+                                <select
+                                    name="idtipodocumento"
+                                    value={form.idtipodocumento}
+                                    onChange={onChange}
+                                    required
+                                    style={{
+                                        width: "100%",
+                                        padding: "10px",
+                                        border: "1px solid #ccc",
+                                        borderRadius: "6px",
+                                    }}
+                                >
+                                    <option value="">Seleccione...</option>
+                                    {tiposDocumento.map((t) => (
+                                        <option
+                                            key={t.idtipodocumento}
+                                            value={t.idtipodocumento}
+                                        >
+                                            {t.nombretipo}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                            <label>Archivo</label>
-                            <input
-                                type="file"
-                                name="archivo"
-                                onChange={onChange}
-                                accept="*/*"
-                                required={!editingId}
-                                style={{ marginBottom: "15px" }}
-                            />
+                            {/* 3. Empleado (select) */}
+                            <div style={{ marginBottom: "12px" }}>
+                                <label
+                                    style={{
+                                        display: "block",
+                                        marginBottom: "6px",
+                                    }}
+                                >
+                                    Empleado
+                                </label>
+                                <select
+                                    name="idempleado"
+                                    value={form.idempleado}
+                                    onChange={onChange}
+                                    required
+                                    style={{
+                                        width: "100%",
+                                        padding: "10px",
+                                        border: "1px solid #ccc",
+                                        borderRadius: "6px",
+                                    }}
+                                >
+                                    <option value="">Seleccione...</option>
+                                    {empleados.map((e) => (
+                                        <option
+                                            key={e.idempleado}
+                                            value={e.idempleado}
+                                        >
+                                            {e.nombre} {e.apellido}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                            <label>Tipo de Documento</label>
-                            <select
-                                name="idtipodocumento"
-                                value={form.idtipodocumento}
-                                onChange={onChange}
-                                required
-                                style={inputStyle}
+                            {/* 4. Archivo (input file) */}
+                            <div style={{ marginBottom: "12px" }}>
+                                <label
+                                    style={{
+                                        display: "block",
+                                        marginBottom: "6px",
+                                    }}
+                                >
+                                    Archivo
+                                </label>
+                                <input
+                                    type="file"
+                                    name="archivo"
+                                    onChange={onChange}
+                                    accept="*/*"
+                                    required={!editingId}
+                                    style={{ marginBottom: "6px" }}
+                                />
+                                <small style={{ color: "#666" }}>
+                                    {editingId
+                                        ? "Sube un archivo solo si deseas reemplazar el existente."
+                                        : ""}
+                                </small>
+                            </div>
+
+                            {/* 5. Fecha de subida */}
+                            <div style={{ marginBottom: "12px" }}>
+                                <label
+                                    style={{
+                                        display: "block",
+                                        marginBottom: "6px",
+                                    }}
+                                >
+                                    Fecha de subida
+                                </label>
+                                <input
+                                    type="date"
+                                    name="fechasubida"
+                                    value={form.fechasubida}
+                                    onChange={onChange}
+                                    required
+                                    style={{
+                                        width: "100%",
+                                        padding: "10px",
+                                        border: "1px solid #ccc",
+                                        borderRadius: "6px",
+                                    }}
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                style={{
+                                    width: "100%",
+                                    padding: "10px",
+                                    background: "#219ebc",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                }}
                             >
-                                <option value="">Seleccione...</option>
-                                {tiposDocumento.map((t) => (
-                                    <option
-                                        key={t.idtipodocumento}
-                                        value={t.idtipodocumento}
-                                    >
-                                        {t.nombretipo}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <label>Empleado</label>
-                            <select
-                                name="idempleado"
-                                value={form.idempleado}
-                                onChange={onChange}
-                                required
-                                style={inputStyle}
-                            >
-                                <option value="">Seleccione...</option>
-                                {empleados.map((e) => (
-                                    <option
-                                        key={e.idempleado}
-                                        value={e.idempleado}
-                                    >
-                                        {e.nombre} {e.apellido}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <button type="submit" style={btnGuardar}>
                                 {editingId ? "Actualizar" : "Guardar"}
                             </button>
                         </form>
+
                         <button
-                            onClick={() => setMostrarFormulario(false)}
-                            style={btnCerrar}
+                            onClick={() => {
+                                setMostrarFormulario(false);
+                                setEditingId(null);
+                            }}
+                            style={{
+                                position: "absolute",
+                                top: "10px",
+                                right: "15px",
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                            }}
+                            title="Cerrar"
                         >
-                            Cerrar
+                            <X size={24} color="#555" />
                         </button>
                     </div>
                 )}
 
+                <ToastContainer />
                 <ScrollToTop />
             </div>
         </Layout>
@@ -623,43 +832,22 @@ const thStyle = {
     textAlign: "left",
 };
 const tdStyle = { padding: "10px", borderBottom: "1px solid #f0f0f0" };
-const inputStyle = {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    marginBottom: "10px",
-};
-const modalStyle = {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "450px",
-    background: "#fff",
-    boxShadow: "0 0 20px rgba(0,0,0,0.2)",
-    padding: "30px",
-    zIndex: 1000,
-    borderRadius: "12px",
-};
-const btnGuardar = {
-    width: "100%",
-    padding: "10px",
-    background: "#007bff",
+const btnStyleDescargar = {
+    padding: "6px 14px",
+    background: "#17a2b8",
     color: "#fff",
+    borderRadius: "5px",
     border: "none",
-    borderRadius: "6px",
     cursor: "pointer",
 };
-const btnCerrar = {
-    marginTop: "10px",
-    padding: "10px",
-    background: "#6c757d",
+
+const btnStyleEditar = {
+    padding: "6px 14px",
+    background: "#fb8500",
     color: "#fff",
+    borderRadius: "5px",
     border: "none",
-    borderRadius: "6px",
     cursor: "pointer",
-    width: "100%",
 };
 
 export default DocumentosContainer;
