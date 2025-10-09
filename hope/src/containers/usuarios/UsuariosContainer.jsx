@@ -6,6 +6,9 @@ import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
+import { X, Eye, EyeOff } from "lucide-react";
+import { showToast } from "../../utils/toast.js";
+import { ToastContainer } from "react-toastify";
 
 const API = "http://127.0.0.1:8000/api/usuarios/";
 const API_ROLES = "http://127.0.0.1:8000/api/roles/";
@@ -26,13 +29,18 @@ const UsuariosContainer = () => {
     const [editingUsuario, setEditingUsuario] = useState(null);
     const [usuarioActivoEditando, setUsuarioActivoEditando] = useState(true);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
+    const [cambiarContrasena, setCambiarContrasena] = useState(false);
+    const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+    const [mostrarContrasena, setMostrarContrasena] = useState(false);
+    const [busquedaEmpleado, setBusquedaEmpleado] = useState("");
 
     // Paginación y búsqueda
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
 
-    // 🔹 Leer el id del usuario logueado desde sessionStorage
+    // Leer el id del usuario logueado desde sessionStorage
     const idUsuarioLogueado = Number(sessionStorage.getItem("idUsuario"));
 
     useEffect(() => {
@@ -51,7 +59,7 @@ const UsuariosContainer = () => {
         } catch (error) {
             console.error("Error al cargar usuarios:", error);
             setUsuarios([]);
-            setMensaje("Error al cargar los usuarios");
+            showToast("Error al cargar los usuarios");
         }
     };
 
@@ -81,24 +89,33 @@ const UsuariosContainer = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const empleadoYaAsignado = usuarios.some(
+            (u) =>
+                u.idempleado === Number(form.idempleado) &&
+                (!editingUsuario || u.idusuario !== editingUsuario.idusuario)
+        );
+        if (empleadoYaAsignado) {
+            showToast("Este empleado ya tiene un usuario asignado", "error");
+            return;
+        }
         try {
             const ahora = new Date().toISOString();
 
             // Validaciones
             if (!form.nombreusuario) {
-                setMensaje("El nombre de usuario es obligatorio");
+                showToast("El nombre de usuario es obligatorio");
                 return;
             }
             if (!editingUsuario && !form.contrasena) {
-                setMensaje("La contraseña es obligatoria al crear un usuario");
+                showToast("La contraseña es obligatoria al crear un usuario");
                 return;
             }
             if (!form.idrol) {
-                setMensaje("Debe seleccionar un rol");
+                showToast("Debe seleccionar un rol", "error");
                 return;
             }
             if (!form.idempleado) {
-                setMensaje("Debe seleccionar un empleado");
+                showToast("Debe seleccionar un empleado", "error");
                 return;
             }
 
@@ -112,19 +129,21 @@ const UsuariosContainer = () => {
             };
 
             // Solo agregar contraseña si se ingresó
-            if (form.contrasena) payload.contrasena = form.contrasena;
+            if (form.contrasena && (!editingUsuario || cambiarContrasena)) {
+                payload.contrasena = form.contrasena;
+            }
 
             if (editingUsuario) {
                 // Evitar que se edite el usuario logueado
                 if (editingUsuario.idusuario === idUsuarioLogueado) {
-                    setMensaje("No puedes editar tu propio usuario desde aquí");
+                    showToast("No puedes editar tu propio usuario desde aquí");
                     return;
                 }
                 await axios.put(`${API}${editingUsuario.idusuario}/`, payload);
-                setMensaje("Usuario actualizado correctamente");
+                showToast("Usuario actualizado correctamente");
             } else {
                 await axios.post(API, payload);
-                setMensaje("Usuario registrado correctamente");
+                showToast("Usuario registrado correctamente");
             }
 
             // Reset
@@ -135,6 +154,7 @@ const UsuariosContainer = () => {
                 idrol: "",
                 idempleado: "",
             });
+            setCambiarContrasena(false);
             setEditingUsuario(null);
             setUsuarioActivoEditando(true);
             setMostrarFormulario(false);
@@ -144,17 +164,17 @@ const UsuariosContainer = () => {
                 "Error al guardar usuario:",
                 error.response?.data || error
             );
-            setMensaje("Error al registrar/actualizar usuario");
+            showToast("Error al registrar/actualizar usuario");
         }
     };
 
     const handleEdit = (usuario) => {
         if (!usuario.estado) {
-            setMensaje("No se puede editar un usuario inactivo");
+            showToast("No se puede editar un usuario inactivo");
             return;
         }
         if (usuario.idusuario === idUsuarioLogueado) {
-            setMensaje("No puedes editar tu propio usuario desde aquí");
+            showToast("No puedes editar tu propio usuario desde aquí");
             return;
         }
         setForm({
@@ -167,31 +187,43 @@ const UsuariosContainer = () => {
         setEditingUsuario(usuario);
         setUsuarioActivoEditando(usuario.estado);
         setMostrarFormulario(true);
+        setCambiarContrasena(false);
     };
 
-    const handleDelete = async (id) => {
+   const handleDelete = (id) => {
         if (id === idUsuarioLogueado) {
-            setMensaje("No puedes desactivar tu propio usuario");
+            showToast("No puedes desactivar tu propio usuario");
             return;
         }
-        if (!window.confirm("¿Estás seguro de desactivar este usuario?"))
-            return;
-        try {
-            const usuario = usuarios.find((u) => u.idusuario === id);
-            if (!usuario) return;
+        const usuario = usuarios.find((u) => u.idusuario === id);
+        if (!usuario) return;
+        setUsuarioSeleccionado(usuario);
+        setMostrarConfirmacion(true);
+    };
 
-            await axios.put(`${API}${id}/`, { ...usuario, estado: false });
-            setMensaje("Usuario desactivado correctamente");
+    const confirmarDesactivacion = async () => {
+        try {
+            if (!usuarioSeleccionado) return;
+
+            await axios.put(`${API}${usuarioSeleccionado.idusuario}/`, {
+                ...usuarioSeleccionado,
+                estado: false,
+            });
+
+            showToast("Usuario desactivado correctamente");
             fetchUsuarios();
         } catch (error) {
             console.error("Error al desactivar usuario:", error);
-            setMensaje("Error al desactivar el usuario");
+            showToast("Error al desactivar el usuario");
+        } finally {
+            setMostrarConfirmacion(false);
+            setUsuarioSeleccionado(null);
         }
     };
 
     const handleActivate = async (id) => {
         if (id === idUsuarioLogueado) {
-            setMensaje("No puedes desactivar/activar tu propio usuario");
+            showToast("No puedes desactivar/activar tu propio usuario");
             return;
         }
         try {
@@ -199,18 +231,27 @@ const UsuariosContainer = () => {
             if (!usuario) return;
 
             await axios.put(`${API}${id}/`, { ...usuario, estado: true });
-            setMensaje("Usuario activado correctamente");
+            showToast("Usuario activado correctamente");
             fetchUsuarios();
         } catch (error) {
             console.error("Error al activar usuario:", error);
-            setMensaje("Error al activar el usuario");
+            showToast("Error al activar el usuario");
         }
     };
 
     // --- FILTRO + PAGINACIÓN ---
-    const usuariosFiltrados = usuarios.filter((u) =>
-        u.nombreusuario.toLowerCase().includes(busqueda.toLowerCase())
-    );
+   const usuariosFiltrados = usuarios.filter((u) => {
+        const textoBusqueda = busqueda.toLowerCase().trim();
+        const nombreCoincide = u.nombreusuario.toLowerCase().includes(textoBusqueda);
+
+        // Convertir el estado booleano a texto legible
+        const estadoTexto = u.estado ? "activo" : "inactivo";
+
+        // Coincide si el texto buscado aparece parcial o completamente
+        const estadoCoincide = estadoTexto.startsWith(textoBusqueda);
+
+        return nombreCoincide || estadoCoincide;
+    });
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
     const usuariosPaginados = usuariosFiltrados.slice(
@@ -235,12 +276,16 @@ const UsuariosContainer = () => {
                 <Header />
                 <main
                     style={{
-                        flex: 1,
                         padding: "40px 20px",
                         background: "#f0f2f5",
+                        justifyContent: "center",
                     }}
                 >
-                    <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+                    <div style={{ 
+                        maxWidth: "900px", 
+                        margin: "0 auto",
+                        paddingLeft: "250px",
+                        }}>
                         <h2
                             style={{
                                 marginBottom: "20px",
@@ -263,12 +308,13 @@ const UsuariosContainer = () => {
                             </p>
                         )}
 
-                        {/* --- BUSCADOR Y LÍMITE --- */}
+                        {/* --- BUSCADOR Y NUEVO USUARIO --- */}
                         <div
                             style={{
                                 display: "flex",
                                 justifyContent: "space-between",
                                 marginBottom: "15px",
+                                alignItems: "center",
                             }}
                         >
                             <input
@@ -287,24 +333,24 @@ const UsuariosContainer = () => {
                                     marginRight: "10px",
                                 }}
                             />
-                            <input
-                                type="number"
-                                min="1"
-                                value={elementosPorPagina}
-                                onChange={(e) => {
-                                    const val = Number(e.target.value);
-                                    setElementosPorPagina(val > 0 ? val : 1);
-                                    setPaginaActual(1);
-                                }}
+
+                            <button
+                                onClick={() => setMostrarFormulario(true)}
                                 style={{
-                                    width: "80px",
-                                    padding: "10px",
-                                    borderRadius: "6px",
-                                    border: "1px solid #ccc",
-                                    textAlign: "center",
+                                    padding: "10px 20px",
+                                    background: "#219ebc",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontWeight: "600",
+                                    whiteSpace: "nowrap",
                                 }}
-                            />
+                            >
+                                Nuevo Usuario
+                            </button>
                         </div>
+
 
                         {/* --- TABLA --- */}
                         <div
@@ -328,13 +374,11 @@ const UsuariosContainer = () => {
                                                 <th
                                                     key={h}
                                                     style={{
-                                                        borderBottom:
-                                                            "2px solid #eee",
+                                                        borderBottom: "2px solid #eee",
                                                         padding: "10px",
-                                                        textAlign:
-                                                            h === "Estado"
-                                                                ? "center"
-                                                                : "left",
+                                                        textAlign: "center",
+                                                        fontWeight: "600",
+                                                        background: "#f8f9fa",
                                                     }}
                                                 >
                                                     {h}
@@ -350,6 +394,8 @@ const UsuariosContainer = () => {
                                                 <td
                                                     style={{
                                                         padding: "10px",
+                                                        textAlign: "center",
+                                                        whiteSpace: "nowrap",
                                                         borderBottom:
                                                             "1px solid #f0f0f0",
                                                     }}
@@ -360,6 +406,7 @@ const UsuariosContainer = () => {
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
+                                                        width: "120px",
                                                         color: u.estado
                                                             ? "green"
                                                             : "red",
@@ -390,12 +437,17 @@ const UsuariosContainer = () => {
                                                                 idUsuarioLogueado
                                                         }
                                                         style={{
+                                                            marginRight: "8px",
+                                                            whiteSpace: "nowrap",
+                                                            justifyContent: "center",
+                                                            display: "inline-flex",
+                                                            width: "110px",
                                                             padding: "6px 14px",
                                                             background:
                                                                 u.estado &&
                                                                 u.idusuario !==
                                                                     idUsuarioLogueado
-                                                                    ? "#0054fd"
+                                                                    ? "#fb8500"
                                                                     : "#6c757d",
                                                             color: "#fff",
                                                             border: "none",
@@ -423,12 +475,16 @@ const UsuariosContainer = () => {
                                                                 idUsuarioLogueado
                                                             }
                                                             style={{
+                                                                whiteSpace: "nowrap",
+                                                                justifyContent: "center",
+                                                                display: "inline-flex",
+                                                                width: "110px",
                                                                 padding:
                                                                     "6px 14px",
                                                                 background:
                                                                     u.idusuario !==
                                                                     idUsuarioLogueado
-                                                                        ? "#dc3545"
+                                                                        ? "#fb8500"
                                                                         : "#6c757d",
                                                                 color: "#fff",
                                                                 border: "none",
@@ -455,12 +511,16 @@ const UsuariosContainer = () => {
                                                                 idUsuarioLogueado
                                                             }
                                                             style={{
+                                                                whiteSpace: "nowrap",
+                                                                justifyContent: "center",
+                                                                display: "inline-flex",
+                                                                width: "110px",
                                                                 padding:
                                                                     "6px 14px",
                                                                 background:
                                                                     u.idusuario !==
                                                                     idUsuarioLogueado
-                                                                        ? "#28a745"
+                                                                        ? "#ffb703"
                                                                         : "#6c757d",
                                                                 color: "#fff",
                                                                 border: "none",
@@ -514,15 +574,15 @@ const UsuariosContainer = () => {
                                                 style={{
                                                     margin: "0 5px",
                                                     padding: "6px 12px",
-                                                    border: "1px solid #007bff",
+                                                    border: "1px solid #219ebc",
                                                     background:
                                                         paginaActual === i + 1
-                                                            ? "#007bff"
+                                                            ? "#219ebc"
                                                             : "#fff",
                                                     color:
                                                         paginaActual === i + 1
                                                             ? "#fff"
-                                                            : "#007bff",
+                                                            : "#219ebc",
                                                     borderRadius: "5px",
                                                     cursor: "pointer",
                                                 }}
@@ -535,35 +595,50 @@ const UsuariosContainer = () => {
                             )}
                         </div>
 
-                        {/* --- BOTÓN NUEVO --- */}
-                        <button
-                            onClick={() => setMostrarFormulario(true)}
+                        {/* --- LÍMITE --- */}
+                        <div
                             style={{
                                 marginTop: "20px",
-                                padding: "12px 20px",
-                                background: "#007bff",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "8px",
-                                cursor: "pointer",
-                                fontWeight: "600",
+                                textAlign: "center",
                             }}
                         >
-                            Nuevo Usuario
-                        </button>
+                            <label style={{ marginRight: "10px", fontWeight: "600" }}>
+                                Mostrar:
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={elementosPorPagina}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, ""); 
+                                    const numero = val === "" ? "" : Number(val); 
+                                    setElementosPorPagina(numero > 0 ? numero : 1);
+                                    setPaginaActual(1);
+                                }}
+                                onFocus={(e) => e.target.select()} 
+                                style={{
+                                    width: "80px",
+                                    padding: "10px",
+                                    borderRadius: "6px",
+                                    border: "1px solid #ccc",
+                                    textAlign: "center",
+                                }}
+                            />
+                        </div>
                     </div>
                 </main>
 
-                {/* --- MODAL LATERAL --- */}
+                {/* --- MODAL Usuarios --- */}
                 {mostrarFormulario && (
                     <div
                         style={{
                             position: "fixed",
-                            top: 0,
-                            left: 0,
-                            bottom: 0,
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-15%, -50%)",
                             width: "350px",
                             background: "#fff",
+                            borderRadius: "10px",
                             boxShadow: "2px 0 15px rgba(0,0,0,0.2)",
                             padding: "30px",
                             zIndex: 1000,
@@ -615,32 +690,163 @@ const UsuariosContainer = () => {
                             </div>
 
                             {/* Contraseña */}
-                            <div style={{ marginBottom: "15px" }}>
+                            <div style={{ marginBottom: "15px", position: "relative" }}>
                                 <label
                                     htmlFor="contrasena"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "8px",
-                                    }}
+                                    style={{ display: "block", marginBottom: "8px" }}
                                 >
                                     Contraseña
                                 </label>
+
+                                {editingUsuario ? (
+                                    <>
+                                    {!cambiarContrasena ? (
+                                        <button
+                                        type="button"
+                                        onClick={() => setCambiarContrasena(true)}
+                                        style={{
+                                            padding: "8px 12px",
+                                            background: "#219ebc",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "5px",
+                                            cursor: "pointer",
+                                            marginBottom: "10px",
+                                        }}
+                                        >
+                                        Cambiar contraseña
+                                        </button>
+                                    ) : null}
+
+                                    {cambiarContrasena && (
+                                        <div style={{ position: "relative" }}>
+                                        <input
+                                            id="contrasena"
+                                            type={mostrarContrasena ? "text" : "password"}
+                                            value={form.contrasena}
+                                            onChange={(e) =>
+                                            setForm((f) => ({
+                                                ...f,
+                                                contrasena: e.target.value,
+                                            }))
+                                            }
+                                            placeholder="Ingrese nueva contraseña"
+                                            required
+                                            style={{
+                                            width: "100%",
+                                            padding: "10px 40px 10px 10px",
+                                            border: "1px solid #ccc",
+                                            borderRadius: "6px",
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setMostrarContrasena(!mostrarContrasena)}
+                                            style={{
+                                            position: "absolute",
+                                            right: "10px",
+                                            top: "50%",
+                                            transform: "translateY(-50%)",
+                                            background: "none",
+                                            border: "none",
+                                            cursor: "pointer",
+                                            }}
+                                        >
+                                            {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                        </div>
+                                    )}
+                                    </>
+                                ) : (
+                                    <div style={{ position: "relative" }}>
+                                    <input
+                                        id="contrasena"
+                                        type={mostrarContrasena ? "text" : "password"}
+                                        value={form.contrasena}
+                                        onChange={(e) =>
+                                        setForm((f) => ({ ...f, contrasena: e.target.value }))
+                                        }
+                                        required
+                                        style={{
+                                        width: "100%",
+                                        padding: "10px 40px 10px 10px",
+                                        border: "1px solid #ccc",
+                                        borderRadius: "6px",
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setMostrarContrasena(!mostrarContrasena)}
+                                        style={{
+                                        position: "absolute",
+                                        right: "10px",
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        }}
+                                    >
+                                        {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                    </div>
+                                )}
+
+                                {/* Rol */}
+                                <div style={{ marginBottom: "15px" }}>
+                                    <label
+                                        htmlFor="rol"
+                                        style={{
+                                            display: "block",
+                                            marginBottom: "8px",
+                                        }}
+                                    >
+                                        Rol
+                                    </label>
+                                    <select
+                                        id="rol"
+                                        value={form.idrol}
+                                        onChange={(e) =>
+                                            setForm((f) => ({
+                                                ...f,
+                                                idrol: e.target.value,
+                                            }))
+                                        }
+                                        required
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                            border: "1px solid #ccc",
+                                            borderRadius: "6px",
+                                        }}
+                                    >
+                                        <option value="">Seleccione un rol</option>
+                                        {roles.map((r) => (
+                                            <option key={r.idrol} value={r.idrol}>
+                                                {r.nombrerol}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Empleado con búsqueda combinada */}
+                            <div style={{ marginBottom: "15px" }}>
+                                <label
+                                    htmlFor="empleado"
+                                    style={{ display: "block", marginBottom: "8px" }}
+                                >
+                                    Empleado
+                                </label>
+
                                 <input
-                                    id="contrasena"
-                                    type="password"
-                                    value={form.contrasena}
-                                    onChange={(e) =>
-                                        setForm((f) => ({
-                                            ...f,
-                                            contrasena: e.target.value,
-                                        }))
-                                    }
-                                    required={!editingUsuario}
-                                    placeholder={
-                                        editingUsuario
-                                            ? "Dejar vacío para no cambiar"
-                                            : ""
-                                    }
+                                    type="text"
+                                    placeholder="Escriba nombre del empleado..."
+                                    value={busquedaEmpleado}
+                                    onChange={(e) => {
+                                        setBusquedaEmpleado(e.target.value);
+                                        setForm((f) => ({ ...f, idempleado: "" })); // resetear selección
+                                    }}
                                     style={{
                                         width: "100%",
                                         padding: "10px",
@@ -648,87 +854,52 @@ const UsuariosContainer = () => {
                                         borderRadius: "6px",
                                     }}
                                 />
-                            </div>
 
-                            {/* Rol */}
-                            <div style={{ marginBottom: "15px" }}>
-                                <label
-                                    htmlFor="rol"
+                                <ul
                                     style={{
-                                        display: "block",
-                                        marginBottom: "8px",
-                                    }}
-                                >
-                                    Rol
-                                </label>
-                                <select
-                                    id="rol"
-                                    value={form.idrol}
-                                    onChange={(e) =>
-                                        setForm((f) => ({
-                                            ...f,
-                                            idrol: e.target.value,
-                                        }))
-                                    }
-                                    required
-                                    style={{
-                                        width: "100%",
-                                        padding: "10px",
+                                        listStyle: "none",
+                                        padding: 0,
+                                        margin: 0,
+                                        maxHeight: "150px",
+                                        overflowY: "auto",
                                         border: "1px solid #ccc",
                                         borderRadius: "6px",
                                     }}
                                 >
-                                    <option value="">Seleccione un rol</option>
-                                    {roles.map((r) => (
-                                        <option key={r.idrol} value={r.idrol}>
-                                            {r.nombrerol}
-                                        </option>
-                                    ))}
-                                </select>
+                                    {empleados
+                                        .filter(
+                                            (emp) =>
+                                                !usuarios.some(
+                                                    (u) =>
+                                                        u.idempleado === emp.idempleado &&
+                                                        (!editingUsuario || u.idusuario !== editingUsuario.idusuario)
+                                                )
+                                        )
+                                        .filter((emp) =>
+                                            `${emp.nombre} ${emp.apellido}`
+                                                .toLowerCase()
+                                                .includes(busquedaEmpleado.toLowerCase())
+                                        )
+                                        .map((emp) => (
+                                            <li
+                                                key={emp.idempleado}
+                                                onClick={() => {
+                                                    setForm((f) => ({ ...f, idempleado: emp.idempleado }));
+                                                    setBusquedaEmpleado(`${emp.nombre} ${emp.apellido}`);
+                                                }}
+                                                style={{
+                                                    padding: "8px 10px",
+                                                    cursor: "pointer",
+                                                    background:
+                                                        form.idempleado === emp.idempleado ? "#f0f0f0" : "#fff",
+                                                }}
+                                            >
+                                                {emp.nombre} {emp.apellido}
+                                            </li>
+                                        ))}
+                                </ul>
                             </div>
 
-                            {/* Empleado */}
-                            <div style={{ marginBottom: "15px" }}>
-                                <label
-                                    htmlFor="empleado"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "8px",
-                                    }}
-                                >
-                                    Empleado
-                                </label>
-                                <select
-                                    id="empleado"
-                                    value={form.idempleado}
-                                    onChange={(e) =>
-                                        setForm((f) => ({
-                                            ...f,
-                                            idempleado: e.target.value,
-                                        }))
-                                    }
-                                    required
-                                    style={{
-                                        width: "100%",
-                                        padding: "10px",
-                                        border: "1px solid #ccc",
-                                        borderRadius: "6px",
-                                    }}
-                                >
-                                    <option value="">
-                                        Seleccione un empleado
-                                    </option>
-                                    {empleados.map((emp) => (
-                                        <option
-                                            key={emp.idempleado}
-                                            value={emp.idempleado}
-                                        >
-                                            {emp.nombre} {emp.apellido} -{" "}
-                                            {emp.dpi}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
 
                             {/* Botón Guardar / Actualizar */}
                             <button
@@ -736,7 +907,7 @@ const UsuariosContainer = () => {
                                 style={{
                                     width: "100%",
                                     padding: "10px",
-                                    background: "#007bff",
+                                    background: "#219ebc",
                                     color: "#fff",
                                     border: "none",
                                     borderRadius: "6px",
@@ -751,20 +922,86 @@ const UsuariosContainer = () => {
                         <button
                             onClick={() => setMostrarFormulario(false)}
                             style={{
-                                marginTop: "10px",
-                                padding: "10px",
-                                background: "#6c757d",
-                                color: "#fff",
+                                position: "absolute",
+                                top: "10px",
+                                right: "15px",
+                                background: "transparent",
                                 border: "none",
-                                borderRadius: "6px",
                                 cursor: "pointer",
                             }}
+                            title="Cerrar"
+                            >
+                            <X size={24} color="#555" />
+                            </button>
+                    </div>
+                )}
+                {/* Modal de eliminacion */}
+                {mostrarConfirmacion && (
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100vw",
+                            height: "100vh",
+                            background: "rgba(0,0,0,0.4)",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            zIndex: 2000,
+                        }}
+                    >
+                        <div
+                            style={{
+                                background: "#fff",
+                                padding: "30px",
+                                borderRadius: "10px",
+                                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+                                textAlign: "center",
+                                width: "350px",
+                            }}
                         >
-                            Cerrar
-                        </button>
+                            <h3 style={{ marginBottom: "15px", color: "#333" }}>
+                                Confirmar desactivación
+                            </h3>
+                            <p style={{ marginBottom: "25px", color: "#555" }}>
+                                ¿Seguro que deseas desactivar al usuario{" "}
+                                <strong>{usuarioSeleccionado?.nombreusuario}</strong>?
+                            </p>
+
+                            <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
+                                <button
+                                    onClick={confirmarDesactivacion}
+                                    style={{
+                                        background: "#fb8500",
+                                        color: "#fff",
+                                        padding: "10px 20px",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Sí, desactivar
+                                </button>
+                                <button
+                                    onClick={() => setMostrarConfirmacion(false)}
+                                    style={{
+                                        background: "#6c757d",
+                                        color: "#fff",
+                                        padding: "10px 20px",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 
+                <ToastContainer />
                 <Footer />
                 <ScrollToTop />
             </div>
