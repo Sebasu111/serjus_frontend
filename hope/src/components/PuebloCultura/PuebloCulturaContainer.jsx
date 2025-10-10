@@ -1,371 +1,231 @@
-// containers/pueblocultura/index.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Layout from "../../layouts/index.jsx";
+
+import Layout from "../../layouts";
 import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
+import { showToast } from "../../utils/toast.js";
+import { ToastContainer } from "react-toastify";
+
+import PuebloCulturaForm from "./PuebloCulturaForm";
+import ConfirmModal from "./ConfirmModal";
+import PuebloCulturaTable from "./PuebloCulturaTable";
+
+const API = "http://127.0.0.1:8000/api/pueblocultura/";
 
 const PuebloCulturaContainer = () => {
     const [nombrePueblo, setNombrePueblo] = useState("");
-    const [estadoActivo, setEstadoActivo] = useState(true);
-    const [mensaje, setMensaje] = useState("");
-    const [pueblos, setPueblos] = useState([]);
+    const [items, setItems] = useState([]);
     const [editingId, setEditingId] = useState(null);
+    const [activoEditando, setActivoEditando] = useState(true);
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
+    const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+    const [seleccionado, setSeleccionado] = useState(null);
+    const [busqueda, setBusqueda] = useState("");
+    const [paginaActual, setPaginaActual] = useState(1);
+    const [elementosPorPagina, setElementosPorPagina] = useState(5);
 
-    useEffect(() => {
-        fetchPueblos();
-    }, []);
+    useEffect(() => { fetchAll(); }, []);
 
-    const fetchPueblos = async () => {
+    const fetchAll = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/pueblocultura/");
-            const data = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                ? res.data.results
-                : [];
-            setPueblos(data);
-        } catch (error) {
-            console.error("Error al cargar pueblos:", error);
-            setPueblos([]);
-            setMensaje("Error al cargar los pueblos");
+            const res = await axios.get(API);
+            const raw = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.results) ? res.data.results : []);
+            // Normaliza a camelCase para la UI
+            const data = raw.map(r => ({
+                idPuebloCultura: r.idPuebloCultura ?? r.idpueblocultura ?? r.id,
+                nombrePueblo: r.nombrePueblo ?? r.nombrepueblo,
+                estado: r.estado,
+            }));
+            setItems(data);
+        } catch (e) {
+            console.error(e);
+            showToast("Error al cargar Pueblo/Cultura", "error");
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const data = {
+            // validar duplicado (case-insensitive)
+            const yaExiste = items.some(i =>
+                (i.nombrePueblo || "").trim().toLowerCase() === nombrePueblo.trim().toLowerCase() &&
+                i.idPuebloCultura !== editingId
+            );
+            if (yaExiste) {
+                showToast("Ya existe un registro con ese nombre", "warning");
+                return;
+            }
+
+            const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+            const payload = {
+                // payload en snake_case para DRF
                 nombrepueblo: nombrePueblo,
-                estado: estadoActivo,
-                idusuario: 1, // reemplazar con usuario logueado
+                estado: Boolean(activoEditando),
+                idusuario: idUsuario,
             };
 
             if (editingId) {
-                await axios.put(
-                    `http://127.0.0.1:8000/api/pueblocultura/${editingId}/`,
-                    data
-                );
-                setMensaje("Pueblo actualizado correctamente");
+                await axios.put(`${API}${editingId}/`, payload);
             } else {
-                await axios.post("http://127.0.0.1:8000/api/pueblocultura/", data);
-                setMensaje("Pueblo registrado correctamente");
+                await axios.post(API, payload);
             }
 
+            showToast(editingId ? "Actualizado correctamente" : "Registrado correctamente");
             setNombrePueblo("");
-            setEstadoActivo(true);
             setEditingId(null);
-            fetchPueblos();
+            setActivoEditando(true);
+            setMostrarFormulario(false);
+            fetchAll();
         } catch (error) {
-            console.error("Error al guardar pueblo:", error);
-            setMensaje("Error al registrar el pueblo");
+            const apiErr = error.response?.data;
+            const detalle = (apiErr && (apiErr.nombrepueblo?.[0] || apiErr.detail || JSON.stringify(apiErr))) || "desconocido";
+            console.error("POST/PUT pueblocultura error:", apiErr || error);
+            showToast(`Error al guardar: ${detalle}`, "error");
         }
     };
 
-    const handleEdit = (pueblo) => {
-        setNombrePueblo(pueblo.nombrepueblo);
-        setEstadoActivo(pueblo.estado);
-        setEditingId(pueblo.idpueblocultura);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+    const handleEdit = (row) => {
+        if (!row.estado) { showToast("No se puede editar un registro inactivo"); return; }
+        setNombrePueblo(row.nombrePueblo);
+        setEditingId(row.idPuebloCultura);
+        setActivoEditando(row.estado);
+        setMostrarFormulario(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de desactivar este pueblo?")) return;
+    const handleDelete = (row) => { setSeleccionado(row); setMostrarConfirmacion(true); };
+
+    const confirmarDesactivacion = async () => {
+        if (!seleccionado) return;
         try {
-            const pueblo = pueblos.find((p) => p.idpueblocultura === id);
-            if (!pueblo) return;
-
-            await axios.put(`http://127.0.0.1:8000/api/pueblocultura/${id}/`, {
-                nombrepueblo: pueblo.nombrepueblo,
+            const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+            await axios.put(`${API}${seleccionado.idPuebloCultura}/`, {
+                nombrepueblo: seleccionado.nombrePueblo,
                 estado: false,
-                idusuario: pueblo.idusuario,
+                idusuario: idUsuario,
             });
-
-            setMensaje("Pueblo desactivado correctamente");
-            fetchPueblos();
-        } catch (error) {
-            console.error("Error al desactivar pueblo:", error.response?.data || error);
-            setMensaje("Error al desactivar el pueblo");
+            showToast("Desactivado correctamente");
+            fetchAll();
+        } catch (e) {
+            console.error(e);
+            showToast("Error al desactivar", "error");
+        } finally {
+            setMostrarConfirmacion(false);
+            setSeleccionado(null);
         }
     };
 
     const handleActivate = async (id) => {
         try {
-            const pueblo = pueblos.find((p) => p.idpueblocultura === id);
-            if (!pueblo) return;
-
-            await axios.put(`http://127.0.0.1:8000/api/pueblocultura/${id}/`, {
-                nombrepueblo: pueblo.nombrepueblo,
+            const row = items.find(i => i.idPuebloCultura === id);
+            if (!row) return;
+            const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+            await axios.put(`${API}${id}/`, {
+                nombrepueblo: row.nombrePueblo,
                 estado: true,
-                idusuario: pueblo.idusuario,
+                idusuario: idUsuario,
             });
-
-            setMensaje("Pueblo activado correctamente");
-            fetchPueblos();
-        } catch (error) {
-            console.error("Error al activar pueblo:", error.response?.data || error);
-            setMensaje("Error al activar el pueblo");
+            showToast("Activado correctamente");
+            fetchAll();
+        } catch (e) {
+            console.error(e);
+            showToast("Error al activar", "error");
         }
     };
 
+    const filtrados = items.filter(i => {
+        const t = busqueda.toLowerCase().trim();
+        const n = i.nombrePueblo?.toLowerCase() || "";
+        const e = (i.estado ? "activo" : "inactivo");
+        return n.includes(t) || e.startsWith(t);
+    });
+
+    const indexLast = paginaActual * elementosPorPagina;
+    const indexFirst = indexLast - elementosPorPagina;
+    const paginados = filtrados.slice(indexFirst, indexLast);
+    const totalPaginas = Math.ceil(filtrados.length / elementosPorPagina);
+
     return (
         <Layout>
-            <SEO title="Hope – Pueblos Cultura" />
-            <div
-                className="wrapper"
-                style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-            >
-                <Header />
+            <SEO title="Pueblo / Cultura" />
+            <div style={{ display: "flex", minHeight: "100vh" }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    <Header />
+                    <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
+                        <div style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Pueblo / Cultura</h2>
 
-                <main
-                    style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5" }}
-                >
-                    <div style={{ maxWidth: "700px", margin: "0 auto" }}>
-                        {/* --- FORMULARIO --- */}
-                        <div
-                            style={{
-                                background: "#fff",
-                                padding: "40px",
-                                borderRadius: "12px",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                                marginBottom: "40px",
-                            }}
-                        >
-                            <h2 style={{ textAlign: "center", marginBottom: "30px" }}>
-                                {editingId ? "Editar pueblo" : "Registrar un nuevo pueblo"}
-                            </h2>
-                            {mensaje && (
-                                <p
-                                    style={{
-                                        textAlign: "center",
-                                        color: mensaje.includes("Error") ? "red" : "green",
-                                        marginBottom: "20px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    {mensaje}
-                                </p>
-                            )}
-                            <form onSubmit={handleSubmit}>
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        htmlFor="nombrePueblo"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        Nombre del Pueblo
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="nombrePueblo"
-                                        value={nombrePueblo}
-                                        onChange={(e) => setNombrePueblo(e.target.value)}
-                                        required
-                                        style={{
-                                            width: "100%",
-                                            padding: "12px 15px",
-                                            borderRadius: "8px",
-                                            border: "1px solid #ccc",
-                                            fontSize: "16px",
-                                        }}
-                                    />
-                                </div>
-
-                                <div
-                                    style={{
-                                        marginBottom: "30px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                    }}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        id="estadoActivo"
-                                        checked={estadoActivo}
-                                        onChange={(e) => setEstadoActivo(e.target.checked)}
-                                        style={{ width: "18px", height: "18px" }}
-                                    />
-                                    <label
-                                        htmlFor="estadoActivo"
-                                        style={{ fontWeight: "600", cursor: "pointer" }}
-                                    >
-                                        Activo
-                                    </label>
-                                </div>
+                            {/* Buscador + Nuevo */}
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", alignItems: "center" }}>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar nombre / estado..."
+                                    value={busqueda}
+                                    onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }}
+                                    style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc", marginRight: "10px" }}
+                                />
                                 <button
-                                    type="submit"
-                                    style={{
-                                        width: "100%",
-                                        padding: "12px 0",
-                                        background: "#007bff",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        fontSize: "16px",
-                                        fontWeight: "600",
-                                        cursor: "pointer",
-                                    }}
+                                    onClick={() => setMostrarFormulario(true)}
+                                    style={{ padding: "10px 20px", background: "#219ebc", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", whiteSpace: "nowrap" }}
                                 >
-                                    {editingId ? "Actualizar Pueblo" : "Guardar Pueblo"}
+                                    Nuevo Registro
                                 </button>
-                            </form>
+                            </div>
+
+                            <PuebloCulturaTable
+                                items={paginados}
+                                handleEdit={handleEdit}
+                                handleDelete={handleDelete}
+                                handleActivate={handleActivate}
+                                paginaActual={paginaActual}
+                                totalPaginas={totalPaginas}
+                                setPaginaActual={setPaginaActual}
+                            />
+
+                            <div style={{ marginTop: "20px", textAlign: "center" }}>
+                                <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={elementosPorPagina}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, "");
+                                        const n = val === "" ? "" : Number(val);
+                                        setElementosPorPagina(n > 0 ? n : 1);
+                                        setPaginaActual(1);
+                                    }}
+                                    onFocus={(e) => e.target.select()}
+                                    style={{ width: "80px", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", textAlign: "center" }}
+                                />
+                            </div>
                         </div>
+                    </main>
+                    <Footer />
+                </div>
 
-                        {/* --- TABLA --- */}
-                        <div
-                            style={{
-                                background: "#fff",
-                                borderRadius: "12px",
-                                padding: "20px 30px",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                                maxHeight: "600px",
-                                overflowY: "auto",
-                            }}
-                        >
-                            <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
-                                Pueblos Registrados
-                            </h3>
-                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                                <thead>
-                                    <tr>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
-                                                textAlign: "left",
-                                            }}
-                                        >
-                                            Nombre
-                                        </th>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
-                                                textAlign: "center",
-                                            }}
-                                        >
-                                            Estado
-                                        </th>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
-                                                textAlign: "center",
-                                            }}
-                                        >
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {Array.isArray(pueblos) && pueblos.length > 0 ? (
-                                        pueblos.map((pueblo) => (
-                                            <tr key={pueblo.idpueblocultura}>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        borderBottom: "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {pueblo.nombrepueblo}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        textAlign: "center",
-                                                        color: pueblo.estado ? "green" : "red",
-                                                        fontWeight: "600",
-                                                        borderBottom: "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {pueblo.estado ? "Activo" : "Inactivo"}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        textAlign: "center",
-                                                        borderBottom: "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleEdit(pueblo)}
-                                                        style={{
-                                                            padding: "6px 14px",
-                                                            background: "#ffc107",
-                                                            color: "#fff",
-                                                            border: "none",
-                                                            borderRadius: "5px",
-                                                            cursor: "pointer",
-                                                            fontSize: "14px",
-                                                            marginRight: "6px",
-                                                        }}
-                                                    >
-                                                        Editar
-                                                    </button>
+                {mostrarFormulario && (
+                    <PuebloCulturaForm
+                        nombrePueblo={nombrePueblo}
+                        setNombrePueblo={setNombrePueblo}
+                        activoEditando={activoEditando}
+                        editingId={editingId}
+                        handleSubmit={handleSubmit}
+                        onClose={() => setMostrarFormulario(false)}
+                    />
+                )}
 
-                                                    {pueblo.estado ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleDelete(pueblo.idpueblocultura)
-                                                            }
-                                                            style={{
-                                                                padding: "6px 14px",
-                                                                background: "#dc3545",
-                                                                color: "#fff",
-                                                                border: "none",
-                                                                borderRadius: "5px",
-                                                                cursor: "pointer",
-                                                                fontSize: "14px",
-                                                            }}
-                                                        >
-                                                            Desactivar
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleActivate(
-                                                                    pueblo.idpueblocultura
-                                                                )
-                                                            }
-                                                            style={{
-                                                                padding: "6px 14px",
-                                                                background: "#28a745",
-                                                                color: "#fff",
-                                                                border: "none",
-                                                                borderRadius: "5px",
-                                                                cursor: "pointer",
-                                                                fontSize: "14px",
-                                                            }}
-                                                        >
-                                                            Activar
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="3" style={{ textAlign: "center", padding: "20px" }}>
-                                                No hay pueblos registrados
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </main>
+                {mostrarConfirmacion && (
+                    <ConfirmModal
+                        registro={seleccionado}
+                        onConfirm={confirmarDesactivacion}
+                        onCancel={() => setMostrarConfirmacion(false)}
+                        tipo="pueblo/cultura"
+                    />
+                )}
 
-                <Footer />
+                <ToastContainer />
                 <ScrollToTop />
             </div>
         </Layout>

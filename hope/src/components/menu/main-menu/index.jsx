@@ -76,6 +76,7 @@ const SidebarMenu = () => {
                             <li><NavLink to={`${base}/Contrato`} className="sidebar-submenu-link">Contrato</NavLink></li>
                             <li><NavLink to={`${base}/Historial`} className="sidebar-submenu-link">Historial</NavLink></li>
                             <li><NavLink to={`${base}/Usuarios`} className="sidebar-submenu-link">Usuarios</NavLink></li>
+                            <li><NavLink to={`${base}/Equipos`} className="sidebar-submenu-link">Equipos</NavLink></li>
                         </ul>
                     </li>
 
@@ -150,8 +151,8 @@ const SidebarMenu = () => {
                             <FaBook className="menu-icon" /> {!collapsed && "Catálogo"}
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "catalogo" ? "open" : ""}`}>
-                            <li><NavLink to={`${base}/CulturaPueblo`} className="sidebar-submenu-link">Cultura Pueblo</NavLink></li>
-                            <li><NavLink to={`${base}/Idiomas`} className="sidebar-submenu-link">Idioma</NavLink></li>
+                            <li><NavLink to={`${base}/PuebloCultura`} className="sidebar-submenu-link">Pueblo/Cultura</NavLink></li>
+                            <li><NavLink to={`${base}/Idiomas`} className="sidebar-submenu-link">Idiomas</NavLink></li>
                             <li><NavLink to={`${base}/Puestos`} className="sidebar-submenu-link">Puestos</NavLink></li>
                         </ul>
                     </li>
