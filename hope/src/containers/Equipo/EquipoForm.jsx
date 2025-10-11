@@ -2,24 +2,16 @@ import React from "react";
 import { X } from "lucide-react";
 
 const EquipoForm = ({
-    nombreEquipo,
-    setNombreEquipo,
+    equipos = [],
+    idEquipo,
+    setIdEquipo,
     idCoordinador,
     setIdCoordinador,
-    empleados,
-    equipoActivoEditando,
+    empleados = [],
     editingId,
     handleSubmit,
     onClose,
 }) => {
-    const handleNombreChange = (e) => {
-        // Letras, números, espacios, acentos, punto y guion
-        const regex = /^[A-Za-zÁÉÍÓÚáéíóúñÑ0-9\s.-]*$/;
-        if (regex.test(e.target.value)) {
-            setNombreEquipo(e.target.value);
-        }
-    };
-
     const empleadoDisplayName = (emp) =>
         emp?.nombreCompleto ||
         [emp?.nombres, emp?.apellidos].filter(Boolean).join(" ") ||
@@ -29,6 +21,8 @@ const EquipoForm = ({
 
     const empleadoId = (emp) =>
         emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
+
+    const equipoId = (eq) => eq.id ?? eq.idEquipo ?? eq.pk;
 
     return (
         <div
@@ -49,22 +43,31 @@ const EquipoForm = ({
             }}
         >
             <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
-                {editingId ? "Editar equipo" : "Registrar equipo"}
+                {editingId ? "Actualizar Coordinador" : "Asignar Coordinador"}
             </h3>
+
             <form onSubmit={handleSubmit} style={{ flex: 1 }}>
                 <div style={{ marginBottom: "18px" }}>
-                    <label htmlFor="nombreEquipo" style={{ display: "block", marginBottom: "8px" }}>
-                        Nombre del equipo
+                    <label htmlFor="equipo" style={{ display: "block", marginBottom: "8px" }}>
+                        Selecciona un equipo
                     </label>
-                    <input
-                        id="nombreEquipo"
-                        type="text"
-                        value={nombreEquipo}
-                        onChange={handleNombreChange}
+                    <select
+                        id="equipo"
+                        value={idEquipo ?? ""}
+                        onChange={(e) => setIdEquipo(Number(e.target.value))}
                         required
-                        disabled={!equipoActivoEditando}
+                        disabled={!!editingId} // <-- deshabilitado si estamos editando
                         style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
-                    />
+                    >
+                        <option value="" disabled>
+                            Selecciona un equipo...
+                        </option>
+                        {equipos.map((eq) => (
+                            <option key={equipoId(eq)} value={equipoId(eq)}>
+                                {eq.nombre ?? eq.nombreEquipo ?? `Equipo #${equipoId(eq)}`}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div style={{ marginBottom: "22px" }}>
@@ -75,7 +78,6 @@ const EquipoForm = ({
                         id="coordinador"
                         value={idCoordinador ?? ""}
                         onChange={(e) => setIdCoordinador(Number(e.target.value))}
-                        disabled={!equipoActivoEditando}
                         required
                         style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
                     >
@@ -92,18 +94,17 @@ const EquipoForm = ({
 
                 <button
                     type="submit"
-                    disabled={!equipoActivoEditando}
                     style={{
                         width: "100%",
                         padding: "10px",
-                        background: equipoActivoEditando ? "#219ebc" : "#6c757d",
+                        background: "#219ebc",
                         color: "#fff",
                         border: "none",
                         borderRadius: "6px",
-                        cursor: equipoActivoEditando ? "pointer" : "not-allowed",
+                        cursor: "pointer",
                     }}
                 >
-                    {editingId ? "Actualizar" : "Guardar"}
+                    {editingId ? "Actualizar" : "Asignar"}
                 </button>
             </form>
 

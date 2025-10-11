@@ -56,50 +56,53 @@ const EquiposTable = ({
                             >
                                 {equipo.estado ? "Activo" : "Inactivo"}
                             </td>
-                            <td style={{ padding: "10px", textAlign: "center", borderBottom: "1px solid #f0f0f0" }}>
-                                <button
-                                    onClick={() => handleEdit(equipo)}
-                                    disabled={!equipo.estado}
+                            <td
+                                style={{
+                                    padding: "10px",
+                                    textAlign: "center",
+                                    borderBottom: "1px solid #f0f0f0",
+                                }}
+                            >
+                                <div
                                     style={{
-                                        padding: "6px 14px",
-                                        background: equipo.estado ? "#fb8500" : "#6c757d",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "5px",
-                                        cursor: equipo.estado ? "pointer" : "not-allowed",
-                                        marginRight: "6px",
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        gap: "6px",
                                     }}
                                 >
-                                    Editar
-                                </button>
+                                    <button
+                                        onClick={() => handleEdit(equipo)}
+                                        disabled={!equipo.estado}
+                                        style={{
+                                            width: "85px",
+                                            padding: "6px 14px",
+                                            background: equipo.estado ? "#fb8500" : "#6c757d",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "5px",
+                                            cursor: equipo.estado ? "pointer" : "not-allowed",
+                                        }}
+                                    >
+                                        Editar
+                                    </button>
 
-                                {equipo.estado ? (
                                     <button
-                                        onClick={() => handleDelete(equipo)}
+                                        onClick={() =>
+                                            equipo.estado ? handleDelete(equipo) : handleActivate(equipo.idEquipo)
+                                        }
                                         style={{
+                                            width: "85px",
                                             padding: "6px 14px",
-                                            background: "#fb8500",
+                                            background: equipo.estado ? "#fb8500" : "#ffb703",
                                             color: "#fff",
                                             border: "none",
                                             borderRadius: "5px",
+                                            cursor: "pointer",
                                         }}
                                     >
-                                        Eliminar
+                                        {equipo.estado ? "Eliminar" : "Activar"}
                                     </button>
-                                ) : (
-                                    <button
-                                        onClick={() => handleActivate(equipo.idEquipo)}
-                                        style={{
-                                            padding: "6px 14px",
-                                            background: "#ffb703",
-                                            color: "#fff",
-                                            border: "none",
-                                            borderRadius: "5px",
-                                        }}
-                                    >
-                                        Activar
-                                    </button>
-                                )}
+                                </div>
                             </td>
                         </tr>
                     ))

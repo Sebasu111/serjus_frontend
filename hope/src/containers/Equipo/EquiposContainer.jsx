@@ -28,6 +28,7 @@ const EquiposContainer = () => {
     const [busqueda, setBusqueda] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
+    const [idEquipo, setIdEquipo] = useState("");
 
     useEffect(() => {
         fetchEquipos();
@@ -91,39 +92,37 @@ const EquiposContainer = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-            const coordinadorId = Number(idCoordinador);
+        if (!idEquipo || !idCoordinador) return;
 
+        const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+
+        // Buscar el equipo seleccionado por idEquipo
+        const equipoSeleccionado = equipos.find((eq) => eq.idEquipo === idEquipo);
+        if (!equipoSeleccionado) {
+            showToast("No se encontró el equipo seleccionado", "error");
+            return;
+        }
+
+        try {
             const payload = {
-                nombreequipo: nombreEquipo,
-                idcoordinador: coordinadorId,
-                estado: true,
+                nombreequipo: equipoSeleccionado.nombreEquipo, // <-- STRING
+                idcoordinador: Number(idCoordinador),
                 idusuario: idUsuario,
             };
 
-            if (editingId) {
-                await axios.put(`${API_BASE}/equipos/${editingId}/`, payload);
-            } else {
-                await axios.post(`${API_BASE}/equipos/`, payload);
-            }
+            await axios.put(`${API_BASE}/equipos/${idEquipo}/`, payload);
 
-            showToast(
-                editingId ? "Equipo actualizado correctamente" : "Equipo registrado correctamente"
-            );
+            showToast("Coordinador asignado correctamente");
 
-            setNombreEquipo("");
+            setIdEquipo("");
+            setNombreEquipo(equipoSeleccionado.nombreEquipo); // opcional
             setIdCoordinador("");
             setEditingId(null);
-            setEquipoActivoEditando(true);
             setMostrarFormulario(false);
             fetchEquipos();
         } catch (error) {
-            console.error("POST/PUT /equipos error:", error.response?.data || error);
-            showToast(
-                `Error al guardar: ${JSON.stringify(error.response?.data || "desconocido")}`,
-                "error"
-            );
+            console.error("PUT /equipos error:", error.response?.data || error);
+            showToast("Error al asignar coordinador", "error");
         }
     };
 
@@ -132,12 +131,13 @@ const EquiposContainer = () => {
             showToast("No se puede editar un equipo inactivo");
             return;
         }
+        setIdEquipo(equipo.idEquipo);
         setNombreEquipo(equipo.nombreEquipo);
         setIdCoordinador(equipo.idCoordinador);
         setEditingId(equipo.idEquipo);
-        setEquipoActivoEditando(equipo.estado);
         setMostrarFormulario(true);
     };
+
 
     const handleDelete = (equipo) => {
         setEquipoSeleccionado(equipo);
@@ -239,7 +239,7 @@ const EquiposContainer = () => {
                                         whiteSpace: "nowrap",
                                     }}
                                 >
-                                    Nuevo Equipo
+                                    Asignar Coordinador
                                 </button>
                             </div>
 
@@ -277,6 +277,9 @@ const EquiposContainer = () => {
 
                 {mostrarFormulario && (
                     <EquipoForm
+                        equipos={equipos}                   
+                        idEquipo={idEquipo}                 
+                        setIdEquipo={setIdEquipo}
                         nombreEquipo={nombreEquipo}
                         setNombreEquipo={setNombreEquipo}
                         idCoordinador={idCoordinador}
