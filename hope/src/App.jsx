@@ -21,34 +21,32 @@ import LoginPage from "./pages/LoginPage";
 // Componentes generales
 import NavScrollTop from "./components/nav-scroll-top";
 
+
 // =============================================================
 //   PERSONAL
 // =============================================================
-
-// Empleados
-import EmpleadosContainer from "./containers/empleados";
+import EmpleadosContainer from "./containers/Empleados/EmpleadosContainer";
 import ContratosContainer from "./containers/contratos";
 import HistorialPuestoContainer from "./containers/historial-puesto";
-
-// Equipo (pendiente, ejemplo: EquipoContainer)
-// import EquipoContainer from "./containers/equipo";
+import EquiposContainer from "./containers/Equipos/EquiposContainer";
 
 import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
+
 
 // =============================================================
 //   RECLUTAMIENTO
 // =============================================================
-
 import ConvocatoriasContainer from "./containers/convocatorias/ConvocatoriasContainer";
 // import AspirantesContainer from "./containers/aspirantes";
 // import SeleccionContainer from "./containers/seleccion";
 
+
 // =============================================================
 //   INTEGRACIÓN
 // =============================================================
-
-// import InduccionContainer from "./containers/induccion";
 import CapacitacionContainer from "./components/capacitacion";
+// import InduccionContainer from "./containers/induccion";
+
 
 // =============================================================
 //   DESEMPEÑO
@@ -56,11 +54,13 @@ import CapacitacionContainer from "./components/capacitacion";
 import CriterioEvaluacionContainer from "./components/CriterioEvaluacion/CriterioEvaluacionContainer";
 import EvaluacionCriterioContainer from "./components/EvaluacionCriterio/EvaluacionCriterioContainer";
 
+
 // =============================================================
 //   CONTROL DISCIPLINARIO
 // =============================================================
 import AusenciaContainer from "./components/Ausencia/AusenciaContainer";
 import AmonestacionContainer from "./components/Amonestacion/AmonestacionContainer";
+
 
 // =============================================================
 //   AUXILIAR (catálogos, tablas de apoyo, etc.)
@@ -73,21 +73,23 @@ import TiposDocContainer from "./components/TiposDocumento/TiposDocContainer";
 import PuebloCulturaContainer from "./components/PuebloCultura/PuebloCulturaContainer";
 import TerminacionLaboralContainer from "./components/TerminacionLaboral/TerminacionLaboralContainer";
 
+
 // =============================================================
 //   INFORMES (pendiente)
 // =============================================================
-
 // import InformesContainer from "./containers/informes";
+
 
 // =============================================================
 //   DOCUMENTOS
 // =============================================================
 import DocumentosContainer from "./containers/documentos/DocumentosContainer";
 
+
+
 // =============================================================
 // APP PRINCIPAL
 // =============================================================
-
 const base = process.env.PUBLIC_URL || "";
 
 const App = () => {
@@ -105,14 +107,11 @@ const App = () => {
         <Router>
             <NavScrollTop>
                 <Switch>
-                    {/* ==============================
-              PÁGINAS PÚBLICAS
-          ===============================*/}
+                    {/*PÁGINAS PÚBLICAS*/}
                     <Route exact path={`${base}/`} component={LoginPage} />
                     <Route path={`${base}/home`} component={HomePage} />
-                    {/* ==============================
-              PERSONAL
-          ===============================*/}
+
+                    {/*PERSONAL*/}
                     <Route
                         exact
                         path={`${base}/Empleados`}
@@ -128,29 +127,23 @@ const App = () => {
                         path={`${base}/HistorialPuesto`}
                         component={HistorialPuestoContainer}
                     />
-                    {/* <Route exact path={`${base}/Equipo`} component={EquipoContainer} /> */}
+                    {<Route exact path={`${base}/Equipos`} component={EquiposContainer} />}
                     <Route
                         exact
                         path={`${base}/Usuarios`}
                         component={UsuariosContainer}
                     />
 
-                    {/* ==============================
-              RECLUTAMIENTO
-          ===============================*/}
+                    {/*RECLUTAMIENTO*/}
                     {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
                     {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
                     {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
 
-                    {/* ==============================
-              INTEGRACIÓN
-          ===============================*/}
-                    {/* <Route exact path={`${base}/Induccion`} component={InduccionContainer} /> */}
+                    {/*INTEGRACIÓN*/}
                     {<Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />}
+                    {/* <Route exact path={`${base}/Induccion`} component={InduccionContainer} /> */}
 
-                    {/* ==============================
-              DESEMPEÑO
-          ===============================*/}
+                    {/*DESEMPEÑO*/}
                     <Route
                         exact
                         path={`${base}/CriterioEvaluacion`}
@@ -162,9 +155,7 @@ const App = () => {
                         component={EvaluacionCriterioContainer}
                     />
 
-                    {/* ==============================
-              CONTROL DISCIPLINARIO
-          ===============================*/}
+                    {/*CONTROL DISCIPLINARIO*/}
                     <Route
                         exact
                         path={`${base}/Ausencia`}
@@ -176,9 +167,7 @@ const App = () => {
                         component={AmonestacionContainer}
                     />
 
-                    {/* ==============================
-              AUXILIAR (Catálogos y tablas de apoyo)
-          ===============================*/}
+                    {/*AUXILIAR (Catálogos y tablas de apoyo)*/}
                     <Route
                         exact
                         path={`${base}/Idiomas`}
@@ -215,9 +204,7 @@ const App = () => {
                         component={TerminacionLaboralContainer}
                     />
 
-                    {/* ==============================
-              DOCUMENTOS
-          ===============================*/}
+                    {/*DOCUMENTOS*/}
                     <Route
                         exact
                         path={`${base}/Documentos`}
