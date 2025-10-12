@@ -16,7 +16,6 @@ import logo from "./logo-asjerjus.png";
 
 // ⚠️ Cambia esta URL por la IP de tu backend en LAN para Android
 const API = "http://127.0.0.1:8000/api";
-const PAGE_SIZE = 5;
 
 // Utilidad: resolver el id sin importar el nombre de campo que devuelva el backend
 const empId = (row) => row?.id ?? row?.idempleado ?? row?.idEmpleado;
@@ -52,6 +51,7 @@ const EmpleadosContainer = () => {
     // Paginación y búsqueda
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
+    const [elementosPorPagina, setElementosPorPagina] = useState(5);
 
     // Modales
     const [showForm, setShowForm] = useState(false);
@@ -402,9 +402,9 @@ const EmpleadosContainer = () => {
         );
     });
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    const start = (page - 1) * PAGE_SIZE;
-    const displayed = filtered.slice(start, start + PAGE_SIZE);
+    const totalPages = Math.max(1, Math.ceil(filtered.length / elementosPorPagina));
+    const start = (page - 1) * elementosPorPagina;
+    const displayed = filtered.slice(start, start + elementosPorPagina);
 
     return (
         <Layout>
@@ -413,27 +413,63 @@ const EmpleadosContainer = () => {
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
                     <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-                        <div style={{ maxWidth: 1000, margin: "0 auto", paddingLeft: 250 }}>
+                        <div style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
+                                Empleados Registrados
+                            </h2>
                             {/* Controles superiores */}
-                            <div style={{ marginBottom: 20, display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
-                                <h3 style={{ margin: 0 }}>Empleados Registrados</h3>
-                                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                                    <input
-                                        placeholder="Buscar por nombre, apellido o DPI"
-                                        value={search}
-                                        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                                        style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ccc", width: 320 }}
-                                    />
-                                    <button onClick={() => { setSearch(""); setPage(1); }} style={{ padding: "8px 12px", borderRadius: 8, cursor: "pointer" }}>Limpiar</button>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    marginBottom: "15px",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre, apellido o DPI"
+                                    value={search}
+                                    onChange={(e) => {
+                                        setSearch(e.target.value);
+                                        setPage(1);
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        marginRight: "10px",
+                                    }}
+                                />
+                                <div style={{ display: "flex", gap: "10px" }}>
                                     <button
                                         onClick={() => { setShowForm(true); setEditingId(null); }}
-                                        style={{ padding: "10px 20px", background: "#219ebc", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+                                        style={{
+                                            padding: "10px 20px",
+                                            background: "#219ebc",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            cursor: "pointer",
+                                            fontWeight: "600",
+                                            whiteSpace: "nowrap",
+                                        }}
                                     >
                                         Nuevo Empleado
                                     </button>
                                     <button
                                         onClick={() => setShowDownload(true)}
-                                        style={{ padding: "10px 20px", background: "#023047", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+                                        style={{
+                                            padding: "10px 20px",
+                                            background: "#023047",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            cursor: "pointer",
+                                            fontWeight: "600",
+                                            whiteSpace: "nowrap",
+                                        }}
                                     >
                                         Descargar ficha(s)
                                     </button>
@@ -453,6 +489,31 @@ const EmpleadosContainer = () => {
                                 equipos={equipos}
 
                             />
+
+                            <div style={{ marginTop: "20px", textAlign: "center" }}>
+                                <label style={{ marginRight: "10px", fontWeight: "600" }}>
+                                    Mostrar:
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={elementosPorPagina}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, "");
+                                        const numero = val === "" ? "" : Number(val);
+                                        setElementosPorPagina(numero > 0 ? numero : 1);
+                                        setPage(1);
+                                    }}
+                                    onFocus={(e) => e.target.select()}
+                                    style={{
+                                        width: "80px",
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        textAlign: "center",
+                                    }}
+                                />
+                            </div>
 
                             {/* Mensajes */}
                             {mensaje && (
