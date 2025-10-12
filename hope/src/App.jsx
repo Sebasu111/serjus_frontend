@@ -37,7 +37,10 @@ import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 // =============================================================
 import ConvocatoriasContainer from "./containers/convocatorias/ConvocatoriasContainer";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import AspirantesContainer from "./containers/aspirantes/AspirantesContainer";
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 import PuestosContainer from "./containers/Puesto/PuestoContainer";
@@ -142,8 +145,11 @@ const App = () => {
                     {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
                     {<Route exact path={`${base}/Puesto`} component={PuestoContainer} />}
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     {<Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> }
 =======
+=======
+>>>>>>> Stashed changes
                     {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
 >>>>>>> Stashed changes
                     {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
