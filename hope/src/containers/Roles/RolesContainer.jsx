@@ -1,42 +1,37 @@
-// containers/amonestacion/index.jsx
+// containers/roles/index.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header";
-import Footer from "../../layouts/footer";
-import ScrollToTop from "../../components/scroll-to-top";
-import SEO from "../../components/seo";
+import Header from "../../layouts/header/index.jsx";
+import Footer from "../../layouts/footer/index.jsx";
+import ScrollToTop from "../../components/scroll-to-top/index.jsx";
+import SEO from "../../components/seo/index.jsx";
 
-const AmonestacionContainer = () => {
-    const [idEmpleado, setIdEmpleado] = useState("");
-    const [tipo, setTipo] = useState("");
-    const [fechaAmonestacion, setFechaAmonestacion] = useState("");
-    const [motivo, setMotivo] = useState("");
-    const [idDocumento, setIdDocumento] = useState("");
+const RolesContainer = () => {
+    const [nombreRol, setNombreRol] = useState("");
+    const [descripcion, setDescripcion] = useState("");
     const [estadoActivo, setEstadoActivo] = useState(true);
     const [mensaje, setMensaje] = useState("");
-    const [amonestaciones, setAmonestaciones] = useState([]);
+    const [roles, setRoles] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
-        fetchAmonestaciones();
+        fetchRoles();
     }, []);
 
-    const fetchAmonestaciones = async () => {
+    const fetchRoles = async () => {
         try {
-            const res = await axios.get(
-                "http://127.0.0.1:8000/api/amonestaciones/"
-            );
+            const res = await axios.get("http://127.0.0.1:8000/api/roles/");
             const data = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
                 ? res.data.results
                 : [];
-            setAmonestaciones(data);
+            setRoles(data);
         } catch (error) {
-            console.error("Error al cargar amonestaciones:", error);
-            setAmonestaciones([]);
-            setMensaje("Error al cargar las amonestaciones");
+            console.error("Error al cargar roles:", error);
+            setRoles([]);
+            setMensaje("Error al cargar los roles");
         }
     };
 
@@ -44,106 +39,90 @@ const AmonestacionContainer = () => {
         e.preventDefault();
         try {
             const data = {
-                idempleado: idEmpleado || null,
-                tipo,
-                fechaamonestacion: fechaAmonestacion,
-                motivo,
-                iddocumento: idDocumento,
+                nombrerol: nombreRol,
+                descripcion,
                 estado: estadoActivo,
-                idusuario: 1, // Reemplazar con usuario logueado
+                idusuario: 1, // puedes reemplazar con usuario logueado
             };
-
             if (editingId) {
                 await axios.put(
-                    `http://127.0.0.1:8000/api/amonestaciones/${editingId}/`,
+                    `http://127.0.0.1:8000/api/roles/${editingId}/`,
                     data
                 );
-                setMensaje("Amonestación actualizada correctamente");
+                setMensaje("Rol actualizado correctamente");
             } else {
-                await axios.post(
-                    "http://127.0.0.1:8000/api/amonestaciones/",
-                    data
-                );
-                setMensaje("Amonestación registrada correctamente");
+                await axios.post("http://127.0.0.1:8000/api/roles/", data);
+                setMensaje("Rol registrado correctamente");
             }
-
-            // Reset form
-            setIdEmpleado("");
-            setTipo("");
-            setFechaAmonestacion("");
-            setMotivo("");
-            setIdDocumento("");
+            setNombreRol("");
+            setDescripcion("");
             setEstadoActivo(true);
             setEditingId(null);
-
-            fetchAmonestaciones();
+            fetchRoles();
         } catch (error) {
-            console.error(
-                "Error al guardar amonestación:",
-                error.response?.data || error
-            );
-            setMensaje("Error al registrar la amonestación");
+            console.error("Error al guardar rol:", error);
+            setMensaje("Error al registrar el rol");
         }
     };
 
-    const handleEdit = (amon) => {
-        setIdEmpleado(amon.idempleado || "");
-        setTipo(amon.tipo);
-        setFechaAmonestacion(amon.fechaamonestacion);
-        setMotivo(amon.motivo);
-        setIdDocumento(amon.iddocumento);
-        setEstadoActivo(amon.estado);
-        setEditingId(amon.idamonestacion);
+    const handleEdit = (rol) => {
+        setNombreRol(rol.nombrerol);
+        setDescripcion(rol.descripcion);
+        setEstadoActivo(rol.estado);
+        setEditingId(rol.idrol);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de desactivar esta amonestación?"))
-            return;
+        if (!window.confirm("¿Estás seguro de desactivar este rol?")) return;
         try {
-            const amon = amonestaciones.find((a) => a.idamonestacion === id);
-            if (!amon) return;
+            const rol = roles.find((r) => r.idrol === id);
+            if (!rol) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${id}/`, {
-                ...amon,
+            await axios.put(`http://127.0.0.1:8000/api/roles/${id}/`, {
+                nombrerol: rol.nombrerol,
+                descripcion: rol.descripcion,
                 estado: false,
+                idusuario: rol.idusuario,
             });
 
-            setMensaje("Amonestación desactivada correctamente");
-            fetchAmonestaciones();
+            setMensaje("Rol desactivado correctamente");
+            fetchRoles();
         } catch (error) {
             console.error(
-                "Error al desactivar amonestación:",
+                "Error al desactivar rol:",
                 error.response?.data || error
             );
-            setMensaje("Error al desactivar la amonestación");
+            setMensaje("Error al desactivar el rol");
         }
     };
 
     const handleActivate = async (id) => {
         try {
-            const amon = amonestaciones.find((a) => a.idamonestacion === id);
-            if (!amon) return;
+            const rol = roles.find((r) => r.idrol === id);
+            if (!rol) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${id}/`, {
-                ...amon,
+            await axios.put(`http://127.0.0.1:8000/api/roles/${id}/`, {
+                nombrerol: rol.nombrerol,
+                descripcion: rol.descripcion,
                 estado: true,
+                idusuario: rol.idusuario,
             });
 
-            setMensaje("Amonestación activada correctamente");
-            fetchAmonestaciones();
+            setMensaje("Rol activado correctamente");
+            fetchRoles();
         } catch (error) {
             console.error(
-                "Error al activar amonestación:",
+                "Error al activar rol:",
                 error.response?.data || error
             );
-            setMensaje("Error al activar la amonestación");
+            setMensaje("Error al activar el rol");
         }
     };
 
     return (
         <Layout>
-            <SEO title="Hope – Amonestaciones" />
+            <SEO title="Hope – Roles" />
             <div
                 className="wrapper"
                 style={{
@@ -161,7 +140,7 @@ const AmonestacionContainer = () => {
                         background: "#f0f2f5",
                     }}
                 >
-                    <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+                    <div style={{ maxWidth: "700px", margin: "0 auto" }}>
                         {/* --- FORMULARIO --- */}
                         <div
                             style={{
@@ -179,8 +158,8 @@ const AmonestacionContainer = () => {
                                 }}
                             >
                                 {editingId
-                                    ? "Editar Amonestación"
-                                    : "Registrar nueva Amonestación"}
+                                    ? "Editar rol"
+                                    : "Registrar un nuevo rol"}
                             </h2>
                             {mensaje && (
                                 <p
@@ -198,109 +177,110 @@ const AmonestacionContainer = () => {
                             )}
                             <form onSubmit={handleSubmit}>
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label>ID Empleado</label>
-                                    <input
-                                        type="number"
-                                        value={idEmpleado}
-                                        onChange={(e) =>
-                                            setIdEmpleado(e.target.value)
-                                        }
+                                    <label
+                                        htmlFor="nombreRol"
                                         style={{
-                                            width: "100%",
-                                            padding: "10px",
+                                            display: "block",
+                                            marginBottom: "8px",
+                                            fontWeight: "600",
                                         }}
-                                    />
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label>Tipo</label>
+                                    >
+                                        Nombre del rol
+                                    </label>
                                     <input
                                         type="text"
-                                        value={tipo}
+                                        id="nombreRol"
+                                        value={nombreRol}
                                         onChange={(e) =>
-                                            setTipo(e.target.value)
+                                            setNombreRol(e.target.value)
                                         }
                                         required
                                         style={{
                                             width: "100%",
-                                            padding: "10px",
+                                            padding: "12px 15px",
+                                            borderRadius: "8px",
+                                            border: "1px solid #ccc",
+                                            fontSize: "16px",
                                         }}
                                     />
                                 </div>
 
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label>Fecha de Amonestación</label>
-                                    <input
-                                        type="date"
-                                        value={fechaAmonestacion}
-                                        onChange={(e) =>
-                                            setFechaAmonestacion(e.target.value)
-                                        }
-                                        required
+                                    <label
+                                        htmlFor="descripcion"
                                         style={{
-                                            width: "100%",
-                                            padding: "10px",
+                                            display: "block",
+                                            marginBottom: "8px",
+                                            fontWeight: "600",
                                         }}
-                                    />
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label>Motivo</label>
+                                    >
+                                        Descripción
+                                    </label>
                                     <input
                                         type="text"
-                                        value={motivo}
+                                        id="descripcion"
+                                        value={descripcion}
                                         onChange={(e) =>
-                                            setMotivo(e.target.value)
+                                            setDescripcion(e.target.value)
                                         }
                                         required
                                         style={{
                                             width: "100%",
-                                            padding: "10px",
+                                            padding: "12px 15px",
+                                            borderRadius: "8px",
+                                            border: "1px solid #ccc",
+                                            fontSize: "16px",
                                         }}
                                     />
                                 </div>
 
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label>ID Documento</label>
-                                    <input
-                                        type="text"
-                                        value={idDocumento}
-                                        onChange={(e) =>
-                                            setIdDocumento(e.target.value)
-                                        }
-                                        required
-                                        style={{
-                                            width: "100%",
-                                            padding: "10px",
-                                        }}
-                                    />
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
+                                <div
+                                    style={{
+                                        marginBottom: "30px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "10px",
+                                    }}
+                                >
                                     <input
                                         type="checkbox"
+                                        id="estadoActivo"
                                         checked={estadoActivo}
                                         onChange={(e) =>
                                             setEstadoActivo(e.target.checked)
                                         }
-                                    />{" "}
-                                    Activo
+                                        style={{
+                                            width: "18px",
+                                            height: "18px",
+                                        }}
+                                    />
+                                    <label
+                                        htmlFor="estadoActivo"
+                                        style={{
+                                            fontWeight: "600",
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        Activo
+                                    </label>
                                 </div>
-
                                 <button
                                     type="submit"
                                     style={{
                                         width: "100%",
-                                        padding: "12px",
+                                        padding: "12px 0",
                                         background: "#007bff",
                                         color: "#fff",
                                         border: "none",
                                         borderRadius: "8px",
-                                        fontWeight: "bold",
+                                        fontSize: "16px",
+                                        fontWeight: "600",
                                         cursor: "pointer",
                                     }}
                                 >
-                                    {editingId ? "Actualizar" : "Guardar"}
+                                    {editingId
+                                        ? "Actualizar Rol"
+                                        : "Guardar Rol"}
                                 </button>
                             </form>
                         </div>
@@ -322,7 +302,7 @@ const AmonestacionContainer = () => {
                                     textAlign: "center",
                                 }}
                             >
-                                Amonestaciones Registradas
+                                Roles Registrados
                             </h3>
                             <table
                                 style={{
@@ -336,46 +316,25 @@ const AmonestacionContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
+                                                textAlign: "left",
                                             }}
                                         >
-                                            Empleado
+                                            Nombre
                                         </th>
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
+                                                textAlign: "left",
                                             }}
                                         >
-                                            Tipo
+                                            Descripción
                                         </th>
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                            }}
-                                        >
-                                            Fecha
-                                        </th>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
-                                            }}
-                                        >
-                                            Motivo
-                                        </th>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
-                                            }}
-                                        >
-                                            Documento
-                                        </th>
-                                        <th
-                                            style={{
-                                                borderBottom: "2px solid #eee",
-                                                padding: "10px",
+                                                textAlign: "center",
                                             }}
                                         >
                                             Estado
@@ -384,6 +343,7 @@ const AmonestacionContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
+                                                textAlign: "center",
                                             }}
                                         >
                                             Acciones
@@ -391,9 +351,10 @@ const AmonestacionContainer = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {amonestaciones.length > 0 ? (
-                                        amonestaciones.map((a) => (
-                                            <tr key={a.idamonestacion}>
+                                    {Array.isArray(roles) &&
+                                    roles.length > 0 ? (
+                                        roles.map((rol) => (
+                                            <tr key={rol.idrol}>
                                                 <td
                                                     style={{
                                                         padding: "10px",
@@ -401,7 +362,7 @@ const AmonestacionContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {a.idempleado || "N/A"}
+                                                    {rol.nombrerol}
                                                 </td>
                                                 <td
                                                     style={{
@@ -410,46 +371,21 @@ const AmonestacionContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {a.tipo}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {a.fechaamonestacion}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {a.motivo}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {a.iddocumento}
+                                                    {rol.descripcion}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        color: a.estado
+                                                        color: rol.estado
                                                             ? "green"
                                                             : "red",
                                                         fontWeight: "600",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {a.estado
+                                                    {rol.estado
                                                         ? "Activo"
                                                         : "Inactivo"}
                                                 </td>
@@ -457,11 +393,14 @@ const AmonestacionContainer = () => {
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
                                                     }}
                                                 >
                                                     <button
+                                                        type="button"
                                                         onClick={() =>
-                                                            handleEdit(a)
+                                                            handleEdit(rol)
                                                         }
                                                         style={{
                                                             padding: "6px 14px",
@@ -470,17 +409,20 @@ const AmonestacionContainer = () => {
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
-                                                            marginRight: "6px",
                                                             cursor: "pointer",
+                                                            fontSize: "14px",
+                                                            marginRight: "6px",
                                                         }}
                                                     >
                                                         Editar
                                                     </button>
-                                                    {a.estado ? (
+
+                                                    {rol.estado ? (
                                                         <button
+                                                            type="button"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    a.idamonestacion
+                                                                    rol.idrol
                                                                 )
                                                             }
                                                             style={{
@@ -493,15 +435,18 @@ const AmonestacionContainer = () => {
                                                                 borderRadius:
                                                                     "5px",
                                                                 cursor: "pointer",
+                                                                fontSize:
+                                                                    "14px",
                                                             }}
                                                         >
                                                             Desactivar
                                                         </button>
                                                     ) : (
                                                         <button
+                                                            type="button"
                                                             onClick={() =>
                                                                 handleActivate(
-                                                                    a.idamonestacion
+                                                                    rol.idrol
                                                                 )
                                                             }
                                                             style={{
@@ -514,6 +459,8 @@ const AmonestacionContainer = () => {
                                                                 borderRadius:
                                                                     "5px",
                                                                 cursor: "pointer",
+                                                                fontSize:
+                                                                    "14px",
                                                             }}
                                                         >
                                                             Activar
@@ -525,14 +472,13 @@ const AmonestacionContainer = () => {
                                     ) : (
                                         <tr>
                                             <td
-                                                colSpan="7"
+                                                colSpan="4"
                                                 style={{
                                                     textAlign: "center",
                                                     padding: "20px",
                                                 }}
                                             >
-                                                No hay amonestaciones
-                                                registradas
+                                                No hay roles registrados
                                             </td>
                                         </tr>
                                     )}
@@ -549,4 +495,4 @@ const AmonestacionContainer = () => {
     );
 };
 
-export default AmonestacionContainer;
+export default RolesContainer;

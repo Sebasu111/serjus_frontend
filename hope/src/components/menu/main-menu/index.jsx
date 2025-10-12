@@ -93,6 +93,7 @@ const SidebarMenu = () => {
                             <li><NavLink to={`${base}/Convocatorias`} className="sidebar-submenu-link">Convocatorias</NavLink></li>
                             <li><NavLink to={`${base}/Aspirantes`} className="sidebar-submenu-link">Aspirantes</NavLink></li>
                             <li><NavLink to={`${base}/Seleccion`} className="sidebar-submenu-link">Selección / Contratación</NavLink></li>
+                            <li><NavLink to={`${base}/Puesto`} className="sidebar-submenu-link">Puesto</NavLink></li>
                         </ul>
                     </li>
 
