@@ -1,85 +1,81 @@
 import React from "react";
 
-const cell = { padding: "10px", borderBottom: "1px solid #f0f0f0" };
+const pick = (o, ...keys) => { for (const k of keys) if (o && o[k] != null) return o[k]; };
+const getId = (o) => pick(o, "id", "ididioma", "idIdioma", "idpueblocultura", "idPuebloCultura", "pk", "codigo");
+const getIdioma = (o) => pick(o, "nombreidioma", "nombreIdioma", "nombre", "idioma", "label");
+const getPueblo = (o) =>
+    pick(o, "nombrepueblocultura", "nombre_pueblo_cultura", "nombrePueblo", "pueblocultura", "pueblo", "cultura", "label");
+
+const labelFrom = (id, list, kind) => {
+    if (!id) return "";
+    const found = list.find((x) => String(getId(x)) === String(id));
+    return (kind === "idioma" ? getIdioma(found) : getPueblo(found)) || `#${id}`;
+};
+
+const fmtFecha = (v) => {
+    if (!v) return "";
+    const d = new Date(v);
+    if (!isNaN(d)) return d.toISOString().slice(0, 10);
+    return String(v).slice(0, 10);
+};
+
+const thStyle = { borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" };
+const tdStyle = { padding: "10px", borderBottom: "1px solid #f0f0f0" };
+const btnWarn = { padding: "6px 10px", background: "#fb8500", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13, marginRight: 6 };
+const btnDanger = { padding: "6px 10px", background: "#dc3545", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13 };
+const btnSuccess = { padding: "6px 10px", background: "#28a745", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13 };
 
 const AspirantesTable = ({
-    aspirantes,
-    handleEdit,
-    handleDelete,
-    handleActivate,
-    paginaActual,
-    totalPaginas,
-    setPaginaActual,
+    aspirantes, handleEdit, handleToggle,
+    paginaActual, totalPaginas, setPaginaActual,
+    idiomas = [], pueblos = [],
 }) => (
     <div style={{ background: "#fff", borderRadius: "12px", padding: "20px 30px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-                <tr>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Nombre</th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Apellido</th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>DPI</th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>NIT</th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Correo</th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Estado</th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {aspirantes.length > 0 ? (
-                    aspirantes.map((a) => (
-                        <tr key={a.idAspirante}>
-                            <td style={cell}>{a.nombreAspirante}</td>
-                            <td style={cell}>{a.apellidoAspirante}</td>
-                            <td style={cell}>{a.dpi}</td>
-                            <td style={cell}>{a.nit || "-"}</td>
-                            <td style={cell}>{a.email}</td>
-                            <td style={{ ...cell, textAlign: "center", color: a.estado ? "green" : "red", fontWeight: 600 }}>
-                                {a.estado ? "Activo" : "Inactivo"}
-                            </td>
-                            <td style={{ ...cell, textAlign: "center" }}>
-                                <button
-                                    onClick={() => handleEdit(a)}
-                                    disabled={!a.estado}
-                                    style={{
-                                        padding: "6px 14px",
-                                        background: a.estado ? "#fb8500" : "#6c757d",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "5px",
-                                        cursor: a.estado ? "pointer" : "not-allowed",
-                                        marginRight: "6px",
-                                    }}
-                                >
-                                    Editar
-                                </button>
-
-                                {a.estado ? (
-                                    <button
-                                        onClick={() => handleDelete(a)}
-                                        style={{ padding: "6px 14px", background: "#fb8500", color: "#fff", border: "none", borderRadius: "5px" }}
-                                    >
-                                        Eliminar
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={() => handleActivate(a.idAspirante)}
-                                        style={{ padding: "6px 14px", background: "#ffb703", color: "#fff", border: "none", borderRadius: "5px" }}
-                                    >
-                                        Activar
-                                    </button>
-                                )}
-                            </td>
-                        </tr>
-                    ))
-                ) : (
+        <div style={{ width: "100%", overflowX: "auto" }}>
+            <table style={{ width: "100%", minWidth: "1000px", borderCollapse: "collapse" }}>
+                <thead>
                     <tr>
-                        <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>No hay aspirantes registrados</td>
+                        {["Nombre", "Apellido", "Género", "DPI", "NIT", "Lugar nac.", "Fecha nac.", "Teléfono", "Email", "Idioma", "Pueblo/Cultura", "Estado", "Acciones"].map(h => (
+                            <th key={h} style={thStyle}>{h}</th>
+                        ))}
                     </tr>
-                )}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {Array.isArray(aspirantes) && aspirantes.length ? aspirantes.map((r) => {
+                        const idioma = labelFrom(r.ididioma ?? r.idIdioma, idiomas, "idioma");
+                        const pueblo = labelFrom(r.idpueblocultura ?? r.idPuebloCultura, pueblos, "pueblo");
+                        const estado = !!(r.estado ?? 1);
+                        return (
+                            <tr key={r.id || r.idAspirante || r.idaspirante}>
+                                <td style={tdStyle}>{r.nombre ?? r.nombreAspirante ?? r.nombreaspirante}</td>
+                                <td style={tdStyle}>{r.apellido ?? r.apellidoAspirante ?? r.apellidoaspirante}</td>
+                                <td style={tdStyle}>{r.genero}</td>
+                                <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{r.dpi}</td>
+                                <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{String(r.nit).toUpperCase()}</td>
+                                <td style={tdStyle}>{r.lugarnacimiento ?? r.lugarNacimiento}</td>
+                                <td style={tdStyle}>{fmtFecha(r.fechanacimiento ?? r.fechaNacimiento)}</td>
+                                <td style={tdStyle}>{r.telefono}</td>
+                                <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{r.email}</td>
+                                <td style={tdStyle}>{idioma}</td>
+                                <td style={tdStyle}>{pueblo}</td>
+                                <td style={{ ...tdStyle, textAlign: "center", color: estado ? "green" : "red", fontWeight: 600 }}>
+                                    {estado ? "Activo" : "Inactivo"}
+                                </td>
+                                <td style={{ ...tdStyle, textAlign: "center", whiteSpace: "nowrap" }}>
+                                    <button onClick={() => handleEdit(r)} disabled={!estado} style={btnWarn}>Editar</button>
+                                    <button onClick={() => handleToggle(r)} style={estado ? btnDanger : btnSuccess}>
+                                        {estado ? "Desactivar" : "Activar"}
+                                    </button>
+                                </td>
+                            </tr>
+                        );
+                    }) : (
+                        <tr><td colSpan={13} style={{ textAlign: "center", padding: 20 }}>No hay aspirantes</td></tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
 
-        {/* Paginación */}
         {totalPaginas > 1 && (
             <div style={{ marginTop: "20px", textAlign: "center" }}>
                 {Array.from({ length: totalPaginas }, (_, i) => (
@@ -87,13 +83,11 @@ const AspirantesTable = ({
                         key={i + 1}
                         onClick={() => setPaginaActual(i + 1)}
                         style={{
-                            margin: "0 5px",
-                            padding: "6px 12px",
+                            margin: "0 5px", padding: "6px 12px",
                             border: "1px solid #219ebc",
                             background: paginaActual === i + 1 ? "#219ebc" : "#fff",
                             color: paginaActual === i + 1 ? "#fff" : "#219ebc",
-                            borderRadius: "5px",
-                            cursor: "pointer",
+                            borderRadius: 5, cursor: "pointer",
                         }}
                     >
                         {i + 1}
