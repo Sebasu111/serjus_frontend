@@ -1,40 +1,42 @@
-// containers/tipodocumentos/index.jsx
+// containers/amonestacion/index.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header";
-import Footer from "../../layouts/footer";
-import ScrollToTop from "../../components/scroll-to-top";
-import SEO from "../../components/seo";
+import Header from "../../layouts/header/index.jsx";
+import Footer from "../../layouts/footer/index.jsx";
+import ScrollToTop from "../../components/scroll-to-top/index.jsx";
+import SEO from "../../components/seo/index.jsx";
 
-const TiposDocumentoContainer = () => {
-    const [nombreTipo, setNombreTipo] = useState("");
-    const [cantidadRepetir, setCantidadRepetir] = useState("");
-    const [descripcion, setDescripcion] = useState("");
+const AmonestacionContainer = () => {
+    const [idEmpleado, setIdEmpleado] = useState("");
+    const [tipo, setTipo] = useState("");
+    const [fechaAmonestacion, setFechaAmonestacion] = useState("");
+    const [motivo, setMotivo] = useState("");
+    const [idDocumento, setIdDocumento] = useState("");
     const [estadoActivo, setEstadoActivo] = useState(true);
     const [mensaje, setMensaje] = useState("");
-    const [tipos, setTipos] = useState([]);
+    const [amonestaciones, setAmonestaciones] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
-        fetchTipos();
+        fetchAmonestaciones();
     }, []);
 
-    const fetchTipos = async () => {
+    const fetchAmonestaciones = async () => {
         try {
             const res = await axios.get(
-                "http://127.0.0.1:8000/api/tipodocumento/"
+                "http://127.0.0.1:8000/api/amonestaciones/"
             );
             const data = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
                 ? res.data.results
                 : [];
-            setTipos(data);
+            setAmonestaciones(data);
         } catch (error) {
-            console.error("Error al cargar tipos de documento:", error);
-            setTipos([]);
-            setMensaje("Error al cargar los tipos de documento");
+            console.error("Error al cargar amonestaciones:", error);
+            setAmonestaciones([]);
+            setMensaje("Error al cargar las amonestaciones");
         }
     };
 
@@ -42,107 +44,106 @@ const TiposDocumentoContainer = () => {
         e.preventDefault();
         try {
             const data = {
-                nombretipo: nombreTipo,
-                cantidadrepetir: cantidadRepetir
-                    ? parseInt(cantidadRepetir)
-                    : null,
-                descripcion,
+                idempleado: idEmpleado || null,
+                tipo,
+                fechaamonestacion: fechaAmonestacion,
+                motivo,
+                iddocumento: idDocumento,
                 estado: estadoActivo,
-                idusuario: 1, // reemplazar con usuario logueado
+                idusuario: 1, // Reemplazar con usuario logueado
             };
 
             if (editingId) {
                 await axios.put(
-                    `http://127.0.0.1:8000/api/tipodocumento/${editingId}/`,
+                    `http://127.0.0.1:8000/api/amonestaciones/${editingId}/`,
                     data
                 );
-                setMensaje("Tipo de documento actualizado correctamente");
+                setMensaje("Amonestación actualizada correctamente");
             } else {
                 await axios.post(
-                    "http://127.0.0.1:8000/api/tipodocumento/",
+                    "http://127.0.0.1:8000/api/amonestaciones/",
                     data
                 );
-                setMensaje("Tipo de documento registrado correctamente");
+                setMensaje("Amonestación registrada correctamente");
             }
 
-            setNombreTipo("");
-            setCantidadRepetir("");
-            setDescripcion("");
+            // Reset form
+            setIdEmpleado("");
+            setTipo("");
+            setFechaAmonestacion("");
+            setMotivo("");
+            setIdDocumento("");
             setEstadoActivo(true);
             setEditingId(null);
-            fetchTipos();
+
+            fetchAmonestaciones();
         } catch (error) {
-            console.error("Error al guardar tipo de documento:", error);
-            setMensaje("Error al registrar el tipo de documento");
+            console.error(
+                "Error al guardar amonestación:",
+                error.response?.data || error
+            );
+            setMensaje("Error al registrar la amonestación");
         }
     };
 
-    const handleEdit = (tipo) => {
-        setNombreTipo(tipo.nombretipo);
-        setCantidadRepetir(tipo.cantidadrepetir || "");
-        setDescripcion(tipo.descripcion);
-        setEstadoActivo(tipo.estado);
-        setEditingId(tipo.idtipodocumento);
+    const handleEdit = (amon) => {
+        setIdEmpleado(amon.idempleado || "");
+        setTipo(amon.tipo);
+        setFechaAmonestacion(amon.fechaamonestacion);
+        setMotivo(amon.motivo);
+        setIdDocumento(amon.iddocumento);
+        setEstadoActivo(amon.estado);
+        setEditingId(amon.idamonestacion);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const handleDelete = async (id) => {
-        if (
-            !window.confirm(
-                "¿Estás seguro de desactivar este tipo de documento?"
-            )
-        )
+        if (!window.confirm("¿Estás seguro de desactivar esta amonestación?"))
             return;
         try {
-            const tipo = tipos.find((t) => t.idtipodocumento === id);
-            if (!tipo) return;
+            const amon = amonestaciones.find((a) => a.idamonestacion === id);
+            if (!amon) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${id}/`, {
-                nombretipo: tipo.nombretipo,
-                cantidadrepetir: tipo.cantidadrepetir,
-                descripcion: tipo.descripcion,
+            await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${id}/`, {
+                ...amon,
                 estado: false,
-                idusuario: tipo.idusuario,
             });
 
-            setMensaje("Tipo de documento desactivado correctamente");
-            fetchTipos();
+            setMensaje("Amonestación desactivada correctamente");
+            fetchAmonestaciones();
         } catch (error) {
             console.error(
-                "Error al desactivar tipo de documento:",
+                "Error al desactivar amonestación:",
                 error.response?.data || error
             );
-            setMensaje("Error al desactivar el tipo de documento");
+            setMensaje("Error al desactivar la amonestación");
         }
     };
 
     const handleActivate = async (id) => {
         try {
-            const tipo = tipos.find((t) => t.idtipodocumento === id);
-            if (!tipo) return;
+            const amon = amonestaciones.find((a) => a.idamonestacion === id);
+            if (!amon) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${id}/`, {
-                nombretipo: tipo.nombretipo,
-                cantidadrepetir: tipo.cantidadrepetir,
-                descripcion: tipo.descripcion,
+            await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${id}/`, {
+                ...amon,
                 estado: true,
-                idusuario: tipo.idusuario,
             });
 
-            setMensaje("Tipo de documento activado correctamente");
-            fetchTipos();
+            setMensaje("Amonestación activada correctamente");
+            fetchAmonestaciones();
         } catch (error) {
             console.error(
-                "Error al activar tipo de documento:",
+                "Error al activar amonestación:",
                 error.response?.data || error
             );
-            setMensaje("Error al activar el tipo de documento");
+            setMensaje("Error al activar la amonestación");
         }
     };
 
     return (
         <Layout>
-            <SEO title="Hope – Tipos de Documento" />
+            <SEO title="Hope – Amonestaciones" />
             <div
                 className="wrapper"
                 style={{
@@ -160,7 +161,7 @@ const TiposDocumentoContainer = () => {
                         background: "#f0f2f5",
                     }}
                 >
-                    <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+                    <div style={{ maxWidth: "900px", margin: "0 auto" }}>
                         {/* --- FORMULARIO --- */}
                         <div
                             style={{
@@ -178,8 +179,8 @@ const TiposDocumentoContainer = () => {
                                 }}
                             >
                                 {editingId
-                                    ? "Editar tipo de documento"
-                                    : "Registrar un nuevo tipo de documento"}
+                                    ? "Editar Amonestación"
+                                    : "Registrar nueva Amonestación"}
                             </h2>
                             {mensaje && (
                                 <p
@@ -197,138 +198,109 @@ const TiposDocumentoContainer = () => {
                             )}
                             <form onSubmit={handleSubmit}>
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        htmlFor="nombreTipo"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        Nombre
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="nombreTipo"
-                                        value={nombreTipo}
-                                        onChange={(e) =>
-                                            setNombreTipo(e.target.value)
-                                        }
-                                        required
-                                        style={{
-                                            width: "100%",
-                                            padding: "12px 15px",
-                                            borderRadius: "8px",
-                                            border: "1px solid #ccc",
-                                            fontSize: "16px",
-                                        }}
-                                    />
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        htmlFor="cantidadRepetir"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        Cantidad a repetir
-                                    </label>
+                                    <label>ID Empleado</label>
                                     <input
                                         type="number"
-                                        id="cantidadRepetir"
-                                        value={cantidadRepetir}
+                                        value={idEmpleado}
                                         onChange={(e) =>
-                                            setCantidadRepetir(e.target.value)
+                                            setIdEmpleado(e.target.value)
                                         }
                                         style={{
                                             width: "100%",
-                                            padding: "12px 15px",
-                                            borderRadius: "8px",
-                                            border: "1px solid #ccc",
-                                            fontSize: "16px",
+                                            padding: "10px",
                                         }}
                                     />
                                 </div>
 
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        htmlFor="descripcion"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        Descripción
-                                    </label>
+                                    <label>Tipo</label>
                                     <input
                                         type="text"
-                                        id="descripcion"
-                                        value={descripcion}
+                                        value={tipo}
                                         onChange={(e) =>
-                                            setDescripcion(e.target.value)
+                                            setTipo(e.target.value)
                                         }
                                         required
                                         style={{
                                             width: "100%",
-                                            padding: "12px 15px",
-                                            borderRadius: "8px",
-                                            border: "1px solid #ccc",
-                                            fontSize: "16px",
+                                            padding: "10px",
                                         }}
                                     />
                                 </div>
 
-                                <div
-                                    style={{
-                                        marginBottom: "30px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                    }}
-                                >
+                                <div style={{ marginBottom: "20px" }}>
+                                    <label>Fecha de Amonestación</label>
+                                    <input
+                                        type="date"
+                                        value={fechaAmonestacion}
+                                        onChange={(e) =>
+                                            setFechaAmonestacion(e.target.value)
+                                        }
+                                        required
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: "20px" }}>
+                                    <label>Motivo</label>
+                                    <input
+                                        type="text"
+                                        value={motivo}
+                                        onChange={(e) =>
+                                            setMotivo(e.target.value)
+                                        }
+                                        required
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: "20px" }}>
+                                    <label>ID Documento</label>
+                                    <input
+                                        type="text"
+                                        value={idDocumento}
+                                        onChange={(e) =>
+                                            setIdDocumento(e.target.value)
+                                        }
+                                        required
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: "20px" }}>
                                     <input
                                         type="checkbox"
-                                        id="estadoActivo"
                                         checked={estadoActivo}
                                         onChange={(e) =>
                                             setEstadoActivo(e.target.checked)
                                         }
-                                        style={{
-                                            width: "18px",
-                                            height: "18px",
-                                        }}
-                                    />
-                                    <label
-                                        htmlFor="estadoActivo"
-                                        style={{
-                                            fontWeight: "600",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        Activo
-                                    </label>
+                                    />{" "}
+                                    Activo
                                 </div>
+
                                 <button
                                     type="submit"
                                     style={{
                                         width: "100%",
-                                        padding: "12px 0",
+                                        padding: "12px",
                                         background: "#007bff",
                                         color: "#fff",
                                         border: "none",
                                         borderRadius: "8px",
-                                        fontSize: "16px",
-                                        fontWeight: "600",
+                                        fontWeight: "bold",
                                         cursor: "pointer",
                                     }}
                                 >
-                                    {editingId
-                                        ? "Actualizar Tipo"
-                                        : "Guardar Tipo"}
+                                    {editingId ? "Actualizar" : "Guardar"}
                                 </button>
                             </form>
                         </div>
@@ -350,7 +322,7 @@ const TiposDocumentoContainer = () => {
                                     textAlign: "center",
                                 }}
                             >
-                                Tipos de Documento Registrados
+                                Amonestaciones Registradas
                             </h3>
                             <table
                                 style={{
@@ -364,34 +336,46 @@ const TiposDocumentoContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "left",
                                             }}
                                         >
-                                            Nombre
+                                            Empleado
                                         </th>
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "center",
                                             }}
                                         >
-                                            Cantidad
+                                            Tipo
                                         </th>
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "left",
                                             }}
                                         >
-                                            Descripción
+                                            Fecha
                                         </th>
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "center",
+                                            }}
+                                        >
+                                            Motivo
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
+                                            }}
+                                        >
+                                            Documento
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
                                             }}
                                         >
                                             Estado
@@ -400,7 +384,6 @@ const TiposDocumentoContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "center",
                                             }}
                                         >
                                             Acciones
@@ -408,10 +391,9 @@ const TiposDocumentoContainer = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {Array.isArray(tipos) &&
-                                    tipos.length > 0 ? (
-                                        tipos.map((tipo) => (
-                                            <tr key={tipo.idtipodocumento}>
+                                    {amonestaciones.length > 0 ? (
+                                        amonestaciones.map((a) => (
+                                            <tr key={a.idamonestacion}>
                                                 <td
                                                     style={{
                                                         padding: "10px",
@@ -419,41 +401,55 @@ const TiposDocumentoContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {tipo.nombretipo}
+                                                    {a.idempleado || "N/A"}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {a.tipo}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {a.fechaamonestacion}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {a.motivo}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {a.iddocumento}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {tipo.cantidadrepetir ||
-                                                        "-"}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {tipo.descripcion}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        textAlign: "center",
-                                                        color: tipo.estado
+                                                        color: a.estado
                                                             ? "green"
                                                             : "red",
                                                         fontWeight: "600",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {tipo.estado
+                                                    {a.estado
                                                         ? "Activo"
                                                         : "Inactivo"}
                                                 </td>
@@ -461,14 +457,11 @@ const TiposDocumentoContainer = () => {
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
                                                     }}
                                                 >
                                                     <button
-                                                        type="button"
                                                         onClick={() =>
-                                                            handleEdit(tipo)
+                                                            handleEdit(a)
                                                         }
                                                         style={{
                                                             padding: "6px 14px",
@@ -477,20 +470,17 @@ const TiposDocumentoContainer = () => {
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
-                                                            cursor: "pointer",
-                                                            fontSize: "14px",
                                                             marginRight: "6px",
+                                                            cursor: "pointer",
                                                         }}
                                                     >
                                                         Editar
                                                     </button>
-
-                                                    {tipo.estado ? (
+                                                    {a.estado ? (
                                                         <button
-                                                            type="button"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    tipo.idtipodocumento
+                                                                    a.idamonestacion
                                                                 )
                                                             }
                                                             style={{
@@ -503,18 +493,15 @@ const TiposDocumentoContainer = () => {
                                                                 borderRadius:
                                                                     "5px",
                                                                 cursor: "pointer",
-                                                                fontSize:
-                                                                    "14px",
                                                             }}
                                                         >
                                                             Desactivar
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            type="button"
                                                             onClick={() =>
                                                                 handleActivate(
-                                                                    tipo.idtipodocumento
+                                                                    a.idamonestacion
                                                                 )
                                                             }
                                                             style={{
@@ -527,8 +514,6 @@ const TiposDocumentoContainer = () => {
                                                                 borderRadius:
                                                                     "5px",
                                                                 cursor: "pointer",
-                                                                fontSize:
-                                                                    "14px",
                                                             }}
                                                         >
                                                             Activar
@@ -540,14 +525,14 @@ const TiposDocumentoContainer = () => {
                                     ) : (
                                         <tr>
                                             <td
-                                                colSpan="5"
+                                                colSpan="7"
                                                 style={{
                                                     textAlign: "center",
                                                     padding: "20px",
                                                 }}
                                             >
-                                                No hay tipos de documento
-                                                registrados
+                                                No hay amonestaciones
+                                                registradas
                                             </td>
                                         </tr>
                                     )}
@@ -564,4 +549,4 @@ const TiposDocumentoContainer = () => {
     );
 };
 
-export default TiposDocumentoContainer;
+export default AmonestacionContainer;

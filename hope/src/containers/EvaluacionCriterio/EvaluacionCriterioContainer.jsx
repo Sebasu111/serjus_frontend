@@ -1,37 +1,40 @@
-// containers/estados/index.jsx
+// containers/evaluacioncriterio/index.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header";
-import Footer from "../../layouts/footer";
-import ScrollToTop from "../../components/scroll-to-top";
-import SEO from "../../components/seo";
+import Header from "../../layouts/header/index.jsx";
+import Footer from "../../layouts/footer/index.jsx";
+import ScrollToTop from "../../components/scroll-to-top/index.jsx";
+import SEO from "../../components/seo/index.jsx";
 
-const EstadosContainer = () => {
-    const [nombreEstado, setNombreEstado] = useState("");
-    const [descripcion, setDescripcion] = useState("");
+const EvaluacionCriterioContainer = () => {
+    const [idEvaluacion, setIdEvaluacion] = useState("");
+    const [idCriterioEvaluacion, setIdCriterioEvaluacion] = useState("");
+    const [puntajeCriterio, setPuntajeCriterio] = useState("");
     const [estadoActivo, setEstadoActivo] = useState(true);
     const [mensaje, setMensaje] = useState("");
-    const [estados, setEstados] = useState([]);
+    const [evaluaciones, setEvaluaciones] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
-        fetchEstados();
+        fetchEvaluaciones();
     }, []);
 
-    const fetchEstados = async () => {
+    const fetchEvaluaciones = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/estados/");
+            const res = await axios.get(
+                "http://127.0.0.1:8000/api/evaluacioncriterio/"
+            );
             const data = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
                 ? res.data.results
                 : [];
-            setEstados(data);
+            setEvaluaciones(data);
         } catch (error) {
-            console.error("Error al cargar estados:", error);
-            setEstados([]);
-            setMensaje("Error al cargar los estados");
+            console.error("Error al cargar evaluaciones:", error);
+            setEvaluaciones([]);
+            setMensaje("Error al cargar evaluaciones");
         }
     };
 
@@ -39,92 +42,110 @@ const EstadosContainer = () => {
         e.preventDefault();
         try {
             const data = {
-                nombreestado: nombreEstado,
-                descripcion,
+                idevaluacion: idEvaluacion || null,
+                idcriterioevaluacion: idCriterioEvaluacion || null,
+                puntajecriterio: puntajeCriterio,
                 estado: estadoActivo,
-                idusuario: 1,
+                idusuario: 1, // reemplazar por usuario logueado
             };
+
             if (editingId) {
                 await axios.put(
-                    `http://127.0.0.1:8000/api/estados/${editingId}/`,
+                    `http://127.0.0.1:8000/api/evaluacioncriterio/${editingId}/`,
                     data
                 );
-                setMensaje("Estado actualizado correctamente");
+                setMensaje("Evaluación actualizada correctamente");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/estados/", data);
-                setMensaje("Estado registrado correctamente");
+                await axios.post(
+                    "http://127.0.0.1:8000/api/evaluacioncriterio/",
+                    data
+                );
+                setMensaje("Evaluación registrada correctamente");
             }
-            setNombreEstado("");
-            setDescripcion("");
+
+            // Reset form
+            setIdEvaluacion("");
+            setIdCriterioEvaluacion("");
+            setPuntajeCriterio("");
             setEstadoActivo(true);
             setEditingId(null);
-            fetchEstados();
+
+            fetchEvaluaciones();
         } catch (error) {
-            console.error("Error al guardar estado:", error);
-            setMensaje("Error al registrar el estado");
+            console.error(
+                "Error al guardar evaluación:",
+                error.response?.data || error
+            );
+            setMensaje("Error al registrar la evaluación");
         }
     };
 
-    const handleEdit = (estado) => {
-        setNombreEstado(estado.nombreestado);
-        setDescripcion(estado.descripcion);
-        setEstadoActivo(estado.estado);
-        setEditingId(estado.idestado);
+    const handleEdit = (evaluacion) => {
+        setIdEvaluacion(evaluacion.idevaluacion || "");
+        setIdCriterioEvaluacion(evaluacion.idcriterioevaluacion || "");
+        setPuntajeCriterio(evaluacion.puntajecriterio);
+        setEstadoActivo(evaluacion.estado);
+        setEditingId(evaluacion.idevaluacioncriterio);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    // Borrado lógico (desactivar)
     const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de desactivar este estado?")) return;
+        if (!window.confirm("¿Estás seguro de desactivar esta evaluación?"))
+            return;
         try {
-            const estado = estados.find((e) => e.idestado === id);
-            if (!estado) return;
+            const evaluacion = evaluaciones.find(
+                (e) => e.idevaluacioncriterio === id
+            );
+            if (!evaluacion) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/estados/${id}/`, {
-                nombreestado: estado.nombreestado,
-                descripcion: estado.descripcion,
-                estado: false,
-                idusuario: estado.idusuario,
-            });
+            await axios.put(
+                `http://127.0.0.1:8000/api/evaluacioncriterio/${id}/`,
+                {
+                    ...evaluacion,
+                    estado: false,
+                }
+            );
 
-            setMensaje("Estado desactivado correctamente");
-            fetchEstados();
+            setMensaje("Evaluación desactivada correctamente");
+            fetchEvaluaciones();
         } catch (error) {
             console.error(
-                "Error al desactivar estado:",
+                "Error al desactivar evaluación:",
                 error.response?.data || error
             );
-            setMensaje("Error al desactivar el estado");
+            setMensaje("Error al desactivar la evaluación");
         }
     };
 
-    // Activar estado
     const handleActivate = async (id) => {
         try {
-            const estado = estados.find((e) => e.idestado === id);
-            if (!estado) return;
+            const evaluacion = evaluaciones.find(
+                (e) => e.idevaluacioncriterio === id
+            );
+            if (!evaluacion) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/estados/${id}/`, {
-                nombreestado: estado.nombreestado,
-                descripcion: estado.descripcion,
-                estado: true,
-                idusuario: estado.idusuario,
-            });
+            await axios.put(
+                `http://127.0.0.1:8000/api/evaluacioncriterio/${id}/`,
+                {
+                    ...evaluacion,
+                    estado: true,
+                }
+            );
 
-            setMensaje("Estado activado correctamente");
-            fetchEstados();
+            setMensaje("Evaluación activada correctamente");
+            fetchEvaluaciones();
         } catch (error) {
             console.error(
-                "Error al activar estado:",
+                "Error al activar evaluación:",
                 error.response?.data || error
             );
-            setMensaje("Error al activar el estado");
+            setMensaje("Error al activar la evaluación");
         }
     };
 
     return (
         <Layout>
-            <SEO title="Hope – Estados" />
+            <SEO title="Hope – Evaluaciones por Criterio" />
             <div
                 className="wrapper"
                 style={{
@@ -134,7 +155,6 @@ const EstadosContainer = () => {
                 }}
             >
                 <Header />
-
                 <main
                     style={{
                         flex: 1,
@@ -142,7 +162,7 @@ const EstadosContainer = () => {
                         background: "#f0f2f5",
                     }}
                 >
-                    <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+                    <div style={{ maxWidth: "900px", margin: "0 auto" }}>
                         {/* --- FORMULARIO --- */}
                         <div
                             style={{
@@ -160,8 +180,8 @@ const EstadosContainer = () => {
                                 }}
                             >
                                 {editingId
-                                    ? "Editar estado"
-                                    : "Registrar un nuevo estado"}
+                                    ? "Editar Evaluación"
+                                    : "Registrar nueva Evaluación"}
                             </h2>
                             {mensaje && (
                                 <p
@@ -179,110 +199,79 @@ const EstadosContainer = () => {
                             )}
                             <form onSubmit={handleSubmit}>
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        htmlFor="nombreEstado"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        Nombre del estado
-                                    </label>
+                                    <label>ID Evaluación</label>
                                     <input
-                                        type="text"
-                                        id="nombreEstado"
-                                        value={nombreEstado}
+                                        type="number"
+                                        value={idEvaluacion}
                                         onChange={(e) =>
-                                            setNombreEstado(e.target.value)
+                                            setIdEvaluacion(e.target.value)
                                         }
-                                        required
                                         style={{
                                             width: "100%",
-                                            padding: "12px 15px",
-                                            borderRadius: "8px",
-                                            border: "1px solid #ccc",
-                                            fontSize: "16px",
+                                            padding: "10px",
                                         }}
                                     />
                                 </div>
 
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        htmlFor="descripcion"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        Descripción
-                                    </label>
+                                    <label>ID Criterio Evaluación</label>
                                     <input
-                                        type="text"
-                                        id="descripcion"
-                                        value={descripcion}
+                                        type="number"
+                                        value={idCriterioEvaluacion}
                                         onChange={(e) =>
-                                            setDescripcion(e.target.value)
+                                            setIdCriterioEvaluacion(
+                                                e.target.value
+                                            )
                                         }
-                                        required
                                         style={{
                                             width: "100%",
-                                            padding: "12px 15px",
-                                            borderRadius: "8px",
-                                            border: "1px solid #ccc",
-                                            fontSize: "16px",
+                                            padding: "10px",
                                         }}
                                     />
                                 </div>
 
-                                <div
-                                    style={{
-                                        marginBottom: "30px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                    }}
-                                >
+                                <div style={{ marginBottom: "20px" }}>
+                                    <label>Puntaje Criterio</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={puntajeCriterio}
+                                        onChange={(e) =>
+                                            setPuntajeCriterio(e.target.value)
+                                        }
+                                        required
+                                        style={{
+                                            width: "100%",
+                                            padding: "10px",
+                                        }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: "20px" }}>
                                     <input
                                         type="checkbox"
-                                        id="estadoActivo"
                                         checked={estadoActivo}
                                         onChange={(e) =>
                                             setEstadoActivo(e.target.checked)
                                         }
-                                        style={{
-                                            width: "18px",
-                                            height: "18px",
-                                        }}
-                                    />
-                                    <label
-                                        htmlFor="estadoActivo"
-                                        style={{
-                                            fontWeight: "600",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        Activo
-                                    </label>
+                                    />{" "}
+                                    Activo
                                 </div>
+
                                 <button
                                     type="submit"
                                     style={{
                                         width: "100%",
-                                        padding: "12px 0",
+                                        padding: "12px",
                                         background: "#007bff",
                                         color: "#fff",
                                         border: "none",
                                         borderRadius: "8px",
-                                        fontSize: "16px",
-                                        fontWeight: "600",
+                                        fontWeight: "bold",
                                         cursor: "pointer",
                                     }}
                                 >
-                                    {editingId
-                                        ? "Actualizar Estado"
-                                        : "Guardar Estado"}
+                                    {editingId ? "Actualizar" : "Guardar"}
                                 </button>
                             </form>
                         </div>
@@ -304,7 +293,7 @@ const EstadosContainer = () => {
                                     textAlign: "center",
                                 }}
                             >
-                                Estados Registrados
+                                Evaluaciones por Criterio Registradas
                             </h3>
                             <table
                                 style={{
@@ -318,25 +307,30 @@ const EstadosContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "left",
                                             }}
                                         >
-                                            Nombre
+                                            Evaluación
                                         </th>
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "left",
                                             }}
                                         >
-                                            Descripción
+                                            Criterio
                                         </th>
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "center",
+                                            }}
+                                        >
+                                            Puntaje
+                                        </th>
+                                        <th
+                                            style={{
+                                                borderBottom: "2px solid #eee",
+                                                padding: "10px",
                                             }}
                                         >
                                             Estado
@@ -345,7 +339,6 @@ const EstadosContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "center",
                                             }}
                                         >
                                             Acciones
@@ -353,10 +346,9 @@ const EstadosContainer = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {Array.isArray(estados) &&
-                                    estados.length > 0 ? (
-                                        estados.map((estado) => (
-                                            <tr key={estado.idestado}>
+                                    {evaluaciones.length > 0 ? (
+                                        evaluaciones.map((e) => (
+                                            <tr key={e.idevaluacioncriterio}>
                                                 <td
                                                     style={{
                                                         padding: "10px",
@@ -364,7 +356,7 @@ const EstadosContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {estado.nombreestado}
+                                                    {e.idevaluacion || "N/A"}
                                                 </td>
                                                 <td
                                                     style={{
@@ -373,21 +365,29 @@ const EstadosContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {estado.descripcion}
+                                                    {e.idcriterioevaluacion ||
+                                                        "N/A"}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {e.puntajecriterio}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        color: estado.estado
+                                                        color: e.estado
                                                             ? "green"
                                                             : "red",
                                                         fontWeight: "600",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {estado.estado
+                                                    {e.estado
                                                         ? "Activo"
                                                         : "Inactivo"}
                                                 </td>
@@ -395,14 +395,11 @@ const EstadosContainer = () => {
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
                                                     }}
                                                 >
                                                     <button
-                                                        type="button"
                                                         onClick={() =>
-                                                            handleEdit(estado)
+                                                            handleEdit(e)
                                                         }
                                                         style={{
                                                             padding: "6px 14px",
@@ -411,20 +408,17 @@ const EstadosContainer = () => {
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
-                                                            cursor: "pointer",
-                                                            fontSize: "14px",
                                                             marginRight: "6px",
+                                                            cursor: "pointer",
                                                         }}
                                                     >
                                                         Editar
                                                     </button>
-
-                                                    {estado.estado ? (
+                                                    {e.estado ? (
                                                         <button
-                                                            type="button"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    estado.idestado
+                                                                    e.idevaluacioncriterio
                                                                 )
                                                             }
                                                             style={{
@@ -437,18 +431,15 @@ const EstadosContainer = () => {
                                                                 borderRadius:
                                                                     "5px",
                                                                 cursor: "pointer",
-                                                                fontSize:
-                                                                    "14px",
                                                             }}
                                                         >
                                                             Desactivar
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            type="button"
                                                             onClick={() =>
                                                                 handleActivate(
-                                                                    estado.idestado
+                                                                    e.idevaluacioncriterio
                                                                 )
                                                             }
                                                             style={{
@@ -461,8 +452,6 @@ const EstadosContainer = () => {
                                                                 borderRadius:
                                                                     "5px",
                                                                 cursor: "pointer",
-                                                                fontSize:
-                                                                    "14px",
                                                             }}
                                                         >
                                                             Activar
@@ -474,13 +463,13 @@ const EstadosContainer = () => {
                                     ) : (
                                         <tr>
                                             <td
-                                                colSpan="4"
+                                                colSpan="5"
                                                 style={{
                                                     textAlign: "center",
                                                     padding: "20px",
                                                 }}
                                             >
-                                                No hay estados registrados
+                                                No hay evaluaciones registradas
                                             </td>
                                         </tr>
                                     )}
@@ -489,7 +478,6 @@ const EstadosContainer = () => {
                         </div>
                     </div>
                 </main>
-
                 <Footer />
                 <ScrollToTop />
             </div>
@@ -497,4 +485,4 @@ const EstadosContainer = () => {
     );
 };
 
-export default EstadosContainer;
+export default EvaluacionCriterioContainer;
