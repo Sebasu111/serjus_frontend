@@ -36,14 +36,7 @@ import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 //   RECLUTAMIENTO
 // =============================================================
 import ConvocatoriasContainer from "./containers/convocatorias/ConvocatoriasContainer";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 import AspirantesContainer from "./containers/aspirantes/AspirantesContainer";
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-import PuestosContainer from "./containers/Puesto/PuestoContainer";
 // import AspirantesContainer from "./containers/aspirantes";
 // import SeleccionContainer from "./containers/seleccion";
 
@@ -51,7 +44,7 @@ import PuestosContainer from "./containers/Puesto/PuestoContainer";
 // =============================================================
 //   INTEGRACIÓN
 // =============================================================
-import CapacitacionContainer from "./containers/capacitacion";
+import CapacitacionContainer from "./containers/capacitacion/CapacitacionContainer";
 // import InduccionContainer from "./containers/induccion";
 
 
@@ -143,15 +136,8 @@ const App = () => {
 
                     {/*RECLUTAMIENTO*/}
                     {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
-                    {<Route exact path={`${base}/Puesto`} component={PuestoContainer} />}
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
                     {<Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> }
-=======
-=======
->>>>>>> Stashed changes
                     {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
->>>>>>> Stashed changes
                     {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
 
                     {/*INTEGRACIÓN*/}
@@ -193,11 +179,7 @@ const App = () => {
                         path={`${base}/Estados`}
                         component={EstadosContainer}
                     />
-                    <Route
-                        exact
-                        path={`${base}/Puesto`}
-                        component={PuestoContainer}
-                    />
+                    <Route exact path={`${base}/Puesto`} component={PuestoContainer} />
                     <Route
                         exact
                         path={`${base}/Roles`}

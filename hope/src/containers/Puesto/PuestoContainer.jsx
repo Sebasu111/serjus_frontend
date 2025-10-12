@@ -52,7 +52,7 @@ const PuestosContainer = () => {
     }
   };
 
-  // ✅ Cambiar estado (activar/desactivar)
+  // Cambiar estado (activar/desactivar)
   const handleToggleEstado = async () => {
     if (!registroSeleccionado) return;
     try {
@@ -69,7 +69,7 @@ const PuestosContainer = () => {
     }
   };
 
-  // ✅ Al presionar el botón de activar/desactivar
+  // Al presionar el botón de activar/desactivar
   const handleEstadoClick = async (registro) => {
     if (registro.estado) {
       // Si está activo → mostrar modal de confirmación para desactivar
@@ -101,7 +101,7 @@ const PuestosContainer = () => {
   const indexOfLast = paginaActual * elementosPorPagina;
   const indexOfFirst = indexOfLast - elementosPorPagina;
   const puestosPaginados = puestosFiltrados.slice(indexOfFirst, indexOfLast);
-  const totalPaginas = Math.ceil(puestosFiltrados.length / elementosPorPagina);
+  const totalPaginas = Math.max(Math.ceil(puestosFiltrados.length / elementosPorPagina), 1); 
 
   return (
     <Layout>
@@ -115,7 +115,7 @@ const PuestosContainer = () => {
                 Puestos Registrados
               </h2>
 
-              {/* 🔍 Buscador */}
+              {/*Buscador */}
               <div
                 style={{
                   display: "flex",
@@ -142,28 +142,32 @@ const PuestosContainer = () => {
                 />
               </div>
 
-              {/* 🧾 Tabla de Puestos */}
+              {/* Tabla de Puestos */}
               <PuestosTable
                 puestos={puestosPaginados}
                 onAsignarSalario={(puesto) => {
                   setPuestoSeleccionado(puesto);
                   setMostrarFormulario(true);
                 }}
-                onToggleEstado={handleEstadoClick} // ✅ usar la nueva función
+                onToggleEstado={handleEstadoClick} 
+                  paginaActual={paginaActual}          //   importante
+                  setPaginaActual={setPaginaActual}    //   importante
+                  totalPaginas={totalPaginas}
               />
 
-              {/* 🔢 Selector de cantidad */}
+              {/* Selector de cantidad */}
               <div style={{ marginTop: "20px", textAlign: "center" }}>
                 <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
                 <input
                   type="number"
                   min="1"
+                  max={puestosFiltrados.length} // opcional: limitar máximo
                   value={elementosPorPagina}
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, "");
-                    const numero = val === "" ? "" : Number(val);
-                    setElementosPorPagina(numero > 0 ? numero : 1);
-                    setPaginaActual(1);
+                    const numero = val === "" ? 1 : Number(val); // mínimo 1
+                    setElementosPorPagina(numero);
+                    setPaginaActual(1); // siempre volver a la primera página
                   }}
                   onFocus={(e) => e.target.select()}
                   style={{
@@ -189,7 +193,7 @@ const PuestosContainer = () => {
           />
         )}
 
-        {/* ✅ Modal solo para desactivar */}
+        {/* Modal solo para desactivar */}
         {confirmModalVisible && registroSeleccionado && (
           <ConfirmModal
             registro={registroSeleccionado}

@@ -14,7 +14,7 @@ import ConfirmModalAspirante from "./ConfirmModalAspirante.jsx";
 
 const API_ASPIRANTES = "http://127.0.0.1:8000/api/aspirantes/";
 const API_IDIOMAS = "http://127.0.0.1:8000/api/idiomas/";
-const API_PUEBLOS = "http://127.0.0.1:8000/api/puebloscultura/";
+const API_PUEBLOS = "http://127.0.0.1:8000/api/pueblocultura/";
 
 const AspirantesContainer = () => {
     // Estado principal
