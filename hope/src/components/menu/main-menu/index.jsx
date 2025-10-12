@@ -153,7 +153,7 @@ const SidebarMenu = () => {
                         <ul className={`sidebar-submenu ${openMenu === "catalogo" ? "open" : ""}`}>
                             <li><NavLink to={`${base}/PuebloCultura`} className="sidebar-submenu-link">Pueblo/Cultura</NavLink></li>
                             <li><NavLink to={`${base}/Idiomas`} className="sidebar-submenu-link">Idiomas</NavLink></li>
-                            <li><NavLink to={`${base}/Puestos`} className="sidebar-submenu-link">Puestos</NavLink></li>
+                            <li><NavLink to={`${base}/Puesto`} className="sidebar-submenu-link">Puesto</NavLink></li>
                         </ul>
                     </li>
 

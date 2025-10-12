@@ -1,38 +1,40 @@
-// containers/puestos/index.jsx
+// containers/tipodocumentos/index.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header";
-import Footer from "../../layouts/footer";
-import ScrollToTop from "../../components/scroll-to-top";
-import SEO from "../../components/seo";
+import Header from "../../layouts/header/index.jsx";
+import Footer from "../../layouts/footer/index.jsx";
+import ScrollToTop from "../../components/scroll-to-top/index.jsx";
+import SEO from "../../components/seo/index.jsx";
 
-const PuestosContainer = () => {
-    const [nombrePuesto, setNombrePuesto] = useState("");
+const TiposDocumentoContainer = () => {
+    const [nombreTipo, setNombreTipo] = useState("");
+    const [cantidadRepetir, setCantidadRepetir] = useState("");
     const [descripcion, setDescripcion] = useState("");
-    const [salarioBase, setSalarioBase] = useState("");
     const [estadoActivo, setEstadoActivo] = useState(true);
     const [mensaje, setMensaje] = useState("");
-    const [puestos, setPuestos] = useState([]);
+    const [tipos, setTipos] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
-        fetchPuestos();
+        fetchTipos();
     }, []);
 
-    const fetchPuestos = async () => {
+    const fetchTipos = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/puestos/");
+            const res = await axios.get(
+                "http://127.0.0.1:8000/api/tipodocumento/"
+            );
             const data = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
                 ? res.data.results
                 : [];
-            setPuestos(data);
+            setTipos(data);
         } catch (error) {
-            console.error("Error al cargar puestos:", error);
-            setPuestos([]);
-            setMensaje("Error al cargar los puestos");
+            console.error("Error al cargar tipos de documento:", error);
+            setTipos([]);
+            setMensaje("Error al cargar los tipos de documento");
         }
     };
 
@@ -40,95 +42,107 @@ const PuestosContainer = () => {
         e.preventDefault();
         try {
             const data = {
-                nombrepuesto: nombrePuesto,
+                nombretipo: nombreTipo,
+                cantidadrepetir: cantidadRepetir
+                    ? parseInt(cantidadRepetir)
+                    : null,
                 descripcion,
-                salariobase: salarioBase,
                 estado: estadoActivo,
-                idusuario: 1, // puedes reemplazar con el usuario logueado
+                idusuario: 1, // reemplazar con usuario logueado
             };
+
             if (editingId) {
                 await axios.put(
-                    `http://127.0.0.1:8000/api/puestos/${editingId}/`,
+                    `http://127.0.0.1:8000/api/tipodocumento/${editingId}/`,
                     data
                 );
-                setMensaje("Puesto actualizado correctamente");
+                setMensaje("Tipo de documento actualizado correctamente");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/puestos/", data);
-                setMensaje("Puesto registrado correctamente");
+                await axios.post(
+                    "http://127.0.0.1:8000/api/tipodocumento/",
+                    data
+                );
+                setMensaje("Tipo de documento registrado correctamente");
             }
-            setNombrePuesto("");
+
+            setNombreTipo("");
+            setCantidadRepetir("");
             setDescripcion("");
-            setSalarioBase("");
             setEstadoActivo(true);
             setEditingId(null);
-            fetchPuestos();
+            fetchTipos();
         } catch (error) {
-            console.error("Error al guardar puesto:", error);
-            setMensaje("Error al registrar el puesto");
+            console.error("Error al guardar tipo de documento:", error);
+            setMensaje("Error al registrar el tipo de documento");
         }
     };
 
-    const handleEdit = (puesto) => {
-        setNombrePuesto(puesto.nombrepuesto);
-        setDescripcion(puesto.descripcion);
-        setSalarioBase(puesto.salariobase);
-        setEstadoActivo(puesto.estado);
-        setEditingId(puesto.idpuesto);
+    const handleEdit = (tipo) => {
+        setNombreTipo(tipo.nombretipo);
+        setCantidadRepetir(tipo.cantidadrepetir || "");
+        setDescripcion(tipo.descripcion);
+        setEstadoActivo(tipo.estado);
+        setEditingId(tipo.idtipodocumento);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de desactivar este puesto?")) return;
+        if (
+            !window.confirm(
+                "¿Estás seguro de desactivar este tipo de documento?"
+            )
+        )
+            return;
         try {
-            const puesto = puestos.find((p) => p.idpuesto === id);
-            if (!puesto) return;
+            const tipo = tipos.find((t) => t.idtipodocumento === id);
+            if (!tipo) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/puestos/${id}/`, {
-                nombrepuesto: puesto.nombrepuesto,
-                descripcion: puesto.descripcion,
-                salariobase: puesto.salariobase,
+            await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${id}/`, {
+                nombretipo: tipo.nombretipo,
+                cantidadrepetir: tipo.cantidadrepetir,
+                descripcion: tipo.descripcion,
                 estado: false,
-                idusuario: puesto.idusuario,
+                idusuario: tipo.idusuario,
             });
 
-            setMensaje("Puesto desactivado correctamente");
-            fetchPuestos();
+            setMensaje("Tipo de documento desactivado correctamente");
+            fetchTipos();
         } catch (error) {
             console.error(
-                "Error al desactivar puesto:",
+                "Error al desactivar tipo de documento:",
                 error.response?.data || error
             );
-            setMensaje("Error al desactivar el puesto");
+            setMensaje("Error al desactivar el tipo de documento");
         }
     };
 
     const handleActivate = async (id) => {
         try {
-            const puesto = puestos.find((p) => p.idpuesto === id);
-            if (!puesto) return;
+            const tipo = tipos.find((t) => t.idtipodocumento === id);
+            if (!tipo) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/puestos/${id}/`, {
-                nombrepuesto: puesto.nombrepuesto,
-                descripcion: puesto.descripcion,
-                salariobase: puesto.salariobase,
+            await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${id}/`, {
+                nombretipo: tipo.nombretipo,
+                cantidadrepetir: tipo.cantidadrepetir,
+                descripcion: tipo.descripcion,
                 estado: true,
-                idusuario: puesto.idusuario,
+                idusuario: tipo.idusuario,
             });
 
-            setMensaje("Puesto activado correctamente");
-            fetchPuestos();
+            setMensaje("Tipo de documento activado correctamente");
+            fetchTipos();
         } catch (error) {
             console.error(
-                "Error al activar puesto:",
+                "Error al activar tipo de documento:",
                 error.response?.data || error
             );
-            setMensaje("Error al activar el puesto");
+            setMensaje("Error al activar el tipo de documento");
         }
     };
 
     return (
         <Layout>
-            <SEO title="Hope – Puestos" />
+            <SEO title="Hope – Tipos de Documento" />
             <div
                 className="wrapper"
                 style={{
@@ -164,8 +178,8 @@ const PuestosContainer = () => {
                                 }}
                             >
                                 {editingId
-                                    ? "Editar puesto"
-                                    : "Registrar un nuevo puesto"}
+                                    ? "Editar tipo de documento"
+                                    : "Registrar un nuevo tipo de documento"}
                             </h2>
                             {mensaje && (
                                 <p
@@ -184,23 +198,51 @@ const PuestosContainer = () => {
                             <form onSubmit={handleSubmit}>
                                 <div style={{ marginBottom: "20px" }}>
                                     <label
-                                        htmlFor="nombrePuesto"
+                                        htmlFor="nombreTipo"
                                         style={{
                                             display: "block",
                                             marginBottom: "8px",
                                             fontWeight: "600",
                                         }}
                                     >
-                                        Nombre del puesto
+                                        Nombre
                                     </label>
                                     <input
                                         type="text"
-                                        id="nombrePuesto"
-                                        value={nombrePuesto}
+                                        id="nombreTipo"
+                                        value={nombreTipo}
                                         onChange={(e) =>
-                                            setNombrePuesto(e.target.value)
+                                            setNombreTipo(e.target.value)
                                         }
                                         required
+                                        style={{
+                                            width: "100%",
+                                            padding: "12px 15px",
+                                            borderRadius: "8px",
+                                            border: "1px solid #ccc",
+                                            fontSize: "16px",
+                                        }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: "20px" }}>
+                                    <label
+                                        htmlFor="cantidadRepetir"
+                                        style={{
+                                            display: "block",
+                                            marginBottom: "8px",
+                                            fontWeight: "600",
+                                        }}
+                                    >
+                                        Cantidad a repetir
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="cantidadRepetir"
+                                        value={cantidadRepetir}
+                                        onChange={(e) =>
+                                            setCantidadRepetir(e.target.value)
+                                        }
                                         style={{
                                             width: "100%",
                                             padding: "12px 15px",
@@ -228,36 +270,6 @@ const PuestosContainer = () => {
                                         value={descripcion}
                                         onChange={(e) =>
                                             setDescripcion(e.target.value)
-                                        }
-                                        required
-                                        style={{
-                                            width: "100%",
-                                            padding: "12px 15px",
-                                            borderRadius: "8px",
-                                            border: "1px solid #ccc",
-                                            fontSize: "16px",
-                                        }}
-                                    />
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        htmlFor="salarioBase"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        Salario base
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        id="salarioBase"
-                                        value={salarioBase}
-                                        onChange={(e) =>
-                                            setSalarioBase(e.target.value)
                                         }
                                         required
                                         style={{
@@ -315,8 +327,8 @@ const PuestosContainer = () => {
                                     }}
                                 >
                                     {editingId
-                                        ? "Actualizar Puesto"
-                                        : "Guardar Puesto"}
+                                        ? "Actualizar Tipo"
+                                        : "Guardar Tipo"}
                                 </button>
                             </form>
                         </div>
@@ -338,7 +350,7 @@ const PuestosContainer = () => {
                                     textAlign: "center",
                                 }}
                             >
-                                Puestos Registrados
+                                Tipos de Documento Registrados
                             </h3>
                             <table
                                 style={{
@@ -361,19 +373,19 @@ const PuestosContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "left",
+                                                textAlign: "center",
                                             }}
                                         >
-                                            Descripción
+                                            Cantidad
                                         </th>
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "right",
+                                                textAlign: "left",
                                             }}
                                         >
-                                            Salario Base
+                                            Descripción
                                         </th>
                                         <th
                                             style={{
@@ -396,10 +408,10 @@ const PuestosContainer = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {Array.isArray(puestos) &&
-                                    puestos.length > 0 ? (
-                                        puestos.map((puesto) => (
-                                            <tr key={puesto.idpuesto}>
+                                    {Array.isArray(tipos) &&
+                                    tipos.length > 0 ? (
+                                        tipos.map((tipo) => (
+                                            <tr key={tipo.idtipodocumento}>
                                                 <td
                                                     style={{
                                                         padding: "10px",
@@ -407,35 +419,33 @@ const PuestosContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {puesto.nombrepuesto}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    {puesto.descripcion}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        textAlign: "right",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
-                                                    }}
-                                                >
-                                                    $
-                                                    {parseFloat(
-                                                        puesto.salariobase
-                                                    ).toFixed(2)}
+                                                    {tipo.nombretipo}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        color: puesto.estado
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {tipo.cantidadrepetir ||
+                                                        "-"}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        borderBottom:
+                                                            "1px solid #f0f0f0",
+                                                    }}
+                                                >
+                                                    {tipo.descripcion}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        textAlign: "center",
+                                                        color: tipo.estado
                                                             ? "green"
                                                             : "red",
                                                         fontWeight: "600",
@@ -443,7 +453,7 @@ const PuestosContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {puesto.estado
+                                                    {tipo.estado
                                                         ? "Activo"
                                                         : "Inactivo"}
                                                 </td>
@@ -458,7 +468,7 @@ const PuestosContainer = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() =>
-                                                            handleEdit(puesto)
+                                                            handleEdit(tipo)
                                                         }
                                                         style={{
                                                             padding: "6px 14px",
@@ -475,12 +485,12 @@ const PuestosContainer = () => {
                                                         Editar
                                                     </button>
 
-                                                    {puesto.estado ? (
+                                                    {tipo.estado ? (
                                                         <button
                                                             type="button"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    puesto.idpuesto
+                                                                    tipo.idtipodocumento
                                                                 )
                                                             }
                                                             style={{
@@ -504,7 +514,7 @@ const PuestosContainer = () => {
                                                             type="button"
                                                             onClick={() =>
                                                                 handleActivate(
-                                                                    puesto.idpuesto
+                                                                    tipo.idtipodocumento
                                                                 )
                                                             }
                                                             style={{
@@ -536,7 +546,8 @@ const PuestosContainer = () => {
                                                     padding: "20px",
                                                 }}
                                             >
-                                                No hay puestos registrados
+                                                No hay tipos de documento
+                                                registrados
                                             </td>
                                         </tr>
                                     )}
@@ -553,4 +564,4 @@ const PuestosContainer = () => {
     );
 };
 
-export default PuestosContainer;
+export default TiposDocumentoContainer;

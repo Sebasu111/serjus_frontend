@@ -29,7 +29,6 @@ import EmpleadosContainer from "./containers/Empleados/EmpleadosContainer";
 import ContratosContainer from "./containers/contratos";
 import HistorialPuestoContainer from "./containers/historial-puesto";
 import EquiposContainer from "./containers/Equipo/EquiposContainer";
-
 import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 
 
@@ -38,40 +37,41 @@ import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 // =============================================================
 import ConvocatoriasContainer from "./containers/convocatorias/ConvocatoriasContainer";
 import AspirantesContainer from "./containers/aspirantes/AspirantesContainer";
+// import AspirantesContainer from "./containers/aspirantes";
 // import SeleccionContainer from "./containers/seleccion";
 
 
 // =============================================================
 //   INTEGRACIÓN
 // =============================================================
-import CapacitacionContainer from "./components/capacitacion";
+import CapacitacionContainer from "./containers/capacitacion/CapacitacionContainer";
 // import InduccionContainer from "./containers/induccion";
 
 
 // =============================================================
 //   DESEMPEÑO
 // =============================================================
-import CriterioEvaluacionContainer from "./components/CriterioEvaluacion/CriterioEvaluacionContainer";
-import EvaluacionCriterioContainer from "./components/EvaluacionCriterio/EvaluacionCriterioContainer";
+import CriterioEvaluacionContainer from "./containers/CriterioEvaluacion/CriterioEvaluacionContainer";
+import EvaluacionCriterioContainer from "./containers/EvaluacionCriterio/EvaluacionCriterioContainer";
 
 
 // =============================================================
 //   CONTROL DISCIPLINARIO
 // =============================================================
-import AusenciaContainer from "./components/Ausencia/AusenciaContainer";
-import AmonestacionContainer from "./components/Amonestacion/AmonestacionContainer";
+import AusenciaContainer from "./containers/Ausencia/AusenciaContainer";
+import AmonestacionContainer from "./containers/Amonestacion/AmonestacionContainer";
 
 
 // =============================================================
 //   AUXILIAR (catálogos, tablas de apoyo, etc.)
 // =============================================================
-import IdiomasContainer from "./components/Idiomas/IdiomasContainer";
-import EstadosContainer from "./components/Estados/EstadosContainer";
-import PuestoContainer from "./components/Puesto/PuestoContainer";
-import RolesContainer from "./components/Roles/RolesContainer";
-import TiposDocContainer from "./components/TiposDocumento/TiposDocContainer";
-import PuebloCulturaContainer from "./components/PuebloCultura/PuebloCulturaContainer";
-import TerminacionLaboralContainer from "./components/TerminacionLaboral/TerminacionLaboralContainer";
+import IdiomasContainer from "./containers/Idiomas/IdiomasContainer";
+import EstadosContainer from "./containers/Estados/EstadosContainer";
+import PuestoContainer from "./containers/Puesto/PuestoContainer";
+import RolesContainer from "./containers/Roles/RolesContainer";
+import TiposDocContainer from "./containers/TiposDocumento/TiposDocContainer";
+import PuebloCulturaContainer from "./containers/PuebloCultura/PuebloCulturaContainer";
+import TerminacionLaboralContainer from "./containers/TerminacionLaboral/TerminacionLaboralContainer";
 
 
 // =============================================================
@@ -135,12 +135,9 @@ const App = () => {
                     />
 
                     {/*RECLUTAMIENTO*/}
-                    <Route
-                        exact
-                        path={`${base}/Aspirantes`}
-                        component={AspirantesContainer}
-                    />
-                    {<Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} />}
+                    {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
+                    {<Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> }
+                    {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
                     {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
 
                     {/*INTEGRACIÓN*/}
@@ -182,11 +179,7 @@ const App = () => {
                         path={`${base}/Estados`}
                         component={EstadosContainer}
                     />
-                    <Route
-                        exact
-                        path={`${base}/Puesto`}
-                        component={PuestoContainer}
-                    />
+                    <Route exact path={`${base}/Puesto`} component={PuestoContainer} />
                     <Route
                         exact
                         path={`${base}/Roles`}

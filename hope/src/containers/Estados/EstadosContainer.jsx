@@ -1,37 +1,37 @@
-// containers/roles/index.jsx
+// containers/estados/index.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header";
-import Footer from "../../layouts/footer";
-import ScrollToTop from "../../components/scroll-to-top";
-import SEO from "../../components/seo";
+import Header from "../../layouts/header/index.jsx";
+import Footer from "../../layouts/footer/index.jsx";
+import ScrollToTop from "../../components/scroll-to-top/index.jsx";
+import SEO from "../../components/seo/index.jsx";
 
-const RolesContainer = () => {
-    const [nombreRol, setNombreRol] = useState("");
+const EstadosContainer = () => {
+    const [nombreEstado, setNombreEstado] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [estadoActivo, setEstadoActivo] = useState(true);
     const [mensaje, setMensaje] = useState("");
-    const [roles, setRoles] = useState([]);
+    const [estados, setEstados] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
-        fetchRoles();
+        fetchEstados();
     }, []);
 
-    const fetchRoles = async () => {
+    const fetchEstados = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/roles/");
+            const res = await axios.get("http://127.0.0.1:8000/api/estados/");
             const data = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
                 ? res.data.results
                 : [];
-            setRoles(data);
+            setEstados(data);
         } catch (error) {
-            console.error("Error al cargar roles:", error);
-            setRoles([]);
-            setMensaje("Error al cargar los roles");
+            console.error("Error al cargar estados:", error);
+            setEstados([]);
+            setMensaje("Error al cargar los estados");
         }
     };
 
@@ -39,90 +39,92 @@ const RolesContainer = () => {
         e.preventDefault();
         try {
             const data = {
-                nombrerol: nombreRol,
+                nombreestado: nombreEstado,
                 descripcion,
                 estado: estadoActivo,
-                idusuario: 1, // puedes reemplazar con usuario logueado
+                idusuario: 1,
             };
             if (editingId) {
                 await axios.put(
-                    `http://127.0.0.1:8000/api/roles/${editingId}/`,
+                    `http://127.0.0.1:8000/api/estados/${editingId}/`,
                     data
                 );
-                setMensaje("Rol actualizado correctamente");
+                setMensaje("Estado actualizado correctamente");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/roles/", data);
-                setMensaje("Rol registrado correctamente");
+                await axios.post("http://127.0.0.1:8000/api/estados/", data);
+                setMensaje("Estado registrado correctamente");
             }
-            setNombreRol("");
+            setNombreEstado("");
             setDescripcion("");
             setEstadoActivo(true);
             setEditingId(null);
-            fetchRoles();
+            fetchEstados();
         } catch (error) {
-            console.error("Error al guardar rol:", error);
-            setMensaje("Error al registrar el rol");
+            console.error("Error al guardar estado:", error);
+            setMensaje("Error al registrar el estado");
         }
     };
 
-    const handleEdit = (rol) => {
-        setNombreRol(rol.nombrerol);
-        setDescripcion(rol.descripcion);
-        setEstadoActivo(rol.estado);
-        setEditingId(rol.idrol);
+    const handleEdit = (estado) => {
+        setNombreEstado(estado.nombreestado);
+        setDescripcion(estado.descripcion);
+        setEstadoActivo(estado.estado);
+        setEditingId(estado.idestado);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+    // Borrado lógico (desactivar)
     const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de desactivar este rol?")) return;
+        if (!window.confirm("¿Estás seguro de desactivar este estado?")) return;
         try {
-            const rol = roles.find((r) => r.idrol === id);
-            if (!rol) return;
+            const estado = estados.find((e) => e.idestado === id);
+            if (!estado) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/roles/${id}/`, {
-                nombrerol: rol.nombrerol,
-                descripcion: rol.descripcion,
+            await axios.put(`http://127.0.0.1:8000/api/estados/${id}/`, {
+                nombreestado: estado.nombreestado,
+                descripcion: estado.descripcion,
                 estado: false,
-                idusuario: rol.idusuario,
+                idusuario: estado.idusuario,
             });
 
-            setMensaje("Rol desactivado correctamente");
-            fetchRoles();
+            setMensaje("Estado desactivado correctamente");
+            fetchEstados();
         } catch (error) {
             console.error(
-                "Error al desactivar rol:",
+                "Error al desactivar estado:",
                 error.response?.data || error
             );
-            setMensaje("Error al desactivar el rol");
+            setMensaje("Error al desactivar el estado");
         }
     };
 
+    // Activar estado
     const handleActivate = async (id) => {
         try {
-            const rol = roles.find((r) => r.idrol === id);
-            if (!rol) return;
+            const estado = estados.find((e) => e.idestado === id);
+            if (!estado) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/roles/${id}/`, {
-                nombrerol: rol.nombrerol,
-                descripcion: rol.descripcion,
+            await axios.put(`http://127.0.0.1:8000/api/estados/${id}/`, {
+                nombreestado: estado.nombreestado,
+                descripcion: estado.descripcion,
                 estado: true,
-                idusuario: rol.idusuario,
+                idusuario: estado.idusuario,
             });
 
-            setMensaje("Rol activado correctamente");
-            fetchRoles();
+            setMensaje("Estado activado correctamente");
+            fetchEstados();
         } catch (error) {
             console.error(
-                "Error al activar rol:",
+                "Error al activar estado:",
                 error.response?.data || error
             );
-            setMensaje("Error al activar el rol");
+            setMensaje("Error al activar el estado");
         }
     };
 
     return (
         <Layout>
-            <SEO title="Hope – Roles" />
+            <SEO title="Hope – Estados" />
             <div
                 className="wrapper"
                 style={{
@@ -158,8 +160,8 @@ const RolesContainer = () => {
                                 }}
                             >
                                 {editingId
-                                    ? "Editar rol"
-                                    : "Registrar un nuevo rol"}
+                                    ? "Editar estado"
+                                    : "Registrar un nuevo estado"}
                             </h2>
                             {mensaje && (
                                 <p
@@ -178,21 +180,21 @@ const RolesContainer = () => {
                             <form onSubmit={handleSubmit}>
                                 <div style={{ marginBottom: "20px" }}>
                                     <label
-                                        htmlFor="nombreRol"
+                                        htmlFor="nombreEstado"
                                         style={{
                                             display: "block",
                                             marginBottom: "8px",
                                             fontWeight: "600",
                                         }}
                                     >
-                                        Nombre del rol
+                                        Nombre del estado
                                     </label>
                                     <input
                                         type="text"
-                                        id="nombreRol"
-                                        value={nombreRol}
+                                        id="nombreEstado"
+                                        value={nombreEstado}
                                         onChange={(e) =>
-                                            setNombreRol(e.target.value)
+                                            setNombreEstado(e.target.value)
                                         }
                                         required
                                         style={{
@@ -279,8 +281,8 @@ const RolesContainer = () => {
                                     }}
                                 >
                                     {editingId
-                                        ? "Actualizar Rol"
-                                        : "Guardar Rol"}
+                                        ? "Actualizar Estado"
+                                        : "Guardar Estado"}
                                 </button>
                             </form>
                         </div>
@@ -302,7 +304,7 @@ const RolesContainer = () => {
                                     textAlign: "center",
                                 }}
                             >
-                                Roles Registrados
+                                Estados Registrados
                             </h3>
                             <table
                                 style={{
@@ -351,10 +353,10 @@ const RolesContainer = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {Array.isArray(roles) &&
-                                    roles.length > 0 ? (
-                                        roles.map((rol) => (
-                                            <tr key={rol.idrol}>
+                                    {Array.isArray(estados) &&
+                                    estados.length > 0 ? (
+                                        estados.map((estado) => (
+                                            <tr key={estado.idestado}>
                                                 <td
                                                     style={{
                                                         padding: "10px",
@@ -362,7 +364,7 @@ const RolesContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {rol.nombrerol}
+                                                    {estado.nombreestado}
                                                 </td>
                                                 <td
                                                     style={{
@@ -371,13 +373,13 @@ const RolesContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {rol.descripcion}
+                                                    {estado.descripcion}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        color: rol.estado
+                                                        color: estado.estado
                                                             ? "green"
                                                             : "red",
                                                         fontWeight: "600",
@@ -385,7 +387,7 @@ const RolesContainer = () => {
                                                             "1px solid #f0f0f0",
                                                     }}
                                                 >
-                                                    {rol.estado
+                                                    {estado.estado
                                                         ? "Activo"
                                                         : "Inactivo"}
                                                 </td>
@@ -400,7 +402,7 @@ const RolesContainer = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() =>
-                                                            handleEdit(rol)
+                                                            handleEdit(estado)
                                                         }
                                                         style={{
                                                             padding: "6px 14px",
@@ -417,12 +419,12 @@ const RolesContainer = () => {
                                                         Editar
                                                     </button>
 
-                                                    {rol.estado ? (
+                                                    {estado.estado ? (
                                                         <button
                                                             type="button"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    rol.idrol
+                                                                    estado.idestado
                                                                 )
                                                             }
                                                             style={{
@@ -446,7 +448,7 @@ const RolesContainer = () => {
                                                             type="button"
                                                             onClick={() =>
                                                                 handleActivate(
-                                                                    rol.idrol
+                                                                    estado.idestado
                                                                 )
                                                             }
                                                             style={{
@@ -478,7 +480,7 @@ const RolesContainer = () => {
                                                     padding: "20px",
                                                 }}
                                             >
-                                                No hay roles registrados
+                                                No hay estados registrados
                                             </td>
                                         </tr>
                                     )}
@@ -495,4 +497,4 @@ const RolesContainer = () => {
     );
 };
 
-export default RolesContainer;
+export default EstadosContainer;
