@@ -10,6 +10,10 @@ import EmpleadoForm from "./EmpleadoForm";
 import ConfirmModal from "./ConfirmModal";
 import EmpleadosTable from "./EmpleadosTable";
 
+import FichaDownloadModal from "./FichaDownloadModal";
+import { generarFichasPDF } from "./fichasPdf";
+import logo from "./logo-asjerjus.png";
+
 // ⚠️ Cambia esta URL por la IP de tu backend en LAN para Android
 const API = "http://127.0.0.1:8000/api";
 const PAGE_SIZE = 5;
@@ -53,6 +57,7 @@ const EmpleadosContainer = () => {
     const [showForm, setShowForm] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
+    const [showDownload, setShowDownload] = useState(false);
 
     // Catálogos
     const [idiomas, setIdiomas] = useState([]);
@@ -426,6 +431,12 @@ const EmpleadosContainer = () => {
                                     >
                                         Nuevo Empleado
                                     </button>
+                                    <button
+                                        onClick={() => setShowDownload(true)}
+                                        style={{ padding: "10px 20px", background: "#023047", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+                                    >
+                                        Descargar ficha(s)
+                                    </button>
                                 </div>
                             </div>
 
@@ -474,6 +485,23 @@ const EmpleadosContainer = () => {
                         empleado={empleadoSeleccionado}
                         onConfirm={confirmarDesactivacion}
                         onCancel={() => setShowConfirm(false)}
+                    />
+                )}
+                {/* Modal para seleccionar y generar PDF */}
+                {showDownload && (
+                    <FichaDownloadModal
+                        empleados={data}
+                        onClose={() => setShowDownload(false)}
+                        onGenerate={async (seleccionados) => {
+                            if (!seleccionados.length) { setMensaje("Selecciona al menos un empleado"); return; }
+                            setShowDownload(false);
+                            try {
+                                await generarFichasPDF(seleccionados, { idiomas, pueblos, equipos }, logo);
+                            } catch (e) {
+                                console.error(e);
+                                setMensaje("Error al generar el PDF");
+                            }
+                        }}
                     />
                 )}
             </div>

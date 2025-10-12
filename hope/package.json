@@ -10,6 +10,7 @@
     "autoprefixer": "^10.4.13",
     "axios": "^1.12.2",
     "disqus-react": "^1.0.11",
+    "jspdf": "^3.0.3",
     "lucide-react": "^0.544.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
