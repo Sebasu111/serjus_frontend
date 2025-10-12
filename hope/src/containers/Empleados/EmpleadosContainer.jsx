@@ -22,7 +22,7 @@ const PAGE_SIZE = 5;
 const empId = (row) => row?.id ?? row?.idempleado ?? row?.idEmpleado;
 
 const EmpleadosContainer = () => {
-    // 🔹 Form alineado al backend original (snake/lower en API, camel en UI)
+    //   Form alineado al backend original (snake/lower en API, camel en UI)
     const [form, setForm] = useState({
         dpi: "",
         nit: "",                 // soporta dígitos o 'C/F'
