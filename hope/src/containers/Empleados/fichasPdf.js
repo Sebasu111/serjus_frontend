@@ -2,14 +2,33 @@ import jsPDF from "jspdf";
 
 /* ========= helpers de catálogos ========= */
 const pick = (o, ...keys) => { for (const k of keys) if (o && o[k] != null) return o[k]; };
-const getId = (o) => pick(o, "id", "ididioma", "idequipo", "idpueblocultura", "pk", "codigo");
-function getName(o, type) {
-    if (!o) return "";
-    if (type === "idioma") return pick(o, "nombreidioma", "nombre", "idioma", "nombreIdioma", "descripcion", "label") || "";
-    if (type === "pueblo") return pick(o, "nombrepueblocultura", "nombre_pueblo_cultura", "nombre", "pueblo", "cultura", "descripcion", "label") || "";
-    if (type === "equipo") return pick(o, "nombreequipo", "nombre_equipo", "nombre", "equipo", "descripcion", "label") || "";
-    return "";
-}
+const getId = (o) =>
+    pick(
+        o,
+        "id",
+        "ididioma", "idIdioma",
+        "idequipo", "idEquipo",
+        "idpueblocultura", "idPuebloCultura",
+        "pk", "codigo"
+    );
+
+const getName = (o, type) => {
+    if (type === "equipo")
+        return pick(
+            o,
+            "nombreequipo", "nombreEquipo",   // <- Equipo
+            "nombre", "descripcion", "label"
+        ) || "";
+
+    if (type === "idioma")
+        return pick(o, "nombreidioma", "nombreIdioma", "nombre", "descripcion", "label") || "";
+
+    if (type === "pueblo")
+        return pick(o, "nombrepueblo", "nombrePueblo", "nombre", "descripcion", "label") || "";
+
+    return pick(o, "nombre", "descripcion", "label") || "";
+};
+
 function labelFrom(id, list, type) {
     if (!id) return "";
     const f = (list || []).find(x => String(getId(x)) === String(id));
@@ -165,18 +184,18 @@ export async function generarFichasPDF(empleados, cat, logoSrc) {
             edadDesde(e?.fechanacimiento),
             e?.estadocivil || "",
             String(e?.numerohijos ?? ""),
-            "",
-            "",
+            e?.titulonivelmedio || e?.tituloNivelMedio || "",
+            e?.estudiosuniversitarios || e?.estudiosUniversitarios || "",
             labelFrom(e?.ididioma, cat?.idiomas, "idioma"),
             labelFrom(e?.idpueblocultura, cat?.pueblos, "pueblo"),
             e?.direccion || "",
-            e?.telefono || "",
-            e?.telefono || "",
-            "",
+            e?.telefonoresidencial || e?.telefonoResidencial || "",
+            e?.telefonocelular || e?.telefonoCelular || "",
+            e?.telefonoemergencia || e?.telefonoEmergencia || "",
             String(e?.dpi || ""),
             String(e?.nit || ""),
             String(e?.numeroiggs || ""),
-            "",
+            "", // dejamos este campo vacío para conservar el layout
             labelFrom(e?.idequipo, cat?.equipos, "equipo"),
         ];
 

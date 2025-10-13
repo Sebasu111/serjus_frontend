@@ -4,11 +4,13 @@
     top: 0;
     left: 0;
     width: 300px;
-    /*   más ancho */
+    /* ancho expandido */
     height: 100vh;
     background: #1b488f;
     color: #fff;
     overflow-y: auto;
+    overflow-x: hidden;
+    /* evita letras asomadas en X */
     padding: 20px 0;
     z-index: 1000;
     transition: width 0.3s ease;
@@ -16,14 +18,15 @@
 
 .sidebar-menu.collapsed {
     width: 90px;
-    /*   más ancho al colapsar */
+    /* ancho colapsado */
 }
 
+/* --- Botón flotante de colapsar/expandir --- */
 .sidebar-toggle {
     position: fixed;
     top: 20px;
     left: 300px;
-    /*   ajustado al nuevo ancho expandido */
+    /* alineado al ancho expandido */
     background: #1b488f;
     color: #fff;
     border-radius: 0 50% 50% 0;
@@ -45,7 +48,7 @@
 
 .sidebar-toggle.collapsed {
     left: 90px;
-    /*   pegado al menú colapsado */
+    /* sigue el borde al colapsar */
 }
 
 /* --- Logo circular y adaptable --- */
@@ -81,14 +84,15 @@
     display: flex;
     align-items: center;
     padding: 14px 20px;
-    /*   antes 16px 24px → un poco menos */
+    /* un poco menos que 16/24 */
     cursor: pointer;
     font-weight: 600;
     font-size: 16px;
-    /*   antes 18px → más equilibrado */
+    /* equilibrado */
     color: #fff;
     transition: background 0.3s, color 0.3s;
     white-space: nowrap;
+    /* evita multirenglón */
 }
 
 .sidebar-menu-link:hover {
@@ -97,9 +101,7 @@
 
 .menu-icon {
     margin-right: 14px;
-    /*   antes 16px */
     font-size: 20px;
-    /*   antes 22px → un poco más chico */
     min-width: 26px;
     text-align: center;
 }
@@ -108,7 +110,7 @@
 .sidebar-submenu {
     list-style: none;
     padding-left: 28px;
-    /*   un poquito menos */
+    /* sangría */
     margin: 0;
     max-height: 0;
     overflow: hidden;
@@ -122,10 +124,8 @@
 .sidebar-submenu-link {
     display: block;
     padding: 10px 20px;
-    /*   antes 12px 24px */
     color: #d1d5db;
     font-size: 15px;
-    /*   antes 16px */
     transition: color 0.3s;
 }
 
@@ -146,13 +146,14 @@
 /* --- Ajuste del contenido principal --- */
 .main-content {
     margin-left: 300px;
-    /*   ajustado al nuevo ancho */
+    /* coincide con ancho expandido */
     padding: 20px;
     transition: margin-left 0.3s ease;
 }
 
-.sidebar-menu.collapsed ~ .main-content {
+.sidebar-menu.collapsed~.main-content {
     margin-left: 90px;
+    /* coincide con ancho colapsado */
 }
 
 header,
@@ -161,6 +162,7 @@ footer,
     transition: margin-left 0.3s ease;
 }
 
+/* --- Tooltips con title (cuando está expandido) --- */
 .sidebar-menu-link[title] {
     position: relative;
 }
@@ -185,4 +187,34 @@ footer,
 
 .sidebar-menu-link[title]:hover::after {
     opacity: 1;
+}
+
+/* =========================
+   FIX colapsado: ocultar texto/labels y submenús
+   ========================= */
+
+.sidebar-menu.collapsed .sidebar-menu-link {
+    justify-content: center;
+    /* solo ícono centrado */
+    padding: 12px 0;
+    overflow: hidden;
+    text-overflow: clip;
+}
+
+.sidebar-menu.collapsed .sidebar-menu-link> :not(.menu-icon) {
+    display: none !important;
+    /* oculta labels/texto */
+}
+
+.sidebar-menu.collapsed .sidebar-submenu {
+    display: none !important;
+    /* submenús totalmente ocultos */
+    max-height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* desactiva 'tooltips' personalizados en colapsado */
+.sidebar-menu.collapsed .sidebar-menu-link[title]::after {
+    display: none !important;
+    content: none !important;
 }

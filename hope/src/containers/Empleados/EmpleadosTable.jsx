@@ -2,28 +2,34 @@ import React from "react";
 
 // helpers para leer ids/nombres de los catálogos
 const pick = (o, ...keys) => { for (const k of keys) if (o && o[k] != null) return o[k]; };
-const getId = (o) => pick(o, "id", "ididioma", "idequipo", "idpueblocultura", "pk", "codigo");
+
+const getId = (o) =>
+    pick(
+        o,
+        "id",
+        "ididioma", "idIdioma",
+        "idequipo", "idEquipo",             // <- Equipo
+        "idpueblocultura", "idPuebloCultura",
+        "pk", "codigo"
+    );
 
 const getName = (o, type) => {
-    if (type === "idioma")
-        return pick(o, "nombreidioma", "nombre", "idioma", "nombreIdioma", "descripcion", "label");
-    if (type === "pueblo")
+    if (type === "equipo")
         return pick(
             o,
-            "nombrepueblocultura",
-            "nombre_pueblo_cultura",
-            "nombre",
-            "pueblo",
-            "cultura",
-            "nombrePueblo",
-            "nombre_cultura",
-            "descripcion",
-            "label"
+            "nombreequipo", "nombreEquipo",   // <- Equipo
+            "nombre", "descripcion", "label"
         );
-    if (type === "equipo")
-        return pick(o, "nombreequipo", "nombre_equipo", "nombre", "equipo", "nombreEquipo", "descripcion", "label");
-    return undefined;
+
+    if (type === "idioma")
+        return pick(o, "nombreidioma", "nombreIdioma", "nombre", "descripcion", "label");
+
+    if (type === "pueblo")
+        return pick(o, "nombrepueblo", "nombrePueblo", "nombre", "descripcion", "label");
+
+    return pick(o, "nombre", "descripcion", "label");
 };
+
 
 const labelFrom = (id, list, type) => {
     if (!id) return "";
@@ -60,7 +66,7 @@ const EmpleadosTable = ({
     >
         {/* contenedor de scroll horizontal */}
         <div style={{ width: "100%", overflowX: "auto" }}>
-            <table style={{ width: "100%", minWidth: "1100px", borderCollapse: "collapse" }}>
+            <table style={{ width: "100%", minWidth: "1400px", borderCollapse: "collapse" }}>
                 <thead>
                     <tr>
                         {[
@@ -74,7 +80,11 @@ const EmpleadosTable = ({
                             "Fecha nac.",
                             "Estado civil",
                             "# Hijos",
-                            "Teléfono",
+                            "Tel. Residencial",
+                            "Tel. Celular",
+                            "Tel. Emergencia",
+                            "Título medio",
+                            "Estudios univ.",
                             "Email",
                             "Idioma",
                             "Pueblo/Cultura",
@@ -105,7 +115,11 @@ const EmpleadosTable = ({
                                     <td style={tdStyle}>{fmtFecha(r.fechanacimiento)}</td>
                                     <td style={tdStyle}>{r.estadocivil}</td>
                                     <td style={{ ...tdStyle, textAlign: "right" }}>{r.numerohijos ?? 0}</td>
-                                    <td style={tdStyle}>{r.telefono}</td>
+                                    <td style={tdStyle}>{r.telefonoresidencial ?? r.telefonoResidencial ?? ""}</td>
+                                    <td style={tdStyle}>{r.telefonocelular ?? r.telefonoCelular ?? ""}</td>
+                                    <td style={tdStyle}>{r.telefonoemergencia ?? r.telefonoEmergencia ?? ""}</td>
+                                    <td style={tdStyle}>{r.titulonivelmedio ?? r.tituloNivelMedio ?? ""}</td>
+                                    <td style={tdStyle}>{r.estudiosuniversitarios ?? r.estudiosUniversitarios ?? ""}</td>
                                     <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{r.email}</td>
                                     <td style={tdStyle}>{idiomaLabel}</td>
                                     <td style={tdStyle}>{puebloLabel}</td>
@@ -158,8 +172,8 @@ const EmpleadosTable = ({
     </div>
 );
 
-const thStyle = { borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" };
-const tdStyle = { padding: "10px", borderBottom: "1px solid #f0f0f0" };
+const thStyle = { borderBottom: "2px solid #eee", padding: "12px", textAlign: "left", fontSize: 15 };
+const tdStyle = { padding: "12px", borderBottom: "1px solid #f0f0f0", fontSize: 15 };
 const btnWarn = { padding: "6px 10px", background: "#fb8500", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13, marginRight: 6 };
 const btnDanger = { padding: "6px 10px", background: "#dc3545", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13 };
 const btnSuccess = { padding: "6px 10px", background: "#28a745", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13 };

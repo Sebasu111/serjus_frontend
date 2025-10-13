@@ -14,7 +14,7 @@ import FichaDownloadModal from "./FichaDownloadModal";
 import { generarFichasPDF } from "./fichasPdf";
 import logo from "./logo-asjerjus.png";
 
-// ⚠️ Cambia esta URL por la IP de tu backend en LAN para Android
+// Cambia esta URL por la IP de tu backend en LAN para Android
 const API = "http://127.0.0.1:8000/api";
 
 // Utilidad: resolver el id sin importar el nombre de campo que devuelva el backend
@@ -30,7 +30,11 @@ const EmpleadosContainer = () => {
         genero: "",
         lugarnacimiento: "",
         fechanacimiento: "",
-        telefono: "",
+        telefonoresidencial: "",
+        telefonocelular: "",
+        telefonoemergencia: "",
+        titulonivelmedio: "",
+        estudiosuniversitarios: "",
         email: "",
         direccion: "",
         estadocivil: "",
@@ -145,9 +149,12 @@ const EmpleadosContainer = () => {
             else if (!/^\d{1,9}$/.test(v)) msg = "NIT inválido. Use 1-9 dígitos o marque C/F.";
         }
 
-        if (name === "telefono") {
-            if (value && !/^\d*$/.test(String(value))) msg = "El teléfono solo puede contener números.";
-            else if (value && String(value).length > 10) msg = "Teléfono: máximo 10 dígitos.";
+        if (["telefonoresidencial", "telefonocelular", "telefonoemergencia"].includes(name)) {
+            if (value && !/^\d*$/.test(String(value))) {
+                msg = "Solo números.";
+            } else if (value && String(value).length !== 8) {
+                msg = "Debe tener 8 dígitos.";
+            }
         }
 
         if (name === "email") {
@@ -178,9 +185,9 @@ const EmpleadosContainer = () => {
             if (value.length > 13) return;
         }
 
-        if (name === "telefono") {
+        if (["telefonoresidencial", "telefonocelular", "telefonoemergencia"].includes(name)) {
             if (rawValue !== "" && !/^\d*$/.test(rawValue)) return;
-            if (String(rawValue).length > 10) return;
+            if (String(rawValue).length > 8) return;
         }
 
         if (name === "numerohijos") {
@@ -255,7 +262,11 @@ const EmpleadosContainer = () => {
             genero: f.genero || "",
             lugarnacimiento: f.lugarnacimiento || "",
             fechanacimiento: f.fechanacimiento || "",
-            telefono: f.telefono || "",
+            telefonoresidencial: f.telefonoresidencial || "",
+            telefonocelular: f.telefonocelular || "",
+            telefonoemergencia: f.telefonoemergencia || "",
+            titulonivelmedio: f.titulonivelmedio || "",
+            estudiosuniversitarios: f.estudiosuniversitarios || "",
             email: f.email || "",
             direccion: f.direccion || "",
             estadocivil: f.estadocivil || "",
@@ -331,7 +342,11 @@ const EmpleadosContainer = () => {
             genero: row.genero ?? "",
             lugarnacimiento: row.lugarnacimiento ?? "",
             fechanacimiento: row.fechanacimiento ?? "",
-            telefono: row.telefono ?? "",
+            telefonoresidencial: row.telefonoresidencial ?? row.telefonoResidencial ?? "",
+            telefonocelular: row.telefonocelular ?? row.telefonoCelular ?? "",
+            telefonoemergencia: row.telefonoemergencia ?? row.telefonoEmergencia ?? "",
+            titulonivelmedio: row.titulonivelmedio ?? row.tituloNivelMedio ?? "",
+            estudiosuniversitarios: row.estudiosuniversitarios ?? row.estudiosUniversitarios ?? "",
             email: row.email ?? "",
             direccion: row.direccion ?? "",
             estadocivil: row.estadocivil ?? "",
@@ -413,9 +428,9 @@ const EmpleadosContainer = () => {
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
                     <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-                        <div style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}>
+                        <div style={{ maxWidth: "1400px", width: "100%", margin: "0 auto", paddingLeft: "0px" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
-                                Empleados Registrados
+                                Colaboradores Registrados
                             </h2>
                             {/* Controles superiores */}
                             <div

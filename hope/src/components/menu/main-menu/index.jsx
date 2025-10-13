@@ -21,11 +21,17 @@ const SidebarMenu = () => {
 
     const toggleSubmenu = (menuName) => {
         if (collapsed) {
-            setCollapsed(false);      // expandir el sidebar
-            setOpenMenu(menuName);    // abrir el submenu
+            setCollapsed(false);      // expandir el sidebar si está colapsado
+            setOpenMenu(menuName);    // abrir el submenu tocado
         } else {
             setOpenMenu(openMenu === menuName ? null : menuName);
         }
+    };
+
+    const handleLogout = (e) => {
+        e.preventDefault();
+        // aquí tu lógica de logout si aplica
+        history.push(`${base}/login`);
     };
 
     return (
@@ -33,7 +39,11 @@ const SidebarMenu = () => {
             {/* BOTÓN FUERA DEL MENU */}
             <div
                 className={`sidebar-toggle ${collapsed ? "collapsed" : ""}`}
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={() => {
+                    const next = !collapsed;
+                    setCollapsed(next);
+                    if (!next) setOpenMenu(null); // si colapsas, cierra submenús abiertos
+                }}
             >
                 {collapsed ? <FiChevronRight /> : <FiChevronLeft />}
             </div>
@@ -72,7 +82,7 @@ const SidebarMenu = () => {
                             <FaUsers className="menu-icon" /> {!collapsed && "Personal"}
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "personal" ? "open" : ""}`}>
-                            <li><NavLink to={`${base}/Empleados`} className="sidebar-submenu-link">Empleados</NavLink></li>
+                            <li><NavLink to={`${base}/Empleados`} className="sidebar-submenu-link">Colaboradores</NavLink></li>
                             <li><NavLink to={`${base}/Contrato`} className="sidebar-submenu-link">Contrato</NavLink></li>
                             <li><NavLink to={`${base}/Historial`} className="sidebar-submenu-link">Historial</NavLink></li>
                             <li><NavLink to={`${base}/Usuarios`} className="sidebar-submenu-link">Usuarios</NavLink></li>
@@ -177,6 +187,13 @@ const SidebarMenu = () => {
                         >
                             <FaFileAlt className="menu-icon" /> {!collapsed && "Documentos"}
                         </NavLink>
+                    </li>
+
+                    {/* Logout (opcional) */}
+                    <li className="logout-link">
+                        <a href="#logout" className="sidebar-menu-link" onClick={handleLogout} title={collapsed ? "Salir" : ""}>
+                            <FaSignOutAlt className="menu-icon" /> {!collapsed && "Salir"}
+                        </a>
                     </li>
                 </ul>
             </nav>
