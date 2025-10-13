@@ -235,9 +235,19 @@ const EmpleadosContainer = () => {
             }
         });
 
-        ["dpi", "numeroiggs", "telefono", "email", "numerohijos", "estadocivil", "nit"].forEach((k) => {
-            const msg = validateField(k, form[k]);
-            if (msg) newErrors[k] = newErrors[k] || msg;
+        [
+        "dpi",
+        "numeroiggs",
+        "telefonoresidencial",
+        "telefonocelular",
+        "telefonoemergencia",
+        "email",
+        "numerohijos",
+        "estadocivil",
+        "nit",
+        ].forEach((k) => {
+        const msg = validateField(k, form[k]);
+        if (msg) newErrors[k] = newErrors[k] || msg;
         });
 
         if (form.estado !== true) newErrors.estado = "El empleado debe crearse activo.";
@@ -273,9 +283,9 @@ const EmpleadosContainer = () => {
             numerohijos: f.numerohijos === "" ? 0 : Number(f.numerohijos || 0),
             estado: true,                 // siempre activo
             idusuario: getIdUsuario(),    // ✅ requerido por tu backend
-            ididioma: f.ididioma || "",
-            idpueblocultura: f.idpueblocultura || "",
-            idequipo: f.idequipo || "",
+            ...(f.ididioma !== "" ? { ididioma: Number(f.ididioma) } : {}),
+            ...(f.idpueblocultura !== "" ? { idpueblocultura: Number(f.idpueblocultura) } : {}),
+            ...(f.idequipo !== "" ? { idequipo: Number(f.idequipo) } : {}),
             ...(f.numeroiggs ? { numeroiggs: f.numeroiggs } : {}),
         };
     };
@@ -286,27 +296,46 @@ const EmpleadosContainer = () => {
         if (!validateAll()) { setMensaje("Corrige los errores antes de enviar."); return; }
 
         try {
-            const payload = toApi(form);
+        const payload = toApi(form);
+        const isEditing = Boolean(editingId);
 
-            if (editingId) {
-                await axios.put(`${API}/empleados/${editingId}/`, payload);
-                setMensaje("Empleado actualizado correctamente");
-            } else {
-                await axios.post(`${API}/empleados/`, payload);
-                setMensaje("Empleado registrado correctamente");
+        // Si estoy creando, validar que el email no exista en la lista ya cargada
+        if (!isEditing) {
+            const yaExiste = data.some(
+            (r) =>
+                String(r.email || "").toLowerCase().trim() ===
+                String(payload.email || "").toLowerCase().trim()
+            );
+            if (yaExiste) {
+            setErrors((prev) => ({ ...prev, email: "Este correo ya está registrado." }));
+            setMensaje("Corrige los errores antes de enviar.");
+            return;
             }
+        }
 
-            resetForm();
-            fetchList();
-            setPage(1);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-            setShowForm(false);
+        if (isEditing) {
+            await axios.put(`${API}/empleados/${editingId}/`, payload);
+            setMensaje("Empleado actualizado correctamente");
+        } else {
+            await axios.post(`${API}/empleados/`, payload);
+            setMensaje("Empleado registrado correctamente");
+        }
+
+        resetForm();
+        fetchList();
+        setPage(1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setShowForm(false);
         } catch (err) {
-            console.error("Error al guardar empleado:", err.response?.data || err);
-            setMensaje("Error al registrar/actualizar el empleado");
+        const apiErr = err.response?.data || {};
+        if (apiErr.email && Array.isArray(apiErr.email)) {
+            setErrors((prev) => ({ ...prev, email: apiErr.email[0] }));
+        }
+        setMensaje("Error al registrar/actualizar el empleado");
+        console.error("Error al guardar empleado:", apiErr);
         }
     };
-
+    
     const resetForm = () => {
         setForm({
             dpi: "",
@@ -316,7 +345,11 @@ const EmpleadosContainer = () => {
             genero: "",
             lugarnacimiento: "",
             fechanacimiento: "",
-            telefono: "",
+            telefonoresidencial: "",
+            telefonocelular: "",
+            telefonoemergencia: "",
+            titulonivelmedio: "",
+            estudiosuniversitarios: "",
             email: "",
             direccion: "",
             estadocivil: "",
@@ -459,19 +492,23 @@ const EmpleadosContainer = () => {
                                 />
                                 <div style={{ display: "flex", gap: "10px" }}>
                                     <button
-                                        onClick={() => { setShowForm(true); setEditingId(null); }}
-                                        style={{
-                                            padding: "10px 20px",
-                                            background: "#219ebc",
-                                            color: "#fff",
-                                            border: "none",
-                                            borderRadius: "8px",
-                                            cursor: "pointer",
-                                            fontWeight: "600",
-                                            whiteSpace: "nowrap",
-                                        }}
+                                    onClick={() => {
+                                        resetForm();
+                                        setEditingId(null);
+                                        setShowForm(true);
+                                    }}
+                                    style={{
+                                        padding: "10px 20px",
+                                        background: "#219ebc",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                        fontWeight: "600",
+                                        whiteSpace: "nowrap",
+                                    }}
                                     >
-                                        Nuevo Empleado
+                                    Nuevo Empleado
                                     </button>
                                     <button
                                         onClick={() => setShowDownload(true)}

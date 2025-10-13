@@ -304,9 +304,7 @@ const EmpleadoForm = ({
                                         {idiomas.map((it) => {
                                             const id = getId(it);
                                             const label = getIdiomaLabel(it) ?? `ID ${id}`;
-                                            return <option key={getId(id)} value={getId(id)}>
-                                                {getName(id, "idioma")}
-                                            </option>
+                                            return <option key={id} value={id}>{label}</option>;
                                         })}
                                     </select>
                                 </div>
