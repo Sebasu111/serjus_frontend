@@ -1,413 +1,301 @@
+// CapacitacionContainer.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header/index.jsx";
-import Footer from "../../layouts/footer/index.jsx";
-import ScrollToTop from "../../components/scroll-to-top/index.jsx";
-import SEO from "../../components/seo/index.jsx";
+import Layout from "../../layouts";
+import Header from "../../layouts/header";
+import Footer from "../../layouts/footer";
+import ScrollToTop from "../../components/scroll-to-top";
+import SEO from "../../components/seo";
+import { showToast } from "../../utils/toast.js";
+import { ToastContainer } from "react-toastify";
+
+import CapacitacionForm from "./CapacitacionForm";
+import CapacitacionesTable from "./CapacitacionTable.jsx";
 import AsignarCapacitacion from "./AsignarCapacitacion.jsx";
+import ConfirmModal from "./ConfirmModal";
 
 const CapacitacionContainer = () => {
-    const [capacitaciones, setCapacitaciones] = useState([]);
-    const [mensaje, setMensaje] = useState("");
-    const [busqueda, setBusqueda] = useState("");
-    const [paginaActual, setPaginaActual] = useState(1);
-    const [elementosPorPagina, setElementosPorPagina] = useState(5);
+  const [capacitaciones, setCapacitaciones] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [capacitacionActivaEditando, setCapacitacionActivaEditando] = useState(true);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarAsignacion, setMostrarAsignacion] = useState(false);
+  const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] = useState(false);
+  const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
+  const [busqueda, setBusqueda] = useState("");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [elementosPorPagina, setElementosPorPagina] = useState(5);
 
-    // Modal
-    const [mostrarFormulario, setMostrarFormulario] = useState(false);
-    const [mostrarAsignacion, setMostrarAsignacion] = useState(false);
-    const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({
+    nombreEvento: "",
+    lugar: "",
+    fechaInicio: "",
+    fechaFin: "",
+    institucion: "",
+    monto: "",
+  });
 
-    // Campos de formulario
-    const [nombreEvento, setNombreEvento] = useState("");
-    const [lugar, setLugar] = useState("");
-    const [fechaInicio, setFechaInicio] = useState("");
-    const [fechaFin, setFechaFin] = useState("");
-    const [institucion, setInstitucion] = useState("");
-    const [monto, setMonto] = useState("");
+  useEffect(() => {
+    fetchCapacitaciones();
+  }, []);
 
-    useEffect(() => {
-        fetchCapacitaciones();
-    }, []);
+  const fetchCapacitaciones = async () => {
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.results)
+          ? res.data.results
+          : [];
+      setCapacitaciones(data);
+    } catch (error) {
+      console.error(error);
+      showToast("Error al cargar capacitaciones", "error");
+    }
+  };
 
-    const fetchCapacitaciones = async () => {
-        try {
-            const res = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
-            setCapacitaciones(Array.isArray(res.data.results) ? res.data.results : []);
-        } catch (error) {
-            console.error(error);
-            setCapacitaciones([]);
-            setMensaje("Error al cargar capacitaciones");
+  const handleSubmit = async () => {
+    // Validación
+    if (!formData.nombreEvento.trim()) return showToast("El nombre del evento es obligatorio", "warning");
+    if (!formData.lugar.trim()) return showToast("El lugar es obligatorio", "warning");
+    if (!formData.fechaInicio) return showToast("La fecha de inicio es obligatoria", "warning");
+    if (!formData.fechaFin) return showToast("La fecha de fin es obligatoria", "warning");
+    if (new Date(formData.fechaInicio) > new Date(formData.fechaFin))
+      return showToast("La fecha de fin no puede ser menor a la fecha de inicio", "warning");
+    if (!formData.institucion.trim()) return showToast("La institución facilitadora es obligatoria", "warning");
+    if (isNaN(formData.monto) || Number(formData.monto) <= 0) return showToast("El monto debe ser mayor a 0", "warning");
+
+    try {
+      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+      const payload = {
+        nombreevento: formData.nombreEvento,
+        lugar: formData.lugar,
+        fechainicio: formData.fechaInicio,
+        fechafin: formData.fechaFin,
+        institucionfacilitadora: formData.institucion,
+        montoejecutado: formData.monto,
+        estado: Boolean(capacitacionActivaEditando),
+        idusuario: idUsuario,
+      };
+
+      if (editingId) {
+        await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${editingId}/`, payload);
+        showToast("Capacitación actualizada correctamente", "success");
+      } else {
+        await axios.post("http://127.0.0.1:8000/api/capacitaciones/", payload);
+        showToast("Capacitación registrada correctamente", "success");
+      }
+
+      setFormData({ nombreEvento: "", lugar: "", fechaInicio: "", fechaFin: "", institucion: "", monto: "" });
+      setEditingId(null);
+      setCapacitacionActivaEditando(true);
+      setMostrarFormulario(false);
+      fetchCapacitaciones();
+    } catch (error) {
+      const apiErr = error.response?.data;
+      const detalle = (apiErr && (apiErr.detail || JSON.stringify(apiErr))) || "desconocido";
+      console.error("POST/PUT /capacitaciones error:", apiErr || error);
+      showToast(`Error al guardar capacitación: ${detalle}`, "error");
+    }
+  };
+
+  const handleEdit = (cap) => {
+    if (!cap.estado) return showToast("No se puede editar una capacitación inactiva", "warning");
+    setFormData({
+      nombreEvento: cap.nombreevento,
+      lugar: cap.lugar,
+      fechaInicio: cap.fechainicio,
+      fechaFin: cap.fechafin,
+      institucion: cap.institucionfacilitadora,
+      monto: cap.montoejecutado,
+    });
+    setEditingId(cap.idcapacitacion || cap.id);
+    setCapacitacionActivaEditando(cap.estado);
+    setMostrarFormulario(true);
+  };
+
+  const handleDelete = (cap) => {
+    setCapacitacionSeleccionada(cap);
+    setMostrarConfirmacionEliminar(true); // <-- bandera separada
+  };
+
+  const confirmarDesactivacionCapacitacion = async () => {
+    if (!capacitacionSeleccionada) return;
+    try {
+      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+      await axios.put(
+        `http://127.0.0.1:8000/api/capacitaciones/${capacitacionSeleccionada.idcapacitacion || capacitacionSeleccionada.id}/`,
+        {
+          ...capacitacionSeleccionada,
+          estado: false,
+          idusuario: idUsuario,
         }
-    };
+      );
+      showToast("Capacitación desactivada correctamente", "success");
+      fetchCapacitaciones();
+    } catch (error) {
+      console.error(error);
+      showToast("Error al desactivar la capacitación", "error");
+    } finally {
+      setMostrarConfirmacionEliminar(false);
+      setCapacitacionSeleccionada(null);
+    }
+  };
 
-    const validarFormulario = () => {
-        if (!nombreEvento.trim()) return "El nombre del evento es obligatorio";
-        if (!lugar.trim()) return "El lugar es obligatorio";
-        if (!fechaInicio) return "La fecha de inicio es obligatoria";
-        if (!fechaFin) return "La fecha de fin es obligatoria";
-        if (new Date(fechaInicio) > new Date(fechaFin)) return "La fecha de fin no puede ser menor a la fecha de inicio";
-        if (!institucion.trim()) return "La institución facilitadora es obligatoria";
-        if (isNaN(monto) || Number(monto) <= 0) return "El monto debe ser un número mayor a 0";
-        return null;
-    };
+  const handleActivate = async (id) => {
+    try {
+      const cap = capacitaciones.find((c) => (c.idcapacitacion || c.id) === id);
+      if (!cap) return;
+      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+      await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${id}/`, {
+        ...cap,
+        estado: true,
+        idusuario: idUsuario,
+      });
+      showToast("Capacitación activada correctamente", "success");
+      fetchCapacitaciones();
+    } catch (error) {
+      console.error(error);
+      showToast("Error al activar la capacitación", "error");
+    }
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const errorValidacion = validarFormulario();
-        if (errorValidacion) {
-            setMensaje(errorValidacion);
-            return;
-        }
+  // Filtrado y paginación
+    const capacitacionesFiltradas = capacitaciones.filter((c) => {
+    const textoBusqueda = busqueda.toLowerCase();
 
-        try {
-            const idUsuario = sessionStorage.getItem("idUsuario");
-            const data = {
-                nombreevento: nombreEvento,
-                lugar,
-                fechainicio: fechaInicio,
-                fechafin: fechaFin,
-                institucionfacilitadora: institucion,
-                montoejecutado: monto,
-                estado: true,
-                idusuario: idUsuario,
-            };
+    // Filtrar por abreviaturas de estado
+    if (textoBusqueda === "act" && !c.estado) return false;
+    if (textoBusqueda === "inac" && c.estado) return false;
 
-            if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${editingId}/`, data);
-                setMensaje("Capacitación actualizada correctamente");
-            } else {
-                await axios.post("http://127.0.0.1:8000/api/capacitaciones/", data);
-                setMensaje("Capacitación registrada correctamente");
-            }
-
-            resetForm();
-            setMostrarFormulario(false);
-            fetchCapacitaciones();
-        } catch (error) {
-            console.error(error);
-            setMensaje("Error al registrar la capacitación");
-        }
-    };
-
-    const handleEdit = (c) => {
-        if (!c.estado) return; // bloquea edición si está desactivada
-        setNombreEvento(c.nombreevento || "");
-        setLugar(c.lugar || "");
-        setFechaInicio(c.fechainicio || "");
-        setFechaFin(c.fechafin || "");
-        setInstitucion(c.institucionfacilitadora || "");
-        setMonto(c.montoejecutado || "");
-        setEditingId(c.idcapacitacion || c.id);
-        setMostrarFormulario(true);
-    };
-
-    const handleDelete = async (id, estadoActual) => {
-        const accion = estadoActual ? "desactivar" : "activar";
-        if (!window.confirm(`¿Está seguro de ${accion} esta capacitación?`)) return;
-        try {
-            const cap = capacitaciones.find((c) => (c.idcapacitacion || c.id) === id);
-            const idUsuario = sessionStorage.getItem("idUsuario");
-
-            await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${id}/`, {
-                ...cap,
-                estado: !estadoActual, // invierte el estado
-                idusuario: idUsuario,
-            });
-
-            setMensaje(`Capacitación ${accion} correctamente`);
-            fetchCapacitaciones();
-        } catch (error) {
-            console.error(error);
-            setMensaje(`Error al ${accion} capacitación`);
-        }
-    };
-
-    const resetForm = () => {
-        setNombreEvento("");
-        setLugar("");
-        setFechaInicio("");
-        setFechaFin("");
-        setInstitucion("");
-        setMonto("");
-        setEditingId(null);
-    };
-
-    // Filtrado + paginación
-    const capacitacionesFiltradas = capacitaciones.filter((c) =>
-        c.nombreevento?.toLowerCase().includes(busqueda.toLowerCase())
-    );
-    const indexOfLast = paginaActual * elementosPorPagina;
-    const indexOfFirst = indexOfLast - elementosPorPagina;
-    const capacitacionesPaginadas = capacitacionesFiltradas.slice(indexOfFirst, indexOfLast);
-    const totalPaginas = Math.ceil(capacitacionesFiltradas.length / elementosPorPagina);
-
+    // Buscar por nombre, lugar, institución o estado completo
     return (
-        <Layout>
-            <SEO title="Hope – Capacitación" />
-            <div style={{ display: "flex", minHeight: "100vh" }}>
-
-                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                    <Header />
-                    <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-                        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Capacitaciones Registradas</h2>
-
-                            {mensaje && (
-                                <p style={{ textAlign: "center", color: mensaje.includes("Error") ? "red" : "green", fontWeight: "bold" }}>
-                                    {mensaje}
-                                </p>
-                            )}
-
-                            {/* BUSCADOR */}
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
-                                <input
-                                    type="text"
-                                    placeholder="Buscar capacitación..."
-                                    value={busqueda}
-                                    onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }}
-                                    style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc", marginRight: "10px" }}
-                                />
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={elementosPorPagina}
-                                    onChange={(e) => setElementosPorPagina(Number(e.target.value))}
-                                    style={{ width: "80px", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", textAlign: "center" }}
-                                />
-                            </div>
-
-                            {/* TABLA */}
-                            <div style={{ background: "#fff", borderRadius: "12px", padding: "20px 30px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-                                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                                    <thead>
-                                        <tr>
-                                            <th>Evento</th>
-                                            <th>Lugar</th>
-                                            <th>Fechas</th>
-                                            <th>Institución</th>
-                                            <th>Monto</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {capacitacionesPaginadas.length > 0 ? capacitacionesPaginadas.map(c => {
-                                            const id = c.idcapacitacion || c.id;
-                                            return (
-                                                <tr key={id}>
-                                                    <td>{c.nombreevento}</td>
-                                                    <td>{c.lugar}</td>
-                                                    <td>{c.fechainicio} - {c.fechafin}</td>
-                                                    <td>{c.institucionfacilitadora}</td>
-                                                    <td>{c.montoejecutado || 0}</td>
-                                                    <td>
-                                                        {/* BOTÓN EDITAR */}
-                                                        <button
-                                                            onClick={() => handleEdit(c)}
-                                                            style={{
-                                                                marginRight: "6px",
-                                                                padding: "6px 12px",
-                                                                border: "none",
-                                                                borderRadius: "5px",
-                                                                cursor: c.estado ? "pointer" : "not-allowed",
-                                                                background: c.estado ? "#007bff" : "#6c757d", // azul si activo, gris si desactivado
-                                                                color: "#fff",
-                                                                fontWeight: "500"
-                                                            }}
-                                                            disabled={!c.estado} // deshabilitado si no está activo
-                                                        >
-                                                            Editar
-                                                        </button>
-
-                                                        {/* BOTÓN ELIMINAR / ACTIVAR */}
-                                                        <button
-                                                            onClick={() => handleDelete(id, c.estado)}
-                                                            style={{
-                                                                marginRight: "6px",
-                                                                padding: "6px 12px",
-                                                                border: "none",
-                                                                borderRadius: "5px",
-                                                                cursor: "pointer",
-                                                                background: c.estado ? "#dc3545" : "#28a745", // rojo si activo, verde si desactivado
-                                                                color: "#fff",
-                                                                fontWeight: "500"
-                                                            }}
-                                                        >
-                                                            {c.estado ? "Eliminar" : "Activar"}
-                                                        </button>
-                                                    </td>
-
-                                                </tr>
-                                            );
-                                        }) : (
-                                            <tr>
-                                                <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>No hay capacitaciones registradas</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-
-                                {/* PAGINACIÓN */}
-                                {totalPaginas > 1 && (
-                                    <div style={{ marginTop: "20px", textAlign: "center" }}>
-                                        {Array.from({ length: totalPaginas }, (_, i) => (
-                                            <button key={i + 1} onClick={() => setPaginaActual(i + 1)}
-                                                style={{
-                                                    margin: "0 5px",
-                                                    padding: "6px 12px",
-                                                    border: "1px solid #007bff",
-                                                    background: paginaActual === i + 1 ? "#007bff" : "#fff",
-                                                    color: paginaActual === i + 1 ? "#fff" : "#007bff",
-                                                    borderRadius: "5px",
-                                                    cursor: "pointer",
-                                                }}
-                                            >{i + 1}</button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* BOTONES NUEVO / ASIGNAR */}
-                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
-                                <button onClick={() => setMostrarFormulario(true)} style={{ padding: "12px 20px", background: "#007bff", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>
-                                    Nueva Capacitación
-                                </button>
-
-                                <button onClick={() => setMostrarAsignacion(true)} style={{ padding: "12px 20px", background: "#28a745", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>
-                                    Asignar Capacitación
-                                </button>
-                            </div>
-                        </div>
-                    </main>
-                    <Footer />
-                </div>
-
-                {/* MODAL CREAR / EDITAR */}
-                {mostrarFormulario && (
-                    <div
-                        style={{
-                            position: "fixed",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            width: "500px",
-                            maxWidth: "95%",
-                            background: "#fff",
-                            padding: "30px",
-                            boxShadow: "0 0 20px rgba(0,0,0,0.2)",
-                            borderRadius: "12px",
-                            zIndex: 1000,
-                            display: "flex",
-                            flexDirection: "column"
-                        }}
-                    >
-                        <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
-                            {editingId ? "Editar Capacitación" : "Registrar Capacitación"}
-                        </h3>
-                        <form onSubmit={handleSubmit} style={{ flex: 1 }}>
-                            <div style={{ marginBottom: "15px" }}>
-                                <label style={{ display: "block", marginBottom: "6px" }}>Nombre del evento</label>
-                                <input
-                                    value={nombreEvento}
-                                    onChange={(e) => setNombreEvento(e.target.value)}
-                                    required
-                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                                />
-                            </div>
-                            <div style={{ marginBottom: "15px" }}>
-                                <label style={{ display: "block", marginBottom: "6px" }}>Lugar</label>
-                                <input
-                                    value={lugar}
-                                    onChange={(e) => setLugar(e.target.value)}
-                                    required
-                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                                />
-                            </div>
-                            <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
-                                <div style={{ flex: 1 }}>
-                                    <label style={{ display: "block", marginBottom: "6px" }}>Fecha Inicio</label>
-                                    <input
-                                        type="date"
-                                        value={fechaInicio}
-                                        onChange={(e) => setFechaInicio(e.target.value)}
-                                        required
-                                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                                    />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <label style={{ display: "block", marginBottom: "6px" }}>Fecha Fin</label>
-                                    <input
-                                        type="date"
-                                        value={fechaFin}
-                                        onChange={(e) => setFechaFin(e.target.value)}
-                                        required
-                                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                                    />
-                                </div>
-                            </div>
-                            <div style={{ marginBottom: "15px" }}>
-                                <label style={{ display: "block", marginBottom: "6px" }}>Institución facilitadora</label>
-                                <input
-                                    value={institucion}
-                                    onChange={(e) => setInstitucion(e.target.value)}
-                                    required
-                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                                />
-                            </div>
-                            <div style={{ marginBottom: "15px" }}>
-                                <label style={{ display: "block", marginBottom: "6px" }}>Monto ejecutado</label>
-                                <input
-                                    type="number"
-                                    value={monto}
-                                    onChange={(e) => setMonto(e.target.value)}
-                                    required
-                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                style={{
-                                    width: "100%",
-                                    padding: "10px",
-                                    background: "#007bff",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "6px",
-                                    cursor: "pointer",
-                                    fontWeight: "600"
-                                }}
-                            >
-                                {editingId ? "Actualizar" : "Guardar"}
-                            </button>
-                        </form>
-                        <button
-                            onClick={() => setMostrarFormulario(false)}
-                            style={{
-                                marginTop: "10px",
-                                padding: "10px",
-                                background: "#6c757d",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "6px",
-                                cursor: "pointer",
-                            }}
-                        >
-                            Cerrar
-                        </button>
-                    </div>
-                )}
-
-                {/* MODAL ASIGNAR CAPACITACIÓN */}
-                {mostrarAsignacion && (
-                    <AsignarCapacitacion onClose={() => setMostrarAsignacion(false)} />
-                )}
-
-
-                <ScrollToTop />
-            </div>
-        </Layout>
+        c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
+        c.lugar?.toLowerCase().includes(textoBusqueda) ||
+        c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
+        (c.estado ? "activo" : "inactivo").includes(textoBusqueda)
     );
+    });
+
+  const indexOfLast = paginaActual * elementosPorPagina;
+  const indexOfFirst = indexOfLast - elementosPorPagina;
+  const capacitacionesPaginadas = capacitacionesFiltradas.slice(indexOfFirst, indexOfLast);
+  const totalPaginas = Math.ceil(capacitacionesFiltradas.length / elementosPorPagina);
+
+  return (
+    <Layout>
+      <SEO title="Capacitaciones" />
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Header />
+          <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
+            <div style={{ maxWidth: "1000px", margin: "0 auto", paddingLeft: "250px" }}>
+              <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Capacitaciones Registradas</h2>
+
+              <div style={{ display: "flex", marginBottom: "15px", alignItems: "center" }}>
+                <input
+                  type="text"
+                  placeholder="Buscar capacitación..."
+                  value={busqueda}
+                  onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }}
+                  style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </div>
+
+              <CapacitacionesTable
+                capacitaciones={capacitacionesPaginadas}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                handleActivate={handleActivate}
+                paginaActual={paginaActual}
+                totalPaginas={totalPaginas}
+                setPaginaActual={setPaginaActual}
+              />
+
+              <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", gap: "15px" }}>
+                <button
+                  onClick={() => setMostrarFormulario(true)}
+                  style={{
+                    padding: "10px 25px",
+                    background: "#219ebc",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  Nueva Capacitación
+                </button>
+                <button
+                  onClick={() => setMostrarAsignacion(true)}
+                  style={{
+                    padding: "10px 25px",
+                    background: "#fb8500",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  Asignar Capacitación
+                </button>
+              </div>
+
+              <div style={{ marginTop: "20px", textAlign: "center" }}>
+                <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={elementosPorPagina}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    const numero = val === "" ? "" : Number(val);
+                    setElementosPorPagina(numero > 0 ? numero : 1);
+                    setPaginaActual(1);
+                  }}
+                  onFocus={(e) => e.target.select()}
+                  style={{ width: "80px", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", textAlign: "center" }}
+                />
+              </div>
+            </div>
+          </main>
+          <Footer />
+        </div>
+
+        {mostrarFormulario && (
+          <CapacitacionForm
+            formData={formData}
+            setFormData={setFormData}
+            editingId={editingId}
+            setEditingId={setEditingId}
+            capacitacionActivaEditando={capacitacionActivaEditando}
+            setMostrarFormulario={setMostrarFormulario}
+            handleSubmit={handleSubmit}
+          />
+        )}
+
+        {mostrarAsignacion && (
+          <AsignarCapacitacion onClose={() => setMostrarAsignacion(false)} />
+        )}
+
+        {mostrarConfirmacionEliminar && (
+          <ConfirmModal
+            title="Eliminar Capacitación"
+            message={`¿Estás seguro de eliminar la capacitación "${capacitacionSeleccionada?.nombreevento}"?`}
+            onConfirm={confirmarDesactivacionCapacitacion}
+            onCancel={() => setMostrarConfirmacionEliminar(false)}
+          />
+        )}
+
+        <ToastContainer />
+        <ScrollToTop />
+      </div>
+    </Layout>
+  );
 };
 
 export default CapacitacionContainer;

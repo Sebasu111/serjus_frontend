@@ -17,9 +17,14 @@ import "lightgallery.js/dist/css/lightgallery.css";
 import HomePage from "./pages/index";
 import LoginPage from "./pages/LoginPage";
 
+//Perfil.
+import PerfilContainer from "./containers/perfil/PerfilContainer";
 
 // Componentes generales
 import NavScrollTop from "./components/nav-scroll-top";
+
+//Notificaciones
+import CapacitacionesToast from "./components/NotificacionCapacitaciones/CapacitacionesToast";
 
 
 // =============================================================
@@ -106,7 +111,11 @@ const App = () => {
     return (
         <Router>
             <NavScrollTop>
+                <CapacitacionesToast />
                 <Switch>
+                    {/*Perfil*/}
+                    <Route exact path={`${base}/perfil`} component={PerfilContainer} />
+
                     {/*PÁGINAS PÚBLICAS*/}
                     <Route exact path={`${base}/`} component={LoginPage} />
                     <Route path={`${base}/home`} component={HomePage} />
