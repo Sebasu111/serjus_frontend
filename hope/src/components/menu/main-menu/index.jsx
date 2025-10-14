@@ -188,13 +188,6 @@ const SidebarMenu = () => {
                             <FaFileAlt className="menu-icon" /> {!collapsed && "Documentos"}
                         </NavLink>
                     </li>
-
-                    {/* Logout (opcional) */}
-                    <li className="logout-link">
-                        <a href="#logout" className="sidebar-menu-link" onClick={handleLogout} title={collapsed ? "Salir" : ""}>
-                            <FaSignOutAlt className="menu-icon" /> {!collapsed && "Salir"}
-                        </a>
-                    </li>
                 </ul>
             </nav>
         </>

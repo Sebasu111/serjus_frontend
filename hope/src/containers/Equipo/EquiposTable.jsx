@@ -1,11 +1,16 @@
 import React from "react";
 
+const pastel = {
+    orangeBg: "#FED7AA",
+    orangeBr: "#FDBA74",
+    orangeTx: "#7C2D12",
+};
+
 const EquiposTable = ({
     equipos,
     empleadosMap,
     handleEdit,
-    handleDelete,
-    handleActivate,
+    onVerDetalle,     // << NUEVO
     paginaActual,
     totalPaginas,
     setPaginaActual,
@@ -21,18 +26,10 @@ const EquiposTable = ({
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
                 <tr>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>
-                        Equipo
-                    </th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>
-                        Coordinador
-                    </th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>
-                        Estado
-                    </th>
-                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>
-                        Acciones
-                    </th>
+                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Equipo</th>
+                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Coordinador</th>
+                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Estado</th>
+                    <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,10 +37,26 @@ const EquiposTable = ({
                     equipos.map((equipo) => (
                         <tr key={equipo.idEquipo}>
                             <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
-                                {equipo.nombreEquipo}
+                                <button
+                                    type="button"
+                                    onClick={() => onVerDetalle && onVerDetalle(equipo)}
+                                    style={{
+                                        background: "transparent",
+                                        border: "none",
+                                        padding: 0,
+                                        margin: 0,
+                                        color: "#1d4ed8",
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                        textDecoration: "underline",
+                                    }}
+                                    title="Ver detalle"
+                                >
+                                    {equipo.nombreEquipo || "—"}
+                                </button>
                             </td>
                             <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
-                                {empleadosMap.get(equipo.idCoordinador) || `#${equipo.idCoordinador}`}
+                                {empleadosMap.get(equipo.idCoordinador) || `#${equipo.idCoordinador ?? ""}`}
                             </td>
                             <td
                                 style={{
@@ -63,46 +76,22 @@ const EquiposTable = ({
                                     borderBottom: "1px solid #f0f0f0",
                                 }}
                             >
-                                <div
+                                <button
+                                    onClick={() => handleEdit(equipo)}
                                     style={{
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        gap: "6px",
+                                        minWidth: 90,
+                                        padding: "6px 14px",
+                                        background: pastel.orangeBg,
+                                        color: pastel.orangeTx,
+                                        border: `1px solid ${pastel.orangeBr}`,
+                                        borderRadius: "6px",
+                                        cursor: "pointer",
+                                        fontWeight: 600,
                                     }}
+                                    title="Editar"
                                 >
-                                    <button
-                                        onClick={() => handleEdit(equipo)}
-                                        disabled={!equipo.estado}
-                                        style={{
-                                            width: "85px",
-                                            padding: "6px 14px",
-                                            background: equipo.estado ? "#fb8500" : "#6c757d",
-                                            color: "#fff",
-                                            border: "none",
-                                            borderRadius: "5px",
-                                            cursor: equipo.estado ? "pointer" : "not-allowed",
-                                        }}
-                                    >
-                                        Editar
-                                    </button>
-
-                                    <button
-                                        onClick={() =>
-                                            equipo.estado ? handleDelete(equipo) : handleActivate(equipo.idEquipo)
-                                        }
-                                        style={{
-                                            width: "85px",
-                                            padding: "6px 14px",
-                                            background: equipo.estado ? "#fb8500" : "#ffb703",
-                                            color: "#fff",
-                                            border: "none",
-                                            borderRadius: "5px",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        {equipo.estado ? "Eliminar" : "Activar"}
-                                    </button>
-                                </div>
+                                    Editar
+                                </button>
                             </td>
                         </tr>
                     ))
@@ -116,7 +105,6 @@ const EquiposTable = ({
             </tbody>
         </table>
 
-        {/* PAGINACIÓN */}
         {totalPaginas > 1 && (
             <div style={{ marginTop: "20px", textAlign: "center" }}>
                 {Array.from({ length: totalPaginas }, (_, i) => (
