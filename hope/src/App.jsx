@@ -14,7 +14,7 @@ import "swiper/components/pagination/pagination.scss";
 import "lightgallery.js/dist/css/lightgallery.css";
 
 // Páginas principales
-import HomePage from "./pages/index";
+import HomePage from "./pages/Inicio";
 import LoginPage from "./pages/LoginPage";
 
 //Perfil.
@@ -145,7 +145,7 @@ const App = () => {
 
                     {/*RECLUTAMIENTO*/}
                     {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
-                    {<Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> }
+                    {<Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} />}
                     {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
                     {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
 

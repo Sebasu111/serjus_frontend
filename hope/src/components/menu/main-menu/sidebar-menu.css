@@ -58,12 +58,19 @@
     padding: 0 10px;
 }
 
+/* --- Logo circular y adaptable --- */
 .sidebar-logo .logo {
     width: 70%;
     max-width: 150px;
     aspect-ratio: 1 / 1;
-    border-radius: 50%;
-    object-fit: cover;
+    border-radius: 10%;
+    /* antes: object-fit: cover;  --> recortaba el borde del logo */
+    object-fit: contain;
+    /* muestra el logo completo */
+    background: #fff;
+    /* aro/blanco alrededor */
+    padding: 1px;
+    /* separa el logo del borde circular */
     border: 3px solid #fff;
     transition: transform 0.3s ease, width 0.3s ease;
 }
