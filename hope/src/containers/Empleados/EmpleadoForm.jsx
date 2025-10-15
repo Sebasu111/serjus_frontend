@@ -50,7 +50,18 @@ const EmpleadoForm = ({
                                 </div>
                                 <div>
                                     <label>Género</label>
-                                    <input name="genero" value={form.genero} onChange={onChange} required style={inputStyle} />
+                                    <select
+                                        name="genero"
+                                        value={form.genero}
+                                        onChange={onChange}
+                                        required
+                                        style={inputStyle}
+                                    >
+                                        <option value="">Seleccione género</option>
+                                        <option value="Masculino">Masculino</option>
+                                        <option value="Femenino">Femenino</option>
+                                        <option value="Otros">Otros</option>
+                                    </select>
                                     {errors.genero && <div style={errStyle}>{errors.genero}</div>}
                                 </div>
                             </div>
@@ -209,6 +220,18 @@ const EmpleadoForm = ({
                                 <label>Estudios / Título universitario</label>
                                 <input name="estudiosuniversitarios" value={form.estudiosuniversitarios} onChange={onChange} required style={inputStyle} />
                                 {errors.estudiosuniversitarios && <div style={errStyle}>{errors.estudiosuniversitarios}</div>}
+                            </div>
+                            <div>
+                                <label>Fecha de inicio laboral</label>
+                                <input
+                                    type="date"
+                                    name="iniciolaboral"
+                                    value={form.iniciolaboral}
+                                    onChange={onChange}
+                                    required
+                                    style={inputStyle}
+                                />
+                                {errors.iniciolaboral && <div style={errStyle}>{errors.iniciolaboral}</div>}
                             </div>
                             <div />
                         </div>

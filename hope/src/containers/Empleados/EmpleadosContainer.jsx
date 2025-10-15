@@ -35,7 +35,7 @@ const EmpleadosContainer = () => {
         telefonocelular: "", telefonoemergencia: "", titulonivelmedio: "",
         estudiosuniversitarios: "", email: "", direccion: "", estadocivil: "",
         numerohijos: "", estado: true, ididioma: "", idpueblocultura: "",
-        idequipo: "", numeroiggs: "", isCF: false,
+        idequipo: "", numeroiggs: "", isCF: false, iniciolaboral: "",
     });
     const [errors, setErrors] = useState({});
     const [mensaje, setMensaje] = useState("");
@@ -107,6 +107,10 @@ const EmpleadosContainer = () => {
     const emailRegex = /^\S+@\S+\.\S+$/;
     const validateField = (name, value) => {
         let msg = "";
+        if (name === "genero") {
+            const allowed = ["Masculino", "Femenino", "Otros"];
+            if (!allowed.includes(String(value))) msg = "Opción inválida.";
+        }
         if (["dpi", "numeroiggs"].includes(name)) {
             if (!/^\d*$/.test(String(value))) msg = "Solo números.";
             else if (String(value).length !== 13) msg = "Debe tener 13 dígitos.";
@@ -160,7 +164,7 @@ const EmpleadosContainer = () => {
             "dpi", "nit", "nombre", "apellido", "genero", "lugarnacimiento", "fechanacimiento",
             "telefonoresidencial", "telefonocelular", "telefonoemergencia", "titulonivelmedio",
             "estudiosuniversitarios", "email", "direccion", "estadocivil", "numerohijos",
-            "ididioma", "idpueblocultura", "idequipo", "numeroiggs"
+            "ididioma", "idpueblocultura", "idequipo", "numeroiggs", "iniciolaboral"
         ];
         const newErrors = {};
         for (const k of req) if (form[k] === "" || form[k] == null) newErrors[k] = "Este campo es obligatorio.";
@@ -181,6 +185,7 @@ const EmpleadosContainer = () => {
         let nit = String(f.nit || "").trim().toUpperCase().replace(/\s+/g, "");
         if (f.isCF) nit = "C/F";
         if (nit === "CF") nit = "C/F";
+        const startISO = f.iniciolaboral ? `${f.iniciolaboral}T00:00:00` : null;
         return {
             dpi: f.dpi, nit, nombre: f.nombre, apellido: f.apellido, genero: f.genero,
             lugarnacimiento: f.lugarnacimiento, fechanacimiento: f.fechanacimiento,
@@ -191,6 +196,7 @@ const EmpleadosContainer = () => {
             idusuario: getIdUsuario(),
             ididioma: Number(f.ididioma), idpueblocultura: Number(f.idpueblocultura),
             idequipo: Number(f.idequipo), numeroiggs: f.numeroiggs,
+            inicioLaboral: startISO,
         };
     };
 
@@ -203,6 +209,7 @@ const EmpleadosContainer = () => {
             estudiosuniversitarios: "", email: "", direccion: "", estadocivil: "",
             numerohijos: "", estado: true, ididioma: "", idpueblocultura: "",
             idequipo: equipoParam ? Number(equipoParam) : "", numeroiggs: "", isCF: false,
+            iniciolaboral: "",
         });
         setErrors({}); setEditingId(null);
     };
@@ -260,6 +267,7 @@ const EmpleadosContainer = () => {
             ididioma: row.ididioma ?? "", idpueblocultura: row.idpueblocultura ?? "",
             idequipo: row.idequipo ?? "", numeroiggs: row.numeroiggs ?? "",
             isCF: (String(row.nit || "").toUpperCase().replace(/\s+/g, "") === "C/F"),
+            iniciolaboral: (row.inicioLaboral || "").slice(0, 10),
         });
         setErrors({}); setEditingId(empId(row)); setShowForm(true); window.scrollTo({ top: 0, behavior: "smooth" });
     };
@@ -453,6 +461,7 @@ const EmpleadosContainer = () => {
                                 <div><strong>Pueblo/Cultura:</strong> {detalle.pueblo || ""}</div>
                                 <div><strong>Equipo:</strong> {detalle.equipo || ""}</div>
                                 <div><strong>Estado:</strong> <span style={{ color: detalle.estado ? "green" : "red", fontWeight: 700 }}>{detalle.estado ? "Activo" : "Inactivo"}</span></div>
+                                <div><strong>Fecha inicio:</strong> {String(detalle.inicioLaboral || "").slice(0, 10)}</div>
                             </div>
                             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
                                 <button onClick={() => setMostrarDetalle(false)} style={{ background: "#219ebc", color: "#fff", padding: "10px 18px", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>

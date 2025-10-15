@@ -134,15 +134,11 @@ function drawDynamicTable(pdf, labels, values) {
     pdf.line(tableX, y, tableX + tableW, y);
 
     // Footer
-    const footY = y + 12;
+    const footY = y + 23;
     pdf.text("Lugar y fecha de actualización:", 10, footY);
     pdf.line(10 + 62, footY, 100, footY);
     pdf.text("Firma:", 112, footY);
     pdf.line(122, footY, 170, footY);
-
-    pdf.setFont("helvetica", "bold");
-    pdf.text("ESTA FICHA SE ACTUALIZARA CADA AÑO", (L + R) / 2, 287 - 6, { align: "center" });
-    pdf.setFont("helvetica", "normal");
 }
 
 /* ========= API principal ========= */
@@ -195,7 +191,7 @@ export async function generarFichasPDF(empleados, cat, logoSrc) {
             String(e?.dpi || ""),
             String(e?.nit || ""),
             String(e?.numeroiggs || ""),
-            "", // dejamos este campo vacío para conservar el layout
+            (e?.inicioLaboral ? String(e.inicioLaboral).slice(0, 10) : ""),
             labelFrom(e?.idequipo, cat?.equipos, "equipo"),
         ];
 
