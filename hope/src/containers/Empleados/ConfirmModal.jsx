@@ -32,12 +32,13 @@ const ConfirmModal = ({ empleado, onConfirm, onCancel }) => (
                 <button
                     onClick={onConfirm}
                     style={{
-                        background: "#fb8500",
-                        color: "#fff",
+                        background: "#FCA5A5",            // rojo pastel
+                        border: "1px solid #F87171",
+                        color: "#7F1D1D",
                         padding: "10px 20px",
-                        border: "none",
                         borderRadius: 8,
                         cursor: "pointer",
+                        fontWeight: 600,
                     }}
                 >
                     Sí, desactivar
