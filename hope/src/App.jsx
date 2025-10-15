@@ -31,7 +31,7 @@ import CapacitacionesToast from "./components/NotificacionCapacitaciones/Capacit
 //   PERSONAL
 // =============================================================
 import EmpleadosContainer from "./containers/Empleados/EmpleadosContainer";
-import ContratosContainer from "./containers/contratos";
+import ContratosContainer from "./containers/contratos/ContratosContainer";
 import HistorialPuestoContainer from "./containers/historial-puesto";
 import EquiposContainer from "./containers/Equipo/EquiposContainer";
 import UsuariosContainer from "./containers/usuarios/UsuariosContainer";

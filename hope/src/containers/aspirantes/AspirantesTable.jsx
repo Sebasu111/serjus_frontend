@@ -36,7 +36,7 @@ const AspirantesTable = ({
     pueblos = [],
 }) => (
     <div style={{ background: "#fff", borderRadius: 12, padding: "20px 30px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-        <div style={{ width: "100%", overflowX: "auto" }}>
+        <div style={{ width: "100%", overflowX: "auto", paddingLeft: "250px" }}>
             <table style={{ width: "100%", minWidth: "1200px", borderCollapse: "collapse" }}>
                 <thead>
                     <tr>

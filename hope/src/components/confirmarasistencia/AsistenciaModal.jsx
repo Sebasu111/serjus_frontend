@@ -1,66 +1,138 @@
 // components/AsistenciaModal.jsx
-import React, { useState } from "react";
-import DocumentosForm from "../../containers/documentos/DocumentosForm"; // ajusta la ruta si es necesario
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import DocumentosForm from "../../containers/documentos/DocumentosForm";
+import { showToast } from "../../utils/toast"; // si ya tienes tu función de notificaciones
+
+const API = "http://127.0.0.1:8000/api";
 
 const AsistenciaModal = ({
   show,
   onClose,
   capacitacion,
   onGuardar,
-  tiposDocumento = [],
-  empleados = []
 }) => {
   const [observacion, setObservacion] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [tiposDocumento, setTiposDocumento] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
   const [form, setForm] = useState({
     nombrearchivo: "",
     idtipodocumento: "",
     idempleado: capacitacion?.idempleado || "",
     archivo: null,
-    fechasubida: new Date().toISOString().split("T")[0]
+    fechasubida: new Date().toISOString().split("T")[0],
   });
 
-  if (!show) return null;
+  // ✅ Fetch tipos de documento
+  const fetchTiposDocumento = async () => {
+    try {
+      const r = await axios.get(`${API}/tipodocumento/`);
+      const data = Array.isArray(r.data)
+        ? r.data
+        : Array.isArray(r.data?.results)
+        ? r.data.results
+        : [];
+      setTiposDocumento(data);
+    } catch (error) {
+      console.error("Error al cargar tipos de documento:", error);
+      showToast("Error al cargar tipos de documento", "error");
+      setTiposDocumento([]);
+    }
+  };
 
+  // ✅ Fetch empleados
+  const fetchEmpleados = async () => {
+    try {
+      const r = await axios.get(`${API}/empleados/`);
+      const data = Array.isArray(r.data)
+        ? r.data
+        : Array.isArray(r.data?.results)
+        ? r.data.results
+        : [];
+      setEmpleados(data);
+    } catch (error) {
+      console.error("Error al cargar empleados:", error);
+      showToast("Error al cargar empleados", "error");
+      setEmpleados([]);
+    }
+  };
+
+  // ✅ Ejecutamos los fetch solo cuando se abre el modal
+  useEffect(() => {
+    if (show) {
+      fetchTiposDocumento();
+      fetchEmpleados();
+    }
+  }, [show]);
+
+  // ✅ Asistencia confirmada
   const handleAsistio = () => {
     onGuardar(capacitacion.idempleadocapacitacion, true, "");
     onClose();
   };
 
+  // ✅ Justificar inasistencia
   const handleJustificar = (e) => {
     e.preventDefault();
-    if (!form.nombrearchivo || !form.idtipodocumento || !form.idempleado || !form.fechasubida) {
-      alert("Debe completar todos los campos y subir el comprobante para justificar la inasistencia");
+    if (
+      !form.nombrearchivo ||
+      !form.idtipodocumento ||
+      !form.idempleado ||
+      !form.fechasubida
+    ) {
+      alert(
+        "Debe completar todos los campos y subir el comprobante para justificar la inasistencia"
+      );
       return;
     }
 
-    // Aquí se puede enviar primero el documento al backend y luego registrar la inasistencia
-    // Por simplicidad llamamos a onGuardar con la observación
-    onGuardar(capacitacion.idempleadocapacitacion, false, observacion || "Justificada");
+    onGuardar(
+      capacitacion.idempleadocapacitacion,
+      false,
+      observacion || "Justificada"
+    );
     onClose();
   };
 
+  // ⛔ Si el modal está cerrado, no renderizamos nada
+  if (!show) return null;
+
+  // ✅ Renderizado principal
   return (
-    <div style={{
-      position: "fixed",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: "450px",
-      maxWidth: "95%",
-      background: "#fff",
-      padding: "25px",
-      borderRadius: "12px",
-      boxShadow: "0 0 20px rgba(0,0,0,0.2)",
-      zIndex: 1000,
-      display: "flex",
-      flexDirection: "column"
-    }}>
-      <h3 style={{ textAlign: "center", marginBottom: "15px", color: "#219ebc" }}>
+    <div
+      style={{
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "450px",
+        maxWidth: "95%",
+        background: "#fff",
+        padding: "25px",
+        borderRadius: "12px",
+        boxShadow: "0 0 20px rgba(0,0,0,0.2)",
+        zIndex: 1000,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <h3
+        style={{
+          textAlign: "center",
+          marginBottom: "15px",
+          color: "#219ebc",
+        }}
+      >
         Asistencia: {capacitacion.nombre}
       </h3>
-      <p><strong>Lugar:</strong> {capacitacion.lugar}</p>
-      <p><strong>Fecha:</strong> {new Date(capacitacion.fecha).toLocaleDateString()}</p>
+      <p>
+        <strong>Lugar:</strong> {capacitacion.lugar}
+      </p>
+      <p>
+        <strong>Fecha:</strong>{" "}
+        {new Date(capacitacion.fecha).toLocaleDateString()}
+      </p>
 
       {!mostrarFormulario ? (
         <>
@@ -75,7 +147,7 @@ const AsistenciaModal = ({
                 border: "none",
                 borderRadius: "6px",
                 fontWeight: "600",
-                cursor: "pointer"
+                cursor: "pointer",
               }}
             >
               ✓ Asistió
@@ -90,7 +162,7 @@ const AsistenciaModal = ({
                 border: "none",
                 borderRadius: "6px",
                 fontWeight: "600",
-                cursor: "pointer"
+                cursor: "pointer",
               }}
             >
               ✗ Justificar
@@ -123,7 +195,7 @@ const AsistenciaModal = ({
             color: "#fff",
             border: "none",
             borderRadius: "6px",
-            cursor: "pointer"
+            cursor: "pointer",
           }}
         >
           Cerrar

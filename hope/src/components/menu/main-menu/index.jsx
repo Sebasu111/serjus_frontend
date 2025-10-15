@@ -83,7 +83,7 @@ const SidebarMenu = () => {
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "personal" ? "open" : ""}`}>
                             <li><NavLink to={`${base}/Empleados`} className="sidebar-submenu-link">Colaboradores</NavLink></li>
-                            <li><NavLink to={`${base}/Contrato`} className="sidebar-submenu-link">Contrato</NavLink></li>
+                            <li><NavLink to={`${base}/Contratos`} className="sidebar-submenu-link">Contrato</NavLink></li>
                             <li><NavLink to={`${base}/Historial`} className="sidebar-submenu-link">Historial</NavLink></li>
                             <li><NavLink to={`${base}/Usuarios`} className="sidebar-submenu-link">Usuarios</NavLink></li>
                             <li><NavLink to={`${base}/Equipos`} className="sidebar-submenu-link">Equipos</NavLink></li>

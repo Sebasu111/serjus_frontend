@@ -329,7 +329,7 @@ const EmpleadosContainer = () => {
         <Layout>
             <SEO title="Hope – Empleados" />
             <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingLeft: "250px" }}>
                     <Header />
                     <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
                         <div style={{ maxWidth: "900px", width: "100%", margin: "0 auto", paddingLeft: "0px" }}>
