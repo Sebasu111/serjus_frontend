@@ -335,7 +335,7 @@ const EmpleadosContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Empleados" />
+            <SEO title=" Empleados" />
             <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingLeft: "250px" }}>
                     <Header />

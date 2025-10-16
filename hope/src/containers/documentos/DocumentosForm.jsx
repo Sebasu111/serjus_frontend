@@ -139,7 +139,7 @@ const DocumentosForm = ({
                             }}
                             style={{
                                 marginTop: "10px",
-                                background: "#fb8500",
+                                background: "#FED7AA",
                                 color: "#fff",
                                 border: "none",
                                 borderRadius: "6px",

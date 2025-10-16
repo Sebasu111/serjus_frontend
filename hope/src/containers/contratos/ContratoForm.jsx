@@ -24,7 +24,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
   };
 
   const btnPrimary = {
-    background: "#FDBA74",
+    background: "#FED7AA",
     color: "#fff",
     padding: "10px 20px",
     border: "none",

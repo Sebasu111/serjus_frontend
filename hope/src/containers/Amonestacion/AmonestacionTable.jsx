@@ -50,49 +50,50 @@ const AmonestacionTable = ({ amonestaciones, handleEdit, handleDelete, handleAct
                   {a.estado ? "Activo" : "Inactivo"}
                 </td>
                 <td style={{ padding: "10px", textAlign: "center" }}>
-                  <button
-                    onClick={() => handleEdit(a)}
-                    style={{
-                      padding: "6px 14px",
-                      background: "#ffc107",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "5px",
-                      marginRight: "6px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Editar
-                  </button>
-                  {a.estado ? (
+                  <div style={{ display: "flex", justifyContent: "center", gap: "6px" }}>
                     <button
-                      onClick={() => handleDelete(a.idamonestacion)}
+                      onClick={() => handleEdit(a)}
                       style={{
                         padding: "6px 14px",
-                        background: "#dc3545",
+                        background: " #FED7AA",
                         color: "#fff",
                         border: "none",
                         borderRadius: "5px",
                         cursor: "pointer",
                       }}
                     >
-                      Desactivar
+                      Editar
                     </button>
-                  ) : (
-                    <button
-                      onClick={() => handleActivate(a.idamonestacion)}
-                      style={{
-                        padding: "6px 14px",
-                        background: "#28a745",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Activar
-                    </button>
-                  )}
+                    {a.estado ? (
+                      <button
+                        onClick={() => handleDelete(a.idamonestacion)}
+                        style={{
+                          padding: "6px 14px",
+                          background: "#F87171",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "5px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Desactivar
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleActivate(a.idamonestacion)}
+                        style={{
+                          padding: "6px 14px",
+                          background: "#28a745",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "5px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Activar
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))

@@ -12,7 +12,7 @@ const labelEquipoFrom = (id, equipos = []) => {
 
 // Colores pastel estilo Equipos
 const pastel = {
-    orangeBg: "#FED7AA", orangeBr: "#FDBA74", orangeTx: "#7C2D12",
+    orangeBg: "#FED7AA", orangeBr: "#FED7AA", orangeTx: "#7C2D12",
     redBg: "#FCA5A5", redBr: "#F87171", green: "#28a745",
 };
 

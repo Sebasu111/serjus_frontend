@@ -26,7 +26,7 @@ const ConfirmModal = ({ title = "Confirmar acción", message, onConfirm, onCance
           onClick={onConfirm}
           style={{
             padding: "10px 20px",
-            background: "#fb8500",
+            background: "#FED7AA",
             color: "#fff",
             border: "none",
             borderRadius: "6px",
@@ -34,7 +34,7 @@ const ConfirmModal = ({ title = "Confirmar acción", message, onConfirm, onCance
             fontWeight: "600",
           }}
         >
-          Sí, eliminar
+          Sí, Desactivar
         </button>
         <button
           onClick={onCancel}

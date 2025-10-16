@@ -21,7 +21,7 @@ const ConfirmModalAspirante = ({ aspirante, onConfirm, onCancel }) => (
             <div style={{ display: "flex", justifyContent: "center", gap: 15 }}>
                 <button
                     onClick={onConfirm}
-                    style={{ background: "#fb8500", color: "#fff", padding: "10px 20px", border: "none", borderRadius: 8, cursor: "pointer" }}
+                    style={{ background: "#FED7AA", color: "#fff", padding: "10px 20px", border: "none", borderRadius: 8, cursor: "pointer" }}
                 >
                     Sí, desactivar
                 </button>

@@ -26,7 +26,7 @@ const DocumentosTable = ({
     };
     const btnStyleEditar = {
         padding: "6px 14px",
-        background: "#fb8500",
+        background: "#FED7AA",
         color: "#fff",
         borderRadius: "5px",
         border: "none",

@@ -301,7 +301,7 @@ const AspirantesContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Aspirantes" />
+            <SEO title=" Aspirantes" />
             <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />

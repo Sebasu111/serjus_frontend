@@ -142,7 +142,7 @@ const ConvocatoriasContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Convocatorias" />
+            <SEO title=" Convocatorias" />
             <div style={{ display: "flex", minHeight: "100vh" }}>
 
                 <div
@@ -374,7 +374,7 @@ const ConvocatoriasContainer = () => {
                                                                 style={{
                                                                     ...btnStyle,
                                                                     background:
-                                                                        "#dc3545",
+                                                                        "#F87171",
                                                                 }}
                                                             >
                                                                 Desactivar

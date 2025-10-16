@@ -43,7 +43,7 @@ const LoginPage = () => {
 
   return (
     <>
-      <SEO title="Hope – Login" />
+      <SEO title=" Login" />
       <div
         style={{
           display: "flex",

@@ -2,7 +2,7 @@ import React from "react";
 
 const pastel = {
     orangeBg: "#FED7AA",
-    orangeBr: "#FDBA74",
+    orangeBr: "#FED7AA",
     orangeTx: "#7C2D12",
 };
 

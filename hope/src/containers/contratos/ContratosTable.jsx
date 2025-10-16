@@ -77,7 +77,7 @@ const styles = {
   td: { padding: 10, borderBottom: "1px solid #f0f0f0" },
   btnWarn: {
     padding: "6px 14px",
-    background: "#ffc107",
+    background: " #FED7AA",
     color: "#fff",
     border: "none",
     borderRadius: 5,
@@ -87,7 +87,7 @@ const styles = {
   },
   btnDanger: {
     padding: "6px 14px",
-    background: "#dc3545",
+    background: "#F87171",
     color: "#fff",
     border: "none",
     borderRadius: 5,

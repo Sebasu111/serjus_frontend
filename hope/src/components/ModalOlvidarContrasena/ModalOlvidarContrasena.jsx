@@ -204,7 +204,7 @@ const ModalOlvidarContrasena = ({ onClose }) => {
                 onClick={cambiarContrasena}
                 disabled={loading}
                 style={{
-                  background: "#fb8500",
+                  background: "#FED7AA",
                   color: "#fff",
                   padding: "10px",
                   border: "none",

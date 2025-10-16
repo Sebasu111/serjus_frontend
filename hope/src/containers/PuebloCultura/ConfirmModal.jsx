@@ -33,7 +33,7 @@ const ConfirmModal = ({ registro, onConfirm, onCancel, tipo = "registro" }) => (
             <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
                 <button
                     onClick={onConfirm}
-                    style={{ background: "#fb8500", color: "#fff", padding: "10px 20px", border: "none", borderRadius: "8px", cursor: "pointer" }}
+                    style={{ background: "#FED7AA", color: "#fff", padding: "10px 20px", border: "none", borderRadius: "8px", cursor: "pointer" }}
                 >
                     Sí, desactivar
                 </button>

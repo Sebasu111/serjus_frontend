@@ -34,7 +34,7 @@ const ConfirmModal = ({ idioma, onConfirm, onCancel }) => (
         <button
           onClick={onConfirm}
           style={{
-            background: "#fb8500",
+            background: "#FED7AA",
             color: "#fff",
             padding: "10px 20px",
             border: "none",
