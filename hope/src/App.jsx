@@ -168,12 +168,12 @@ const App = () => {
                     {/*CONTROL DISCIPLINARIO*/}
                     <Route
                         exact
-                        path={`${base}/Ausencia`}
+                        path={`${base}/Ausencias`}
                         component={AusenciaContainer}
                     />
                     <Route
                         exact
-                        path={`${base}/Amonestacion`}
+                        path={`${base}/Amonestaciones`}
                         component={AmonestacionContainer}
                     />
 

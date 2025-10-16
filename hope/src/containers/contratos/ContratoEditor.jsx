@@ -9,14 +9,14 @@ import ContratoForm from "./ContratoForm";
 
 const ContratoEditor = () => {
   const [data, setData] = useState({
-    nombreEmpleadora: "INGRID FABIOLA LÓPEZ CASTILLO",
-    edadEmpleadora: "53",
-    sexoEmpleadora: "Femenino",
-    estadoCivilEmpleadora: "Casada",
-    direccionEmpleadora: "Municipio de Coatepeque, Quetzaltenango",
-    dpiEmpleadora: "2598 70994 0920",
-    nombreEntidad: "ASOCIACIÓN COMUNITARIA PARA EL DESARROLLO, SERJUS (ASERJUS)",
-    direccionEntidad: "11 Avenida 12-62 Zona 2, Ciudad Nueva, Guatemala",
+    nombreEmpleadora: "",
+    edadEmpleadora: "",
+    sexoEmpleadora: "",
+    estadoCivilEmpleadora: "",
+    direccionEmpleadora: "",
+    dpiEmpleadora: "",
+    nombreEntidad: "",
+    direccionEntidad: "",
     nombreTrabajadora: "",
     edadTrabajadora: "",
     sexoTrabajadora: "",
