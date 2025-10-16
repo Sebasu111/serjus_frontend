@@ -114,7 +114,7 @@ const CriterioEvaluacionContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Criterios de Evaluación" />
+            <SEO title=" Criterios de Evaluación" />
             <div className="wrapper" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                 <Header />
 
@@ -231,7 +231,7 @@ const CriterioEvaluacionContainer = () => {
                                                         onClick={() => handleEdit(c)}
                                                         style={{
                                                             padding: "6px 14px",
-                                                            background: "#ffc107",
+                                                            background: " #FED7AA",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
@@ -246,7 +246,7 @@ const CriterioEvaluacionContainer = () => {
                                                             onClick={() => handleDelete(c.idcriterioevaluacion)}
                                                             style={{
                                                                 padding: "6px 14px",
-                                                                background: "#dc3545",
+                                                                background: "#F87171",
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius: "5px",

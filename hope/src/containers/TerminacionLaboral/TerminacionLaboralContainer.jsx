@@ -132,7 +132,7 @@ const TerminacionLaboralContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Terminaciones Laborales" />
+            <SEO title=" Terminaciones Laborales" />
             <div
                 className="wrapper"
                 style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
@@ -312,7 +312,7 @@ const TerminacionLaboralContainer = () => {
                                                         onClick={() => handleEdit(t)}
                                                         style={{
                                                             padding: "6px 14px",
-                                                            background: "#ffc107",
+                                                            background: " #FED7AA",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
@@ -327,7 +327,7 @@ const TerminacionLaboralContainer = () => {
                                                             onClick={() => handleDelete(t.idterminacionlaboral)}
                                                             style={{
                                                                 padding: "6px 14px",
-                                                                background: "#dc3545",
+                                                                background: "#F87171",
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius: "5px",

@@ -21,8 +21,8 @@ const fmtFecha = (v) => {
 
 const thStyle = { borderBottom: "2px solid #eee", padding: "12px", textAlign: "left", fontSize: 15 };
 const tdStyle = { padding: "12px", borderBottom: "1px solid #f0f0f0", fontSize: 15 };
-const btnWarn = { padding: "6px 10px", background: "#fb8500", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13, marginRight: 6 };
-const btnDanger = { padding: "6px 10px", background: "#dc3545", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13 };
+const btnWarn = { padding: "6px 10px", background: "#FED7AA", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13, marginRight: 6 };
+const btnDanger = { padding: "6px 10px", background: "#F87171", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13 };
 const btnSuccess = { padding: "6px 10px", background: "#28a745", color: "#fff", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 13 };
 
 const AspirantesTable = ({

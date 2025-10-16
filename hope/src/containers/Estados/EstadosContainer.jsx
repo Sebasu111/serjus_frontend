@@ -124,7 +124,7 @@ const EstadosContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Estados" />
+            <SEO title=" Estados" />
             <div
                 className="wrapper"
                 style={{
@@ -407,7 +407,7 @@ const EstadosContainer = () => {
                                                         style={{
                                                             padding: "6px 14px",
                                                             background:
-                                                                "#ffc107",
+                                                                " #FED7AA",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
@@ -431,7 +431,7 @@ const EstadosContainer = () => {
                                                                 padding:
                                                                     "6px 14px",
                                                                 background:
-                                                                    "#dc3545",
+                                                                    "#F87171",
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius:

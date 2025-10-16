@@ -30,21 +30,21 @@ const PuebloCulturaTable = ({
                                 <button
                                     onClick={() => handleEdit(row)}
                                     disabled={!row.estado}
-                                    style={{ padding: "6px 14px", background: row.estado ? "#fb8500" : "#6c757d", color: "#fff", border: "none", borderRadius: "5px", cursor: row.estado ? "pointer" : "not-allowed", marginRight: "6px" }}
+                                    style={{ padding: "6px 14px", background: row.estado ? "#FED7AA" : "#6c757d", color: "#fff", border: "none", borderRadius: "5px", cursor: row.estado ? "pointer" : "not-allowed", marginRight: "6px" }}
                                 >
                                     Editar
                                 </button>
                                 {row.estado ? (
                                     <button
                                         onClick={() => handleDelete(row)}
-                                        style={{ padding: "6px 14px", background: "#fb8500", color: "#fff", border: "none", borderRadius: "5px" }}
+                                        style={{ padding: "6px 14px", background: "#FCA5A5", color: "#fff", border: "none", borderRadius: "5px" }}
                                     >
-                                        Eliminar
+                                        Desactivar
                                     </button>
                                 ) : (
                                     <button
                                         onClick={() => handleActivate(row.idPuebloCultura)}
-                                        style={{ padding: "6px 14px", background: "#ffb703", color: "#fff", border: "none", borderRadius: "5px" }}
+                                        style={{ padding: "6px 14px", background: "#7F1D1D", color: "#fff", border: "none", borderRadius: "5px" }}
                                     >
                                         Activar
                                     </button>

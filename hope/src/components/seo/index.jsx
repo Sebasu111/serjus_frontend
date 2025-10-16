@@ -10,7 +10,7 @@ const SEO = ({ title }) => {
             <meta name="robots" content="noindex, follow" />
             <meta
                 name="description"
-                content="Hope – Health &amp; Medical React JS Template"
+                content=" Health &amp; Medical React JS Template"
             />
             <meta
                 name="viewport"

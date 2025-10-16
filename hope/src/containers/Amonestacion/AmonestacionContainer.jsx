@@ -19,6 +19,7 @@ const AmonestacionContainer = () => {
   const [amonestaciones, setAmonestaciones] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
     fetchAmonestaciones();
@@ -89,6 +90,7 @@ const AmonestacionContainer = () => {
     setEstadoActivo(amon.estado);
     setEditingId(amon.idamonestacion);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id) => {
@@ -128,79 +130,102 @@ const AmonestacionContainer = () => {
     }
   };
 
+  const amonestacionesFiltradas = amonestaciones.filter((a) => {
+    const texto = busqueda.toLowerCase().trim();
+    return (
+      a.motivo?.toLowerCase().includes(texto) ||
+      a.tipo?.toLowerCase().includes(texto) ||
+      (a.estado ? "activo" : "inactivo").startsWith(texto)
+    );
+  });
+
   return (
     <Layout>
-      <SEO title="Amonestaciones" />
-      <div
-        className="wrapper"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "100vh",
-        }}
-      >
-        <Header />
-        <main
-          style={{
-            flex: 1,
-            padding: "60px 20px",
-            background: "#f0f2f5",
-          }}
-        >
-          <div style={{ maxWidth: "900px", margin: "0 auto", position: "relative" }}>
-            <div style={{ textAlign: "right", marginBottom: "20px" }}>
-              <button
-                onClick={() => setShowForm(true)}
+      <SEO title=" Amonestaciones" />
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Header />
+          <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
+            <div style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}>
+              <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
+                Registro de Amonestaciones
+              </h2>
+
+              {/* Buscador y botón de nuevo */}
+              <div
                 style={{
-                  background: "#219ebc",
-                  color: "#fff",
-                  padding: "10px 20px",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  transition: "background 0.3s",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "15px",
+                  alignItems: "center",
                 }}
-                onMouseOver={(e) => (e.target.style.background = "#1b82a0")}
-                onMouseOut={(e) => (e.target.style.background = "#219ebc")}
               >
-                Registrar Amonestación
-              </button>
-            </div>
+                <input
+                  type="text"
+                  placeholder="Buscar amonestación..."
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                    marginRight: "10px",
+                  }}
+                />
+                <button
+                  onClick={() => setShowForm(true)}
+                  style={{
+                    padding: "10px 20px",
+                    background: "#219ebc",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Nueva Amonestación
+                </button>
+              </div>
 
-            {showForm && (
-              <AmonestacionForm
-                idEmpleado={idEmpleado}
-                tipo={tipo}
-                fechaAmonestacion={fechaAmonestacion}
-                motivo={motivo}
-                idDocumento={idDocumento}
-                estadoActivo={estadoActivo}
-                mensaje={mensaje}
-                editingId={editingId}
-                setIdEmpleado={setIdEmpleado}
-                setTipo={setTipo}
-                setFechaAmonestacion={setFechaAmonestacion}
-                setMotivo={setMotivo}
-                setIdDocumento={setIdDocumento}
-                setEstadoActivo={setEstadoActivo}
-                handleSubmit={handleSubmit}
-                onClose={() => {
-                  setShowForm(false);
-                  setEditingId(null);
-                }}
+              {/* Mostrar formulario solo si está activo */}
+              {showForm && (
+                <AmonestacionForm
+                  idEmpleado={idEmpleado}
+                  tipo={tipo}
+                  fechaAmonestacion={fechaAmonestacion}
+                  motivo={motivo}
+                  idDocumento={idDocumento}
+                  estadoActivo={estadoActivo}
+                  mensaje={mensaje}
+                  editingId={editingId}
+                  setIdEmpleado={setIdEmpleado}
+                  setTipo={setTipo}
+                  setFechaAmonestacion={setFechaAmonestacion}
+                  setMotivo={setMotivo}
+                  setIdDocumento={setIdDocumento}
+                  setEstadoActivo={setEstadoActivo}
+                  handleSubmit={handleSubmit}
+                  onClose={() => {
+                    setShowForm(false);
+                    setEditingId(null);
+                  }}
+                />
+              )}
+
+              {/* Tabla */}
+              <AmonestacionTable
+                amonestaciones={amonestacionesFiltradas}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                handleActivate={handleActivate}
               />
-            )}
-
-            <AmonestacionTable
-              amonestaciones={amonestaciones}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-              handleActivate={handleActivate}
-            />
-          </div>
-        </main>
-        <Footer />
+            </div>
+          </main>
+          <Footer />
+        </div>
         <ScrollToTop />
       </div>
     </Layout>

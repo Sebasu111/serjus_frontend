@@ -142,7 +142,7 @@ const TiposDocumentoContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Tipos de Documento" />
+            <SEO title=" Tipos de Documento" />
             <div
                 className="wrapper"
                 style={{
@@ -473,7 +473,7 @@ const TiposDocumentoContainer = () => {
                                                         style={{
                                                             padding: "6px 14px",
                                                             background:
-                                                                "#ffc107",
+                                                                " #FED7AA",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
@@ -497,7 +497,7 @@ const TiposDocumentoContainer = () => {
                                                                 padding:
                                                                     "6px 14px",
                                                                 background:
-                                                                    "#dc3545",
+                                                                    "#F87171",
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius:

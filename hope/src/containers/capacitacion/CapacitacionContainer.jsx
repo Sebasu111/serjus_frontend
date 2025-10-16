@@ -20,7 +20,7 @@ const CapacitacionContainer = () => {
   const [capacitacionActivaEditando, setCapacitacionActivaEditando] = useState(true);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarAsignacion, setMostrarAsignacion] = useState(false);
-  const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] = useState(false);
+  const [mostrarConfirmacionDesactivar, setMostrarConfirmacionDesactivar] = useState(false);
   const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
@@ -116,7 +116,7 @@ const CapacitacionContainer = () => {
 
   const handleDelete = (cap) => {
     setCapacitacionSeleccionada(cap);
-    setMostrarConfirmacionEliminar(true); // <-- bandera separada
+    setMostrarConfirmacionDesactivar(true); // <-- bandera separada
   };
 
   const confirmarDesactivacionCapacitacion = async () => {
@@ -137,7 +137,7 @@ const CapacitacionContainer = () => {
       console.error(error);
       showToast("Error al desactivar la capacitación", "error");
     } finally {
-      setMostrarConfirmacionEliminar(false);
+      setMostrarConfirmacionDesactivar(false);
       setCapacitacionSeleccionada(null);
     }
   };
@@ -232,7 +232,7 @@ const CapacitacionContainer = () => {
                   onClick={() => setMostrarAsignacion(true)}
                   style={{
                     padding: "10px 25px",
-                    background: "#fb8500",
+                    background: "#FED7AA",
                     color: "#fff",
                     border: "none",
                     borderRadius: "8px",
@@ -282,12 +282,12 @@ const CapacitacionContainer = () => {
           <AsignarCapacitacion onClose={() => setMostrarAsignacion(false)} />
         )}
 
-        {mostrarConfirmacionEliminar && (
+        {mostrarConfirmacionDesactivar && (
           <ConfirmModal
-            title="Eliminar Capacitación"
-            message={`¿Estás seguro de eliminar la capacitación "${capacitacionSeleccionada?.nombreevento}"?`}
+            title="Desactivar Capacitación"
+            message={`¿Estás seguro de Desactivar la capacitación "${capacitacionSeleccionada?.nombreevento}"?`}
             onConfirm={confirmarDesactivacionCapacitacion}
-            onCancel={() => setMostrarConfirmacionEliminar(false)}
+            onCancel={() => setMostrarConfirmacionDesactivar(false)}
           />
         )}
 

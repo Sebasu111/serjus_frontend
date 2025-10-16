@@ -145,7 +145,7 @@ const EvaluacionCriterioContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Evaluaciones por Criterio" />
+            <SEO title=" Evaluaciones por Criterio" />
             <div
                 className="wrapper"
                 style={{
@@ -404,7 +404,7 @@ const EvaluacionCriterioContainer = () => {
                                                         style={{
                                                             padding: "6px 14px",
                                                             background:
-                                                                "#ffc107",
+                                                                " #FED7AA",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
@@ -425,7 +425,7 @@ const EvaluacionCriterioContainer = () => {
                                                                 padding:
                                                                     "6px 14px",
                                                                 background:
-                                                                    "#dc3545",
+                                                                    "#F87171",
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius:

@@ -122,7 +122,7 @@ const RolesContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Roles" />
+            <SEO title=" Roles" />
             <div
                 className="wrapper"
                 style={{
@@ -405,7 +405,7 @@ const RolesContainer = () => {
                                                         style={{
                                                             padding: "6px 14px",
                                                             background:
-                                                                "#ffc107",
+                                                                " #FED7AA",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
@@ -429,7 +429,7 @@ const RolesContainer = () => {
                                                                 padding:
                                                                     "6px 14px",
                                                                 background:
-                                                                    "#dc3545",
+                                                                    "#F87171",
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius:

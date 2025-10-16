@@ -44,7 +44,7 @@ const CapacitacionesTable = ({
                 <td style={{ padding: "10px", textAlign: "right", borderBottom: "1px solid #f0f0f0" }}>
                   {c.montoejecutado || 0}
                 </td>
-                <td style={{ padding: "10px", textAlign: "center", borderBottom: "1px solid #f0f0f0", fontWeight: "600", color: c.estado ? "#28a745" : "#dc3545" }}>
+                <td style={{ padding: "10px", textAlign: "center", borderBottom: "1px solid #f0f0f0", fontWeight: "600", color: c.estado ? "#28a745" : "#F87171" }}>
                   {c.estado ? "Activo" : "Inactivo"}
                 </td>
                 <td style={{ padding: "10px", textAlign: "center", borderBottom: "1px solid #f0f0f0" }}>
@@ -54,7 +54,7 @@ const CapacitacionesTable = ({
                       disabled={!c.estado}
                       style={{
                         padding: "6px 14px",
-                        background: c.estado ? "#fb8500" : "#6c757d",
+                        background: c.estado ? "#FED7AA" : "#6c757d",
                         color: "#fff",
                         border: "none",
                         borderRadius: "5px",
@@ -68,13 +68,13 @@ const CapacitacionesTable = ({
                         onClick={() => handleDelete(c)}
                         style={{
                           padding: "6px 14px",
-                          background: "#fb8500",
+                          background: "#FED7AA",
                           color: "#fff",
                           border: "none",
                           borderRadius: "5px",
                         }}
                       >
-                        Eliminar
+                        Desactivar
                       </button>
                     ) : (
                       <button

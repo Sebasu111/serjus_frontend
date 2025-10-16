@@ -32,7 +32,7 @@ const IdiomasTable = ({
                   disabled={!idioma.estado}
                   style={{
                     padding: "6px 14px",
-                    background: idioma.estado ? "#fb8500" : "#6c757d",
+                    background: idioma.estado ? "#FED7AA" : "#6c757d",
                     color: "#fff",
                     border: "none",
                     borderRadius: "5px",
@@ -45,14 +45,14 @@ const IdiomasTable = ({
                 {idioma.estado ? (
                   <button
                     onClick={() => handleDelete(idioma)}
-                    style={{ padding: "6px 14px", background: "#fb8500", color: "#fff", border: "none", borderRadius: "5px" }}
+                    style={{ padding: "6px 14px", background: "#F87171", color: "#fff", border: "none", borderRadius: "5px" }}
                   >
-                    Eliminar
+                    Desactivar
                   </button>
                 ) : (
                   <button
                     onClick={() => handleActivate(idioma.ididioma)}
-                    style={{ padding: "6px 14px", background: "#ffb703", color: "#fff", border: "none", borderRadius: "5px" }}
+                    style={{ padding: "6px 14px", background: "#FED7AA", color: "#fff", border: "none", borderRadius: "5px" }}
                   >
                     Activar
                   </button>

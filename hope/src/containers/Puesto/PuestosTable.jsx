@@ -92,7 +92,7 @@ const PuestosTable = ({
                             onAsignarSalario(puesto);
                           }}
                           style={{
-                            background: "#219ebc",
+                            background: "#FED7AA",
                             color: "#fff",
                             border: "none",
                             padding: "10px 18px",
@@ -103,8 +103,6 @@ const PuestosTable = ({
                             transition: "0.2s ease",
                             whiteSpace: "nowrap",
                           }}
-                          onMouseEnter={(e) => (e.target.style.background = "#197b9b")}
-                          onMouseLeave={(e) => (e.target.style.background = "#219ebc")}
                         >
                           Asignar Salario
                         </button>
@@ -112,7 +110,7 @@ const PuestosTable = ({
                         <button
                           onClick={() => onToggleEstado(puesto)}
                           style={{
-                            background: puesto.estado ? "#fb8500" : "#38b000",
+                            background: puesto.estado ? "#F87171" : "#38b000",
                             color: "#fff",
                             border: "none",
                             padding: "10px 18px",
@@ -123,11 +121,8 @@ const PuestosTable = ({
                             transition: "0.2s ease",
                             whiteSpace: "nowrap",
                           }}
-                          onMouseEnter={(e) =>
-                            (e.target.style.background = puesto.estado ? "#e07a00" : "#2d9100")
-                          }
                           onMouseLeave={(e) =>
-                            (e.target.style.background = puesto.estado ? "#fb8500" : "#38b000")
+                            (e.target.style.background = puesto.estado ? "#F87171" : "#38b000")
                           }
                         >
                           {puesto.estado ? "Desactivar" : "Activar"}

@@ -85,7 +85,7 @@ const EvaluacionesContainer = () => {
 
   return (
     <Layout>
-      <SEO title="Hope – Evaluaciones" />
+      <SEO title=" Evaluaciones" />
       <div className="wrapper" style={{ display:"flex", flexDirection:"column", minHeight:"100vh" }}>
         <Header />
         <main style={{ flex:1, padding:"60px 20px", background:"#f0f2f5" }}>
@@ -162,8 +162,8 @@ const btnPrimary = { width:"100%", marginTop:16, padding:"12px 0", background:"#
 const tableWrapper = { background:"#fff", borderRadius:12, padding:"20px 30px", boxShadow:"0 4px 20px rgba(0,0,0,0.08)", maxHeight:600, overflowY:"auto" };
 const thStyle = { borderBottom:"2px solid #eee", padding:10, textAlign:"left" };
 const tdStyle = { padding:10, borderBottom:"1px solid #f0f0f0" };
-const btnWarn = { padding:"6px 14px", background:"#ffc107", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14, marginRight:6 };
-const btnDanger = { padding:"6px 14px", background:"#dc3545", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14 };
+const btnWarn = { padding:"6px 14px", background:" #FED7AA", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14, marginRight:6 };
+const btnDanger = { padding:"6px 14px", background:"#F87171", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14 };
 const btnSuccess = { padding:"6px 14px", background:"#28a745", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14 };
 
 export default EvaluacionesContainer;

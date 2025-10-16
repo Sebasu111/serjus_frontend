@@ -79,7 +79,7 @@ const InduccionesContainer = () => {
 
   return (
     <Layout>
-      <SEO title="Hope – Inducciones" />
+      <SEO title=" Inducciones" />
       <div className="wrapper" style={{ display:"flex", flexDirection:"column", minHeight:"100vh" }}>
         <Header />
         <main style={{ flex:1, padding:"60px 20px", background:"#f0f2f5" }}>
@@ -156,8 +156,8 @@ const tbl = { width:"100%", borderCollapse:"collapse" };
 const th = { borderBottom:"2px solid #eee", padding:10, textAlign:"left" };
 const td = { padding:10, borderBottom:"1px solid #f0f0f0" };
 
-const btnWarn = { padding:"6px 14px", background:"#ffc107", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14, marginRight:6 };
-const btnDanger = { padding:"6px 14px", background:"#dc3545", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14 };
+const btnWarn = { padding:"6px 14px", background:" #FED7AA", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14, marginRight:6 };
+const btnDanger = { padding:"6px 14px", background:"#F87171", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14 };
 const btnSuccess = { padding:"6px 14px", background:"#28a745", color:"#fff", border:"none", borderRadius:5, cursor:"pointer", fontSize:14 };
 
 export default InduccionesContainer;
