@@ -111,7 +111,7 @@ const ContratosContainer = () => {
 
   return (
     <Layout>
-      <SEO title="Hope – Contratos" />
+      <SEO title="Contratos" />
       <div
         className="wrapper"
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
