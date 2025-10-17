@@ -563,7 +563,6 @@ const inputStyle = {
     marginBottom: 12,
 };
 const btnPrimary = {
-    width: "100%",
     padding: "10px",
     background: "#007bff",
     color: "#fff",

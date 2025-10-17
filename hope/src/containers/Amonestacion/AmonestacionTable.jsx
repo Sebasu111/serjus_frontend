@@ -1,6 +1,16 @@
 import React from "react";
 
 const AmonestacionTable = ({ amonestaciones, handleEdit, handleDelete, handleActivate }) => {
+  // Función para formatear la fecha en DD-MM-YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   return (
     <div
       style={{
@@ -38,7 +48,7 @@ const AmonestacionTable = ({ amonestaciones, handleEdit, handleDelete, handleAct
                   {a.tipo}
                 </td>
                 <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
-                  {a.fechaamonestacion}
+                  {formatDate(a.fechaamonestacion)}
                 </td>
                 <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
                   {a.motivo}
@@ -46,7 +56,14 @@ const AmonestacionTable = ({ amonestaciones, handleEdit, handleDelete, handleAct
                 <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
                   {a.iddocumento}
                 </td>
-                <td style={{ padding: "10px", textAlign: "center", color: a.estado ? "green" : "red", fontWeight: "600" }}>
+                <td
+                  style={{
+                    padding: "10px",
+                    textAlign: "center",
+                    color: a.estado ? "green" : "red",
+                    fontWeight: "600",
+                  }}
+                >
                   {a.estado ? "Activo" : "Inactivo"}
                 </td>
                 <td style={{ padding: "10px", textAlign: "center" }}>
@@ -56,7 +73,7 @@ const AmonestacionTable = ({ amonestaciones, handleEdit, handleDelete, handleAct
                       style={{
                         padding: "6px 14px",
                         background: " #FED7AA",
-                        color: "#fff",
+                        color: "#7C2D12",
                         border: "none",
                         borderRadius: "5px",
                         cursor: "pointer",

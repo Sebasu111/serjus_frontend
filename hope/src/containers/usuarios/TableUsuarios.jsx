@@ -45,7 +45,7 @@ const TableUsuarios = ({
                     width: "110px",
                     padding: "6px 14px",
                     background: u.estado && u.idusuario !== idUsuarioLogueado ? "#FED7AA" : "#6c757d",
-                    color: "#fff",
+                    color: "#7C2D12",
                     border: "none",
                     borderRadius: "5px",
                     cursor: u.estado && u.idusuario !== idUsuarioLogueado ? "pointer" : "not-allowed",

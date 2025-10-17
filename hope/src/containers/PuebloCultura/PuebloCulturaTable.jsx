@@ -30,7 +30,7 @@ const PuebloCulturaTable = ({
                                 <button
                                     onClick={() => handleEdit(row)}
                                     disabled={!row.estado}
-                                    style={{ padding: "6px 14px", background: row.estado ? "#FED7AA" : "#6c757d", color: "#fff", border: "none", borderRadius: "5px", cursor: row.estado ? "pointer" : "not-allowed", marginRight: "6px" }}
+                                    style={{ padding: "6px 14px", background: row.estado ? "#FED7AA" : "#6c757d", color: "#7C2D12", border: "none", borderRadius: "5px", cursor: row.estado ? "pointer" : "not-allowed", marginRight: "6px" }}
                                 >
                                     Editar
                                 </button>
