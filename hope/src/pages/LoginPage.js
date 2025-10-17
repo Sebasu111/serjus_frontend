@@ -160,27 +160,8 @@ const LoginPage = () => {
               Ingresar
             </button>
           </form>
-
-          {/*   Enlace para abrir el modal */}
-          <p
-            onClick={() => setShowModal(true)}
-            style={{
-              color: "#007bff",
-              marginTop: "15px",
-              cursor: "pointer",
-              fontWeight: "500",
-            }}
-          >
-            ¿Olvidaste tu contraseña?
-          </p>
         </div>
       </div>
-
-      {/*   Modal de recuperación */}
-      {showModal && (
-        <ModalOlvidarContrasena onClose={() => setShowModal(false)} />
-      )}
-
       {/*   Contenedor global de toasts */}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
     </>

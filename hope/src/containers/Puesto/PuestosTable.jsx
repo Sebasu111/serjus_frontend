@@ -93,7 +93,7 @@ const PuestosTable = ({
                           }}
                           style={{
                             background: "#FED7AA",
-                            color: "#fff",
+                            color: "#7C2D12",
                             border: "none",
                             padding: "10px 18px",
                             borderRadius: "8px",

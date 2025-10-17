@@ -98,7 +98,7 @@ const EmpleadosTable = ({
                                             style={{
                                                 minWidth: 100, padding: "6px 14px",
                                                 background: estado ? pastel.redBg : pastel.green,
-                                                color: "#fff",
+                                                color: "#fff0c9",
                                                 border: `1px solid ${estado ? pastel.redBr : "#1c7c31"}`,
                                                 borderRadius: "6px", cursor: "pointer", fontWeight: 600
                                             }}

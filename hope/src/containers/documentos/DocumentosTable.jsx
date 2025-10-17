@@ -18,7 +18,7 @@ const DocumentosTable = ({
     const tdStyle = { padding: "10px", borderBottom: "1px solid #f0f0f0" };
     const btnStyleDescargar = {
         padding: "6px 14px",
-        background: "#17a2b8",
+        background: "#219ebc",
         color: "#fff",
         borderRadius: "5px",
         border: "none",
@@ -27,7 +27,7 @@ const DocumentosTable = ({
     const btnStyleEditar = {
         padding: "6px 14px",
         background: "#FED7AA",
-        color: "#fff",
+        color: "#7C2D12",
         borderRadius: "5px",
         border: "none",
         cursor: "pointer",
