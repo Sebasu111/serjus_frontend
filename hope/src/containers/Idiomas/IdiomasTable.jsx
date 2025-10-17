@@ -1,22 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { buttonStyles } from "../../stylesGenerales/buttons";
+import { comboBoxStyles } from "../../stylesGenerales/combobox";
 
 const IdiomasTable = ({
   idiomas,
   handleEdit,
   handleDelete,
-  handleActivate,
+  handlePrepareActivate, // <-- nueva prop para activar con modal
   paginaActual,
   totalPaginas,
   setPaginaActual,
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(null);
-  const menuRef = useRef(null);
+  const containerRef = useRef(null);
 
-  // cerrar al hacer clic fuera
+  // Cerrar menú al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
         setMenuAbierto(null);
       }
     };
@@ -36,6 +37,7 @@ const IdiomasTable = ({
         padding: "20px 30px",
         boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
       }}
+      ref={containerRef}
     >
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
@@ -70,7 +72,6 @@ const IdiomasTable = ({
                 >
                   {idioma.estado ? "Activo" : "Inactivo"}
                 </td>
-
                 <td
                   style={{
                     padding: "10px",
@@ -78,85 +79,60 @@ const IdiomasTable = ({
                     borderBottom: "1px solid #f0f0f0",
                     position: "relative",
                   }}
-                  ref={menuRef}
                 >
-                  {/* BOTÓN COMBOBOX */}
-                  <div style={{ position: "relative", display: "inline-block", width: "130px" }}>
+                  {/* COMBOBOX */}
+                  <div style={comboBoxStyles.container}>
                     <button
                       onClick={() => toggleMenu(idioma.ididioma)}
-                      style={{
-                        ...buttonStyles.base,
-                        background: "#E5E7EB",
-                        color: "#0A0A0A",
-                        cursor: "pointer",
-                        width: "100%",
-                        textAlign: "center",
-                      }}
+                      style={comboBoxStyles.button.base}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = comboBoxStyles.button.hover.background)}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = comboBoxStyles.button.base.background)}
                     >
                       Opciones ▾
                     </button>
 
-                    {/* LISTA DEL COMBOBOX */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "100%",
-                        left: 0,
-                        width: "100%",
-                        background: "#E5E7EB",
-                        border: "1px solid #ccc",
-                        borderTop: "none",
-                        borderRadius: "0 0 6px 6px",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                        zIndex: 5,
-                        display: menuAbierto === idioma.ididioma ? "block" : "none",
-                      }}
-                    >
-                      {/* OPCIONES */}
-                      <button
-                        onClick={() => idioma.estado && handleEdit(idioma)}
-                        disabled={!idioma.estado}
-                        style={{
-                          ...buttonStyles.base,
-                          ...(idioma.estado
-                            ? buttonStyles.editarActivo
-                            : buttonStyles.editarInactivo),
-                          width: "100%",
-                          borderRadius: 0,
-                          padding: "8px 0",
-                        }}
-                      >
-                        Editar
-                      </button>
+                    {menuAbierto === idioma.ididioma && (
+                      <div style={comboBoxStyles.menu.container}>
+                        {/* Editar */}
+                        <button
+                          onClick={() => handleEdit(idioma)}
+                          disabled={!idioma.estado}
+                          style={{
+                            ...comboBoxStyles.menu.item.editar.base,
+                            ...(idioma.estado ? {} : comboBoxStyles.menu.item.editar.disabled),
+                          }}
+                          onMouseEnter={(e) => {
+                            if (idioma.estado) e.currentTarget.style.background = comboBoxStyles.menu.item.editar.hover.background;
+                          }}
+                          onMouseLeave={(e) => {
+                            if (idioma.estado) e.currentTarget.style.background = comboBoxStyles.menu.item.editar.base.background;
+                          }}
+                        >
+                          Editar
+                        </button>
 
-                      {idioma.estado ? (
-                        <button
-                          onClick={() => handleDelete(idioma)}
-                          style={{
-                            ...buttonStyles.base,
-                            ...buttonStyles.desactivar,
-                            width: "100%",
-                            borderRadius: 0,
-                            padding: "8px 0",
-                          }}
-                        >
-                          Desactivar
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleActivate(idioma.ididioma)}
-                          style={{
-                            ...buttonStyles.base,
-                            ...buttonStyles.activar,
-                            width: "100%",
-                            borderRadius: 0,
-                            padding: "8px 0",
-                          }}
-                        >
-                          Activar
-                        </button>
-                      )}
-                    </div>
+                        {/* Activar / Desactivar */}
+                        {idioma.estado ? (
+                          <button
+                            onClick={() => handleDelete(idioma)}
+                            style={comboBoxStyles.menu.item.desactivar.base}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = comboBoxStyles.menu.item.desactivar.hover.background)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = comboBoxStyles.menu.item.desactivar.base.background)}
+                          >
+                            Desactivar
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handlePrepareActivate(idioma)} // <-- abrir modal para activar
+                            style={comboBoxStyles.menu.item.activar.base}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = comboBoxStyles.menu.item.activar.hover.background)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = comboBoxStyles.menu.item.activar.base.background)}
+                          >
+                            Activar
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>

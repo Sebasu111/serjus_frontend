@@ -7,6 +7,7 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
 import { ToastContainer } from "react-toastify";
+import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 import IdiomaForm from "./IdiomaForm";
 import ConfirmModal from "./ConfirmModal";
@@ -46,7 +47,6 @@ const IdiomasContainer = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // ✅ Validación de duplicados SOLO aquí (no en render)
       const yaExiste = idiomas.some(
         (i) =>
           i.nombreidioma?.trim().toLowerCase() ===
@@ -113,6 +113,11 @@ const IdiomasContainer = () => {
     setMostrarConfirmacion(true);
   };
 
+  const handlePrepareActivate = (idioma) => {
+    setIdiomaSeleccionado(idioma);
+    setMostrarConfirmacion(true);
+  };
+
   const confirmarDesactivacionIdioma = async () => {
     if (!idiomaSeleccionado) return;
     try {
@@ -173,9 +178,7 @@ const IdiomasContainer = () => {
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <Header />
           <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-            <div
-              style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}
-            >
+            <div style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}>
               <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
                 Idiomas Registrados
               </h2>
@@ -197,26 +200,11 @@ const IdiomasContainer = () => {
                     setBusqueda(e.target.value);
                     setPaginaActual(1);
                   }}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    borderRadius: "6px",
-                    border: "1px solid #ccc",
-                    marginRight: "10px",
-                  }}
+                  style={buttonStyles.buscador} 
                 />
                 <button
                   onClick={() => setMostrarFormulario(true)}
-                  style={{
-                    padding: "10px 20px",
-                    background: "#219ebc",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    whiteSpace: "nowrap",
-                  }}
+                  style={buttonStyles.nuevo} // <-- Usando styles importados
                 >
                   Nuevo Idioma
                 </button>
@@ -226,7 +214,7 @@ const IdiomasContainer = () => {
                 idiomas={idiomasPaginados}
                 handleEdit={handleEdit}
                 handleDelete={handleDelete}
-                handleActivate={handleActivate}
+                handlePrepareActivate={handlePrepareActivate} 
                 paginaActual={paginaActual}
                 totalPaginas={totalPaginas}
                 setPaginaActual={setPaginaActual}
@@ -275,7 +263,16 @@ const IdiomasContainer = () => {
         {mostrarConfirmacion && (
           <ConfirmModal
             idioma={idiomaSeleccionado}
-            onConfirm={confirmarDesactivacionIdioma}
+            modo={idiomaSeleccionado?.estado ? "desactivar" : "activar"}
+            onConfirm={() => {
+              if (idiomaSeleccionado?.estado) {
+                confirmarDesactivacionIdioma();
+              } else {
+                handleActivate(idiomaSeleccionado.ididioma);
+                setMostrarConfirmacion(false);
+                setIdiomaSeleccionado(null);
+              }
+            }}
             onCancel={() => setMostrarConfirmacion(false)}
           />
         )}

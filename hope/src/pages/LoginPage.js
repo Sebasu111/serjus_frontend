@@ -4,7 +4,6 @@ import { useHistory } from "react-router-dom";
 import SEO from "../components/seo";
 import axios from "axios";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import ModalOlvidarContrasena from "../components/ModalOlvidarContrasena/ModalOlvidarContrasena";
 import { showToast } from "../utils/toast.js";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
