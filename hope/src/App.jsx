@@ -58,6 +58,7 @@ import CapacitacionContainer from "./containers/capacitacion/CapacitacionContain
 // =============================================================
 import CriterioEvaluacionContainer from "./containers/CriterioEvaluacion/CriterioEvaluacionContainer";
 import EvaluacionCriterioContainer from "./containers/EvaluacionCriterio/EvaluacionCriterioContainer";
+import EvaluacionesContainer from "./containers/Evaluaciones/EvaluacionesContainer";
 
 
 // =============================================================
@@ -163,6 +164,11 @@ const App = () => {
                         exact
                         path={`${base}/EvaluacionCriterio`}
                         component={EvaluacionCriterioContainer}
+                    />
+                    <Route
+                        exact
+                        path={`${base}/Evaluaciones`}
+                        component={EvaluacionesContainer}
                     />
 
                     {/*CONTROL DISCIPLINARIO*/}
