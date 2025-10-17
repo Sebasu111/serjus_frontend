@@ -1,4 +1,3 @@
-// 💅 styles/buttons.js
 export const buttonStyles = {
   base: {
     padding: "6px 14px",
@@ -48,5 +47,37 @@ export const buttonStyles = {
       background: "#fff",
       color: "#219ebc",
     },
+  },
+
+  buscador: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    marginRight: "10px",
+  },
+
+  nuevo: {
+    padding: "10px 20px",
+    background: "#219ebc",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "600",
+    whiteSpace: "nowrap",
+    transition: "all 0.2s ease",
+  },
+
+   descargar: { 
+    padding: "10px 20px",
+    background: "#023047",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "600",
+    whiteSpace: "nowrap",
+    transition: "all 0.2s ease",
   },
 };

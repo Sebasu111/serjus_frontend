@@ -1,65 +1,37 @@
 import React from "react";
+import ConfirmModalStyles from "../../stylesGenerales/ConfirmModalStyles";
 
-const ConfirmModal = ({ idioma, onConfirm, onCancel }) => (
-  <div
-    style={{
-      paddingLeft: "250px",
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      background: "rgba(0,0,0,0.4)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 2000,
-    }}
-  >
-    <div
-      style={{
-        background: "#fff",
-        padding: "30px",
-        borderRadius: "10px",
-        boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-        textAlign: "center",
-        width: "350px",
-      }}
-    >
-      <h3 style={{ marginBottom: "15px", color: "#333" }}>Confirmar desactivación</h3>
-      <p style={{ marginBottom: "25px", color: "#555" }}>
-        ¿Seguro que deseas desactivar el idioma <strong>{idioma?.nombreidioma}</strong>?
-      </p>
-      <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
-        <button
-          onClick={onConfirm}
-          style={{
-            background: "#FED7AA",
-            color: "#fff",
-            padding: "10px 20px",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
-        >
-          Sí, desactivar
-        </button>
-        <button
-          onClick={onCancel}
-          style={{
-            background: "#6c757d",
-            color: "#fff",
-            padding: "10px 20px",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
-        >
-          Cancelar
-        </button>
+const ConfirmModal = ({ idioma, onConfirm, onCancel, modo = "desactivar" }) => {
+  const esActivar = modo === "activar";
+  const titulo = esActivar ? "Confirmar activación" : "Confirmar desactivación";
+  const mensaje = esActivar
+    ? `¿Seguro que deseas activar el idioma `
+    : `¿Seguro que deseas desactivar el idioma `;
+  const botonColor = esActivar ? "#34D399" : "#FCA5A5"; 
+  const botonTexto = esActivar ? "Sí, activar" : "Sí, desactivar";
+
+  return (
+    <div style={ConfirmModalStyles.overlay}>
+      <div style={ConfirmModalStyles.modal}>
+        <h3 style={ConfirmModalStyles.titulo}>{titulo}</h3>
+        <p style={ConfirmModalStyles.mensaje}>
+          {mensaje}
+          <strong>{idioma?.nombreidioma}</strong>?
+        </p>
+        <div style={ConfirmModalStyles.botonesContainer}>
+          <button
+            onClick={onConfirm}
+            style={{ ...ConfirmModalStyles.boton, background: botonColor }}
+          >
+            {botonTexto}
+          </button>
+          <button onClick={onCancel} style={ConfirmModalStyles.botonCancelar}>
+            Cancelar
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default ConfirmModal;
