@@ -13,7 +13,7 @@ export const buttonStyles = {
   },
 
   editarInactivo: {
-    background: "#e5e7eb34", 
+    background: "#e5e7eb", 
     color: "#0A0A0A",
     cursor: "not-allowed",
   },

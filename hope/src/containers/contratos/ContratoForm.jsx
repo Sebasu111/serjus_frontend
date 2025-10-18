@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import SEO from "../../components/seo";
+
 
 const meses = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -7,63 +9,62 @@ const meses = [
 
 const ContratoForm = ({ data, onChange, imprimirContrato }) => {
   const [pagina, setPagina] = useState(1);
+  const formRef = useRef(null); 
 
   const input = {
     padding: "10px",
     border: "1px solid #ccc",
-    borderRadius: "6px",
+    borderRadius: "8px",
     width: "100%",
     fontSize: "14px",
+    transition: "all 0.2s",
+    boxShadow: "inset 0 1px 3px rgba(0,0,0,0.05)",
   };
 
   const grid = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
-    marginBottom: "10px",
+    gap: "12px",
+    marginBottom: "15px",
   };
 
   const btnPrimary = {
-    background: "#FED7AA",
+    background: "#023047",
     color: "#fff",
-    padding: "10px 20px",
+    padding: "12px 25px",
     border: "none",
-    borderRadius: "6px",
+    borderRadius: "8px",
     cursor: "pointer",
     fontSize: "16px",
+    transition: "all 0.2s",
   };
 
   const btnNav = {
-    background: "#F87171",
-    color: "#fff",
-    padding: "8px 16px",
+    background: "#e5e7eb",
+    color: "#0A0A0A",
+    padding: "10px 18px",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "14px",
     margin: "10px 5px",
+    transition: "all 0.2s",
   };
 
-  const commonProps = {
-    autoComplete: "off",
-    required: true,
-  };
+  const commonProps = { autoComplete: "off", required: true };
 
-  // ✅ Solo letras y espacios (para nombres, país, departamento)
   const handleTextOnlyChange = (e) => {
     const { name, value } = e.target;
     const soloTexto = value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ\s]/g, "");
     onChange({ target: { name, value: soloTexto } });
   };
 
-  // ✅ Direcciones con letras, números y símbolos básicos
   const handleAddressChange = (e) => {
     const { name, value } = e.target;
     const texto = value.replace(/[^a-zA-Z0-9ÁÉÍÓÚáéíóúÑñ#\-\s.,]/g, "");
     onChange({ target: { name, value: texto } });
   };
 
-  // ✅ Solo números (para DPI, edad)
   const handleNumberChange = (e) => {
     const { name, value } = e.target;
     let onlyNumbers = value.replace(/\D/g, "");
@@ -71,7 +72,6 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
     onChange({ target: { name, value: onlyNumbers } });
   };
 
-  // ✅ Moneda formateada
   const handleCurrencyChange = (e) => {
     const { name, value } = e.target;
     const number = value.replace(/[^\d]/g, "");
@@ -79,20 +79,19 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
     onChange({ target: { name, value: formatted } });
   };
 
-  // ✅ Fecha formateada
   const handleDateChange = (e) => {
     const { name, value } = e.target;
-    if (value && value.includes("-")) {
+    onChange({ target: { name, value } });
+    if (value) {
       const [year, month, day] = value.split("-");
       const mesNombre = meses[parseInt(month, 10) - 1];
       const formateada = `${parseInt(day)} de ${mesNombre} de ${year}`;
-      onChange({ target: { name, value: formateada } });
+      onChange({ target: { name: `${name}Formateada`, value: formateada } });
     } else {
-      onChange(e);
+      onChange({ target: { name: `${name}Formateada`, value: "" } });
     }
   };
 
-  // 🔹 Generador dinámico de campos
   const renderFields = (fields) =>
     Object.entries(fields).map(([k, { label, placeholder }]) => {
       if (k.includes("sexo")) {
@@ -154,7 +153,6 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
         );
       }
 
-      // Lógica de validación por campo
       let onFieldChange = onChange;
       let extraProps = {};
 
@@ -172,7 +170,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
       } else if (k.includes("fecha")) {
         onFieldChange = handleDateChange;
       } else if (k.includes("direccion")) {
-        onFieldChange = handleAddressChange; // ✅ ahora permite letras y números
+        onFieldChange = handleAddressChange;
       }
 
       return (
@@ -194,33 +192,72 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
       );
     });
 
-  // Manejo de envío
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!e.target.checkValidity()) {
-      e.target.reportValidity();
-      return;
-    }
+    if (!validarPagina(pagina)) return; 
     imprimirContrato();
+  };
+
+  const validarPagina = () => {
+  const form = formRef.current;
+  const pageInputs = Array.from(
+    form.querySelectorAll(
+      `.pagina-${pagina} input, .pagina-${pagina} select, .pagina-${pagina} textarea`
+    )
+  );
+
+  for (let input of pageInputs) {
+      if (!input.value) {
+        input.setCustomValidity("Este campo es obligatorio");
+        input.reportValidity();
+        input.focus();
+        return false;
+      }
+
+      if (input.name.includes("dpi") && input.value.length !== 13) {
+        input.setCustomValidity("El DPI debe tener exactamente 13 dígitos");
+        input.reportValidity();
+        input.focus();
+        return false;
+      }
+
+      if (input.type === "date" && !input.value) {
+        input.setCustomValidity("Seleccione una fecha");
+        input.reportValidity();
+        input.focus();
+        return false;
+      }
+
+      input.setCustomValidity("");
+    }
+
+    return true;
   };
 
   const paginasTotales = 4;
 
   return (
-    <form className="no-print" onSubmit={handleSubmit} style={{ marginBottom: "40px" }}>
-      {/* Paginador */}
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <strong>Página {pagina} de {paginasTotales}</strong>
-      </div>
-
-      {/* Página 1 */}
+    <form
+      ref={formRef}
+      className="no-print"
+      onSubmit={handleSubmit}
+      style={{ marginBottom: "40px" }}
+    >
+      <SEO title="Contratos" />
+      <h1 style={{ textAlign: "center", marginBottom: "30px" }}>Editor de Contrato Individual de Trabajo</h1>
+      <div style={{
+        margin: "40px auto",
+        padding: "30px",
+        maxWidth: "900px",
+        backgroundColor: "#fff",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+      }}>
       {pagina === 1 && (
-        <>
-          <h3>Datos del Empleador/a</h3>
+        <div className="pagina-1">
+          <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>Datos del Empleador/a</h3>
           <div style={grid}>
             {renderFields({
-              nombreEntidad: { label: "Nombre de la entidad", placeholder: "Ej. ASERJUS" },
-              direccionEntidad: { label: "Dirección de la entidad", placeholder: "Ej. 5a Calle 4-20 Zona 1, Coatepeque" },
               nombreEmpleadora: { label: "Nombre completo de la empleador/a", placeholder: "Ej. Ingrid López Castillo" },
               edadEmpleadora: { label: "Edad de la empleador/a", placeholder: "Ej. 53" },
               sexoEmpleadora: { label: "Sexo de la empleador/a" },
@@ -229,13 +266,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
               dpiEmpleadora: { label: "Número de DPI de la empleador/a", placeholder: "Ej. 2598709940920" },
             })}
           </div>
-        </>
+        </div>
       )}
 
-      {/* Página 2 */}
       {pagina === 2 && (
-        <>
-          <h3>Datos de la Trabajador/a</h3>
+        <div className="pagina-2">
+          <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>Datos de la Trabajador/a</h3>
           <div style={grid}>
             {renderFields({
               nombreTrabajadora: { label: "Nombre completo de la trabajador/a", placeholder: "Ej. María Fernanda Pérez Ramírez" },
@@ -248,13 +284,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
               departamentoTrabajadora: { label: "Departamento", placeholder: "Ej. Quetzaltenango" },
             })}
           </div>
-        </>
+        </div>
       )}
 
-      {/* Página 3 */}
       {pagina === 3 && (
-        <>
-          <h3>Detalles del Contrato</h3>
+        <div className="pagina-3">
+          <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>Detalles del Contrato</h3>
           <div style={grid}>
             {renderFields({
               fechaInicio: { label: "Fecha de inicio del contrato" },
@@ -267,13 +302,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
               fechaContrato: { label: "Fecha de firma del contrato" },
             })}
           </div>
-        </>
+        </div>
       )}
 
-      {/* Página 4 */}
       {pagina === 4 && (
-        <>
-          <h3>Funciones principales a realizar</h3>
+        <div className="pagina-4">
+          <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>Funciones principales a realizar</h3>
           <div style={{ display: "flex", flexDirection: "column", marginBottom: "20px" }}>
             <label htmlFor="funciones" style={{ marginBottom: "4px", fontWeight: "bold" }}>
               Describa las funciones principales:
@@ -294,21 +328,31 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
               Imprimir Contrato
             </button>
           </div>
-        </>
+        </div>
       )}
 
-      {/* Navegación */}
       <div style={{ textAlign: "center", marginTop: "30px" }}>
-        {pagina > 1 && (
-          <button type="button" style={btnNav} onClick={() => setPagina(pagina - 1)}>
-            ← Anterior
-          </button>
-        )}
-        {pagina < paginasTotales && (
-          <button type="button" style={btnNav} onClick={() => setPagina(pagina + 1)}>
-            Siguiente →
-          </button>
-        )}
+          {pagina > 1 && (
+            <button
+              type="button"
+              style={btnNav}
+              onClick={() => setPagina(pagina - 1)}
+            >
+              ← Anterior
+            </button>
+          )}
+          {pagina < paginasTotales && (
+            <button
+              type="button"
+              style={btnNav}
+              onClick={() => {
+                if (validarPagina(pagina)) setPagina(pagina + 1);
+              }}
+            >
+              Siguiente →
+            </button>
+          )}
+        </div>
       </div>
     </form>
   );
