@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
-import ContratosForm from "./ContratoForm.jsx";
-import ContratosTable from "./ContratosTable.jsx";
 import ContratoEditor from "./ContratoEditor.jsx";
-
+import ContratoForm from "./ContratoForm.jsx";
+import { showToast } from "../../utils/toast.js";
+import { useReactToPrint } from "react-to-print";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -22,14 +22,41 @@ const ContratosContainer = () => {
     idusuario: 1,
     idhistorialpuesto: "",
   });
+
+  const [data, setData] = useState({
+    nombreEmpleadora: "",
+    edadEmpleadora: "",
+    sexoEmpleadora: "",
+    estadoCivilEmpleadora: "",
+    direccionEmpleadora: "",
+    dpiEmpleadora: "",
+    nombreEntidad: "",
+    direccionEntidad: "",
+    nombreTrabajadora: "",
+    edadTrabajadora: "",
+    sexoTrabajadora: "",
+    estadoCivilTrabajadora: "",
+    direccionTrabajadora: "",
+    dpiTrabajadora: "",
+    residenciaTrabajadora: "",
+    departamentoTrabajadora: "",
+    fechaInicio: "",
+    puesto: "",
+    funciones: "",
+    lugarServicios: "",
+    salario: "",
+    sueldoOrdinario: "",
+    bonificacion: "",
+    banco: "",
+    fechaContrato: "",
+  });
+
   const [mensaje, setMensaje] = useState("");
   const [rows, setRows] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
-  const onChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
-  };
+  // Aquí definimos el ref
+  const editorRef = useRef();
 
   const fetchList = async () => {
     try {
@@ -51,63 +78,20 @@ const ContratosContainer = () => {
     fetchList();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = { ...form };
-      if (editingId) {
-        await axios.put(`${API}/contratos/${editingId}/`, payload);
-        setMensaje("Contrato actualizado");
-      } else {
-        await axios.post(`${API}/contratos/`, payload);
-        setMensaje("Contrato registrado");
-      }
-      setForm({
-        fechainicio: "",
-        fechafirma: "",
-        fechafin: "",
-        tipocontrato: "",
-        estado: true,
-        idusuario: 1,
-        idhistorialpuesto: "",
-      });
-      setEditingId(null);
-      fetchList();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (e) {
-      console.error("Error guardar contrato:", e.response?.data || e);
-      setMensaje("Error al registrar/actualizar");
-    }
+
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEdit = (row) => {
-    setForm({
-      fechainicio: row.fechainicio ?? "",
-      fechafirma: row.fechafirma ?? "",
-      fechafin: row.fechafin ?? "",
-      tipocontrato: row.tipocontrato ?? "",
-      estado: !!row.estado,
-      idusuario: row.idusuario ?? 1,
-      idhistorialpuesto: row.idhistorialpuesto ?? "",
-    });
-    setEditingId(row.idcontrato);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const toggleEstado = async (row, nuevo) => {
-    try {
-      await axios.put(`${API}/contratos/${row.idcontrato}/`, {
-        ...row,
-        estado: nuevo,
-        idusuario: row.idusuario ?? 1,
-      });
-      setMensaje(nuevo ? "Activado" : "Desactivado");
-      fetchList();
-    } catch (e) {
-      console.error("Error:", e.response?.data || e);
-      setMensaje("No se pudo cambiar el estado");
-    }
-  };
+  const handlePrint = useReactToPrint({
+    content: () => editorRef.current || document.createElement("div"), // <-- protección
+    documentTitle: "Contrato Individual de Trabajo",
+    pageStyle: `
+      @page { margin: 2cm; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    `,
+  });
 
   return (
     <Layout>
@@ -119,10 +103,12 @@ const ContratosContainer = () => {
         <Header />
         <main style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5", paddingLeft: "250px" }}>
           <div style={{ maxWidth: 900, margin: "0 auto" }}>
+            <ContratoForm data={data} onChange={onChange} imprimirContrato={handlePrint} />
+
+            {/* Pasamos el ref al editor */}
             <ContratoEditor
-              rows={rows}
-              handleEdit={handleEdit}
-              toggleEstado={toggleEstado}
+              ref={editorRef}
+              data={data}
             />
           </div>
         </main>
