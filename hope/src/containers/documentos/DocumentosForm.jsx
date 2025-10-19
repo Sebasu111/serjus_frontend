@@ -130,27 +130,6 @@ const DocumentosForm = ({
                             ? "Sube un archivo solo si deseas reemplazar el existente."
                             : ""}
                     </small>
-                    {editingId && form.nombrearchivo && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setDocumentoAEliminar(editingId);
-                                setMostrarModalEliminar(true);
-                            }}
-                            style={{
-                                marginTop: "10px",
-                                background: "#FED7AA",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "6px",
-                                padding: "8px 12px",
-                                cursor: "pointer",
-                                width: "100%",
-                            }}
-                        >
-                            Eliminar archivo actual
-                        </button>
-                    )}
                 </div>
 
                 {/* 5. Fecha de subida */}
@@ -179,7 +158,7 @@ const DocumentosForm = ({
                         width: "100%",
                         padding: "10px",
                         background: "#219ebc",
-                        color: "#fff",
+                        color: "#000",
                         border: "none",
                         borderRadius: "6px",
                         cursor: "pointer",
@@ -187,6 +166,28 @@ const DocumentosForm = ({
                 >
                     {editingId ? "Actualizar" : "Guardar"}
                 </button>
+
+                {editingId && form.nombrearchivo && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDocumentoAEliminar(editingId);
+                                setMostrarModalEliminar(true);
+                            }}
+                            style={{
+                                marginTop: "10px",
+                                background: "#FCA5A5",
+                                color: "#000",
+                                border: "none",
+                                borderRadius: "6px",
+                                padding: "8px 12px",
+                                cursor: "pointer",
+                                width: "100%",
+                            }}
+                        >
+                            Eliminar archivo actual
+                        </button>
+                    )}
             </form>
 
             <button

@@ -47,7 +47,7 @@ const ModalEliminarArchivo = ({
                             setMostrarModalEliminar(false);
                         }}
                         style={{
-                            background: "#FED7AA",
+                            background: "#fb8500",
                             color: "#fff",
                             border: "none",
                             borderRadius: "6px",

@@ -7,8 +7,7 @@ import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 import ContratoEditor from "./ContratoEditor.jsx";
 import ContratoForm from "./ContratoForm.jsx";
-import { showToast } from "../../utils/toast.js";
-import { useReactToPrint } from "react-to-print";
+import html2pdf from "html2pdf.js";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -84,14 +83,47 @@ const ContratosContainer = () => {
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePrint = useReactToPrint({
-    content: () => editorRef.current || document.createElement("div"), // <-- protección
-    documentTitle: "Contrato Individual de Trabajo",
-    pageStyle: `
-      @page { margin: 2cm; }
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    `,
-  });
+  const handlePrint = () => {
+    const content = document.getElementById("printable");
+    if (!content) return;
+
+    // Guardamos los estilos originales
+    const inputs = content.querySelectorAll(".input-field");
+    const originalStyles = [];
+    inputs.forEach((el, i) => {
+      originalStyles[i] = {
+        background: el.style.background,
+        border: el.style.border,
+        boxShadow: el.style.boxShadow,
+        padding: el.style.padding
+      };
+      el.style.background = "transparent";
+      el.style.border = "none";
+      el.style.boxShadow = "none";
+      el.style.padding = "0";
+    });
+
+    const opt = {
+      margin: [20, 20, 20, 20],
+      filename: "Contrato_Individual_de_Trabajo.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+    };
+
+    html2pdf().set(opt).from(content).save().finally(() => {
+      // Restauramos estilos originales
+      inputs.forEach((el, i) => {
+        el.style.background = originalStyles[i].background;
+        el.style.border = originalStyles[i].border;
+        el.style.boxShadow = originalStyles[i].boxShadow;
+        el.style.padding = originalStyles[i].padding;
+      });
+    });
+  };
+
+
 
   return (
     <Layout>

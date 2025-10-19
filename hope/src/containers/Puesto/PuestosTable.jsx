@@ -1,16 +1,15 @@
 import React from "react";
 import { showToast } from "../../utils/toast.js";
+import { buttonStyles } from "../../stylesGenerales/buttons.js"; 
 
 const PuestosTable = ({
   puestos,
   onAsignarSalario,
-  onToggleEstado,
   paginaActual,
   setPaginaActual,
   totalPaginas,
 }) => {
   return (
-    // Contenedor principal centrado en pantalla
     <div
       style={{
         display: "flex",
@@ -19,7 +18,6 @@ const PuestosTable = ({
         background: "#f0f2f5",
       }}
     >
-      {/* Cuadro blanco */}
       <div
         style={{
           paddingLeft: "250px",
@@ -28,11 +26,10 @@ const PuestosTable = ({
           padding: "20px 25px",
           boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
           maxHeight: "600px",
-          width: "fit-content", // 🔹 se ajusta al contenido
+          width: "fit-content",
           minWidth: "1100px",
         }}
       >
-        {/* Contenedor de la tabla centrada */}
         <div style={{ display: "flex", justifyContent: "center" }}>
           <table
             style={{
@@ -91,41 +88,9 @@ const PuestosTable = ({
                             }
                             onAsignarSalario(puesto);
                           }}
-                          style={{
-                            background: "#FED7AA",
-                            color: "#7C2D12",
-                            border: "none",
-                            padding: "10px 18px",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            transition: "0.2s ease",
-                            whiteSpace: "nowrap",
-                          }}
+                          style={{ ...buttonStyles.base, ...buttonStyles.editarActivo }}
                         >
                           Asignar Salario
-                        </button>
-
-                        <button
-                          onClick={() => onToggleEstado(puesto)}
-                          style={{
-                            background: puesto.estado ? "#F87171" : "#38b000",
-                            color: "#fff",
-                            border: "none",
-                            padding: "10px 18px",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            transition: "0.2s ease",
-                            whiteSpace: "nowrap",
-                          }}
-                          onMouseLeave={(e) =>
-                            (e.target.style.background = puesto.estado ? "#F87171" : "#38b000")
-                          }
-                        >
-                          {puesto.estado ? "Desactivar" : "Activar"}
                         </button>
                       </div>
                     </td>
@@ -142,20 +107,17 @@ const PuestosTable = ({
           </table>
         </div>
 
-        {/* PAGINACIÓN siempre debajo de la tabla */}
+        {/* PAGINACIÓN */}
         <div style={{ marginTop: "20px", textAlign: "center" }}>
           {Array.from({ length: totalPaginas }, (_, i) => (
             <button
               key={i + 1}
               onClick={() => setPaginaActual(i + 1)}
               style={{
-                margin: "0 5px",
-                padding: "6px 12px",
-                border: "1px solid #219ebc",
-                background: paginaActual === i + 1 ? "#219ebc" : "#fff",
-                color: paginaActual === i + 1 ? "#fff" : "#219ebc",
-                borderRadius: "5px",
-                cursor: "pointer",
+                ...buttonStyles.paginacion.base,
+                ...(paginaActual === i + 1
+                  ? buttonStyles.paginacion.activo
+                  : buttonStyles.paginacion.inactivo),
               }}
             >
               {i + 1}

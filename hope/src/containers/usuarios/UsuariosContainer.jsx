@@ -128,10 +128,6 @@ const UsuariosContainer = () => {
       }
 
       if (editingUsuario) {
-        if (editingUsuario.idusuario === idUsuarioLogueado) {
-          showToast("No puedes editar tu propio usuario desde aquí", "error");
-          return;
-        }
         await axios.put(`${API}${editingUsuario.idusuario}/`, payload);
         showToast("Usuario actualizado correctamente", "success");
       } else {
@@ -151,26 +147,24 @@ const UsuariosContainer = () => {
   };
 
   // --- Editar usuario ---
-  const handleEdit = (usuario) => {
-    if (!usuario.estado) {
-      showToast("No se puede editar un usuario inactivo", "error");
-      return;
-    }
-    if (usuario.idusuario === idUsuarioLogueado) {
-      showToast("No puedes editar tu propio usuario desde aquí", "error");
-      return;
-    }
-    setForm({
-      nombreusuario: usuario.nombreusuario,
-      contrasena: "",
-      estado: usuario.estado,
-      idrol: usuario.idrol,
-      idempleado: usuario.idempleado,
-    });
-    setEditingUsuario(usuario);
-    setCambiarContrasena(false);
-    setMostrarFormulario(true);
-  };
+ const handleEdit = (usuario) => {
+  if (!usuario.estado) {
+    showToast("No se puede editar un usuario desactivado", "error");
+    return;
+  }
+
+  setForm({
+    nombreusuario: usuario.nombreusuario,
+    contrasena: "",
+    estado: usuario.estado,
+    idrol: usuario.idrol,
+    idempleado: usuario.idempleado,
+  });
+  setEditingUsuario(usuario);
+  setCambiarContrasena(false);
+  setMostrarFormulario(true);
+};
+
 
   // --- Desactivar usuario ---
   const handleDelete = (id) => {
