@@ -1,40 +1,51 @@
 // components/usuarios/ModalConfirmacion.jsx
 import React from "react";
+import ModalConfirmacionStyles from "../../stylesGenerales/ConfirmModalStyles";
 
-const ModalConfirmacion = ({ mostrarConfirmacion, setMostrarConfirmacion, usuarioSeleccionado, confirmarDesactivacion }) => {
+const ModalConfirmacion = ({
+  usuarioSeleccionado,
+  mostrarConfirmacion,
+  setMostrarConfirmacion,
+  confirmarDesactivacion,
+  modo = "desactivar",
+}) => {
   if (!mostrarConfirmacion) return null;
 
+  const esActivar = modo === "activar";
+  const titulo = esActivar ? "Confirmar activación" : "Confirmar desactivación";
+  const mensaje = esActivar
+    ? "¿Seguro que deseas activar al usuario "
+    : "¿Seguro que deseas desactivar al usuario ";
+  const botonColor = esActivar ? "#34D399" : "#FCA5A5";
+  const botonTexto = esActivar ? "Sí, activar" : "Sí, desactivar";
+
   return (
-    <div
-      style={{
-        paddingLeft: "250px",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        background: "rgba(0,0,0,0.4)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 2000,
-      }}
-    >
-      <div style={{ background: "#fff", padding: "30px", borderRadius: "10px", boxShadow: "0 4px 15px rgba(0,0,0,0.2)", textAlign: "center", width: "350px" }}>
-        <h3 style={{ marginBottom: "15px", color: "#333" }}>Confirmar desactivación</h3>
-        <p style={{ marginBottom: "25px", color: "#555" }}>
-          ¿Seguro que deseas desactivar al usuario <strong>{usuarioSeleccionado?.nombreusuario}</strong>?
+    <div style={ModalConfirmacionStyles.overlay}>
+      <div style={ModalConfirmacionStyles.modal}>
+        <h3 style={ModalConfirmacionStyles.titulo}>{titulo}</h3>
+        <p style={ModalConfirmacionStyles.mensaje}>
+          {mensaje}
+          <strong>{usuarioSeleccionado?.nombreusuario}</strong>?
         </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
+        <div style={ModalConfirmacionStyles.botonesContainer}>
           <button
             onClick={confirmarDesactivacion}
-            style={{ background: "#FED7AA", color: "#fff", padding: "10px 20px", border: "none", borderRadius: "8px", cursor: "pointer" }}
+            style={{
+              ...ModalConfirmacionStyles.boton,
+              background: botonColor,
+              color: "#000",
+              cursor: "pointer",
+            }}
           >
-            Sí, desactivar
+            {botonTexto}
           </button>
           <button
             onClick={() => setMostrarConfirmacion(false)}
-            style={{ background: "#6c757d", color: "#fff", padding: "10px 20px", border: "none", borderRadius: "8px", cursor: "pointer" }}
+            style={{
+              ...ModalConfirmacionStyles.botonCancelar,
+              color: "#000",
+              cursor: "pointer",
+            }}
           >
             Cancelar
           </button>

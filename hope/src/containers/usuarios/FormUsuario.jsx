@@ -1,5 +1,4 @@
-// components/usuarios/FormUsuario.jsx
-import React, { useState } from "react";
+import React from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 
 const FormUsuario = ({
@@ -51,7 +50,15 @@ const FormUsuario = ({
             value={form.nombreusuario}
             onChange={(e) => setForm((f) => ({ ...f, nombreusuario: e.target.value }))}
             required
-            style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+            disabled={!!editingUsuario}
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+              background: editingUsuario ? "#f0f0f0" : "#fff",
+              cursor: editingUsuario ? "not-allowed" : "text",
+            }}
           />
         </div>
 
@@ -135,21 +142,29 @@ const FormUsuario = ({
               </button>
             </div>
           )}
+        </div>
 
-          {/* Rol */}
-          <div style={{ marginBottom: "15px" }}>
-            <label htmlFor="rol" style={{ display: "block", marginBottom: "8px" }}>Rol</label>
-            <select
-              id="rol"
-              value={form.idrol}
-              onChange={(e) => setForm((f) => ({ ...f, idrol: e.target.value }))}
-              required
-              style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
-            >
-              <option value="">Seleccione un rol</option>
-              {roles.map((r) => <option key={r.idrol} value={r.idrol}>{r.nombrerol}</option>)}
-            </select>
-          </div>
+        {/* Rol */}
+        <div style={{ marginBottom: "15px" }}>
+          <label htmlFor="rol" style={{ display: "block", marginBottom: "8px" }}>Rol</label>
+          <select
+            id="rol"
+            value={form.idrol}
+            onChange={(e) => setForm((f) => ({ ...f, idrol: e.target.value }))}
+            required
+            disabled={!!editingUsuario}
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+              background: editingUsuario ? "#f0f0f0" : "#fff",
+              cursor: editingUsuario ? "not-allowed" : "pointer",
+            }}
+          >
+            <option value="">Seleccione un rol</option>
+            {roles.map((r) => <option key={r.idrol} value={r.idrol}>{r.nombrerol}</option>)}
+          </select>
         </div>
 
         {/* Empleado */}
@@ -160,28 +175,40 @@ const FormUsuario = ({
             placeholder="Escriba nombre del empleado..."
             value={busquedaEmpleado}
             onChange={(e) => {
-              setBusquedaEmpleado(e.target.value);
-              setForm((f) => ({ ...f, idempleado: "" }));
+              if (!editingUsuario) {
+                setBusquedaEmpleado(e.target.value);
+                setForm((f) => ({ ...f, idempleado: "" }));
+              }
             }}
-            style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+            disabled={!!editingUsuario}
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+              background: editingUsuario ? "#f0f0f0" : "#fff",
+              cursor: editingUsuario ? "not-allowed" : "text",
+            }}
           />
-          <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: "150px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "6px" }}>
-            {empleados
-              .filter(emp => !usuarios.some(u => u.idempleado === emp.idempleado && (!editingUsuario || u.idusuario !== editingUsuario.idusuario)))
-              .filter(emp => `${emp.nombre} ${emp.apellido}`.toLowerCase().includes(busquedaEmpleado.toLowerCase()))
-              .map(emp => (
-                <li
-                  key={emp.idempleado}
-                  onClick={() => {
-                    setForm((f) => ({ ...f, idempleado: emp.idempleado }));
-                    setBusquedaEmpleado(`${emp.nombre} ${emp.apellido}`);
-                  }}
-                  style={{ padding: "8px 10px", cursor: "pointer", background: form.idempleado === emp.idempleado ? "#f0f0f0" : "#fff" }}
-                >
-                  {emp.nombre} {emp.apellido}
-                </li>
-              ))}
-          </ul>
+          {!editingUsuario && (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: "150px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "6px" }}>
+              {empleados
+                .filter(emp => !usuarios.some(u => u.idempleado === emp.idempleado && (!editingUsuario || u.idusuario !== editingUsuario.idusuario)))
+                .filter(emp => `${emp.nombre} ${emp.apellido}`.toLowerCase().includes(busquedaEmpleado.toLowerCase()))
+                .map(emp => (
+                  <li
+                    key={emp.idempleado}
+                    onClick={() => {
+                      setForm((f) => ({ ...f, idempleado: emp.idempleado }));
+                      setBusquedaEmpleado(`${emp.nombre} ${emp.apellido}`);
+                    }}
+                    style={{ padding: "8px 10px", cursor: "pointer", background: form.idempleado === emp.idempleado ? "#f0f0f0" : "#fff" }}
+                  >
+                    {emp.nombre} {emp.apellido}
+                  </li>
+                ))}
+            </ul>
+          )}
         </div>
 
         <button type="submit" style={{ width: "100%", padding: "10px", background: "#219ebc", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer" }}>
@@ -201,4 +228,3 @@ const FormUsuario = ({
 };
 
 export default FormUsuario;
- 

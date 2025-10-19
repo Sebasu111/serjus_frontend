@@ -10,7 +10,7 @@ import { ToastContainer } from "react-toastify";
 
 import DocumentosTable from "./DocumentosTable.jsx";
 import DocumentosForm from "./DocumentosForm.jsx";
-import ModalDesactivarArchivo from "./ModalEliminarArchivo.jsx";
+import ModalEliminarArchivo from "./ModalEliminarArchivo.jsx";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -31,8 +31,8 @@ const DocumentosContainer = () => {
     const [empleados, setEmpleados] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
-    const [mostrarModalDesactivar, setMostrarModalDesactivar] = useState(false);
-    const [documentoADesactivar, setDocumentoADesactivar] = useState(null);
+    const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
+    const [documentoAEliminar, setDocumentoAEliminar] = useState(null);
 
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
@@ -239,12 +239,12 @@ const DocumentosContainer = () => {
 
             setEditingId(null);
             setMostrarFormulario(false);
-            setDocumentoADesactivar(null);
+            setDocumentoAEliminar(null);
 
             fetchDocumentos();
         } catch (error) {
-            console.error("Error al Desactivar archivo:", error.response?.data || error);
-            showToast("No se pudo Desactivar el archivo", "error");
+            console.error("Error al eliminar archivo:", error.response?.data || error);
+            showToast("No se pudo eliminar el archivo", "error");
         }
     };
 
@@ -430,15 +430,15 @@ const DocumentosContainer = () => {
                     handleSubmit={handleSubmit}
                     editingId={editingId}
                     setMostrarFormulario={setMostrarFormulario}
-                    setMostrarModalDesactivar={setMostrarModalDesactivar}
-                    setDocumentoADesactivar={setDocumentoADesactivar}
+                    setMostrarModalEliminar={setMostrarModalEliminar}
+                    setDocumentoAEliminar={setDocumentoAEliminar}
                 />
             )}
 
-            <ModalDesactivarArchivo
-                mostrarModalDesactivar={mostrarModalDesactivar}
-                setMostrarModalDesactivar={setMostrarModalDesactivar}
-                documentoADesactivar={documentoADesactivar}
+            <ModalEliminarArchivo
+                mostrarModalEliminar={mostrarModalEliminar}
+                setMostrarModalEliminar={setMostrarModalEliminar}
+                documentoAEliminar={documentoAEliminar}
                 handleDeleteArchivo={handleDeleteArchivo}
             />
 

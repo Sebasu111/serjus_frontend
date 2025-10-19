@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { comboBoxStyles } from "../../stylesGenerales/combobox";
 
 const DocumentosTable = ({
     documentosPaginados,
@@ -10,28 +11,14 @@ const DocumentosTable = ({
     setPaginaActual,
     totalPaginas,
 }) => {
+    const [openComboId, setOpenComboId] = useState(null);
+
     const thStyle = {
         borderBottom: "2px solid #eee",
         padding: "10px",
         textAlign: "left",
     };
     const tdStyle = { padding: "10px", borderBottom: "1px solid #f0f0f0" };
-    const btnStyleDescargar = {
-        padding: "6px 14px",
-        background: "#219ebc",
-        color: "#fff",
-        borderRadius: "5px",
-        border: "none",
-        cursor: "pointer",
-    };
-    const btnStyleEditar = {
-        padding: "6px 14px",
-        background: "#FED7AA",
-        color: "#7C2D12",
-        borderRadius: "5px",
-        border: "none",
-        cursor: "pointer",
-    };
 
     const formatDate = (dateStr) => {
         if (!dateStr) return "-";
@@ -102,23 +89,49 @@ const DocumentosTable = ({
                                             style={{
                                                 display: "flex",
                                                 justifyContent: "center",
-                                                gap: "8px",
+                                                position: "relative",
                                             }}
                                         >
-                                            <button
-                                                onClick={() =>
-                                                    downloadFile(d.archivo_url, d.nombrearchivo)
-                                                }
-                                                style={btnStyleDescargar}
-                                            >
-                                                Descargar
-                                            </button>
-                                            <button
-                                                onClick={() => handleEdit(d)}
-                                                style={btnStyleEditar}
-                                            >
-                                                Editar
-                                            </button>
+                                            {/* Combobox */}
+                                            <div style={comboBoxStyles.container}>
+                                                <button
+                                                    style={comboBoxStyles.button.base}
+                                                    onClick={() =>
+                                                        setOpenComboId(
+                                                            openComboId === d.iddocumento
+                                                                ? null
+                                                                : d.iddocumento
+                                                        )
+                                                    }
+                                                >
+                                                    Acciones ▾
+                                                </button>
+                                                {openComboId === d.iddocumento && (
+                                                    <div style={comboBoxStyles.menu.container}>
+                                                        <div
+                                                            style={comboBoxStyles.menu.item.editar.base}
+                                                            onClick={() => {
+                                                                handleEdit(d);
+                                                                setOpenComboId(null);
+                                                            }}
+                                                        >
+                                                            Editar
+                                                        </div>
+                                                        <div
+                                                            style={comboBoxStyles.menu.item.activar.base}
+                                                            onClick={() => {
+                                                                downloadFile(
+                                                                    d.archivo_url,
+                                                                    d.nombrearchivo
+                                                                );
+                                                                setOpenComboId(null);
+                                                            }}
+                                                        >
+                                                            Descargar
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </td>

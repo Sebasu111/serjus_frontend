@@ -1,4 +1,5 @@
-const ConfirmModalStyles = {
+// stylesGenerales/ModalConfirmacionStyles.js
+const ModalConfirmacionStyles = {
   overlay: {
     paddingLeft: "250px",
     position: "fixed",
@@ -22,11 +23,11 @@ const ConfirmModalStyles = {
   },
   titulo: {
     marginBottom: "15px",
-    color: "#333",
+    color: "#000",
   },
   mensaje: {
     marginBottom: "25px",
-    color: "#555",
+    color: "#000",
   },
   botonesContainer: {
     display: "flex",
@@ -34,7 +35,6 @@ const ConfirmModalStyles = {
     gap: "15px",
   },
   boton: {
-    color: "#fff",
     padding: "10px 20px",
     border: "none",
     borderRadius: "8px",
@@ -42,7 +42,6 @@ const ConfirmModalStyles = {
   },
   botonCancelar: {
     background: "#d1d5db",
-    color: "#fff",
     padding: "10px 20px",
     border: "none",
     borderRadius: "8px",
@@ -50,4 +49,4 @@ const ConfirmModalStyles = {
   },
 };
 
-export default ConfirmModalStyles;
+export default ModalConfirmacionStyles;
