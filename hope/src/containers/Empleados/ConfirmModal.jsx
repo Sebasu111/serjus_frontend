@@ -1,64 +1,46 @@
 import React from "react";
+// ✅ mismo style object que usa Idiomas
+import ConfirmModalStyles from "../../stylesGenerales/ConfirmModalStyles";
 
-const ConfirmModal = ({ empleado, onConfirm, onCancel }) => (
-    <div
-        style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 2000,
-        }}
-    >
-        <div
-            style={{
-                background: "#fff",
-                padding: "30px",
-                borderRadius: "10px",
-                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-                textAlign: "center",
-                width: "380px",
-            }}
-        >
-            <h3 style={{ marginBottom: 15, color: "#333" }}>Confirmar desactivación</h3>
-            <p style={{ marginBottom: 25, color: "#555" }}>
-                ¿Seguro que deseas desactivar al empleado <strong>{empleado?.nombre} {empleado?.apellido}</strong>?
-            </p>
-            <div style={{ display: "flex", justifyContent: "center", gap: 15 }}>
-                <button
-                    onClick={onConfirm}
-                    style={{
-                        background: "#FCA5A5",            // rojo pastel
-                        border: "1px solid #F87171",
-                        color: "#7F1D1D",
-                        padding: "10px 20px",
-                        borderRadius: 8,
-                        cursor: "pointer",
-                        fontWeight: 600,
-                    }}
-                >
-                    Sí, desactivar
-                </button>
-                <button
-                    onClick={onCancel}
-                    style={{
-                        background: "#6c757d",
-                        color: "#fff",
-                        padding: "10px 20px",
-                        border: "none",
-                        borderRadius: 8,
-                        cursor: "pointer",
-                    }}
-                >
-                    Cancelar
-                </button>
+/**
+ * Modal de confirmación para Empleados.
+ * Soporta activar y desactivar (igual que Idiomas).
+ * mode: "activar" | "desactivar"
+ */
+const ConfirmModal = ({ empleado, mode = "desactivar", onConfirm, onCancel }) => {
+    const isActivar = mode === "activar";
+    const titulo = isActivar ? "Confirmar activación" : "Confirmar desactivación";
+    const textoAccion = isActivar ? "activar" : "desactivar";
+
+    return (
+        <div style={ConfirmModalStyles.overlay}>
+            <div style={ConfirmModalStyles.modal}>
+                <h3 style={ConfirmModalStyles.titulo}>{titulo}</h3>
+                <p style={ConfirmModalStyles.mensaje}>
+                    ¿Seguro que deseas {textoAccion} al empleado{" "}
+                    <strong>
+                        {empleado?.nombre} {empleado?.apellido}
+                    </strong>
+                    ?
+                </p>
+                <div style={ConfirmModalStyles.botonesContainer}>
+                    <button
+                        onClick={onConfirm}
+                        style={{
+                            ...ConfirmModalStyles.boton,
+                            background: isActivar ? "#86efac" : "#FCA5A5",
+                            color: "#111827"
+                        }}
+                    >
+                        Sí, {isActivar ? "activar" : "desactivar"}
+                    </button>
+                    <button onClick={onCancel} style={ConfirmModalStyles.botonCancelar}>
+                        Cancelar
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default ConfirmModal;
