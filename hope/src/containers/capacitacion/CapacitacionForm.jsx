@@ -1,5 +1,6 @@
 // CapacitacionForm.jsx
 import React from "react";
+import { X } from "lucide-react";
 
 const CapacitacionForm = ({
   formData,
@@ -9,6 +10,7 @@ const CapacitacionForm = ({
   capacitacionActivaEditando,
   setMostrarFormulario,
   handleSubmit,
+  onClose,
 }) => {
   return (
     <div
@@ -107,8 +109,8 @@ const CapacitacionForm = ({
           style={{
             width: "100%",
             padding: "10px",
-            background: "#FED7AA",
-            color: "#fff",
+            background: "#E5E7EB",
+            color: "#0A0A0A",
             border: "none",
             borderRadius: "6px",
             cursor: "pointer",
@@ -118,20 +120,19 @@ const CapacitacionForm = ({
           {editingId ? "Actualizar" : "Guardar"}
         </button>
       </form>
-
       <button
-        onClick={() => setMostrarFormulario(false)}
+        onClick={onClose}
         style={{
-          marginTop: "10px",
-          padding: "10px",
-          background: "#6c757d",
-          color: "#fff",
+          position: "absolute",
+          top: "10px",
+          right: "15px",
+          background: "transparent",
           border: "none",
-          borderRadius: "6px",
           cursor: "pointer",
         }}
+        title="Cerrar"
       >
-        Cerrar
+        <X size={24} color="#555" />
       </button>
     </div>
   );

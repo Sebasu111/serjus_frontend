@@ -13,6 +13,10 @@ import "swiper/components/navigation/navigation.scss";
 import "swiper/components/pagination/pagination.scss";
 import "lightgallery.js/dist/css/lightgallery.css";
 
+
+//formulario
+import FormUsuario from "../src/containers/usuarios/FormUsuario"
+
 // Páginas principales
 import HomePage from "./pages/Inicio";
 import LoginPage from "./pages/LoginPage";
@@ -116,6 +120,9 @@ const App = () => {
                 <Switch>
                     {/*Perfil*/}
                     <Route exact path={`${base}/perfil`} component={PerfilContainer} />
+
+                    {/*Cambiar Contraseña*/}
+                    <Route exact path={`${base}/cambiar-contrasena`} component={FormUsuario} />
 
                     {/*PÁGINAS PÚBLICAS*/}
                     <Route exact path={`${base}/`} component={LoginPage} />

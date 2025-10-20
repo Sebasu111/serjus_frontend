@@ -24,7 +24,7 @@ const AsistenciaModal = ({
     fechasubida: new Date().toISOString().split("T")[0],
   });
 
-  // ✅ Fetch tipos de documento
+  //   Fetch tipos de documento
   const fetchTiposDocumento = async () => {
     try {
       const r = await axios.get(`${API}/tipodocumento/`);
@@ -41,7 +41,7 @@ const AsistenciaModal = ({
     }
   };
 
-  // ✅ Fetch empleados
+  //   Fetch empleados
   const fetchEmpleados = async () => {
     try {
       const r = await axios.get(`${API}/empleados/`);
@@ -58,7 +58,7 @@ const AsistenciaModal = ({
     }
   };
 
-  // ✅ Ejecutamos los fetch solo cuando se abre el modal
+  //   Ejecutamos los fetch solo cuando se abre el modal
   useEffect(() => {
     if (show) {
       fetchTiposDocumento();
@@ -66,13 +66,13 @@ const AsistenciaModal = ({
     }
   }, [show]);
 
-  // ✅ Asistencia confirmada
+  //   Asistencia confirmada
   const handleAsistio = () => {
     onGuardar(capacitacion.idempleadocapacitacion, true, "");
     onClose();
   };
 
-  // ✅ Justificar inasistencia
+  //   Justificar inasistencia
   const handleJustificar = (e) => {
     e.preventDefault();
     if (
@@ -98,7 +98,7 @@ const AsistenciaModal = ({
   // ⛔ Si el modal está cerrado, no renderizamos nada
   if (!show) return null;
 
-  // ✅ Renderizado principal
+  //   Renderizado principal
   return (
     <div
       style={{

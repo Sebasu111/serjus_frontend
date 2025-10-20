@@ -8,6 +8,7 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
 import { ToastContainer } from "react-toastify";
+import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 import CapacitacionForm from "./CapacitacionForm";
 import CapacitacionesTable from "./CapacitacionTable.jsx";
@@ -160,6 +161,20 @@ const CapacitacionContainer = () => {
     }
   };
 
+  const handleCloseFormulario = () => {
+    setMostrarFormulario(false);
+    setFormData({
+      nombreEvento: "",
+      lugar: "",
+      fechaInicio: "",
+      fechaFin: "",
+      institucion: "",
+      monto: "",
+    });
+    setEditingId(null);
+    setCapacitacionActivaEditando(true);
+  };
+
   // Filtrado y paginación
     const capacitacionesFiltradas = capacitaciones.filter((c) => {
     const textoBusqueda = busqueda.toLowerCase();
@@ -189,17 +204,33 @@ const CapacitacionContainer = () => {
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <Header />
           <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-            <div style={{ maxWidth: "1000px", margin: "0 auto", paddingLeft: "250px" }}>
+            <div style={{ maxWidth: "1400px", margin: "0 auto", paddingLeft: "250px" }}>
               <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Capacitaciones Registradas</h2>
 
-              <div style={{ display: "flex", marginBottom: "15px", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "10px", marginBottom: "15px", alignItems: "center", flexWrap: "wrap" }}>
                 <input
                   type="text"
                   placeholder="Buscar capacitación..."
                   value={busqueda}
                   onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }}
-                  style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                />
+                  style={buttonStyles.buscador}
+                /> 
+                <button
+                  onClick={() => setMostrarFormulario(true)}
+                  style={buttonStyles.nuevo}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#219ebc")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#219ebc")}
+                >
+                  Nueva Capacitación
+                </button>
+                <button
+                  onClick={() => setMostrarAsignacion(true)}
+                  style={{ ...buttonStyles.nuevo, background: "#219ebc", color: "#fff" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#219ebc")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#219ebc")}
+                >
+                  Asignar Capacitación
+                </button>
               </div>
 
               <CapacitacionesTable
@@ -211,39 +242,6 @@ const CapacitacionContainer = () => {
                 totalPaginas={totalPaginas}
                 setPaginaActual={setPaginaActual}
               />
-
-              <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", gap: "15px" }}>
-                <button
-                  onClick={() => setMostrarFormulario(true)}
-                  style={{
-                    padding: "10px 25px",
-                    background: "#219ebc",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  Nueva Capacitación
-                </button>
-                <button
-                  onClick={() => setMostrarAsignacion(true)}
-                  style={{
-                    padding: "10px 25px",
-                    background: "#FED7AA",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  Asignar Capacitación
-                </button>
-              </div>
 
               <div style={{ marginTop: "20px", textAlign: "center" }}>
                 <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
@@ -275,6 +273,7 @@ const CapacitacionContainer = () => {
             capacitacionActivaEditando={capacitacionActivaEditando}
             setMostrarFormulario={setMostrarFormulario}
             handleSubmit={handleSubmit}
+            onClose={handleCloseFormulario}
           />
         )}
 
