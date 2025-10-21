@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { X } from "lucide-react";
 
 const displayName = (emp) => {
@@ -15,17 +15,11 @@ const displayName = (emp) => {
     ]
         .map((s) => (typeof s === "string" ? s.trim() : ""))
         .filter(Boolean);
-
     if (candidates[0]) return candidates[0];
-
-    const id =
-        emp?.idEmpleado ?? emp?.idempleado ?? emp?.id ?? emp?.pk ?? emp?.uuid ?? emp?.codigo ?? "?";
+    const id = emp?.idEmpleado ?? emp?.idempleado ?? emp?.id ?? emp?.pk ?? emp?.uuid ?? emp?.codigo ?? "?";
     return `Empleado #${id}`;
 };
-
-const empId = (emp) =>
-    emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
-
+const empId = (emp) => emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
 const eqId = (eq) => eq.id ?? eq.idEquipo ?? eq.pk;
 
 const EquipoForm = ({
@@ -41,44 +35,77 @@ const EquipoForm = ({
     loadingMiembros = false,
     handleSubmit,
     onClose,
+    ocupadosSet = new Set(), // empleados ocupados globalmente
+    originales = { coord: null, miembros: [] }, // permitidos aunque estén ocupados
 }) => {
     const [qCoord, setQCoord] = useState("");
     const [qMiembro, setQMiembro] = useState("");
+    const [openCoordMenu, setOpenCoordMenu] = useState(false);
+
+    const wrapperRef = useRef(null);
+    useEffect(() => {
+        const onClick = (e) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpenCoordMenu(false);
+        };
+        document.addEventListener("mousedown", onClick);
+        return () => document.removeEventListener("mousedown", onClick);
+    }, []);
+
+    const equipoSel = useMemo(() => equipos.find((eq) => Number(eqId(eq)) === Number(idEquipo)), [equipos, idEquipo]);
+    const nombreEquipo = equipoSel?.nombre ?? equipoSel?.nombreEquipo ?? `Equipo #${idEquipo}`;
 
     const empleadosOrdenados = useMemo(
-        () =>
-            [...empleados].sort((a, b) =>
-                displayName(a).localeCompare(displayName(b), "es", { sensitivity: "base" })
-            ),
+        () => [...empleados].sort((a, b) => displayName(a).localeCompare(displayName(b), "es", { sensitivity: "base" })),
         [empleados]
     );
 
+    // set de “originales” del equipo que se edita
+    const permitidosActuales = useMemo(() => {
+        const set = new Set();
+        if (originales?.coord != null) set.add(Number(originales.coord));
+        (originales?.miembros || []).forEach((m) => set.add(Number(m)));
+        return set;
+    }, [originales]);
+
+    const estaOcupadoGlobal = (id) => ocupadosSet.has(Number(id)) && !permitidosActuales.has(Number(id));
+
+    // Coordinador: combobox con búsqueda integrada
     const opcionesCoord = useMemo(() => {
         const t = qCoord.trim().toLowerCase();
-        return empleadosOrdenados.filter((e) => displayName(e).toLowerCase().includes(t));
-    }, [empleadosOrdenados, qCoord]);
+        return empleadosOrdenados.filter((e) => {
+            const id = empId(e);
+            if (estaOcupadoGlobal(id)) return false;
+            return displayName(e).toLowerCase().includes(t);
+        });
+    }, [empleadosOrdenados, qCoord, ocupadosSet, permitidosActuales]);
 
+    const seleccionarCoordinador = (id) => {
+        setIdCoordinador(Number(id));
+        setOpenCoordMenu(false);
+    };
+
+    // Miembros: excluye coordinador, actuales y TODOS los ocupados globales (salvo originales del equipo)
     const opcionesMiembro = useMemo(() => {
         const t = qMiembro.trim().toLowerCase();
         const setActuales = new Set(miembros.map(Number));
         return empleadosOrdenados.filter((e) => {
-            const id = empId(e);
-            return (
-                displayName(e).toLowerCase().includes(t) &&
-                id !== Number(idCoordinador) &&
-                !setActuales.has(Number(id))
-            );
+            const id = Number(empId(e));
+            if (id === Number(idCoordinador)) return false;
+            if (setActuales.has(id)) return false;
+            if (estaOcupadoGlobal(id)) return false;
+            return displayName(e).toLowerCase().includes(t);
         });
-    }, [empleadosOrdenados, qMiembro, idCoordinador, miembros]);
+    }, [empleadosOrdenados, qMiembro, idCoordinador, miembros, ocupadosSet, permitidosActuales]);
 
     const maxAcompanantes = 6;
-
     const quitarMiembro = (id) => setMiembros(miembros.filter((x) => Number(x) !== Number(id)));
     const agregarMiembro = (id) => {
-        if (Number(id) === Number(idCoordinador)) return;
-        if (miembros.includes(Number(id))) return;
+        id = Number(id);
+        if (id === Number(idCoordinador)) return;
+        if (miembros.includes(id)) return;
         if (miembros.length >= maxAcompanantes) return;
-        setMiembros([...miembros, Number(id)]);
+        if (estaOcupadoGlobal(id)) return;
+        setMiembros([...miembros, id]);
     };
     const vaciarMiembros = () => setMiembros([]);
 
@@ -101,68 +128,92 @@ const EquipoForm = ({
                     overflow: "auto",
                     background: "#fff",
                     boxShadow: "0 0 30px rgba(0,0,0,0.25)",
-                    padding: "28px",
-                    borderRadius: "14px",
+                    padding: 28,
+                    borderRadius: 12,
+                    position: "relative",
                 }}
+                ref={wrapperRef}
             >
-                <h2 style={{ textAlign: "center", marginTop: 0, marginBottom: 18 }}>
-                    {editingId ? "Actualizar Integrantes" : "Asignar Integrantes"}
-                </h2>
+                <h2 style={{ textAlign: "center", marginTop: 0, marginBottom: 18 }}>Actualizar Equipo</h2>
 
                 <form onSubmit={handleSubmit}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-                        {/* Equipo */}
+                        {/* Equipo (input de solo lectura) */}
                         <div>
                             <label style={{ display: "block", marginBottom: 6 }}>Equipo</label>
-                            <select
-                                value={idEquipo ?? ""}
-                                onChange={(e) => setIdEquipo(Number(e.target.value))}
-                                required
-                                disabled={!!editingId}
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
-                            >
-                                <option value="" disabled>
-                                    Selecciona un equipo...
-                                </option>
-                                {equipos.map((eq) => (
-                                    <option key={eqId(eq)} value={eqId(eq)}>
-                                        {eq.nombre ?? eq.nombreEquipo ?? `Equipo #${eqId(eq)}`}
-                                    </option>
-                                ))}
-                            </select>
+                            <input
+                                type="text"
+                                readOnly
+                                value={nombreEquipo}
+                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db", background: "#f9fafb" }}
+                            />
                         </div>
 
-                        {/* Coordinador */}
-                        <div>
+                        {/* Coordinador — combobox (sin select aparte) */}
+                        <div style={{ position: "relative" }}>
                             <label style={{ display: "block", marginBottom: 6 }}>Coordinador</label>
                             <input
                                 type="text"
-                                placeholder="Buscar por nombre..."
-                                value={qCoord}
-                                onChange={(e) => setQCoord(e.target.value)}
+                                placeholder="Buscar y seleccionar coordinador..."
+                                value={
+                                    openCoordMenu
+                                        ? qCoord
+                                        : (empleadosOrdenados.find((e) => Number(empId(e)) === Number(idCoordinador)) &&
+                                            displayName(empleadosOrdenados.find((e) => Number(empId(e)) === Number(idCoordinador)))) || ""
+                                }
+                                onChange={(e) => {
+                                    setQCoord(e.target.value);
+                                    if (!openCoordMenu) setOpenCoordMenu(true);
+                                }}
+                                onFocus={() => setOpenCoordMenu(true)}
                                 style={{
                                     width: "100%",
                                     padding: 10,
                                     borderRadius: 8,
                                     border: "1px solid #d1d5db",
-                                    marginBottom: 8,
                                 }}
                             />
-                            <select
-                                value={idCoordinador ?? ""}
-                                onChange={(e) => setIdCoordinador(Number(e.target.value))}
-                                required
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
-                            >
-                                <option value="" disabled>
-                                    Selecciona un empleado...
-                                </option>
-                                {opcionesCoord.map((emp) => (
-                                    <option key={empId(emp)} value={empId(emp)}>
-                                        {displayName(emp)}
-                                    </option>
-                                ))}
-                            </select>
+                            {openCoordMenu && (
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        zIndex: 10,
+                                        background: "#fff",
+                                        border: "1px solid #e5e7eb",
+                                        borderRadius: 8,
+                                        marginTop: 4,
+                                        width: "100%",
+                                        maxHeight: 220,
+                                        overflow: "auto",
+                                        boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+                                    }}
+                                >
+                                    {opcionesCoord.length === 0 ? (
+                                        <div style={{ padding: 10, color: "#6b7280" }}>Sin resultados</div>
+                                    ) : (
+                                        opcionesCoord.map((emp) => (
+                                            <button
+                                                key={empId(emp)}
+                                                type="button"
+                                                onClick={() => seleccionarCoordinador(empId(emp))}
+                                                style={{
+                                                    width: "100%",
+                                                    textAlign: "left",
+                                                    padding: 10,
+                                                    border: "none",
+                                                    background: "transparent",
+                                                    cursor: "pointer",
+                                                }}
+                                                onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
+                                                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                                                title="Seleccionar coordinador"
+                                            >
+                                                {displayName(emp)}
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+                            )}
                             <small style={{ color: "#6b7280" }}>Solo puede haber un coordinador por equipo.</small>
                         </div>
 
@@ -176,9 +227,7 @@ const EquipoForm = ({
                                     marginBottom: 6,
                                 }}
                             >
-                                <label style={{ fontWeight: 600 }}>
-                                    Miembros actuales ({miembros.length} / {maxAcompanantes})
-                                </label>
+                                <label style={{ fontWeight: 600 }}>Miembros actuales ({miembros.length} / {maxAcompanantes})</label>
                                 <button
                                     type="button"
                                     onClick={vaciarMiembros}
@@ -244,9 +293,7 @@ const EquipoForm = ({
                                                     background: "#f9fafb",
                                                 }}
                                             >
-                                                <span style={{ fontWeight: 600 }}>
-                                                    {emp ? displayName(emp) : `Empleado #${id}`}
-                                                </span>
+                                                <span style={{ fontWeight: 600 }}>{emp ? displayName(emp) : `Empleado #${id}`}</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => quitarMiembro(id)}
@@ -270,9 +317,7 @@ const EquipoForm = ({
                             )}
 
                             {/* Agregar nuevos */}
-                            <label style={{ display: "block", marginBottom: 6 }}>
-                                Agregar miembros (máx. {maxAcompanantes})
-                            </label>
+                            <label style={{ display: "block", marginBottom: 6 }}>Agregar miembros (máx. {maxAcompanantes})</label>
                             <input
                                 type="text"
                                 placeholder="Buscar por nombre para agregar..."
@@ -301,9 +346,7 @@ const EquipoForm = ({
                                 }}
                             >
                                 {opcionesMiembro.length === 0 ? (
-                                    <div style={{ color: "#6b7280", padding: 8 }}>
-                                        No hay resultados o ya están agregados.
-                                    </div>
+                                    <div style={{ color: "#6b7280", padding: 8 }}>No hay resultados o ya no están disponibles.</div>
                                 ) : (
                                     opcionesMiembro.map((emp) => (
                                         <button
@@ -317,10 +360,7 @@ const EquipoForm = ({
                                                 borderRadius: 8,
                                                 border: "1px solid #e5e7eb",
                                                 background: "#fafafa",
-                                                cursor:
-                                                    miembros.length >= maxAcompanantes || loadingMiembros
-                                                        ? "not-allowed"
-                                                        : "pointer",
+                                                cursor: miembros.length >= maxAcompanantes || loadingMiembros ? "not-allowed" : "pointer",
                                             }}
                                             title="Agregar"
                                         >
@@ -329,13 +369,10 @@ const EquipoForm = ({
                                     ))
                                 )}
                             </div>
-                            <small style={{ color: "#6b7280" }}>
-                                El coordinador no puede ser miembro. No se permiten duplicados.
-                            </small>
+                            <small style={{ color: "#6b7280" }}>El coordinador no puede ser miembro. No se permiten duplicados.</small>
                         </div>
                     </div>
 
-                    {/* Botones */}
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
                         <button
                             type="button"
@@ -364,7 +401,7 @@ const EquipoForm = ({
                                 fontWeight: 600,
                             }}
                         >
-                            {editingId ? "Actualizar" : "Asignar"}
+                            Actualizar
                         </button>
                     </div>
                 </form>
