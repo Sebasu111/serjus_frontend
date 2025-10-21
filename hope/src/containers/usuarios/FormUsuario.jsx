@@ -191,7 +191,7 @@ const FormUsuario = ({
             }}
           />
           {!editingUsuario && (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: "150px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "6px" }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: "90px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "6px" }}>
               {empleados
                 .filter(emp => !usuarios.some(u => u.idempleado === emp.idempleado && (!editingUsuario || u.idusuario !== editingUsuario.idusuario)))
                 .filter(emp => `${emp.nombre} ${emp.apellido}`.toLowerCase().includes(busquedaEmpleado.toLowerCase()))

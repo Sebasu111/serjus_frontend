@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import DocumentosForm from "../../containers/documentos/DocumentosForm";
 import { showToast } from "../../utils/toast"; // si ya tienes tu función de notificaciones
+import { X } from "lucide-react";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -24,7 +25,7 @@ const AsistenciaModal = ({
     fechasubida: new Date().toISOString().split("T")[0],
   });
 
-  // ✅ Fetch tipos de documento
+  //   Fetch tipos de documento
   const fetchTiposDocumento = async () => {
     try {
       const r = await axios.get(`${API}/tipodocumento/`);
@@ -41,7 +42,7 @@ const AsistenciaModal = ({
     }
   };
 
-  // ✅ Fetch empleados
+  //   Fetch empleados
   const fetchEmpleados = async () => {
     try {
       const r = await axios.get(`${API}/empleados/`);
@@ -58,7 +59,7 @@ const AsistenciaModal = ({
     }
   };
 
-  // ✅ Ejecutamos los fetch solo cuando se abre el modal
+  //   Ejecutamos los fetch solo cuando se abre el modal
   useEffect(() => {
     if (show) {
       fetchTiposDocumento();
@@ -66,13 +67,13 @@ const AsistenciaModal = ({
     }
   }, [show]);
 
-  // ✅ Asistencia confirmada
+  //   Asistencia confirmada
   const handleAsistio = () => {
     onGuardar(capacitacion.idempleadocapacitacion, true, "");
     onClose();
   };
 
-  // ✅ Justificar inasistencia
+  //   Justificar inasistencia
   const handleJustificar = (e) => {
     e.preventDefault();
     if (
@@ -95,10 +96,10 @@ const AsistenciaModal = ({
     onClose();
   };
 
-  // ⛔ Si el modal está cerrado, no renderizamos nada
+  // Si el modal está cerrado, no renderizamos nada
   if (!show) return null;
 
-  // ✅ Renderizado principal
+  //   Renderizado principal
   return (
     <div
       style={{
@@ -187,19 +188,19 @@ const AsistenciaModal = ({
 
       {!mostrarFormulario && (
         <button
-          onClick={onClose}
-          style={{
-            marginTop: "15px",
-            padding: "10px",
-            background: "#6c757d",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Cerrar
-        </button>
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "15px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+        }}
+        title="Cerrar"
+      >
+        <X size={24} color="#555" />
+      </button>
       )}
     </div>
   );

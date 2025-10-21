@@ -17,7 +17,7 @@ const ConfirmModal = ({ empleado, mode = "desactivar", onConfirm, onCancel }) =>
             <div style={ConfirmModalStyles.modal}>
                 <h3 style={ConfirmModalStyles.titulo}>{titulo}</h3>
                 <p style={ConfirmModalStyles.mensaje}>
-                    ¿Seguro que deseas {textoAccion} al empleado{" "}
+                    ¿Seguro que   desea {textoAccion} al empleado{" "}
                     <strong>
                         {empleado?.nombre} {empleado?.apellido}
                     </strong>

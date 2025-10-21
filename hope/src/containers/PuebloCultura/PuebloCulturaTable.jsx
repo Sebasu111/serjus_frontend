@@ -58,7 +58,7 @@ const PuebloCulturaTable = ({
                       style={comboBoxStyles.button.base}
                       onClick={() => toggleMenu(row.idPuebloCultura)}
                     >
-                      Acciones ▾
+                      Opciones ▾
                     </button>
                     {openMenuId === row.idPuebloCultura && (
                       <div style={comboBoxStyles.menu.container}>

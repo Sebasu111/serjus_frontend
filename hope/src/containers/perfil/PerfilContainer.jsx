@@ -1,4 +1,3 @@
-// containers/perfil/PerfilContainer.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
@@ -9,6 +8,8 @@ import SEO from "../../components/seo";
 import { ToastContainer } from "react-toastify";
 import { showToast } from "../../utils/toast.js";
 import AsistenciaModal from "../../components/confirmarasistencia/AsistenciaModal.jsx";
+import CapacitacionesSection from "./CapacitacionesSection.jsx";
+import InfoPersonal from "./InfoPersonal.jsx";
 
 const PerfilContainer = () => {
   const [usuario, setUsuario] = useState(null);
@@ -39,7 +40,6 @@ const PerfilContainer = () => {
           return;
         }
 
-        // Cargar capacitaciones
         await cargarCapacitaciones(empleadoActual.idempleado);
       } catch (error) {
         console.error(error);
@@ -78,39 +78,27 @@ const PerfilContainer = () => {
 
   const actualizarCapacitacion = async (id, asistenciaBool, observacion = "") => {
     try {
-        const cap = capacitacionesInfo.find(c => c.idempleadocapacitacion === id);
-        if (!cap) return;
+      const cap = capacitacionesInfo.find(c => c.idempleadocapacitacion === id);
+      if (!cap) return;
 
-        const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+      const payload = {
+        idempleado: cap.idempleado,
+        idcapacitacion: cap.idcapacitacion,
+        asistencia: asistenciaBool ? "Sí" : "No",
+        observacion: asistenciaBool ? "Asistió" : observacion || "Inasistencia Justificada",
+        fechaenvio: cap.fechaenvio || new Date().toISOString().split("T")[0],
+        estado: true,
+        idusuario: idUsuario
+      };
 
-        const payload = {
-          idempleado: cap.idempleado,
-          idcapacitacion: cap.idcapacitacion,
-          asistencia: asistenciaBool ? "Sí" : "No",
-          observacion: asistenciaBool ? "Asistió" : observacion || "Justificada",
-          fechaenvio: cap.fechaenvio || new Date().toISOString().split("T")[0],
-          estado: true,
-          idusuario: idUsuario
-        };
+      await axios.put(`http://127.0.0.1:8000/api/empleadocapacitacion/${id}/`, payload);
+      showToast(asistenciaBool ? "Asistencia registrada" : "Inasistencia justificada", "success");
 
-        await axios.put(`http://127.0.0.1:8000/api/empleadocapacitacion/${id}/`, payload);
-
-        showToast(asistenciaBool ? "Asistencia registrada" : "Inasistencia justificada", "success");
-
-        if (empleado) {
-          await cargarCapacitaciones(empleado.idempleado);
-        }
+      if (empleado) await cargarCapacitaciones(empleado.idempleado);
     } catch (error) {
-        console.error(error.response?.data || error);
-        showToast("Error al actualizar asistencia", "error");
-    }
-  };
-
-  const marcarAsistencia = (id) => actualizarCapacitacion(id, true, "");
-  const justificarInasistencia = (id) => {
-    const razon = prompt("Ingrese la razón de la inasistencia:");
-    if (razon !== null && razon.trim() !== "") {
-      actualizarCapacitacion(id, false, razon);
+      console.error(error.response?.data || error);
+      showToast("Error al actualizar asistencia", "error");
     }
   };
 
@@ -127,78 +115,14 @@ const PerfilContainer = () => {
 
           {empleado && (
             <>
-              {/* Información personal */}
-              <div style={{ marginBottom: "35px", background: "#fff", padding: "30px", borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-                <h4 style={{ marginBottom: "20px", color: "#219ebc", fontWeight: "600" }}>Información personal</h4>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "16px" }}>
-                  <tbody>
-                    {[["Nombre", `${empleado.nombre} ${empleado.apellido}`],
-                      ["Email", empleado.email],
-                      ["Teléfono", empleado.telefonocelular || "No registrado"],
-                      ["Dirección", empleado.direccion],
-                      ["Fecha de nacimiento", formatFecha(empleado.fechanacimiento)],
-                      ["Género", empleado.genero]
-                    ].map(([label, value]) => (
-                      <tr key={label}>
-                        <td style={{ padding: "12px", fontWeight: "600", width: "220px", color: "#555" }}>{label}:</td>
-                        <td style={{ padding: "12px" }}>{value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <InfoPersonal empleado={empleado} formatFecha={formatFecha} />
 
-              {/* Capacitaciones */}
-              <div style={{ background: "#fff", padding: "30px", borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-                <h4 style={{ marginBottom: "20px", color: "#219ebc", fontWeight: "600" }}>Capacitaciones asignadas</h4>
-                {capacitacionesInfo.length === 0 ? (
-                  <p style={{ fontSize: "16px", margin: 0 }}>No hay capacitaciones asignadas.</p>
-                ) : (
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "16px" }}>
-                    <thead>
-                      <tr style={{ borderBottom: "2px solid #ddd", textAlign: "left" }}>
-                        {["Capacitación", "Lugar", "Fecha", "Observación", "Asistencia"].map(h => (
-                          <th key={h} style={{ padding: "14px", fontWeight: "600", background: "#f8f9fa" }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {capacitacionesInfo.map(c => {
-                        const asistenciaRegistrada = c.asistencia === "Sí";
-
-                        return (
-                          <tr key={c.idempleadocapacitacion} style={{ borderBottom: "1px solid #eee", height: "60px" }}>
-                            <td style={{ padding: "14px" }}>{c.nombre}</td>
-                            <td style={{ padding: "14px" }}>{c.lugar}</td>
-                            <td style={{ padding: "14px" }}>{formatFecha(c.fecha)}</td>
-                            <td style={{ padding: "14px" }}>{c.observacion || "-"}</td>
-                            <td style={{ padding: "14px" }}>
-                              <button
-                                onClick={() => { setCapacitacionSeleccionada(c); setShowAsistenciaModal(true); }}
-                                style={{
-                                  flex: 1,
-                                  padding: "10px",
-                                  background: asistenciaRegistrada ? "#ff9500ff" : "#219ebc",
-                                  color: "#fff",
-                                  border: "none",
-                                  borderRadius: "6px",
-                                  fontWeight: "600",
-                                  cursor: asistenciaRegistrada ? "not-allowed" : "pointer",
-                                  width: "100%",
-                                  transition: "0.2s"
-                                }}
-                                disabled={asistenciaRegistrada}
-                              >
-                                Marcar asistencia / inasistencia
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
-              </div>
+              <CapacitacionesSection
+                capacitacionesInfo={capacitacionesInfo}
+                formatFecha={formatFecha}
+                setCapacitacionSeleccionada={setCapacitacionSeleccionada}
+                setShowAsistenciaModal={setShowAsistenciaModal}
+              />
             </>
           )}
         </div>

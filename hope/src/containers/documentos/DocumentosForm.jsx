@@ -127,7 +127,7 @@ const DocumentosForm = ({
                     />
                     <small style={{ color: "#666" }}>
                         {editingId
-                            ? "Sube un archivo solo si deseas reemplazar el existente."
+                            ? "Sube un archivo solo si   desea reemplazar el existente."
                             : ""}
                     </small>
                 </div>
@@ -158,7 +158,7 @@ const DocumentosForm = ({
                         width: "100%",
                         padding: "10px",
                         background: "#219ebc",
-                        color: "#000",
+                        color: "#FFF",
                         border: "none",
                         borderRadius: "6px",
                         cursor: "pointer",
@@ -177,7 +177,7 @@ const DocumentosForm = ({
                             style={{
                                 marginTop: "10px",
                                 background: "#FCA5A5",
-                                color: "#000",
+                                color: "#FFF",
                                 border: "none",
                                 borderRadius: "6px",
                                 padding: "8px 12px",
