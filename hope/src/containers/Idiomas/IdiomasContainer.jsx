@@ -177,8 +177,8 @@ const IdiomasContainer = () => {
       <div style={{ display: "flex", minHeight: "100vh" }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <Header />
-          <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-            <div style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}>
+          <main className="main-content site-wrapper-reveal" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#EEF2F7", padding: "48px 20px 8rem" }}>
+            <div style={{ width: "min(1100px, 96vw)" }}>
               <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
                 Idiomas Registrados
               </h2>
@@ -200,7 +200,7 @@ const IdiomasContainer = () => {
                     setBusqueda(e.target.value);
                     setPaginaActual(1);
                   }}
-                  style={buttonStyles.buscador} 
+                  style={buttonStyles.buscador}
                 />
                 <button
                   onClick={() => setMostrarFormulario(true)}
@@ -214,7 +214,7 @@ const IdiomasContainer = () => {
                 idiomas={idiomasPaginados}
                 handleEdit={handleEdit}
                 handleDelete={handleDelete}
-                handlePrepareActivate={handlePrepareActivate} 
+                handlePrepareActivate={handlePrepareActivate}
                 paginaActual={paginaActual}
                 totalPaginas={totalPaginas}
                 setPaginaActual={setPaginaActual}
