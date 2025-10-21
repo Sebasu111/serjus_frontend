@@ -109,8 +109,8 @@ const CapacitacionForm = ({
           style={{
             width: "100%",
             padding: "10px",
-            background: "#E5E7EB",
-            color: "#0A0A0A",
+            background: "#219ebc",
+            color: "#FFF",
             border: "none",
             borderRadius: "6px",
             cursor: "pointer",

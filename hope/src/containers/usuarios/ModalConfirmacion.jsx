@@ -14,8 +14,8 @@ const ModalConfirmacion = ({
   const esActivar = modo === "activar";
   const titulo = esActivar ? "Confirmar activación" : "Confirmar desactivación";
   const mensaje = esActivar
-    ? "¿Seguro que deseas activar al usuario "
-    : "¿Seguro que deseas desactivar al usuario ";
+    ? "¿Seguro que   desea activar al usuario "
+    : "¿Seguro que   desea desactivar al usuario ";
   const botonColor = esActivar ? "#34D399" : "#FCA5A5";
   const botonTexto = esActivar ? "Sí, activar" : "Sí, desactivar";
 

@@ -65,7 +65,35 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
     try {
       const idUsuario = Number(sessionStorage.getItem("idUsuario") || 1);
 
+      // Obtener asignaciones existentes
+      const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
+      const asignacionesExistentes = res.data.results || res.data;
+
+      let asignacionesRealizadas = 0;
+
       for (const idEmpleado of empleadosSeleccionados) {
+        const yaAsignado = asignacionesExistentes.some(
+          (asig) =>
+            Number(asig.idempleado) === Number(idEmpleado) &&
+            Number(asig.idcapacitacion) === Number(capacitacionSeleccionada)
+        );
+
+        // Buscar datos del empleado para mostrar su nombre
+        const empleado = empleados.find(
+          (emp) => Number(emp.idempleado || emp.id) === Number(idEmpleado)
+        );
+        const nombreEmpleado = empleado
+          ? `${empleado.nombre} ${empleado.apellido}`
+          : `Empleado ${idEmpleado}`;
+
+        if (yaAsignado) {
+          showToast(
+            `El empleado ${nombreEmpleado} ya está asignado a esta capacitación.`,
+            "warning"
+          );
+          continue; // Saltar este empleado
+        }
+
         const payload = {
           idempleado: Number(idEmpleado),
           idcapacitacion: Number(capacitacionSeleccionada),
@@ -75,13 +103,19 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
           idusuario: idUsuario,
           estado: true,
         };
+
         await axios.post("http://127.0.0.1:8000/api/empleadocapacitacion/", payload);
+        asignacionesRealizadas++;
       }
 
-      showToast("Capacitación asignada correctamente", "success");
-      setEmpleadosSeleccionados([]);
-      setCapacitacionSeleccionada(capacitacionInicial || "");
-      setObservacion("");
+      if (asignacionesRealizadas > 0) {
+        showToast("Capacitación asignada correctamente", "success");
+        setEmpleadosSeleccionados([]);
+        setCapacitacionSeleccionada(capacitacionInicial || "");
+        setObservacion("");
+      } else {
+        showToast("No se realizó ninguna asignación nueva", "info");
+      }
     } catch (error) {
       console.error(error);
       showToast("Error al asignar capacitación", "error");
@@ -100,7 +134,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         position: "fixed",
         top: "50%",
         left: "50%",
-        transform: "translate(-50%, -50%)",
+        transform: "translate(-15%, -50%)",
         width: "500px",
         maxWidth: "95%",
         background: "#fff",
@@ -159,61 +193,63 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         </div>
 
         {/* Empleados */}
-        <div>
-          <label style={{ display: "block", marginBottom: "6px" }}>
-            Seleccione empleados <span style={{ color: "red" }}>*</span>
-          </label>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px",
-              maxHeight: "150px",
-              overflowY: "auto",
-              padding: "5px",
-              border: `1px solid ${empleadosSeleccionados.length === 0 && showError ? "red" : "#ccc"}`,
-              borderRadius: "6px",
-              transition: "border 0.3s",
-            }}
-          >
-            {empleadosFiltrados.length > 0 ? (
-              empleadosFiltrados.map((emp) => (
-                <div
-                  key={emp.idempleado || emp.id}
-                  onClick={() => toggleEmpleadoSeleccionado(emp.idempleado || emp.id)}
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: "20px",
-                    cursor: "pointer",
-                    background: empleadosSeleccionados.includes(emp.idempleado || emp.id)
-                      ? "#219ebc"
-                      : "#E5E7EB",
-                    color: empleadosSeleccionados.includes(emp.idempleado || emp.id)
-                      ? "#fff"
-                      : "#000",
-                    userSelect: "none",
-                  }}
-                >
-                  {emp.nombre} {emp.apellido}
-                </div>
-              ))
-            ) : (
-              <p style={{ fontSize: "14px", color: "#777" }}>No se encontraron empleados</p>
-            )}
-          </div>
-          {empleadosSeleccionados.length === 0 && showError && (
-            <span
+          <div>
+            <label style={{ display: "block", marginBottom: "6px" }}>
+              Seleccione empleados <span style={{ color: "red" }}>*</span>
+            </label>
+
+            <div
               style={{
-                color: "red",
-                fontSize: "12px",
-                marginTop: "4px",
-                display: "block",
+                maxHeight: "120px",
+                overflowY: "auto",
+                border: `1px solid ${empleadosSeleccionados.length === 0 && showError ? "red" : "#ccc"}`,
+                borderRadius: "6px",
+                padding: "8px",
+                backgroundColor: "#f9fafb",
               }}
             >
-              Debe seleccionar al menos un empleado
-            </span>
-          )}
-        </div>
+              {empleadosFiltrados.length > 0 ? (
+                empleadosFiltrados.map((emp) => (
+                  <label
+                    key={emp.idempleado || emp.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "6px 4px",
+                      borderBottom: "1px solid #eee",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={empleadosSeleccionados.includes(emp.idempleado || emp.id)}
+                      onChange={() => toggleEmpleadoSeleccionado(emp.idempleado || emp.id)}
+                    />
+                    <span>
+                      {emp.nombre} {emp.apellido}
+                    </span>
+                  </label>
+                ))
+              ) : (
+                <p style={{ fontSize: "14px", color: "#777" }}>No se encontraron empleados</p>
+              )}
+            </div>
+
+            {empleadosSeleccionados.length === 0 && showError && (
+              <span
+                style={{
+                  color: "red",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                  display: "block",
+                }}
+              >
+                Debe seleccionar al menos un empleado
+              </span>
+            )}
+          </div>
+
 
         {/* Observación */}
         <div>

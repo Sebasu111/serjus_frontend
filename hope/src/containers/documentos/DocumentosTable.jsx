@@ -104,7 +104,7 @@ const DocumentosTable = ({
                                                         )
                                                     }
                                                 >
-                                                    Acciones ▾
+                                                    Opciones ▾
                                                 </button>
                                                 {openComboId === d.iddocumento && (
                                                     <div style={comboBoxStyles.menu.container}>

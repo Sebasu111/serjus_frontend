@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
+import ModalEmpleadosAsignados from "./ModalEmpleadosAsignados";
 
 const CapacitacionesTable = ({
   capacitaciones,
@@ -10,7 +12,11 @@ const CapacitacionesTable = ({
   totalPaginas,
   setPaginaActual,
 }) => {
-  const [openMenuId, setOpenMenuId] = useState(null); // Para controlar qué combobox está abierto
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
+  const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
+  const [loadingEmpleados, setLoadingEmpleados] = useState(false);
 
   const toggleMenu = (id) => {
     setOpenMenuId(openMenuId === id ? null : id);
@@ -20,9 +26,56 @@ const CapacitacionesTable = ({
     if (!dateStr) return "";
     const date = new Date(dateStr);
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // +1 porque enero es 0
-    const year = String(date.getFullYear()).slice(-2); // últimos 2 dígitos del año
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear()).slice(-2);
     return `${day}-${month}-${year}`;
+  };
+
+  const handleVerEmpleados = async (capacitacion) => {
+    try {
+      setEventoSeleccionado(capacitacion);
+      setLoadingEmpleados(true);
+      setModalVisible(true);
+
+      const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
+      const data = res.data.results || res.data;
+
+      const asignados = data.filter(
+        (item) => Number(item.idcapacitacion) === Number(capacitacion.idcapacitacion || capacitacion.id)
+      );
+
+      const empleadosRes = await axios.get("http://127.0.0.1:8000/api/empleados/");
+      const empleados = empleadosRes.data.results || empleadosRes.data;
+
+      const listaFinal = asignados
+        .map((asig) => {
+          const emp = empleados.find((e) => Number(e.idempleado) === Number(asig.idempleado));
+          return emp
+            ? {
+                nombre: emp.nombre,
+                apellido: emp.apellido,
+                asistencia: asig.asistencia,
+                observacion: asig.observacion,
+                fechaenvio: asig.fechaenvio,
+              }
+            : null;
+        })
+        .filter(Boolean);
+
+
+      setEmpleadosAsignados(listaFinal);
+    } catch (error) {
+      console.error("Error al obtener empleados asignados:", error);
+      setEmpleadosAsignados([]);
+    } finally {
+      setLoadingEmpleados(false);
+    }
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setEventoSeleccionado(null);
+    setEmpleadosAsignados([]);
   };
 
   return (
@@ -52,7 +105,20 @@ const CapacitacionesTable = ({
               const id = c.idcapacitacion || c.id;
               return (
                 <tr key={id}>
-                  <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{c.nombreevento}</td>
+                  {/* 🔹 Nombre del evento sin subrayado */}
+                  <td
+                    style={{
+                      padding: "10px",
+                      borderBottom: "1px solid #f0f0f0",
+                      color: "#007bff",
+                      cursor: "pointer",
+                      fontWeight: "500",
+                    }}
+                    onClick={() => handleVerEmpleados(c)}
+                  >
+                    {c.nombreevento}
+                  </td>
+
                   <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{c.lugar}</td>
                   <td style={{ padding: "10px", textAlign: "center", borderBottom: "1px solid #f0f0f0" }}>
                     {formatDate(c.fechainicio)} a {formatDate(c.fechafin)}
@@ -78,11 +144,10 @@ const CapacitacionesTable = ({
                         style={comboBoxStyles.button.base}
                         onClick={() => toggleMenu(id)}
                       >
-                        Acciones ▾
+                        Opciones ▾
                       </button>
                       {openMenuId === id && (
                         <div style={comboBoxStyles.menu.container}>
-                          {/* Editar */}
                           <div
                             style={{
                               ...comboBoxStyles.menu.item.editar.base,
@@ -92,7 +157,6 @@ const CapacitacionesTable = ({
                           >
                             Editar
                           </div>
-                          {/* Desactivar */}
                           {c.estado && (
                             <div
                               style={comboBoxStyles.menu.item.desactivar.base}
@@ -101,7 +165,6 @@ const CapacitacionesTable = ({
                               Desactivar
                             </div>
                           )}
-                          {/* Activar */}
                           {!c.estado && (
                             <div
                               style={comboBoxStyles.menu.item.activar.base}
@@ -148,6 +211,17 @@ const CapacitacionesTable = ({
             </button>
           ))}
         </div>
+      )}
+
+      {/* Modal separado */}
+      {modalVisible && (
+        <ModalEmpleadosAsignados
+          visible={modalVisible}
+          onClose={closeModal}
+          empleados={empleadosAsignados}
+          evento={eventoSeleccionado}
+          loading={loadingEmpleados}
+        />
       )}
     </div>
   );

@@ -15,7 +15,7 @@ const ConfirmModalAspirante = ({ aspirante, onConfirm, onCancel }) => (
         >
             <h3 style={{ marginBottom: 15, color: "#333" }}>Confirmar desactivación</h3>
             <p style={{ marginBottom: 25, color: "#555" }}>
-                ¿Seguro que deseas desactivar al aspirante{" "}
+                ¿Seguro que   desea desactivar al aspirante{" "}
                 <strong>{aspirante?.nombreaspirante} {aspirante?.apellidoaspirante}</strong>?
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 15 }}>

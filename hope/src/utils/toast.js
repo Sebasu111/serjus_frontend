@@ -15,7 +15,6 @@ export const showToast = (mensaje, tipo = "success") => {
     closeOnClick: true,
     pauseOnHover: true,
     draggable: true,
-    theme: "colored", // hace que los colores se adapten al tipo
   };
 
   switch (tipo) {

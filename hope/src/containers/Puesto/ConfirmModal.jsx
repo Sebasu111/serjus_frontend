@@ -30,7 +30,7 @@ const ConfirmModal = ({ registro, onConfirm, onCancel }) => (
         Confirmar desactivación
       </h3>
       <p style={{ marginBottom: "25px", color: "#555" }}>
-        ¿Seguro que deseas desactivar el puesto{" "}
+        ¿Seguro que   desea desactivar el puesto{" "}
         <strong>{registro?.nombrepuesto}</strong>?
       </p>
       <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>

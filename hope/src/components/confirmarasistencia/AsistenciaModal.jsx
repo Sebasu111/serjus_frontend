@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import DocumentosForm from "../../containers/documentos/DocumentosForm";
 import { showToast } from "../../utils/toast"; // si ya tienes tu función de notificaciones
+import { X } from "lucide-react";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -95,7 +96,7 @@ const AsistenciaModal = ({
     onClose();
   };
 
-  // ⛔ Si el modal está cerrado, no renderizamos nada
+  // Si el modal está cerrado, no renderizamos nada
   if (!show) return null;
 
   //   Renderizado principal
@@ -187,19 +188,19 @@ const AsistenciaModal = ({
 
       {!mostrarFormulario && (
         <button
-          onClick={onClose}
-          style={{
-            marginTop: "15px",
-            padding: "10px",
-            background: "#6c757d",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Cerrar
-        </button>
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "15px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+        }}
+        title="Cerrar"
+      >
+        <X size={24} color="#555" />
+      </button>
       )}
     </div>
   );

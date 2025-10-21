@@ -5,8 +5,8 @@ const ConfirmModal = ({ registro, onConfirm, onCancel, modo = "desactivar" }) =>
   const esActivar = modo === "activar";
   const titulo = esActivar ? "Confirmar activación" : "Confirmar desactivación";
   const mensaje = esActivar
-    ? `¿Seguro que deseas activar el registro `
-    : `¿Seguro que deseas desactivar el registro `;
+    ? `¿Seguro que   desea activar el registro `
+    : `¿Seguro que   desea desactivar el registro `;
   const botonColor = esActivar ? "#34D399" : "#FCA5A5"; 
   const botonTexto = esActivar ? "Sí, activar" : "Sí, desactivar";
 
