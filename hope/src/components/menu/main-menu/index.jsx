@@ -17,15 +17,35 @@ const base = process.env.PUBLIC_URL || "";
 const SidebarMenu = () => {
     const [openMenu, setOpenMenu] = useState(null);
     const [collapsed, setCollapsed] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
     const history = useHistory();
+
+    React.useEffect(() => {
+        // Sync collapsed state with body class for CSS rules
+        const body = document.body;
+        if (collapsed) body.classList.add("sidebar-collapsed");
+        else body.classList.remove("sidebar-collapsed");
+        return () => {
+            // cleanup
+            body.classList.remove("sidebar-collapsed");
+        };
+    }, [collapsed]);
+
+    React.useEffect(() => {
+        // Toggle body class for mobile overlay to prevent background scroll
+        const body = document.body;
+        if (mobileOpen) body.classList.add("sidebar-open");
+        else body.classList.remove("sidebar-open");
+        return () => body.classList.remove("sidebar-open");
+    }, [mobileOpen]);
 
     const toggleSubmenu = (menuName) => {
         if (collapsed) {
-            setCollapsed(false);      // expandir el sidebar si está colapsado
-            setOpenMenu(menuName);    // abrir el submenu tocado
-        } else {
-            setOpenMenu(openMenu === menuName ? null : menuName);
+            setCollapsed(false); // expandir el sidebar si está colapsado
+            setOpenMenu(menuName); // abrir el submenu tocado
+            return;
         }
+        setOpenMenu(openMenu === menuName ? null : menuName);
     };
 
     const handleLogout = (e) => {
@@ -34,22 +54,52 @@ const SidebarMenu = () => {
         history.push(`${base}/login`);
     };
 
+    React.useEffect(() => {
+        const onKey = (e) => {
+            if (e.key === "Escape") {
+                setMobileOpen(false);
+            }
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, []);
+
     return (
         <>
             {/* BOTÓN FUERA DEL MENU */}
             <div
                 className={`sidebar-toggle ${collapsed ? "collapsed" : ""}`}
                 onClick={() => {
+                    // On small screens we should open the overlay; on large screens toggle collapsed
+                    if (window.innerWidth <= 991) {
+                        setMobileOpen((s) => !s);
+                        return;
+                    }
                     const next = !collapsed;
                     setCollapsed(next);
                     if (!next) setOpenMenu(null); // si colapsas, cierra submenús abiertos
+                }}
+                aria-label="Toggle sidebar"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.currentTarget.click();
+                    }
                 }}
             >
                 {collapsed ? <FiChevronRight /> : <FiChevronLeft />}
             </div>
 
+            {/* Overlay for mobile when sidebar is open */}
+            <div
+                className={`content-overlay ${mobileOpen ? "visible" : ""}`}
+                onClick={() => setMobileOpen(false)}
+            />
+
             {/* SIDEBAR */}
-            <nav className={`sidebar-menu ${collapsed ? "collapsed" : ""}`}>
+            <nav className={`sidebar-menu ${collapsed ? "collapsed" : ""} ${mobileOpen ? "open" : ""}`}>
                 <div className="sidebar-logo">
                     <NavLink to={`${base}/home`}>
                         <img

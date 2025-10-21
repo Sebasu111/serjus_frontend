@@ -163,10 +163,95 @@
     /* coincide con ancho colapsado */
 }
 
+/* ===== Responsiveness: mobile/off-canvas behavior ===== */
+@media (max-width: 991px) {
+
+    /* On smaller screens hide the sidebar off-canvas by default */
+    .sidebar-menu {
+        transform: translateX(-110%);
+        width: 280px;
+        transition: transform 0.28s ease;
+        box-shadow: 4px 0 16px rgba(0, 0, 0, 0.25);
+        height: 100vh;
+    }
+
+    /* When the sidebar has class 'open' it slides in */
+    .sidebar-menu.open {
+        transform: translateX(0);
+        z-index: 2000;
+    }
+
+    /* Toggle button should sit at left edge of the viewport */
+    .sidebar-toggle {
+        left: 12px;
+        top: 12px;
+        border-radius: 8px;
+        width: 44px;
+        height: 44px;
+        z-index: 2100;
+    }
+
+    /* When sidebar is overlayed, main content should not have left margin */
+    .main-content {
+        margin-left: 0;
+    }
+
+    /* dim the background when sidebar opens — using a sibling overlay element
+       is easier from JS; we provide a generic .content-overlay class that the
+       React component can toggle. */
+    .content-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1500;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+
+    .content-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
 header,
 footer,
 .main-content {
     transition: margin-left 0.3s ease;
+}
+
+/* On wide screens make header/footer shift when sidebar is present */
+@media (min-width: 992px) {
+    header.header {
+        margin-left: 300px;
+        transition: margin-left 0.3s ease;
+    }
+
+    /* Body-level class applied by JS when sidebar is collapsed */
+    body.sidebar-collapsed header.header,
+    body.sidebar-collapsed .main-content {
+        margin-left: 90px;
+    }
+
+    /* Ensure the main inner wrapper aligns to the left edge of the main area
+       so the content begins right after the sidebar instead of being centered. */
+    .main-content>div {
+        margin-left: 0;
+        margin-right: auto;
+        width: 100%;
+        max-width: 1100px;
+        /* matches Inicio's min(1100px, 96vw) */
+        padding-left: 8px;
+        /* small inner spacing */
+    }
+
+    /* matches Inicio's min(1100px, 96vw) */
+
+    /* When a mobile overlay is open lock body scroll */
+    body.sidebar-open {
+        overflow: hidden;
+    }
 }
 
 /* --- Tooltips con title (cuando está expandido) --- */
