@@ -26,12 +26,26 @@ const pick = (o, ...keys) => {
     for (const k of keys) if (o && o[k] != null) return o[k];
 };
 const getId = o =>
-    pick(o, "id", "ididioma", "idIdioma", "idequipo", "idEquipo", "idpueblocultura", "idPuebloCultura", "pk", "codigo");
+    pick(
+        o,
+        "id",
+        "ididioma",
+        "idIdioma",
+        "idequipo",
+        "idEquipo",
+        "idpueblocultura",
+        "idPuebloCultura",
+        "idpuesto",
+        "idPuesto",
+        "pk",
+        "codigo"
+    );
 const getName = (o, type) => {
     if (!o) return "";
     if (type === "idioma") return pick(o, "nombreidioma", "nombreIdioma", "nombre", "descripcion", "label");
     if (type === "pueblo") return pick(o, "nombrepueblo", "nombrePueblo", "nombre", "descripcion", "label");
     if (type === "equipo") return pick(o, "nombreequipo", "nombreEquipo", "nombre", "descripcion", "label");
+    if (type === "puesto") return pick(o, "nombrepuesto", "nombrePuesto", "nombre", "descripcion", "label");
     return pick(o, "nombre", "descripcion", "label");
 };
 
@@ -120,6 +134,7 @@ const EmpleadosContainer = () => {
         estado: true,
         ididioma: "",
         idpueblocultura: "",
+        idpuesto: "",
         idequipo: "",
         numeroiggs: "",
         isCF: false,
@@ -140,11 +155,13 @@ const EmpleadosContainer = () => {
     const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
     const [accionEstado, setAccionEstado] = useState(null); // "activar" | "desactivar"
     const [showDownload, setShowDownload] = useState(false);
+    const [hoverDesc, setHoverDesc] = useState(false);
 
     // catálogo
     const [idiomas, setIdiomas] = useState([]);
     const [pueblos, setPueblos] = useState([]);
     const [equipos, setEquipos] = useState([]);
+    const [puestos, setPuestos] = useState([]);
 
     // detalle
     const [mostrarDetalle, setMostrarDetalle] = useState(false);
@@ -155,6 +172,7 @@ const EmpleadosContainer = () => {
         fetchIdiomas();
         fetchPueblos();
         fetchEquipos();
+        fetchPuestos();
     }, []);
 
     useEffect(() => {
@@ -203,6 +221,14 @@ const EmpleadosContainer = () => {
             setEquipos([]);
         }
     };
+    const fetchPuestos = async () => {
+        try {
+            const r = await axios.get(`${API}/puestos/`);
+            setPuestos(Array.isArray(r.data) ? r.data : r.data?.results || []);
+        } catch {
+            setPuestos([]);
+        }
+    };
 
     // Validaciones específicas (solo devuelven mensajes concretos; no genéricos)
     const emailRegex = /^\S+@\S+\.\S+$/;
@@ -211,6 +237,10 @@ const EmpleadosContainer = () => {
         if (name === "genero") {
             const allowed = ["Masculino", "Femenino", "Otros"];
             if (!allowed.includes(String(value))) msg = ""; // el Form mostrará "Este campo es obligatorio"
+        }
+        if (name === "nombre" || name === "apellido") {
+            // permitir letras (incluye acentos), espacios, guiones y apóstrofes
+            if (value && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]+$/.test(String(value))) msg = "Solo letras y espacios";
         }
         if (["dpi", "numeroiggs"].includes(name)) {
             if (!/^\d*$/.test(String(value))) msg = ""; // bloqueo numérico ya lo hace onChange
@@ -221,7 +251,7 @@ const EmpleadosContainer = () => {
         }
         if (name === "nit" && !form.isCF) {
             const v = String(value).trim().toUpperCase().replace(/\s+/g, "");
-            if (!/^\d{1,9}$/.test(v)) msg = "Use 1–9 dígitos (o C/F)";
+            if (!/^\d{8}$/.test(v)) msg = "Debe tener 8 dígitos";
         }
         if (name === "email" && value && !emailRegex.test(String(value))) msg = "Correo inválido";
         if (name === "numerohijos") {
@@ -239,9 +269,16 @@ const EmpleadosContainer = () => {
         const { name, value: raw, type, checked } = e.target;
         const val = type === "checkbox" ? checked : raw;
 
+        // Bloquear números en nombre/apellido
+        if ((name === "nombre" || name === "apellido") && raw && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]*$/.test(raw)) return;
+
         if (["dpi", "numeroiggs"].includes(name)) {
             if (!/^\d*$/.test(val)) return;
             if (String(val).length > 13) return;
+        }
+        if (name === "nit") {
+            if (!/^\d*$/.test(raw)) return;
+            if (String(raw).length > 8) return;
         }
         if (["telefonoresidencial", "telefonocelular", "telefonoemergencia"].includes(name)) {
             if (!/^\d*$/.test(String(raw))) return;
@@ -255,6 +292,28 @@ const EmpleadosContainer = () => {
             setForm(f => ({ ...f, isCF: flag, nit: flag ? "" : f.nit }));
             setErrors(er => ({ ...er, nit: false }));
             return;
+        }
+
+        // Chequeo de DPI duplicado en tiempo real cuando alcanza 13 dígitos
+        if (name === "dpi") {
+            const s = String(raw || "");
+            if (s.length === 13) {
+                const found = data.find(r => String(r.dpi || "") === s);
+                if (found) {
+                    const idOf = empId(found);
+                    if (!editingId || String(editingId) !== String(idOf)) {
+                        setErrors(er => ({ ...er, dpi: "DPI ya registrado" }));
+                        showToast("El DPI ya existe.", "warning");
+                    } else {
+                        setErrors(er => ({ ...er, dpi: false }));
+                    }
+                } else {
+                    setErrors(er => ({ ...er, dpi: false }));
+                }
+            } else {
+                // limpiar mensaje si aún no completa
+                setErrors(er => ({ ...er, dpi: false }));
+            }
         }
 
         setForm(f => ({ ...f, [name]: val }));
@@ -282,7 +341,7 @@ const EmpleadosContainer = () => {
         "direccion",
         "ididioma",
         "idpueblocultura",
-        "idequipo"
+        "idpuesto"
     ];
     const STEP3_FIELDS = ["numerohijos", "titulonivelmedio", "estudiosuniversitarios", "iniciolaboral"];
 
@@ -303,6 +362,16 @@ const EmpleadosContainer = () => {
 
         if (form.dpi && String(form.dpi).length !== 13) put("dpi", "Debe tener 13 dígitos");
         if (form.numeroiggs && String(form.numeroiggs).length !== 13) put("numeroiggs", "Debe tener 13 dígitos");
+        if (!form.isCF && form.nit && !/^\d{8}$/.test(String(form.nit).trim())) put("nit", "Debe tener 8 dígitos");
+
+        // DPI único (si se ingresa)
+        if (form.dpi) {
+            const same = data.find(r => String(r.dpi || "") === String(form.dpi || ""));
+            if (same) {
+                const idOf = empId(same);
+                if (!editingId || String(editingId) !== String(idOf)) put("dpi", "DPI ya registrado");
+            }
+        }
 
         if (form.telefonoresidencial && !/^\d{8}$/.test(String(form.telefonoresidencial)))
             put("telefonoresidencial", "Debe tener 8 dígitos");
@@ -359,7 +428,8 @@ const EmpleadosContainer = () => {
             idusuario: getIdUsuario(),
             ididioma: Number(f.ididioma),
             idpueblocultura: Number(f.idpueblocultura),
-            idequipo: Number(f.idequipo),
+            idpuesto: Number(f.idpuesto) || null,
+            idequipo: Number(f.idequipo) || null,
             numeroiggs: f.numeroiggs,
             inicioLaboral: startISO
         };
@@ -387,6 +457,7 @@ const EmpleadosContainer = () => {
             estado: true,
             ididioma: "",
             idpueblocultura: "",
+            idpuesto: "",
             idequipo: equipoParam ? Number(equipoParam) : "",
             numeroiggs: "",
             isCF: false,
@@ -398,7 +469,7 @@ const EmpleadosContainer = () => {
 
     const handleGeneratePDF = async seleccion => {
         try {
-            const catalogos = { idiomas, pueblos, equipos };
+            const catalogos = { idiomas, pueblos, equipos, puestos };
             await generarFichasPDF(seleccion, catalogos, logo);
             setShowDownload(false);
             showToast("PDF generado correctamente");
@@ -420,6 +491,20 @@ const EmpleadosContainer = () => {
             const payload = toApi(form);
             const isEditing = !!editingId;
 
+            // Validar unicidad de DPI (cliente)
+            if (form.dpi) {
+                const found = data.find(r => String(r.dpi || "") === String(form.dpi || ""));
+                if (found) {
+                    const idOf = empId(found);
+                    if (!isEditing || String(editingId) !== String(idOf)) {
+                        setErrors(p => ({ ...p, dpi: "DPI ya registrado" }));
+                        window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
+                        showToast("El DPI ya existe.", "warning");
+                        return;
+                    }
+                }
+            }
+            // Validar unicidad de email en creación
             if (!isEditing) {
                 const exists = data.some(
                     r =>
@@ -480,9 +565,10 @@ const EmpleadosContainer = () => {
             estadocivil: row.estadocivil ?? "",
             numerohijos: row.numerohijos ?? "",
             estado: true,
-            ididioma: row.ididioma ?? "",
-            idpueblocultura: row.idpueblocultura ?? "",
-            idequipo: row.idequipo ?? "",
+            ididioma: row.ididioma ?? row.idIdioma ?? "",
+            idpueblocultura: row.idpueblocultura ?? row.idPueblocultura ?? "",
+            idpuesto: row.idpuesto ?? row.idPuesto ?? "",
+            idequipo: row.idequipo ?? row.idEquipo ?? "",
             numeroiggs: row.numeroiggs ?? "",
             isCF:
                 String(row.nit || "")
@@ -582,10 +668,11 @@ const EmpleadosContainer = () => {
     const displayed = filtered.slice(start, start + elementosPorPagina).map(x => x.raw);
 
     const onVerDetalle = row => {
-        const idioma = labelFrom(row.ididioma, idiomas, "idioma");
-        const pueblo = labelFrom(row.idpueblocultura, pueblos, "pueblo");
-        const equipo = labelFrom(row.idequipo, equipos, "equipo");
-        setDetalle({ ...row, idioma, pueblo, equipo });
+        const idioma = labelFrom(row.ididioma ?? row.idIdioma, idiomas, "idioma");
+        const pueblo = labelFrom(row.idpueblocultura ?? row.idPueblocultura, pueblos, "pueblo");
+        const equipo = labelFrom(row.idequipo ?? row.idEquipo, equipos, "equipo");
+        const puesto = labelFrom(row.idpuesto ?? row.idPuesto, puestos, "puesto");
+        setDetalle({ ...row, idioma, pueblo, equipo, puesto });
         setMostrarDetalle(true);
     };
 
@@ -630,8 +717,25 @@ const EmpleadosContainer = () => {
                                     >
                                         Nuevo Empleado
                                     </button>
-                                    <button onClick={() => setShowDownload(true)} style={buttonStyles.secundario}>
-                                        Descargar ficha(s)
+                                    <button
+                                        onClick={() => setShowDownload(true)}
+                                        onMouseEnter={() => setHoverDesc(true)}
+                                        onMouseLeave={() => setHoverDesc(false)}
+                                        style={{
+                                            ...buttonStyles.descargar,
+                                            background: hoverDesc ? "#021826" : buttonStyles.descargar.background,
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: 10
+                                        }}
+                                    >
+                                        {/* small download SVG */}
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                                            <path d="M12 3v9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M8 11l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M21 21H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        <span>Descargar ficha(s)</span>
                                     </button>
                                 </div>
                             </div>
@@ -686,7 +790,8 @@ const EmpleadosContainer = () => {
                         idiomas={idiomas}
                         pueblos={pueblos}
                         equipos={equipos}
-                        lockEquipo={equipoBloqueado}
+                        puestos={puestos}
+                        lockEquipo={true}
                     />
                 )}
 
@@ -853,6 +958,16 @@ const EmpleadosContainer = () => {
                                 >
                                     Equipo: {detalle.equipo || ""}
                                 </span>
+                                <span
+                                    style={{
+                                        fontSize: 14,
+                                        background: "#f3f4f6",
+                                        padding: "6px 10px",
+                                        borderRadius: 8
+                                    }}
+                                >
+                                    Puesto: {detalle.puesto || ""}
+                                </span>
                             </div>
 
                             <div style={{ display: "grid", gap: 22 }}>
@@ -888,6 +1003,7 @@ const EmpleadosContainer = () => {
                                 <Section title="Organización">
                                     <Grid>
                                         <Item label="Equipo" value={detalle.equipo || ""} />
+                                        <Item label="Puesto" value={detalle.puesto || ""} />
                                         <Item label="Fecha de inicio" value={toDMY(detalle.inicioLaboral)} />
                                     </Grid>
                                 </Section>

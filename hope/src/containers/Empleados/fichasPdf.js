@@ -5,7 +5,7 @@ const pick = (o, ...keys) => {
     for (const k of keys) if (o && o[k] != null) return o[k];
 };
 const getId = o =>
-    pick(o, "id", "ididioma", "idIdioma", "idequipo", "idEquipo", "idpueblocultura", "idPuebloCultura", "pk", "codigo");
+    pick(o, "id", "ididioma", "idIdioma", "idequipo", "idEquipo", "idpueblocultura", "idPuebloCultura", "idpuesto", "idPuesto", "pk", "codigo");
 
 const getName = (o, type) => {
     if (type === "equipo")
@@ -23,6 +23,8 @@ const getName = (o, type) => {
     if (type === "idioma") return pick(o, "nombreidioma", "nombreIdioma", "nombre", "descripcion", "label") || "";
 
     if (type === "pueblo") return pick(o, "nombrepueblo", "nombrePueblo", "nombre", "descripcion", "label") || "";
+
+    if (type === "puesto") return pick(o, "nombrepuesto", "nombrePuesto", "nombre", "descripcion", "label") || "";
 
     return pick(o, "nombre", "descripcion", "label") || "";
 };
@@ -246,8 +248,8 @@ export async function generarFichasPDF(empleados, cat, logoSrc) {
             String(e?.dpi || ""),
             String(e?.nit || ""),
             String(e?.numeroiggs || ""),
-            inicioLaboral,                       // 16) “Guatemala, DD-MM-YYYY”
-            labelFrom(e?.idequipo, cat?.equipos, "equipo")
+            inicioLaboral,                       // 16) "Guatemala, DD-MM-YYYY"
+            labelFrom(e?.idpuesto, cat?.puestos, "puesto")
         ];
 
         drawDynamicTable(pdf, labels, valores);

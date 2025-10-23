@@ -68,10 +68,9 @@ const DocumentosTable = ({
                                 <td style={tdStyle}>{formatDate(d.fechasubida)}</td>
                                 <td style={tdStyle}>
                                     {empleados.find((e) => e.idempleado === d.idempleado)
-                                        ? `${empleados.find((e) => e.idempleado === d.idempleado).nombre} ${
-                                              empleados.find((e) => e.idempleado === d.idempleado)
-                                                  .apellido
-                                          }`
+                                        ? `${empleados.find((e) => e.idempleado === d.idempleado).nombre} ${empleados.find((e) => e.idempleado === d.idempleado)
+                                            .apellido
+                                        }`
                                         : "-"}
                                 </td>
                                 <td style={tdStyle}>
@@ -79,8 +78,8 @@ const DocumentosTable = ({
                                         (t) => t.idtipodocumento === d.idtipodocumento
                                     )
                                         ? tiposDocumento.find(
-                                              (t) => t.idtipodocumento === d.idtipodocumento
-                                          ).nombretipo
+                                            (t) => t.idtipodocumento === d.idtipodocumento
+                                        ).nombretipo
                                         : "-"}
                                 </td>
                                 <td style={{ ...tdStyle, textAlign: "center" }}>

@@ -30,7 +30,20 @@ const pick = (obj, ...keys) => {
     for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
 };
 const getId = o =>
-    pick(o, "id", "ididioma", "idIdioma", "idequipo", "idEquipo", "idpueblocultura", "idPuebloCultura", "pk", "codigo");
+    pick(
+        o,
+        "id",
+        "ididioma",
+        "idIdioma",
+        "idequipo",
+        "idEquipo",
+        "idpueblocultura",
+        "idPuebloCultura",
+        "idpuesto",
+        "idPuesto",
+        "pk",
+        "codigo"
+    );
 const getIdiomaLabel = o => pick(o, "nombreidioma", "nombreIdioma", "nombre", "descripcion", "label");
 const getPuebloLabel = o =>
     pick(o, "nombrePueblo", "nombrepueblo", "nombrepueblocultura", "pueblocultura", "pueblo", "descripcion", "label");
@@ -46,6 +59,7 @@ const EmpleadoForm = ({
     idiomas = [],
     pueblos = [],
     equipos = [],
+    puestos = [],
     lockEquipo = false
 }) => {
     const [step, setStep] = useState(1);
@@ -70,6 +84,7 @@ const EmpleadoForm = ({
         "direccion",
         "ididioma",
         "idpueblocultura",
+        "idpuesto",
         "idequipo"
     ];
     const STEP3_FIELDS = ["numerohijos", "titulonivelmedio", "estudiosuniversitarios", "iniciolaboral"];
@@ -120,6 +135,8 @@ const EmpleadoForm = ({
 
         for (let input of pageInputs) {
             const name = input.name;
+            // Si el input está deshabilitado (por ejemplo equipo bloqueado), ignorarlo
+            if (input.disabled) continue;
             if (!requiredNames.has(name)) continue;
             if (name === "nit" && Boolean(form.isCF)) continue;
 
@@ -361,11 +378,7 @@ const EmpleadoForm = ({
                                         style={inputStyle}
                                     />
                                     {errors.dpi && (
-                                        <span style={warn}>
-                                            {errors.dpi === "Debe tener 13 dígitos"
-                                                ? errors.dpi
-                                                : "Este campo es obligatorio"}
-                                        </span>
+                                        <span style={warn}>{String(errors.dpi)}</span>
                                     )}
                                 </div>
                                 <div style={field}>
@@ -379,11 +392,7 @@ const EmpleadoForm = ({
                                         style={inputStyle}
                                     />
                                     {errors.nit && (
-                                        <span style={warn}>
-                                            {errors.nit === "Use 1–9 dígitos (o C/F)"
-                                                ? errors.nit
-                                                : "Este campo es obligatorio"}
-                                        </span>
+                                        <span style={warn}>{String(errors.nit)}</span>
                                     )}
                                     <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
                                         <input
@@ -405,11 +414,7 @@ const EmpleadoForm = ({
                                         style={inputStyle}
                                     />
                                     {errors.numeroiggs && (
-                                        <span style={warn}>
-                                            {errors.numeroiggs === "Debe tener 13 dígitos"
-                                                ? errors.numeroiggs
-                                                : "Este campo es obligatorio"}
-                                        </span>
+                                        <span style={warn}>{String(errors.numeroiggs)}</span>
                                     )}
                                 </div>
                             </div>
@@ -548,6 +553,24 @@ const EmpleadoForm = ({
                                     {errors.idpueblocultura && <span style={warn}>Este campo es obligatorio</span>}
                                 </div>
                                 <div style={field}>
+                                    <label style={labelStyle}>Puesto</label>
+                                    <select
+                                        name="idpuesto"
+                                        value={form.idpuesto}
+                                        onChange={handleFieldChange}
+                                        required
+                                        style={inputStyle}
+                                    >
+                                        <option value="">Seleccione puesto</option>
+                                        {puestos.map(p => (
+                                            <option key={getId(p)} value={getId(p)}>
+                                                {p.nombrepuesto ?? p.nombrePuesto ?? (p.nombre || `ID ${getId(p)}`)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {errors.idpuesto && <span style={warn}>Este campo es obligatorio</span>}
+                                </div>
+                                <div style={{ ...field, gridColumn: "1 / -1" }}>
                                     <label style={labelStyle}>Equipo</label>
                                     <select
                                         name="idequipo"

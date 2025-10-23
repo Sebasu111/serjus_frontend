@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom"; // v5
 import HomeData from "../../data/home.json";
 import MobileMenu from "../../components/menu/mobile-menu";
 import MenuOverlay from "../../components/menu/menu-overlay";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaHome } from "react-icons/fa";
 import FormUsuario from "../../containers/usuarios/FormUsuario"; // Ajusta la ruta según tu estructura
 import { showToast } from "../../utils/toast"; //  Importa el toast
 
@@ -61,43 +61,43 @@ const HeaderTop = () => {
             const idUsuario = usuarioGuardado?.idusuario;
 
             if (!idUsuario) {
-            showToast("Error: no se encontró el usuario logueado", "error");
-            return;
+                showToast("Error: no se encontró el usuario logueado", "error");
+                return;
             }
 
             // Se construye el payload completo que requiere la API
             const payload = {
-            nombreusuario: form.nombreusuario,
-            contrasena: form.contrasena,
-            estado: true,
-            createdat: usuarioGuardado.createdat || new Date().toISOString(),
-            updatedat: new Date().toISOString(),
-            idrol: form.idrol || usuarioGuardado.idrol || 0,
-            idempleado: form.idempleado || usuarioGuardado.idempleado || 0,
+                nombreusuario: form.nombreusuario,
+                contrasena: form.contrasena,
+                estado: true,
+                createdat: usuarioGuardado.createdat || new Date().toISOString(),
+                updatedat: new Date().toISOString(),
+                idrol: form.idrol || usuarioGuardado.idrol || 0,
+                idempleado: form.idempleado || usuarioGuardado.idempleado || 0,
             };
 
             const response = await fetch(`http://127.0.0.1:8000/api/usuarios/${idUsuario}/`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                // "Authorization": `Bearer ${token}`, // si tu API lo requiere
-            },
-            body: JSON.stringify(payload),
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    // "Authorization": `Bearer ${token}`, // si tu API lo requiere
+                },
+                body: JSON.stringify(payload),
             });
 
             if (response.ok) {
-            showToast("Contraseña actualizada correctamente ", "success");
-            setMostrarFormUsuario(false);
-            setForm(f => ({ ...f, contrasena: "" }));
+                showToast("Contraseña actualizada correctamente ", "success");
+                setMostrarFormUsuario(false);
+                setForm(f => ({ ...f, contrasena: "" }));
             } else {
-            const error = await response.json();
-            showToast(error.message || "Error al actualizar la contraseña", "error");
+                const error = await response.json();
+                showToast(error.message || "Error al actualizar la contraseña", "error");
             }
         } catch (error) {
             console.error(error);
             showToast("Error de conexión con el servidor", "error");
         }
-        };
+    };
 
     return (
         <Fragment>
@@ -115,6 +115,9 @@ const HeaderTop = () => {
 
                         {/* Usuario + menú móvil */}
                         <div className="d-flex align-items-center ms-auto">
+                            <a href="/home" className="me-3" style={{ color: "#000", display: "flex", alignItems: "center" }}>
+                                <FaHome size={22} />
+                            </a>
                             <div className="header-user position-relative" onClick={toggleUserMenu}>
                                 <FaUserCircle size={28} color="#000" />
                                 <span className="user-name" style={{ marginLeft: "8px", fontWeight: "600", color: "#000" }}>

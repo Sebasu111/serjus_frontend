@@ -111,17 +111,6 @@ const SidebarMenu = () => {
                 </div>
 
                 <ul className="sidebar-menu-list">
-                    {/* Inicio */}
-                    <li>
-                        <NavLink
-                            to={`${base}/home`}
-                            className="sidebar-menu-link"
-                            title={collapsed ? "Inicio" : ""}
-                        >
-                            <FaHome className="menu-icon" /> {!collapsed && "Inicio"}
-                        </NavLink>
-                    </li>
-
                     {/* Personal */}
                     <li>
                         <div

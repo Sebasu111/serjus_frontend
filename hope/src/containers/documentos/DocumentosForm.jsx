@@ -95,15 +95,14 @@ const DocumentosForm = ({
                         value={
                             form.idempleado
                                 ? {
-                                      value: form.idempleado,
-                                      label: `${empleados.find(
-                                          (emp) => emp.idempleado === form.idempleado
-                                      )?.nombre} ${
-                                          empleados.find(
-                                              (emp) => emp.idempleado === form.idempleado
-                                          )?.apellido
-                                      }`,
-                                  }
+                                    value: form.idempleado,
+                                    label: `${empleados.find(
+                                        (emp) => emp.idempleado === form.idempleado
+                                    )?.nombre} ${empleados.find(
+                                        (emp) => emp.idempleado === form.idempleado
+                                    )?.apellido
+                                        }`,
+                                }
                                 : null
                         }
                         onChange={(selected) =>
@@ -168,26 +167,26 @@ const DocumentosForm = ({
                 </button>
 
                 {editingId && form.nombrearchivo && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setDocumentoAEliminar(editingId);
-                                setMostrarModalEliminar(true);
-                            }}
-                            style={{
-                                marginTop: "10px",
-                                background: "#FCA5A5",
-                                color: "#FFF",
-                                border: "none",
-                                borderRadius: "6px",
-                                padding: "8px 12px",
-                                cursor: "pointer",
-                                width: "100%",
-                            }}
-                        >
-                            Eliminar archivo actual
-                        </button>
-                    )}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setDocumentoAEliminar(editingId);
+                            setMostrarModalEliminar(true);
+                        }}
+                        style={{
+                            marginTop: "10px",
+                            background: "#FCA5A5",
+                            color: "#FFF",
+                            border: "none",
+                            borderRadius: "6px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            width: "100%",
+                        }}
+                    >
+                        Eliminar archivo actual
+                    </button>
+                )}
             </form>
 
             <button

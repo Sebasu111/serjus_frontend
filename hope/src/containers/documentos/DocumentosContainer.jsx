@@ -50,8 +50,8 @@ const DocumentosContainer = () => {
             const data = Array.isArray(r.data)
                 ? r.data
                 : Array.isArray(r.data?.results)
-                ? r.data.results
-                : [];
+                    ? r.data.results
+                    : [];
             setDocumentos(data);
         } catch (error) {
             console.error("Error al cargar documentos:", "error");
@@ -66,8 +66,8 @@ const DocumentosContainer = () => {
             const data = Array.isArray(r.data)
                 ? r.data
                 : Array.isArray(r.data?.results)
-                ? r.data.results
-                : [];
+                    ? r.data.results
+                    : [];
             setTiposDocumento(data);
         } catch (error) {
             console.error("Error al cargar tipos de documento:", error);
@@ -82,8 +82,8 @@ const DocumentosContainer = () => {
             const data = Array.isArray(r.data)
                 ? r.data
                 : Array.isArray(r.data?.results)
-                ? r.data.results
-                : [];
+                    ? r.data.results
+                    : [];
             setEmpleados(data);
         } catch (error) {
             console.error("Error al cargar empleados:", error);
