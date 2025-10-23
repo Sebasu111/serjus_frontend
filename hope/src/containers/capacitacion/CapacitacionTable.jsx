@@ -8,6 +8,7 @@ const CapacitacionesTable = ({
   handleEdit,
   handleDelete,
   handleActivate,
+  handleAsignarCapacitacion,
   paginaActual,
   totalPaginas,
   setPaginaActual,
@@ -148,6 +149,15 @@ const CapacitacionesTable = ({
                       </button>
                       {openMenuId === id && (
                         <div style={comboBoxStyles.menu.container}>
+                          <div
+                            style={comboBoxStyles.menu.item.editar.base}
+                            onClick={() => {
+                              handleAsignarCapacitacion();
+                              setOpenMenuId(null);
+                            }}
+                          >
+                            Asignar Capacitación
+                          </div>
                           <div
                             style={{
                               ...comboBoxStyles.menu.item.editar.base,

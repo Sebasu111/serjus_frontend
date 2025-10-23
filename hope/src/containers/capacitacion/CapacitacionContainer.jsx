@@ -125,6 +125,11 @@ const CapacitacionContainer = () => {
     setModalAccion({ tipo, data: cap });
   };
 
+  // Función para manejar la asignación de capacitación
+  const handleAsignarCapacitacion = () => {
+    setMostrarAsignacion(true);
+  };
+
   // Confirma la acción (activar o desactivar)
   const confirmarAccion = async () => {
     if (!modalAccion?.data) return;
@@ -224,12 +229,6 @@ const CapacitacionContainer = () => {
                 >
                   Nueva Capacitación
                 </button>
-                <button
-                  onClick={() => setMostrarAsignacion(true)}
-                  style={{ ...buttonStyles.nuevo, background: "#219ebc", color: "#fff" }}
-                >
-                  Asignar Capacitación
-                </button>
               </div>
 
               <CapacitacionesTable
@@ -242,6 +241,7 @@ const CapacitacionContainer = () => {
                   );
                   handleToggleEstado(cap, "activar");
                 }}
+                handleAsignarCapacitacion={handleAsignarCapacitacion}
                 paginaActual={paginaActual}
                 totalPaginas={totalPaginas}
                 setPaginaActual={setPaginaActual}
