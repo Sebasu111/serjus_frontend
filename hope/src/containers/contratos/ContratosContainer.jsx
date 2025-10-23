@@ -8,6 +8,7 @@ import SEO from "../../components/seo/index.jsx";
 import ContratoEditor from "./ContratoEditor.jsx";
 import ContratoForm from "./ContratoForm.jsx";
 import html2pdf from "html2pdf.js";
+import { ToastContainer } from "react-toastify";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -128,24 +129,33 @@ const ContratosContainer = () => {
   return (
     <Layout>
       <SEO title="Contratos" />
-      <div
-        className="wrapper"
-        style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-      >
-        <Header />
-        <main style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5", paddingLeft: "250px" }}>
-          <div style={{ maxWidth: 900, margin: "0 auto" }}>
-            <ContratoForm data={data} onChange={onChange} imprimirContrato={handlePrint} />
+      {/* Estilo global para asegurar tipografía Inter en sidebar */}
+      <style>{`
+        .sidebar-menu,
+        .sidebar-menu *,
+        .sidebar-menu-link,
+        .sidebar-submenu-link {
+          font-family: "Inter", sans-serif !important;
+        }
+      `}</style>
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Header />
+          <main className="main-content site-wrapper-reveal" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#EEF2F7", padding: "48px 20px 8rem" }}>
+            <div style={{ width: "min(1100px, 96vw)" }}>
+              <ContratoForm data={data} onChange={onChange} imprimirContrato={handlePrint} />
 
-            {/* Pasamos el ref al editor */}
-            <ContratoEditor
-              ref={editorRef}
-              data={data}
-            />
-          </div>
-        </main>
-        <Footer />
+              {/* Pasamos el ref al editor */}
+              <ContratoEditor
+                ref={editorRef}
+                data={data}
+              />
+            </div>
+          </main>
+          <Footer />
+        </div>
         <ScrollToTop />
+        <ToastContainer />
       </div>
     </Layout>
   );

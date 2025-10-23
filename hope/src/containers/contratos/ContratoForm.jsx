@@ -19,11 +19,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
     fontSize: "14px",
     transition: "all 0.2s",
     boxShadow: "inset 0 1px 3px rgba(0,0,0,0.05)",
+    fontFamily: '"Inter", sans-serif',
   };
 
   const grid = {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
     gap: "12px",
     marginBottom: "15px",
   };
@@ -37,6 +38,8 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
     cursor: "pointer",
     fontSize: "16px",
     transition: "all 0.2s",
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: "600",
   };
 
   const btnNav = {
@@ -49,6 +52,8 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
     fontSize: "14px",
     margin: "10px 5px",
     transition: "all 0.2s",
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: "500",
   };
 
   const commonProps = { autoComplete: "off", required: true };
@@ -97,7 +102,11 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
       if (k.includes("sexo")) {
         return (
           <div key={k} style={{ display: "flex", flexDirection: "column" }}>
-            <label htmlFor={k} style={{ marginBottom: "4px", fontWeight: "bold" }}>
+            <label htmlFor={k} style={{ 
+              marginBottom: "4px", 
+              fontWeight: "bold",
+              fontFamily: '"Inter", sans-serif'
+            }}>
               {label}:
             </label>
             <select
@@ -120,7 +129,11 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
       if (k.includes("estadoCivil")) {
         return (
           <div key={k} style={{ display: "flex", flexDirection: "column" }}>
-            <label htmlFor={k} style={{ marginBottom: "4px", fontWeight: "bold" }}>
+            <label htmlFor={k} style={{ 
+              marginBottom: "4px", 
+              fontWeight: "bold",
+              fontFamily: '"Inter", sans-serif'
+            }}>
               {label}:
             </label>
             <select
@@ -145,7 +158,11 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
       if (k === "fechaInicio" || k === "fechaContrato") {
         return (
           <div key={k} style={{ display: "flex", flexDirection: "column" }}>
-            <label htmlFor={k} style={{ marginBottom: "4px", fontWeight: "bold" }}>
+            <label htmlFor={k} style={{ 
+              marginBottom: "4px", 
+              fontWeight: "bold",
+              fontFamily: '"Inter", sans-serif'
+            }}>
               {label}:
             </label>
             <input type="date" id={k} name={k} onChange={handleDateChange} style={input} {...commonProps} />
@@ -175,7 +192,11 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
 
       return (
         <div key={k} style={{ display: "flex", flexDirection: "column" }}>
-          <label htmlFor={k} style={{ marginBottom: "4px", fontWeight: "bold" }}>
+          <label htmlFor={k} style={{ 
+            marginBottom: "4px", 
+            fontWeight: "bold",
+            fontFamily: '"Inter", sans-serif'
+          }}>
             {label}:
           </label>
           <input
@@ -241,21 +262,36 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
       ref={formRef}
       className="no-print"
       onSubmit={handleSubmit}
-      style={{ marginBottom: "40px" }}
+      style={{ 
+        marginBottom: "40px",
+        fontFamily: '"Inter", sans-serif'
+      }}
     >
       <SEO title="Contratos" />
-      <h1 style={{ textAlign: "center", marginBottom: "30px" }}>Editor de Contrato Individual de Trabajo</h1>
+      <h1 style={{ 
+        textAlign: "center", 
+        marginBottom: "30px",
+        fontFamily: '"Inter", sans-serif',
+        fontWeight: "600"
+      }}>Editor de Contrato Individual de Trabajo</h1>
       <div style={{
         margin: "40px auto",
-        padding: "30px",
+        padding: "30px 20px",
         maxWidth: "900px",
+        width: "min(90vw, 900px)",
         backgroundColor: "#fff",
         borderRadius: "12px",
         boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        fontFamily: '"Inter", sans-serif'
       }}>
       {pagina === 1 && (
         <div className="pagina-1">
-          <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>Datos del Empleador/a</h3>
+          <h3 style={{ 
+            fontSize: "20px", 
+            marginBottom: "10px",
+            fontFamily: '"Inter", sans-serif',
+            fontWeight: "600"
+          }}>Datos del Empleador/a</h3>
           <div style={grid}>
             {renderFields({
               nombreEmpleadora: { label: "Nombre completo de la empleador/a", placeholder: "Ej. Ingrid López Castillo" },
@@ -271,7 +307,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
 
       {pagina === 2 && (
         <div className="pagina-2">
-          <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>Datos de la Trabajador/a</h3>
+          <h3 style={{ 
+            fontSize: "20px", 
+            marginBottom: "10px",
+            fontFamily: '"Inter", sans-serif',
+            fontWeight: "600"
+          }}>Datos de la Trabajador/a</h3>
           <div style={grid}>
             {renderFields({
               nombreTrabajadora: { label: "Nombre completo de la trabajador/a", placeholder: "Ej. María Fernanda Pérez Ramírez" },
@@ -289,7 +330,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
 
       {pagina === 3 && (
         <div className="pagina-3">
-          <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>Detalles del Contrato</h3>
+          <h3 style={{ 
+            fontSize: "20px", 
+            marginBottom: "10px",
+            fontFamily: '"Inter", sans-serif',
+            fontWeight: "600"
+          }}>Detalles del Contrato</h3>
           <div style={grid}>
             {renderFields({
               fechaInicio: { label: "Fecha de inicio del contrato" },
@@ -307,9 +353,18 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
 
       {pagina === 4 && (
         <div className="pagina-4">
-          <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>Funciones principales a realizar</h3>
+          <h3 style={{ 
+            fontSize: "20px", 
+            marginBottom: "10px",
+            fontFamily: '"Inter", sans-serif',
+            fontWeight: "600"
+          }}>Funciones principales a realizar</h3>
           <div style={{ display: "flex", flexDirection: "column", marginBottom: "20px" }}>
-            <label htmlFor="funciones" style={{ marginBottom: "4px", fontWeight: "bold" }}>
+            <label htmlFor="funciones" style={{ 
+              marginBottom: "4px", 
+              fontWeight: "bold",
+              fontFamily: '"Inter", sans-serif'
+            }}>
               Describa las funciones principales:
             </label>
             <textarea
@@ -318,7 +373,11 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
               value={data.funciones}
               onChange={onChange}
               placeholder="Ej. Limpieza general, preparación de alimentos y atención del hogar"
-              style={{ ...input, height: "120px" }}
+              style={{ 
+                ...input, 
+                height: "120px",
+                fontFamily: '"Inter", sans-serif'
+              }}
               {...commonProps}
             />
           </div>
