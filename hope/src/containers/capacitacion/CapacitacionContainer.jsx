@@ -291,7 +291,7 @@ const CapacitacionContainer = () => {
           <AsignarCapacitacion onClose={() => setMostrarAsignacion(false)} />
         )}
 
-        {/* ✅ Modal de confirmación genérico */}
+        {/*   Modal de confirmación genérico */}
         {modalAccion && (
           <ConfirmModal
             title={

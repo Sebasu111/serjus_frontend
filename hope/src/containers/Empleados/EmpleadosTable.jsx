@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-// ✅ estilos compartidos como en Idiomas
+//   estilos compartidos como en Idiomas
 import { buttonStyles } from "../../stylesGenerales/buttons";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 

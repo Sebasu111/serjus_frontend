@@ -1,5 +1,5 @@
 import React from "react";
-// ✅ mismo style object que usa Idiomas
+//   mismo style object que usa Idiomas
 import ConfirmModalStyles from "../../stylesGenerales/ConfirmModalStyles";
 
 /**
