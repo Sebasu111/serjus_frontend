@@ -107,7 +107,9 @@
 }
 
 .sidebar-menu-link:hover {
-    background: #374151;
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateX(2px);
+    transition: all 0.2s ease;
 }
 
 .menu-icon {
@@ -119,24 +121,24 @@
 
 /* --- Estilos para menús principales con submenús activos --- */
 .sidebar-menu-link.has-active-child {
-    background: linear-gradient(135deg, #1e40af, #1d4ed8) !important;
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
     color: #fff !important;
     font-weight: 600 !important;
-    box-shadow: 0 2px 6px rgba(30, 64, 175, 0.2) !important;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
 }
 
 .sidebar-menu-link.has-active-child:hover {
-    background: linear-gradient(135deg, #1d4ed8, #1e3a8a) !important;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
 }
 
 /* --- Estilos para enlaces activos --- */
 .sidebar-menu-link.active,
 .sidebar-submenu-link.active {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
     color: #fff !important;
     position: relative;
     font-weight: 700 !important;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
 }
 
 /* Indicador visual izquierdo para enlaces activos */
@@ -148,14 +150,14 @@
     top: 0;
     bottom: 0;
     width: 5px;
-    background: #34d399;
-    box-shadow: 0 0 10px rgba(52, 211, 153, 0.6);
+    background: #60a5fa;
+    box-shadow: 0 0 10px rgba(96, 165, 250, 0.6);
 }
 
 /* Hover para enlaces activos */
 .sidebar-menu-link.active:hover,
 .sidebar-submenu-link.active:hover {
-    background: linear-gradient(135deg, #059669, #047857) !important;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
     transform: translateX(2px);
     transition: all 0.2s ease;
 }
@@ -173,7 +175,7 @@
     right: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: #34d399;
+    color: #60a5fa;
     font-size: 12px;
     animation: pulse 2s infinite;
 }
@@ -218,7 +220,10 @@
 }
 
 .sidebar-submenu-link:hover {
-    color: #fff;
+    color: #60a5fa;
+    background: rgba(59, 130, 246, 0.08);
+    transform: translateX(3px);
+    transition: all 0.2s ease;
 }
 
 /* --- Logout --- */
