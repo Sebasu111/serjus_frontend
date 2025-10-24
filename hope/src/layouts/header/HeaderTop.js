@@ -44,7 +44,7 @@ const HeaderTop = () => {
     const handleLogout = () => {
         localStorage.removeItem("usuarioLogueado");
         sessionStorage.removeItem("idUsuario");
-        showToast("Sesión cerrada correctamente", "warning");
+        showToast("Sesión cerrada correctamente", "success");
         history.push("/"); // Redirige al login
     };
 

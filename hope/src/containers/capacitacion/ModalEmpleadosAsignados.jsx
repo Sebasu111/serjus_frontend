@@ -37,7 +37,7 @@ const ModalEmpleadosAsignados = ({ visible, onClose, empleados, evento, loading 
           maxHeight: "75vh",
           overflowY: "auto",
           boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-          position: "relative", // ✅ necesario para posicionar la X dentro del modal
+          position: "relative", //   necesario para posicionar la X dentro del modal
         }}
       >
         {/* Botón de cerrar (X) */}
