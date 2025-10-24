@@ -7,6 +7,7 @@ import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 import AmonestacionForm from "./AmonestacionForm.jsx";
 import AmonestacionTable from "./AmonestacionTable.jsx";
+import { ToastContainer } from "react-toastify";
 
 const AmonestacionContainer = () => {
     const [idEmpleado, setIdEmpleado] = useState("");
@@ -135,11 +136,21 @@ const AmonestacionContainer = () => {
     return (
         <Layout>
             <SEO title=" Amonestaciones" />
-            <div style={{ display: "flex", minHeight: "100vh" }}>
+            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
-                    <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-                        <div style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}>
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
+                        <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Registro de Amonestaciones</h2>
 
                             {/* Buscador y botón de nuevo */}
@@ -216,8 +227,10 @@ const AmonestacionContainer = () => {
                         </div>
                     </main>
                     <Footer />
+                    <ScrollToTop />
                 </div>
-                <ScrollToTop />
+
+                <ToastContainer />
             </div>
         </Layout>
     );

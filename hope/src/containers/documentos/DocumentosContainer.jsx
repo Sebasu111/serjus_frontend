@@ -282,11 +282,21 @@ const DocumentosContainer = () => {
     return (
         <Layout>
             <SEO title="Documentos" />
-            <div style={{ display: "flex", minHeight: "100vh" }}>
+            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
-                    <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-                        <div style={{ maxWidth: "1000px", margin: "0 auto", paddingLeft: "225px" }}>
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
+                        <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Documentos Registrados</h2>
 
                             {mensaje && (
@@ -391,33 +401,33 @@ const DocumentosContainer = () => {
                         </div>
                     </main>
                     <Footer />
+                    <ScrollToTop />
                 </div>
-            </div>
 
-            {mostrarFormulario && (
-                <DocumentosForm
-                    form={form}
-                    setForm={setForm}
-                    tiposDocumento={tiposDocumento}
-                    empleados={empleados}
-                    onChange={onChange}
-                    handleSubmit={handleSubmit}
-                    editingId={editingId}
-                    setMostrarFormulario={setMostrarFormulario}
+                {mostrarFormulario && (
+                    <DocumentosForm
+                        form={form}
+                        setForm={setForm}
+                        tiposDocumento={tiposDocumento}
+                        empleados={empleados}
+                        onChange={onChange}
+                        handleSubmit={handleSubmit}
+                        editingId={editingId}
+                        setMostrarFormulario={setMostrarFormulario}
+                        setMostrarModalEliminar={setMostrarModalEliminar}
+                        setDocumentoAEliminar={setDocumentoAEliminar}
+                    />
+                )}
+
+                <ModalEliminarArchivo
+                    mostrarModalEliminar={mostrarModalEliminar}
                     setMostrarModalEliminar={setMostrarModalEliminar}
-                    setDocumentoAEliminar={setDocumentoAEliminar}
+                    documentoAEliminar={documentoAEliminar}
+                    handleDeleteArchivo={handleDeleteArchivo}
                 />
-            )}
 
-            <ModalEliminarArchivo
-                mostrarModalEliminar={mostrarModalEliminar}
-                setMostrarModalEliminar={setMostrarModalEliminar}
-                documentoAEliminar={documentoAEliminar}
-                handleDeleteArchivo={handleDeleteArchivo}
-            />
-
-            <ToastContainer />
-            <ScrollToTop />
+                <ToastContainer />
+            </div>
         </Layout>
     );
 };

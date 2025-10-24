@@ -13,16 +13,6 @@ import { ToastContainer } from "react-toastify";
 const API = "http://127.0.0.1:8000/api";
 
 const ContratosContainer = () => {
-    const [form, setForm] = useState({
-        fechainicio: "",
-        fechafirma: "",
-        fechafin: "",
-        tipocontrato: "",
-        estado: true,
-        idusuario: 1,
-        idhistorialpuesto: ""
-    });
-
     const [data, setData] = useState({
         nombreEmpleadora: "",
         edadEmpleadora: "",
@@ -51,28 +41,8 @@ const ContratosContainer = () => {
         fechaContrato: ""
     });
 
-    const [mensaje, setMensaje] = useState("");
-    const [rows, setRows] = useState([]);
-    const [editingId, setEditingId] = useState(null);
-
     // Aquí definimos el ref
     const editorRef = useRef();
-
-    const fetchList = async () => {
-        try {
-            const r = await axios.get(`${API}/contratos/`);
-            const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
-            setRows(data);
-        } catch (e) {
-            console.error("Error contratos:", e);
-            setRows([]);
-            setMensaje("Error al cargar los contratos");
-        }
-    };
-
-    useEffect(() => {
-        fetchList();
-    }, []);
 
     const onChange = e => {
         const { name, value } = e.target;
@@ -126,16 +96,7 @@ const ContratosContainer = () => {
     return (
         <Layout>
             <SEO title="Contratos" />
-            {/* Estilo global para asegurar tipografía Inter en sidebar */}
-            <style>{`
-        .sidebar-menu,
-        .sidebar-menu *,
-        .sidebar-menu-link,
-        .sidebar-submenu-link {
-          font-family: "Inter", sans-serif !important;
-        }
-      `}</style>
-            <div style={{ display: "flex", minHeight: "100vh" }}>
+            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
                     <main
@@ -150,6 +111,8 @@ const ContratosContainer = () => {
                         }}
                     >
                         <div style={{ width: "min(1100px, 96vw)" }}>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Contratos</h2>
+
                             <ContratoForm data={data} onChange={onChange} imprimirContrato={handlePrint} />
 
                             {/* Pasamos el ref al editor */}
@@ -157,8 +120,8 @@ const ContratosContainer = () => {
                         </div>
                     </main>
                     <Footer />
+                    <ScrollToTop />
                 </div>
-                <ScrollToTop />
                 <ToastContainer />
             </div>
         </Layout>

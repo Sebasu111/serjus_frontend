@@ -12,7 +12,6 @@ import CapacitacionesSection from "./CapacitacionesSection.jsx";
 import InfoPersonal from "./InfoPersonal.jsx";
 
 const PerfilContainer = () => {
-    const [usuario, setUsuario] = useState(null);
     const [empleado, setEmpleado] = useState(null);
     const [capacitacionesInfo, setCapacitacionesInfo] = useState([]);
     const [showAsistenciaModal, setShowAsistenciaModal] = useState(false);
@@ -26,7 +25,6 @@ const PerfilContainer = () => {
 
                 const resUsuarios = await axios.get("http://127.0.0.1:8000/api/usuarios/");
                 const usuarioActual = resUsuarios.data.results.find(u => u.idusuario === idUsuario);
-                setUsuario(usuarioActual);
                 if (!usuarioActual) {
                     showToast("Usuario no encontrado", "error");
                     return;
@@ -105,39 +103,52 @@ const PerfilContainer = () => {
     return (
         <Layout>
             <SEO title="Perfil" />
-            <Header />
+            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    <Header />
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
+                        <div style={{ width: "min(1100px, 96vw)" }}>
+                            <h2 style={{ textAlign: "center", marginBottom: "30px", color: "#023047" }}>
+                                Perfil de {empleado ? empleado.nombre : "Cargando..."}
+                            </h2>
 
-            <div style={{ background: "#f0f2f5", padding: "30px 0", minHeight: "80vh" }}>
-                <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px", paddingLeft: "250px" }}>
-                    <h2 style={{ textAlign: "center", marginBottom: "30px", color: "#023047" }}>
-                        Perfil de {empleado ? empleado.nombre : "Cargando..."}
-                    </h2>
+                            {empleado && (
+                                <>
+                                    <InfoPersonal empleado={empleado} formatFecha={formatFecha} />
 
-                    {empleado && (
-                        <>
-                            <InfoPersonal empleado={empleado} formatFecha={formatFecha} />
-
-                            <CapacitacionesSection
-                                capacitacionesInfo={capacitacionesInfo}
-                                formatFecha={formatFecha}
-                                setCapacitacionSeleccionada={setCapacitacionSeleccionada}
-                                setShowAsistenciaModal={setShowAsistenciaModal}
-                            />
-                        </>
-                    )}
+                                    <CapacitacionesSection
+                                        capacitacionesInfo={capacitacionesInfo}
+                                        formatFecha={formatFecha}
+                                        setCapacitacionSeleccionada={setCapacitacionSeleccionada}
+                                        setShowAsistenciaModal={setShowAsistenciaModal}
+                                    />
+                                </>
+                            )}
+                        </div>
+                    </main>
+                    <Footer />
+                    <ScrollToTop />
                 </div>
+
+                <AsistenciaModal
+                    show={showAsistenciaModal}
+                    onClose={() => setShowAsistenciaModal(false)}
+                    capacitacion={capacitacionSeleccionada}
+                    onGuardar={actualizarCapacitacion}
+                />
+
+                <ToastContainer position="top-right" autoClose={5000} />
             </div>
-
-            <AsistenciaModal
-                show={showAsistenciaModal}
-                onClose={() => setShowAsistenciaModal(false)}
-                capacitacion={capacitacionSeleccionada}
-                onGuardar={actualizarCapacitacion}
-            />
-
-            <Footer />
-            <ScrollToTop />
-            <ToastContainer position="top-right" autoClose={5000} />
         </Layout>
     );
 };

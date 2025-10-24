@@ -173,11 +173,21 @@ const EvaluacionesContainer = () => {
     return (
         <Layout>
             <SEO title="Evaluaciones" />
-            <div style={{ display: "flex", minHeight: "100vh" }}>
+            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
-                    <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-                        <div style={{ maxWidth: "1000px", margin: "0 auto", paddingLeft: "250px" }}>
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
+                        <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: 20, textAlign: "center" }}>Evaluaciones</h2>
 
                             <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 14 }}>
@@ -242,6 +252,7 @@ const EvaluacionesContainer = () => {
                         </div>
                     </main>
                     <Footer />
+                    <ScrollToTop />
                 </div>
 
                 {mostrarForm && (
@@ -328,7 +339,6 @@ const EvaluacionesContainer = () => {
                 )}
 
                 <ToastContainer />
-                <ScrollToTop />
             </div>
         </Layout>
     );

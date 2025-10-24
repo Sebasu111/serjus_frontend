@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { NavLink, useHistory } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { NavLink, useHistory, useLocation } from "react-router-dom";
 import { FaHome, FaUsers, FaUserTie, FaClipboardList, FaBook, FaFileAlt, FaSignOutAlt } from "react-icons/fa";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "./sidebar-menu.css";
@@ -11,6 +11,38 @@ const SidebarMenu = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const history = useHistory();
+    const location = useLocation();
+
+    // Mapeo de rutas a submenús
+    const routeToSubmenu = {
+        '/Empleados': 'personal',
+        '/Contratos': 'personal',
+        '/Historial': 'personal',
+        '/Usuarios': 'personal',
+        '/Equipos': 'personal',
+        '/Convocatorias': 'reclutamiento',
+        '/Aspirantes': 'reclutamiento',
+        '/Seleccion': 'reclutamiento',
+        '/Induccion': 'integracion',
+        '/Capacitacion': 'integracion',
+        '/Evaluaciones': 'desempeno',
+        '/Criterios': 'desempeno',
+        '/Ausencias': 'disciplinario',
+        '/Amonestaciones': 'disciplinario',
+        '/PuebloCultura': 'catalogo',
+        '/Idiomas': 'catalogo',
+        '/Puesto': 'catalogo',
+        '/Documentos': 'documentos' // Agregado para Documentos
+    };
+
+    // Auto-abrir el submenu correcto basado en la ruta actual
+    useEffect(() => {
+        const currentPath = location.pathname.replace(base, '');
+        const activeSubmenu = routeToSubmenu[currentPath];
+        if (activeSubmenu && !collapsed) {
+            setOpenMenu(activeSubmenu);
+        }
+    }, [location.pathname, collapsed]);
 
     React.useEffect(() => {
         // Sync collapsed state with body class for CSS rules
@@ -99,7 +131,7 @@ const SidebarMenu = () => {
                     {/* Personal */}
                     <li>
                         <div
-                            className="sidebar-menu-link"
+                            className={`sidebar-menu-link ${openMenu === "personal" ? "has-active-child" : ""}`}
                             onClick={() => toggleSubmenu("personal")}
                             title={collapsed ? "Personal" : ""}
                         >
@@ -107,27 +139,47 @@ const SidebarMenu = () => {
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "personal" ? "open" : ""}`}>
                             <li>
-                                <NavLink to={`${base}/Empleados`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Empleados`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Colaboradores/as
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Contratos`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Contratos`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Contrato
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Historial`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Historial`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Historial
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Usuarios`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Usuarios`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Usuarios
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Equipos`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Equipos`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Equipos
                                 </NavLink>
                             </li>
@@ -137,7 +189,7 @@ const SidebarMenu = () => {
                     {/* Reclutamiento */}
                     <li>
                         <div
-                            className="sidebar-menu-link"
+                            className={`sidebar-menu-link ${openMenu === "reclutamiento" ? "has-active-child" : ""}`}
                             onClick={() => toggleSubmenu("reclutamiento")}
                             title={collapsed ? "Reclutamiento" : ""}
                         >
@@ -145,17 +197,29 @@ const SidebarMenu = () => {
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "reclutamiento" ? "open" : ""}`}>
                             <li>
-                                <NavLink to={`${base}/Convocatorias`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Convocatorias`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Convocatorias
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Aspirantes`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Aspirantes`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Aspirantes
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Seleccion`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Seleccion`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Selección / Contratación
                                 </NavLink>
                             </li>
@@ -165,7 +229,7 @@ const SidebarMenu = () => {
                     {/* Integración */}
                     <li>
                         <div
-                            className="sidebar-menu-link"
+                            className={`sidebar-menu-link ${openMenu === "integracion" ? "has-active-child" : ""}`}
                             onClick={() => toggleSubmenu("integracion")}
                             title={collapsed ? "Integración" : ""}
                         >
@@ -173,12 +237,20 @@ const SidebarMenu = () => {
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "integracion" ? "open" : ""}`}>
                             <li>
-                                <NavLink to={`${base}/Induccion`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Induccion`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Inducción
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Capacitacion`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Capacitacion`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Capacitación
                                 </NavLink>
                             </li>
@@ -188,7 +260,7 @@ const SidebarMenu = () => {
                     {/* Desempeño */}
                     <li>
                         <div
-                            className="sidebar-menu-link"
+                            className={`sidebar-menu-link ${openMenu === "desempeno" ? "has-active-child" : ""}`}
                             onClick={() => toggleSubmenu("desempeno")}
                             title={collapsed ? "Desempeño" : ""}
                         >
@@ -196,12 +268,20 @@ const SidebarMenu = () => {
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "desempeno" ? "open" : ""}`}>
                             <li>
-                                <NavLink to={`${base}/Evaluaciones`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Evaluaciones`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Evaluaciones
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Criterios`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Criterios`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Criterios
                                 </NavLink>
                             </li>
@@ -211,7 +291,7 @@ const SidebarMenu = () => {
                     {/* Control Disciplinario */}
                     <li>
                         <div
-                            className="sidebar-menu-link"
+                            className={`sidebar-menu-link ${openMenu === "disciplinario" ? "has-active-child" : ""}`}
                             onClick={() => toggleSubmenu("disciplinario")}
                             title={collapsed ? "Control Disciplinario" : ""}
                         >
@@ -219,12 +299,20 @@ const SidebarMenu = () => {
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "disciplinario" ? "open" : ""}`}>
                             <li>
-                                <NavLink to={`${base}/Ausencias`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Ausencias`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Ausencias
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Amonestaciones`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Amonestaciones`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Amonestaciones
                                 </NavLink>
                             </li>
@@ -234,7 +322,7 @@ const SidebarMenu = () => {
                     {/* Catálogo */}
                     <li>
                         <div
-                            className="sidebar-menu-link"
+                            className={`sidebar-menu-link ${openMenu === "catalogo" ? "has-active-child" : ""}`}
                             onClick={() => toggleSubmenu("catalogo")}
                             title={collapsed ? "Catálogo" : ""}
                         >
@@ -242,17 +330,29 @@ const SidebarMenu = () => {
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "catalogo" ? "open" : ""}`}>
                             <li>
-                                <NavLink to={`${base}/PuebloCultura`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/PuebloCultura`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Pueblo/Cultura
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Idiomas`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Idiomas`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Idiomas
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to={`${base}/Puesto`} className="sidebar-submenu-link">
+                                <NavLink
+                                    to={`${base}/Puesto`}
+                                    className="sidebar-submenu-link"
+                                    activeClassName="active"
+                                >
                                     Puesto
                                 </NavLink>
                             </li>
@@ -264,6 +364,7 @@ const SidebarMenu = () => {
                         <NavLink
                             to={`${base}/Informes`}
                             className="sidebar-menu-link"
+                            activeClassName="active"
                             title={collapsed ? "Informes" : ""}
                         >
                             <FaFileAlt className="menu-icon" /> {!collapsed && "Informes"}
@@ -275,6 +376,7 @@ const SidebarMenu = () => {
                         <NavLink
                             to={`${base}/Documentos`}
                             className="sidebar-menu-link"
+                            activeClassName="active"
                             title={collapsed ? "Documentos" : ""}
                         >
                             <FaFileAlt className="menu-icon" /> {!collapsed && "Documentos"}

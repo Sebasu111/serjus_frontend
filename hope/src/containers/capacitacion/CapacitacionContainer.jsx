@@ -184,11 +184,21 @@ const CapacitacionContainer = () => {
     return (
         <Layout>
             <SEO title="Capacitaciones" />
-            <div style={{ display: "flex", minHeight: "100vh" }}>
+            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
-                    <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
-                        <div style={{ maxWidth: "1400px", margin: "0 auto", paddingLeft: "250px" }}>
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
+                        <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Capacitaciones Registradas</h2>
 
                             <div
@@ -254,6 +264,7 @@ const CapacitacionContainer = () => {
                         </div>
                     </main>
                     <Footer />
+                    <ScrollToTop />
                 </div>
 
                 {mostrarFormulario && (
@@ -275,9 +286,8 @@ const CapacitacionContainer = () => {
                 {modalAccion && (
                     <ConfirmModal
                         title={modalAccion.tipo === "activar" ? "Activar Capacitación" : "Desactivar Capacitación"}
-                        message={`¿Estás seguro de ${
-                            modalAccion.tipo === "activar" ? "activar" : "desactivar"
-                        } la capacitación "${modalAccion.data?.nombreevento}"?`}
+                        message={`¿Estás seguro de ${modalAccion.tipo === "activar" ? "activar" : "desactivar"
+                            } la capacitación "${modalAccion.data?.nombreevento}"?`}
                         onConfirm={confirmarAccion}
                         onCancel={() => setModalAccion(null)}
                         actionType={modalAccion.tipo}
@@ -285,7 +295,6 @@ const CapacitacionContainer = () => {
                 )}
 
                 <ToastContainer />
-                <ScrollToTop />
             </div>
         </Layout>
     );

@@ -230,91 +230,105 @@ const UsuariosContainer = () => {
     return (
         <Layout>
             <SEO title="Usuarios" />
-            <div className="wrapper" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-                <Header />
-                <main style={{ padding: "40px 20px", background: "#f0f2f5", justifyContent: "center" }}>
-                    <div style={{ maxWidth: "900px", margin: "0 auto", paddingLeft: "250px" }}>
-                        <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Usuarios Registrados</h2>
+            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    <Header />
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
+                        <div style={{ width: "min(1100px, 96vw)" }}>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Usuarios Registrados</h2>
 
-                        {/* Buscador y botón nuevo usuario */}
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                marginBottom: "15px",
-                                alignItems: "center"
-                            }}
-                        >
-                            <input
-                                type="text"
-                                placeholder="Buscar usuario..."
-                                value={busqueda}
-                                onChange={e => {
-                                    setBusqueda(e.target.value);
-                                    setPaginaActual(1);
-                                }}
+                            {/* Buscador y botón nuevo usuario */}
+                            <div
                                 style={{
-                                    flex: 1,
-                                    padding: "10px",
-                                    borderRadius: "6px",
-                                    border: "1px solid #ccc",
-                                    marginRight: "10px"
-                                }}
-                            />
-                            <button
-                                onClick={() => setMostrarFormulario(true)}
-                                style={{
-                                    padding: "10px 20px",
-                                    background: "#219ebc",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                    fontWeight: "600",
-                                    whiteSpace: "nowrap"
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    marginBottom: "15px",
+                                    alignItems: "center"
                                 }}
                             >
-                                Nuevo Usuario
-                            </button>
-                        </div>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar usuario..."
+                                    value={busqueda}
+                                    onChange={e => {
+                                        setBusqueda(e.target.value);
+                                        setPaginaActual(1);
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        marginRight: "10px"
+                                    }}
+                                />
+                                <button
+                                    onClick={() => setMostrarFormulario(true)}
+                                    style={{
+                                        padding: "10px 20px",
+                                        background: "#219ebc",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                        fontWeight: "600",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >
+                                    Nuevo Usuario
+                                </button>
+                            </div>
 
-                        {/* Tabla de usuarios */}
-                        <TableUsuarios
-                            usuariosPaginados={usuariosPaginados}
-                            handleEdit={handleEdit}
-                            handleDelete={handleDelete}
-                            handleActivate={handleActivate}
-                            idUsuarioLogueado={idUsuarioLogueado}
-                            paginaActual={paginaActual}
-                            totalPaginas={totalPaginas}
-                            setPaginaActual={setPaginaActual}
-                        />
-
-                        {/* Limite */}
-                        <div style={{ marginTop: "20px", textAlign: "center" }}>
-                            <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
-                            <input
-                                type="number"
-                                min="1"
-                                value={elementosPorPagina}
-                                onChange={e => {
-                                    const val = e.target.value.replace(/\D/g, "");
-                                    const numero = val === "" ? "" : Number(val);
-                                    setElementosPorPagina(numero > 0 ? numero : 1);
-                                    setPaginaActual(1);
-                                }}
-                                onFocus={e => e.target.select()}
-                                style={{
-                                    width: "80px",
-                                    padding: "10px",
-                                    borderRadius: "6px",
-                                    border: "1px solid #ccc",
-                                    textAlign: "center"
-                                }}
+                            {/* Tabla de usuarios */}
+                            <TableUsuarios
+                                usuariosPaginados={usuariosPaginados}
+                                handleEdit={handleEdit}
+                                handleDelete={handleDelete}
+                                handleActivate={handleActivate}
+                                idUsuarioLogueado={idUsuarioLogueado}
+                                paginaActual={paginaActual}
+                                totalPaginas={totalPaginas}
+                                setPaginaActual={setPaginaActual}
                             />
+
+                            {/* Limite */}
+                            <div style={{ marginTop: "20px", textAlign: "center" }}>
+                                <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={elementosPorPagina}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, "");
+                                        const numero = val === "" ? "" : Number(val);
+                                        setElementosPorPagina(numero > 0 ? numero : 1);
+                                        setPaginaActual(1);
+                                    }}
+                                    onFocus={e => e.target.select()}
+                                    style={{
+                                        width: "80px",
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        textAlign: "center"
+                                    }}
+                                />
+                            </div>
                         </div>
-                    </div>
-                </main>
+                    </main>
+                    <Footer />
+                    <ScrollToTop />
+                </div>
 
                 {/* Formulario modal */}
                 {mostrarFormulario && (
@@ -345,8 +359,6 @@ const UsuariosContainer = () => {
                 />
 
                 <ToastContainer />
-                <Footer />
-                <ScrollToTop />
             </div>
         </Layout>
     );

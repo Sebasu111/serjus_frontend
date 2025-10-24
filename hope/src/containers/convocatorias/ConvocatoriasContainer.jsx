@@ -5,6 +5,7 @@ import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
+import { ToastContainer } from "react-toastify";
 
 import ConvocatoriasTable from "./ConvocatoriasTable.jsx";
 import ConvocatoriasForm from "./ConvocatoriasForm.jsx";
@@ -102,7 +103,7 @@ const ConvocatoriasContainer = () => {
                 estado: nuevo
             });
             fetchList();
-        } catch {}
+        } catch { }
     };
 
     const resetForm = () => {
@@ -127,26 +128,41 @@ const ConvocatoriasContainer = () => {
     return (
         <Layout>
             <SEO title="Convocatorias" />
-            <div style={{ display: "flex", minHeight: "100vh" }}>
+            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
-                    <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5", paddingLeft: "250px" }}>
-                        <ConvocatoriasTable
-                            mensaje={mensaje}
-                            paginadas={paginadas}
-                            busqueda={busqueda}
-                            setBusqueda={setBusqueda}
-                            paginaActual={paginaActual}
-                            setPaginaActual={setPaginaActual}
-                            elementosPorPagina={elementosPorPagina}
-                            setElementosPorPagina={setElementosPorPagina}
-                            totalPaginas={totalPaginas}
-                            handleEdit={handleEdit}
-                            toggleEstado={toggleEstado}
-                            setMostrarFormulario={setMostrarFormulario}
-                        />
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
+                        <div style={{ width: "min(1100px, 96vw)" }}>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Convocatorias</h2>
+
+                            <ConvocatoriasTable
+                                mensaje={mensaje}
+                                paginadas={paginadas}
+                                busqueda={busqueda}
+                                setBusqueda={setBusqueda}
+                                paginaActual={paginaActual}
+                                setPaginaActual={setPaginaActual}
+                                elementosPorPagina={elementosPorPagina}
+                                setElementosPorPagina={setElementosPorPagina}
+                                totalPaginas={totalPaginas}
+                                handleEdit={handleEdit}
+                                toggleEstado={toggleEstado}
+                                setMostrarFormulario={setMostrarFormulario}
+                            />
+                        </div>
                     </main>
                     <Footer />
+                    <ScrollToTop />
                 </div>
 
                 {mostrarFormulario && (
@@ -160,7 +176,7 @@ const ConvocatoriasContainer = () => {
                     />
                 )}
 
-                <ScrollToTop />
+                <ToastContainer />
             </div>
         </Layout>
     );

@@ -102,6 +102,8 @@
     white-space: nowrap;
     /* evita multirenglón */
     font-family: "Inter", sans-serif;
+    letter-spacing: 0.2px;
+    line-height: 1.3;
 }
 
 .sidebar-menu-link:hover {
@@ -113,6 +115,79 @@
     font-size: 20px;
     min-width: 26px;
     text-align: center;
+}
+
+/* --- Estilos para menús principales con submenús activos --- */
+.sidebar-menu-link.has-active-child {
+    background: linear-gradient(135deg, #1e40af, #1d4ed8) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 6px rgba(30, 64, 175, 0.2) !important;
+}
+
+.sidebar-menu-link.has-active-child:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e3a8a) !important;
+}
+
+/* --- Estilos para enlaces activos --- */
+.sidebar-menu-link.active,
+.sidebar-submenu-link.active {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #fff !important;
+    position: relative;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Indicador visual izquierdo para enlaces activos */
+.sidebar-menu-link.active::before,
+.sidebar-submenu-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: #34d399;
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.6);
+}
+
+/* Hover para enlaces activos */
+.sidebar-menu-link.active:hover,
+.sidebar-submenu-link.active:hover {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    transform: translateX(2px);
+    transition: all 0.2s ease;
+}
+
+/* Efecto de texto para enlaces activos */
+.sidebar-submenu-link.active {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+}
+
+/* Animación sutil para enlaces activos */
+.sidebar-submenu-link.active::after {
+    content: '●';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #34d399;
+    font-size: 12px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
 }
 
 /* --- Submenús con animación --- */
@@ -137,6 +212,9 @@
     font-size: 15px;
     transition: color 0.3s;
     font-family: "Inter", sans-serif;
+    letter-spacing: 0.3px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
 }
 
 .sidebar-submenu-link:hover {
@@ -157,14 +235,18 @@
 /* --- Ajuste del contenido principal --- */
 .main-content {
     margin-left: 300px;
-    /* coincide con ancho expandido */
-    padding: 20px;
+    /* exactamente el ancho del sidebar sin espacio extra */
+    padding: 20px 40px 20px 60px;
+    /* más padding interno a la izquierda para separación visual */
     transition: margin-left 0.3s ease;
+    position: relative;
 }
 
 .sidebar-menu.collapsed~.main-content {
     margin-left: 90px;
-    /* coincide con ancho colapsado */
+    /* exactamente el ancho colapsado sin espacio extra */
+    padding-left: 50px;
+    /* padding interno para separación cuando está colapsado */
 }
 
 /* ===== Responsiveness: mobile/off-canvas behavior ===== */
@@ -229,6 +311,7 @@ footer,
 @media (min-width: 992px) {
     header.header {
         margin-left: 300px;
+        /* coincide exactamente con el sidebar */
         transition: margin-left 0.3s ease;
     }
 
@@ -236,18 +319,57 @@ footer,
     body.sidebar-collapsed header.header,
     body.sidebar-collapsed .main-content {
         margin-left: 90px;
+        /* coincide exactamente con el sidebar colapsado */
     }
 
-    /* Ensure the main inner wrapper aligns to the left edge of the main area
-       so the content begins right after the sidebar instead of being centered. */
+    body.sidebar-collapsed .main-content {
+        padding-left: 50px;
+        /* mantener padding interno cuando está colapsado */
+    }
+
+    /* Eliminar cualquier línea blanca o separación visual */
+    .main-content::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: transparent;
+        z-index: -1;
+    }
+
+    /* Asegurar que no hay bordes o líneas blancas */
+    .main-content,
+    .main-content>*,
+    .site-wrapper-reveal {
+        border-left: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Ensure the main inner wrapper has better spacing and centering */
     .main-content>div {
-        margin-left: 0;
+        margin-left: auto;
         margin-right: auto;
         width: 100%;
-        max-width: 1100px;
-        /* matches Inicio's min(1100px, 96vw) */
-        padding-left: 8px;
-        /* small inner spacing */
+        max-width: 1200px;
+        /* un poco más ancho para mejor proporción */
+        padding-left: 20px;
+        /* más espacio interno */
+        padding-right: 20px;
+        /* padding simétrico */
+    }
+
+    /* Mejoras adicionales para el espaciado del contenido */
+    .main-content {
+        box-sizing: border-box;
+    }
+
+    /* Ajuste específico para el contenido centrado de los containers */
+    .main-content .site-wrapper-reveal>div {
+        padding-left: 0 !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 
     /* matches Inicio's min(1100px, 96vw) */
