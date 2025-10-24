@@ -54,7 +54,7 @@ const Section = ({ title, children }) => (
         <h4
             style={{
                 margin: "0 0 16px 0",
-                fontSize: 19,
+                fontSize: 24,
                 fontWeight: 800,
                 borderBottom: "1px solid #e5e7eb",
                 paddingBottom: 8,
@@ -316,6 +316,51 @@ const EmpleadosContainer = () => {
             }
         }
 
+        // Chequeo de NIT duplicado en tiempo real cuando alcanza 8 dígitos
+        if (name === "nit" && !form.isCF) {
+            const s = String(raw || "");
+            if (s.length === 8) {
+                const found = data.find(r => {
+                    const nitR = String(r.nit || "").trim().toUpperCase().replace(/\s+/g, "");
+                    return nitR === s && nitR !== "C/F";
+                });
+                if (found) {
+                    const idOf = empId(found);
+                    if (!editingId || String(editingId) !== String(idOf)) {
+                        setErrors(er => ({ ...er, nit: "NIT ya registrado" }));
+                        showToast("El NIT ya existe.", "warning");
+                    } else {
+                        setErrors(er => ({ ...er, nit: false }));
+                    }
+                } else {
+                    setErrors(er => ({ ...er, nit: false }));
+                }
+            } else {
+                setErrors(er => ({ ...er, nit: false }));
+            }
+        }
+
+        // Chequeo de IGSS duplicado en tiempo real cuando alcanza 13 dígitos
+        if (name === "numeroiggs") {
+            const s = String(raw || "");
+            if (s.length === 13) {
+                const found = data.find(r => String(r.numeroiggs || "") === s);
+                if (found) {
+                    const idOf = empId(found);
+                    if (!editingId || String(editingId) !== String(idOf)) {
+                        setErrors(er => ({ ...er, numeroiggs: "IGSS ya registrado" }));
+                        showToast("El número de IGSS ya existe.", "warning");
+                    } else {
+                        setErrors(er => ({ ...er, numeroiggs: false }));
+                    }
+                } else {
+                    setErrors(er => ({ ...er, numeroiggs: false }));
+                }
+            } else {
+                setErrors(er => ({ ...er, numeroiggs: false }));
+            }
+        }
+
         setForm(f => ({ ...f, [name]: val }));
         const msg = validateField(name, val);
         setErrors(er => ({ ...er, [name]: msg || false }));
@@ -370,6 +415,28 @@ const EmpleadosContainer = () => {
             if (same) {
                 const idOf = empId(same);
                 if (!editingId || String(editingId) !== String(idOf)) put("dpi", "DPI ya registrado");
+            }
+        }
+
+        // NIT único (si se ingresa y no es C/F)
+        if (form.nit && !form.isCF) {
+            const nitForm = String(form.nit).trim().toUpperCase().replace(/\s+/g, "");
+            const same = data.find(r => {
+                const nitR = String(r.nit || "").trim().toUpperCase().replace(/\s+/g, "");
+                return nitR === nitForm && nitR !== "C/F";
+            });
+            if (same) {
+                const idOf = empId(same);
+                if (!editingId || String(editingId) !== String(idOf)) put("nit", "NIT ya registrado");
+            }
+        }
+
+        // IGSS único (si se ingresa)
+        if (form.numeroiggs) {
+            const same = data.find(r => String(r.numeroiggs || "") === String(form.numeroiggs || ""));
+            if (same) {
+                const idOf = empId(same);
+                if (!editingId || String(editingId) !== String(idOf)) put("numeroiggs", "IGSS ya registrado");
             }
         }
 
@@ -504,6 +571,38 @@ const EmpleadosContainer = () => {
                     }
                 }
             }
+
+            // Validar unicidad de NIT (cliente)
+            if (form.nit && !form.isCF) {
+                const nitForm = String(form.nit).trim().toUpperCase().replace(/\s+/g, "");
+                const found = data.find(r => {
+                    const nitR = String(r.nit || "").trim().toUpperCase().replace(/\s+/g, "");
+                    return nitR === nitForm && nitR !== "C/F";
+                });
+                if (found) {
+                    const idOf = empId(found);
+                    if (!isEditing || String(editingId) !== String(idOf)) {
+                        setErrors(p => ({ ...p, nit: "NIT ya registrado" }));
+                        window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
+                        showToast("El NIT ya existe.", "warning");
+                        return;
+                    }
+                }
+            }
+
+            // Validar unicidad de IGSS (cliente)
+            if (form.numeroiggs) {
+                const found = data.find(r => String(r.numeroiggs || "") === String(form.numeroiggs || ""));
+                if (found) {
+                    const idOf = empId(found);
+                    if (!isEditing || String(editingId) !== String(idOf)) {
+                        setErrors(p => ({ ...p, numeroiggs: "IGSS ya registrado" }));
+                        window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
+                        showToast("El número de IGSS ya existe.", "warning");
+                        return;
+                    }
+                }
+            }
             // Validar unicidad de email en creación
             if (!isEditing) {
                 const exists = data.some(
@@ -627,6 +726,7 @@ const EmpleadosContainer = () => {
                 const join = [
                     r.nombre,
                     r.apellido,
+                    `${r.nombre} ${r.apellido}`.trim(), // nombre completo
                     r.genero,
                     r.dpi,
                     r.nit,
@@ -847,7 +947,7 @@ const EmpleadosContainer = () => {
                 {/* FICHA */}
                 {showDownload && (
                     <FichaDownloadModal
-                        empleados={filtered.map(x => x.raw)}
+                        empleados={data}
                         onClose={() => setShowDownload(false)}
                         onGenerate={handleGeneratePDF}
                     />
@@ -952,62 +1052,14 @@ const EmpleadosContainer = () => {
                                 </span>
                             </div>
 
-                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
-                                <span
-                                    style={{
-                                        fontSize: 14,
-                                        background: "#f3f4f6",
-                                        padding: "6px 10px",
-                                        borderRadius: 8
-                                    }}
-                                >
-                                    DPI: {detalle.dpi}
-                                </span>
-                                <span
-                                    style={{
-                                        fontSize: 14,
-                                        background: "#f3f4f6",
-                                        padding: "6px 10px",
-                                        borderRadius: 8
-                                    }}
-                                >
-                                    NIT: {String(detalle.nit).toUpperCase()}
-                                </span>
-                                <span
-                                    style={{
-                                        fontSize: 14,
-                                        background: "#f3f4f6",
-                                        padding: "6px 10px",
-                                        borderRadius: 8
-                                    }}
-                                >
-                                    IGGS: {detalle.numeroiggs}
-                                </span>
-                                <span
-                                    style={{
-                                        fontSize: 14,
-                                        background: "#f3f4f6",
-                                        padding: "6px 10px",
-                                        borderRadius: 8
-                                    }}
-                                >
-                                    Equipo: {detalle.equipo || ""}
-                                </span>
-                                <span
-                                    style={{
-                                        fontSize: 14,
-                                        background: "#f3f4f6",
-                                        padding: "6px 10px",
-                                        borderRadius: 8
-                                    }}
-                                >
-                                    Puesto: {detalle.puesto || ""}
-                                </span>
-                            </div>
 
-                            <div style={{ display: "grid", gap: 22 }}>
+
+                            <div style={{ display: "grid", gap: 22, marginTop: 32 }}>
                                 <Section title="Identificación">
                                     <Grid>
+                                        <Item label="DPI" value={detalle.dpi} />
+                                        <Item label="NIT" value={String(detalle.nit).toUpperCase()} />
+                                        <Item label="IGSS" value={detalle.numeroiggs} />
                                         <Item label="Género" value={detalle.genero} />
                                         <Item label="Estado civil" value={detalle.estadocivil} />
                                         <Item label="Fecha nacimiento" value={toDMY(detalle.fechanacimiento)} />

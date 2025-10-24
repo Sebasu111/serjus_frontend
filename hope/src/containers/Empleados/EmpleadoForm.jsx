@@ -182,7 +182,7 @@ const EmpleadoForm = ({
         marginTop: 2,
         background: "#fff"
     };
-    const field = { display: "flex", flexDirection: "column" };
+    const field = { display: "flex", flexDirection: "column", marginBottom: 20 };
     const fs = { border: "1px solid #e5e7eb", borderRadius: 12, padding: 18, marginBottom: 18, background: "#fafafa" };
     const lg = { padding: "0 8px", fontWeight: 700 };
     const grid3 = {
