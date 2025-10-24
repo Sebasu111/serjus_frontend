@@ -1,15 +1,8 @@
 import React from "react";
 import { X } from "lucide-react";
 
-const PuebloCulturaForm = ({
-    nombrePueblo,
-    setNombrePueblo,
-    activoEditando,
-    editingId,
-    handleSubmit,
-    onClose,
-}) => {
-    const handleNombreChange = (e) => {
+const PuebloCulturaForm = ({ nombrePueblo, setNombrePueblo, activoEditando, editingId, handleSubmit, onClose }) => {
+    const handleNombreChange = e => {
         // Letras, espacios, acentos y guiones/puntos (máximo 20 chars)
         const value = e.target.value;
         const regex = /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s.-]*$/;
@@ -33,7 +26,7 @@ const PuebloCulturaForm = ({
                 zIndex: 1000,
                 display: "flex",
                 flexDirection: "column",
-                borderRadius: "12px",
+                borderRadius: "12px"
             }}
         >
             <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
@@ -66,7 +59,7 @@ const PuebloCulturaForm = ({
                         color: "#fff",
                         border: "none",
                         borderRadius: "6px",
-                        cursor: activoEditando ? "pointer" : "not-allowed",
+                        cursor: activoEditando ? "pointer" : "not-allowed"
                     }}
                 >
                     {editingId ? "Actualizar" : "Guardar"}
@@ -75,7 +68,14 @@ const PuebloCulturaForm = ({
 
             <button
                 onClick={onClose}
-                style={{ position: "absolute", top: "10px", right: "15px", background: "transparent", border: "none", cursor: "pointer" }}
+                style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "15px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer"
+                }}
                 title="Cerrar"
             >
                 <X size={24} color="#555" />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const ScrollToTop = (props) => {
+const ScrollToTop = props => {
     const [stick, setStick] = useState(false);
     const onClickHandler = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -32,12 +32,7 @@ const ScrollToTop = (props) => {
     }, [stick]);
 
     return (
-        <button
-            type="button"
-            className={`scroll-to-top ${stick ? "show" : ""}`}
-            onClick={onClickHandler}
-            {...props}
-        >
+        <button type="button" className={`scroll-to-top ${stick ? "show" : ""}`} onClick={onClickHandler} {...props}>
             <i className="arrow-top icofont-rounded-up"></i>
             <i className="arrow-bottom icofont-rounded-up"></i>
         </button>

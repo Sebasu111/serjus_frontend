@@ -1,13 +1,6 @@
 import React from "react";
 
-const ConvocatoriasForm = ({
-    form,
-    puestos,
-    onChange,
-    handleSubmit,
-    resetForm,
-    editingId,
-}) => (
+const ConvocatoriasForm = ({ form, puestos, onChange, handleSubmit, resetForm, editingId }) => (
     <div style={modalStyle}>
         <h3 style={{ textAlign: "center", marginBottom: 20 }}>
             {editingId ? "Editar convocatoria" : "Registrar convocatoria"}
@@ -15,13 +8,33 @@ const ConvocatoriasForm = ({
 
         <form onSubmit={handleSubmit}>
             <label>Nombre</label>
-            <input name="nombreconvocatoria" value={form.nombreconvocatoria} onChange={onChange} required style={inputStyle} />
+            <input
+                name="nombreconvocatoria"
+                value={form.nombreconvocatoria}
+                onChange={onChange}
+                required
+                style={inputStyle}
+            />
 
             <label>Descripción</label>
-            <textarea name="descripcion" rows="4" value={form.descripcion} onChange={onChange} required style={inputStyle} />
+            <textarea
+                name="descripcion"
+                rows="4"
+                value={form.descripcion}
+                onChange={onChange}
+                required
+                style={inputStyle}
+            />
 
             <label>Fecha inicio</label>
-            <input type="date" name="fechainicio" value={form.fechainicio} onChange={onChange} required style={inputStyle} />
+            <input
+                type="date"
+                name="fechainicio"
+                value={form.fechainicio}
+                onChange={onChange}
+                required
+                style={inputStyle}
+            />
 
             <label>Fecha fin</label>
             <input type="date" name="fechafin" value={form.fechafin} onChange={onChange} style={inputStyle} />
@@ -41,7 +54,9 @@ const ConvocatoriasForm = ({
             </button>
         </form>
 
-        <button onClick={resetForm} style={btnClose}>Cerrar</button>
+        <button onClick={resetForm} style={btnClose}>
+            Cerrar
+        </button>
     </div>
 );
 
@@ -51,7 +66,7 @@ const inputStyle = {
     padding: 10,
     borderRadius: 6,
     border: "1px solid #ccc",
-    marginBottom: 12,
+    marginBottom: 12
 };
 const btnPrimary = { padding: 10, width: "100%", background: "#007bff", color: "#fff", borderRadius: 6, marginTop: 12 };
 const btnClose = { ...btnPrimary, background: "#6c757d" };
@@ -65,7 +80,7 @@ const modalStyle = {
     background: "#fff",
     borderRadius: 12,
     padding: 20,
-    zIndex: 1000,
+    zIndex: 1000
 };
 
 export default ConvocatoriasForm;

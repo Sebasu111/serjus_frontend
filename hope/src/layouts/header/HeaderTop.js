@@ -48,7 +48,7 @@ const HeaderTop = () => {
         history.push("/"); // Redirige al login
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
 
         if (!form.contrasena) {
@@ -73,16 +73,16 @@ const HeaderTop = () => {
                 createdat: usuarioGuardado.createdat || new Date().toISOString(),
                 updatedat: new Date().toISOString(),
                 idrol: form.idrol || usuarioGuardado.idrol || 0,
-                idempleado: form.idempleado || usuarioGuardado.idempleado || 0,
+                idempleado: form.idempleado || usuarioGuardado.idempleado || 0
             };
 
             const response = await fetch(`http://127.0.0.1:8000/api/usuarios/${idUsuario}/`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
                     // "Authorization": `Bearer ${token}`, // si tu API lo requiere
                 },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
@@ -104,7 +104,6 @@ const HeaderTop = () => {
             <div className="header-top" style={{ background: "#fff", borderBottom: "1px solid #ddd" }}>
                 <div className="container">
                     <div className="header-middle-content d-flex align-items-center">
-
                         {/* Info de contacto */}
                         <ul className="media-wrap d-none d-lg-flex">
                             {HomeData[0].headerInfo &&
@@ -115,18 +114,27 @@ const HeaderTop = () => {
 
                         {/* Usuario + menú móvil */}
                         <div className="d-flex align-items-center ms-auto">
-                            <a href="/home" className="me-3" style={{ color: "#000", display: "flex", alignItems: "center" }}>
+                            <a
+                                href="/home"
+                                className="me-3"
+                                style={{ color: "#000", display: "flex", alignItems: "center" }}
+                            >
                                 <FaHome size={22} />
                             </a>
                             <div className="header-user position-relative" onClick={toggleUserMenu}>
                                 <FaUserCircle size={28} color="#000" />
-                                <span className="user-name" style={{ marginLeft: "8px", fontWeight: "600", color: "#000" }}>
+                                <span
+                                    className="user-name"
+                                    style={{ marginLeft: "8px", fontWeight: "600", color: "#000" }}
+                                >
                                     {username}
                                 </span>
 
                                 {userMenuOpen && (
                                     <ul className="user-dropdown">
-                                        <li><a href="/perfil">Perfil</a></li>
+                                        <li>
+                                            <a href="/perfil">Perfil</a>
+                                        </li>
 
                                         {/* Botón de cambio de contraseña */}
                                         <li>

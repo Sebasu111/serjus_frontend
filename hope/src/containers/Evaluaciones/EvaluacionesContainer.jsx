@@ -14,9 +14,9 @@ import EvaluacionForm from "./EvaluacionForm";
 
 const API_BASE = "http://127.0.0.1:8000/api";
 
-const toNum = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
+const toNum = v => (v === null || v === undefined || v === "" ? null : Number(v));
 
-const normalizarEvaluacion = (e) => ({
+const normalizarEvaluacion = e => ({
     idEvaluacion: e.idEvaluacion ?? e.idevaluacion ?? e.id ?? null,
     idEmpleado: e.idEmpleado ?? e.idempleado ?? null,
     tipoEvaluacion: e.tipoEvaluacion ?? e.tipoevaluacion ?? "",
@@ -26,7 +26,7 @@ const normalizarEvaluacion = (e) => ({
     estado: e.estado !== false,
     idUsuario: e.idUsuario ?? e.idusuario ?? null,
     createdAt: e.createdAt ?? e.createdat ?? null,
-    updatedAt: e.updatedAt ?? e.updatedat ?? null,
+    updatedAt: e.updatedAt ?? e.updatedat ?? null
 });
 
 const EvaluacionesContainer = () => {
@@ -54,11 +54,7 @@ const EvaluacionesContainer = () => {
     const fetchEvaluaciones = async () => {
         try {
             const res = await axios.get(`${API_BASE}/evaluacion/`);
-            const raw = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                    ? res.data.results
-                    : [];
+            const raw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setEvaluaciones(raw.map(normalizarEvaluacion));
         } catch (err) {
             console.error(err);
@@ -69,12 +65,8 @@ const EvaluacionesContainer = () => {
     const fetchEmpleados = async () => {
         try {
             const res = await axios.get(`${API_BASE}/empleados/`);
-            const raw = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                    ? res.data.results
-                    : [];
-            const activos = raw.filter((e) => e.estado !== false);
+            const raw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
+            const activos = raw.filter(e => e.estado !== false);
             setEmpleados(activos);
         } catch (err) {
             console.error(err);
@@ -83,35 +75,36 @@ const EvaluacionesContainer = () => {
     };
 
     // helpers de empleados (mismo estilo que Equipos)
-    const empleadoNombre = (emp) => {
+    const empleadoNombre = emp => {
         const cands = [
             emp?.nombreCompleto,
             [emp?.nombres, emp?.apellidos].filter(Boolean).join(" "),
             [emp?.nombre, emp?.apellido].filter(Boolean).join(" "),
-            [emp?.primerNombre, emp?.segundoNombre, emp?.apellidoPaterno, emp?.apellidoMaterno].filter(Boolean).join(" "),
+            [emp?.primerNombre, emp?.segundoNombre, emp?.apellidoPaterno, emp?.apellidoMaterno]
+                .filter(Boolean)
+                .join(" "),
             [emp?.first_name, emp?.last_name].filter(Boolean).join(" "),
             emp?.full_name,
             emp?.displayName,
             emp?.nombre_empleado,
-            emp?.name,
+            emp?.name
         ]
-            .map((s) => (typeof s === "string" ? s.trim() : ""))
+            .map(s => (typeof s === "string" ? s.trim() : ""))
             .filter(Boolean);
         if (cands[0]) return cands[0];
         const id = emp?.idEmpleado ?? emp?.idempleado ?? emp?.id ?? emp?.pk ?? emp?.uuid ?? emp?.codigo ?? "?";
         return `Empleado #${id}`;
     };
-    const empleadoId = (emp) =>
-        emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
+    const empleadoId = emp => emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
 
     const empleadosMap = useMemo(() => {
         const m = new Map();
-        empleados.forEach((e) => m.set(Number(empleadoId(e)), empleadoNombre(e)));
+        empleados.forEach(e => m.set(Number(empleadoId(e)), empleadoNombre(e)));
         return m;
     }, [empleados]);
 
     // filtros (por empleado, tipo, observación)
-    const listaFiltrada = evaluaciones.filter((ev) => {
+    const listaFiltrada = evaluaciones.filter(ev => {
         const t = busqueda.trim().toLowerCase();
         if (!t) return true;
         const nom = empleadosMap.get(Number(ev.idEmpleado)) || "";
@@ -134,17 +127,17 @@ const EvaluacionesContainer = () => {
         setMostrarForm(true);
     };
 
-    const onEdit = async (ev) => {
+    const onEdit = async ev => {
         setEditingId(ev.idEvaluacion);
         setMostrarForm(true);
     };
 
-    const onVerDetalle = (ev) => {
+    const onVerDetalle = ev => {
         setDetalle(ev);
         setMostrarDetalle(true);
     };
 
-    const handleSubmit = async (formValues) => {
+    const handleSubmit = async formValues => {
         try {
             const idUsuario = toNum(sessionStorage.getItem("idUsuario"));
 
@@ -156,7 +149,7 @@ const EvaluacionesContainer = () => {
                 puntajeTotal: Number(formValues.puntajeTotal || 0),
                 observacion: formValues.observacion || "",
                 estado: !!formValues.estado,
-                idUsuario: idUsuario,
+                idUsuario: idUsuario
                 // idPostulacion: null // omitido por ahora
             };
 
@@ -192,7 +185,7 @@ const EvaluacionesContainer = () => {
                                     type="text"
                                     placeholder="Buscar por empleado, tipo u observación..."
                                     value={busqueda}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                         setBusqueda(e.target.value);
                                         setPaginaActual(1);
                                     }}
@@ -208,7 +201,7 @@ const EvaluacionesContainer = () => {
                                         borderRadius: "10px",
                                         cursor: "pointer",
                                         fontWeight: 600,
-                                        whiteSpace: "nowrap",
+                                        whiteSpace: "nowrap"
                                     }}
                                 >
                                     Nueva Evaluación
@@ -231,18 +224,18 @@ const EvaluacionesContainer = () => {
                                     type="number"
                                     min="1"
                                     value={elementosPorPagina}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                         const n = Number((e.target.value || "1").replace(/\D/g, "")) || 1;
                                         setElementosPorPagina(n);
                                         setPaginaActual(1);
                                     }}
-                                    onFocus={(e) => e.target.select()}
+                                    onFocus={e => e.target.select()}
                                     style={{
                                         width: 80,
                                         padding: 10,
                                         borderRadius: 8,
                                         border: "1px solid #d1d5db",
-                                        textAlign: "center",
+                                        textAlign: "center"
                                     }}
                                 />
                             </div>
@@ -255,7 +248,7 @@ const EvaluacionesContainer = () => {
                     <EvaluacionForm
                         empleados={empleados}
                         editingId={editingId}
-                        evaluacion={editingId ? evaluaciones.find((x) => x.idEvaluacion === editingId) : null}
+                        evaluacion={editingId ? evaluaciones.find(x => x.idEvaluacion === editingId) : null}
                         onCancel={() => {
                             setMostrarForm(false);
                             setEditingId(null);
@@ -273,7 +266,7 @@ const EvaluacionesContainer = () => {
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
-                            zIndex: 4000,
+                            zIndex: 4000
                         }}
                     >
                         <div
@@ -284,16 +277,28 @@ const EvaluacionesContainer = () => {
                                 background: "#fff",
                                 boxShadow: "0 0 30px rgba(0,0,0,0.25)",
                                 padding: 24,
-                                borderRadius: 14,
+                                borderRadius: 14
                             }}
                         >
                             <h3 style={{ marginTop: 0, marginBottom: 10 }}>Detalle de Evaluación</h3>
                             <div style={{ lineHeight: 1.7 }}>
-                                <p><strong>Empleado:</strong> {empleadosMap.get(Number(detalle.idEmpleado)) || `#${detalle.idEmpleado ?? ""}`}</p>
-                                <p><strong>Tipo:</strong> {detalle.tipoEvaluacion || "—"}</p>
-                                <p><strong>Fecha:</strong> {detalle.fechaEvaluacion ? new Date(detalle.fechaEvaluacion).toLocaleString() : "—"}</p>
-                                <p><strong>Puntaje total:</strong> {Number(detalle.puntajeTotal || 0).toFixed(2)}</p>
-                                <p><strong>Observación:</strong> {detalle.observacion || "—"}</p>
+                                <p>
+                                    <strong>Empleado:</strong>{" "}
+                                    {empleadosMap.get(Number(detalle.idEmpleado)) || `#${detalle.idEmpleado ?? ""}`}
+                                </p>
+                                <p>
+                                    <strong>Tipo:</strong> {detalle.tipoEvaluacion || "—"}
+                                </p>
+                                <p>
+                                    <strong>Fecha:</strong>{" "}
+                                    {detalle.fechaEvaluacion ? new Date(detalle.fechaEvaluacion).toLocaleString() : "—"}
+                                </p>
+                                <p>
+                                    <strong>Puntaje total:</strong> {Number(detalle.puntajeTotal || 0).toFixed(2)}
+                                </p>
+                                <p>
+                                    <strong>Observación:</strong> {detalle.observacion || "—"}
+                                </p>
                                 <p>
                                     <strong>Estado:</strong>{" "}
                                     <span style={{ color: detalle.estado ? "green" : "red", fontWeight: 700 }}>
@@ -312,7 +317,7 @@ const EvaluacionesContainer = () => {
                                         border: "none",
                                         borderRadius: 8,
                                         cursor: "pointer",
-                                        fontWeight: 600,
+                                        fontWeight: 600
                                     }}
                                 >
                                     Cerrar

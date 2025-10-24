@@ -26,11 +26,7 @@ const TerminacionLaboralContainer = () => {
     const fetchTerminaciones = async () => {
         try {
             const res = await axios.get("http://127.0.0.1:8000/api/terminacionlaboral/");
-            const data = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                ? res.data.results
-                : [];
+            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setTerminaciones(data);
         } catch (error) {
             console.error("Error al cargar terminaciones:", error);
@@ -39,7 +35,7 @@ const TerminacionLaboralContainer = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         try {
             const data = {
@@ -50,14 +46,11 @@ const TerminacionLaboralContainer = () => {
                 iddocumento: idDocumento,
                 idcontrato: idContrato || null,
                 estado: estadoActivo,
-                idusuario: 1, // reemplazar con usuario logueado
+                idusuario: 1 // reemplazar con usuario logueado
             };
 
             if (editingId) {
-                await axios.put(
-                    `http://127.0.0.1:8000/api/terminacionlaboral/${editingId}/`,
-                    data
-                );
+                await axios.put(`http://127.0.0.1:8000/api/terminacionlaboral/${editingId}/`, data);
                 setMensaje("Terminación actualizada correctamente");
             } else {
                 await axios.post("http://127.0.0.1:8000/api/terminacionlaboral/", data);
@@ -81,7 +74,7 @@ const TerminacionLaboralContainer = () => {
         }
     };
 
-    const handleEdit = (terminacion) => {
+    const handleEdit = terminacion => {
         setTipoTerminacion(terminacion.tipoterminacion);
         setFechaTerminacion(terminacion.fechaterminacion);
         setCausa(terminacion.causa || "");
@@ -93,15 +86,15 @@ const TerminacionLaboralContainer = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async id => {
         if (!window.confirm("¿Estás seguro de desactivar esta terminación?")) return;
         try {
-            const terminacion = terminaciones.find((t) => t.idterminacionlaboral === id);
+            const terminacion = terminaciones.find(t => t.idterminacionlaboral === id);
             if (!terminacion) return;
 
             await axios.put(`http://127.0.0.1:8000/api/terminacionlaboral/${id}/`, {
                 ...terminacion,
-                estado: false,
+                estado: false
             });
 
             setMensaje("Terminación desactivada correctamente");
@@ -112,14 +105,14 @@ const TerminacionLaboralContainer = () => {
         }
     };
 
-    const handleActivate = async (id) => {
+    const handleActivate = async id => {
         try {
-            const terminacion = terminaciones.find((t) => t.idterminacionlaboral === id);
+            const terminacion = terminaciones.find(t => t.idterminacionlaboral === id);
             if (!terminacion) return;
 
             await axios.put(`http://127.0.0.1:8000/api/terminacionlaboral/${id}/`, {
                 ...terminacion,
-                estado: true,
+                estado: true
             });
 
             setMensaje("Terminación activada correctamente");
@@ -133,15 +126,10 @@ const TerminacionLaboralContainer = () => {
     return (
         <Layout>
             <SEO title=" Terminaciones Laborales" />
-            <div
-                className="wrapper"
-                style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-            >
+            <div className="wrapper" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                 <Header />
 
-                <main
-                    style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5" }}
-                >
+                <main style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5" }}>
                     <div style={{ maxWidth: "900px", margin: "0 auto" }}>
                         {/* --- FORMULARIO --- */}
                         <div
@@ -150,7 +138,7 @@ const TerminacionLaboralContainer = () => {
                                 padding: "40px",
                                 borderRadius: "12px",
                                 boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                                marginBottom: "40px",
+                                marginBottom: "40px"
                             }}
                         >
                             <h2 style={{ textAlign: "center", marginBottom: "30px" }}>
@@ -162,7 +150,7 @@ const TerminacionLaboralContainer = () => {
                                         textAlign: "center",
                                         color: mensaje.includes("Error") ? "red" : "green",
                                         marginBottom: "20px",
-                                        fontWeight: "bold",
+                                        fontWeight: "bold"
                                     }}
                                 >
                                     {mensaje}
@@ -174,7 +162,7 @@ const TerminacionLaboralContainer = () => {
                                     <input
                                         type="text"
                                         value={tipoTerminacion}
-                                        onChange={(e) => setTipoTerminacion(e.target.value)}
+                                        onChange={e => setTipoTerminacion(e.target.value)}
                                         required
                                         style={{ width: "100%", padding: "10px" }}
                                     />
@@ -185,7 +173,7 @@ const TerminacionLaboralContainer = () => {
                                     <input
                                         type="date"
                                         value={fechaTerminacion}
-                                        onChange={(e) => setFechaTerminacion(e.target.value)}
+                                        onChange={e => setFechaTerminacion(e.target.value)}
                                         required
                                         style={{ width: "100%", padding: "10px" }}
                                     />
@@ -196,7 +184,7 @@ const TerminacionLaboralContainer = () => {
                                     <input
                                         type="text"
                                         value={causa}
-                                        onChange={(e) => setCausa(e.target.value)}
+                                        onChange={e => setCausa(e.target.value)}
                                         style={{ width: "100%", padding: "10px" }}
                                     />
                                 </div>
@@ -206,7 +194,7 @@ const TerminacionLaboralContainer = () => {
                                     <input
                                         type="text"
                                         value={observacion}
-                                        onChange={(e) => setObservacion(e.target.value)}
+                                        onChange={e => setObservacion(e.target.value)}
                                         required
                                         style={{ width: "100%", padding: "10px" }}
                                     />
@@ -217,7 +205,7 @@ const TerminacionLaboralContainer = () => {
                                     <input
                                         type="number"
                                         value={idDocumento}
-                                        onChange={(e) => setIdDocumento(e.target.value)}
+                                        onChange={e => setIdDocumento(e.target.value)}
                                         required
                                         style={{ width: "100%", padding: "10px" }}
                                     />
@@ -228,7 +216,7 @@ const TerminacionLaboralContainer = () => {
                                     <input
                                         type="number"
                                         value={idContrato}
-                                        onChange={(e) => setIdContrato(e.target.value)}
+                                        onChange={e => setIdContrato(e.target.value)}
                                         style={{ width: "100%", padding: "10px" }}
                                     />
                                 </div>
@@ -237,7 +225,7 @@ const TerminacionLaboralContainer = () => {
                                     <input
                                         type="checkbox"
                                         checked={estadoActivo}
-                                        onChange={(e) => setEstadoActivo(e.target.checked)}
+                                        onChange={e => setEstadoActivo(e.target.checked)}
                                     />{" "}
                                     Activo
                                 </div>
@@ -252,7 +240,7 @@ const TerminacionLaboralContainer = () => {
                                         border: "none",
                                         borderRadius: "8px",
                                         fontWeight: "bold",
-                                        cursor: "pointer",
+                                        cursor: "pointer"
                                     }}
                                 >
                                     {editingId ? "Actualizar" : "Guardar"}
@@ -268,7 +256,7 @@ const TerminacionLaboralContainer = () => {
                                 padding: "20px 30px",
                                 boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                                 maxHeight: "600px",
-                                overflowY: "auto",
+                                overflowY: "auto"
                             }}
                         >
                             <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
@@ -289,20 +277,32 @@ const TerminacionLaboralContainer = () => {
                                 </thead>
                                 <tbody>
                                     {terminaciones.length > 0 ? (
-                                        terminaciones.map((t) => (
+                                        terminaciones.map(t => (
                                             <tr key={t.idterminacionlaboral}>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{t.tipoterminacion}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{t.fechaterminacion}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{t.causa}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{t.observacion}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{t.iddocumento}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{t.idcontrato || "N/A"}</td>
+                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                    {t.tipoterminacion}
+                                                </td>
+                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                    {t.fechaterminacion}
+                                                </td>
+                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                    {t.causa}
+                                                </td>
+                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                    {t.observacion}
+                                                </td>
+                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                    {t.iddocumento}
+                                                </td>
+                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                    {t.idcontrato || "N/A"}
+                                                </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
                                                         color: t.estado ? "green" : "red",
-                                                        fontWeight: "600",
+                                                        fontWeight: "600"
                                                     }}
                                                 >
                                                     {t.estado ? "Activo" : "Inactivo"}
@@ -317,7 +317,7 @@ const TerminacionLaboralContainer = () => {
                                                             border: "none",
                                                             borderRadius: "5px",
                                                             marginRight: "6px",
-                                                            cursor: "pointer",
+                                                            cursor: "pointer"
                                                         }}
                                                     >
                                                         Editar
@@ -331,7 +331,7 @@ const TerminacionLaboralContainer = () => {
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius: "5px",
-                                                                cursor: "pointer",
+                                                                cursor: "pointer"
                                                             }}
                                                         >
                                                             Desactivar
@@ -345,7 +345,7 @@ const TerminacionLaboralContainer = () => {
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius: "5px",
-                                                                cursor: "pointer",
+                                                                cursor: "pointer"
                                                             }}
                                                         >
                                                             Activar

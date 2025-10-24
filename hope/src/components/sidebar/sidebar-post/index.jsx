@@ -9,20 +9,10 @@ const SidebarPost = ({ data }) => {
                     return (
                         <li key={i}>
                             <div className="thumb">
-                                <img
-                                    src={`${process.env.PUBLIC_URL}/${single.media.rcImage}`}
-                                    alt="hope-Blog"
-                                />
+                                <img src={`${process.env.PUBLIC_URL}/${single.media.rcImage}`} alt="hope-Blog" />
                             </div>
                             <div className="content">
-                                <Link
-                                    to={
-                                        process.env.PUBLIC_URL +
-                                        `/blog-details/${single.id}`
-                                    }
-                                >
-                                    {single.title}
-                                </Link>
+                                <Link to={process.env.PUBLIC_URL + `/blog-details/${single.id}`}>{single.title}</Link>
                             </div>
                         </li>
                     );
@@ -33,7 +23,7 @@ const SidebarPost = ({ data }) => {
 };
 
 SidebarPost.propTypes = {
-    data: PropTypes.array,
+    data: PropTypes.array
 };
 
 export default SidebarPost;

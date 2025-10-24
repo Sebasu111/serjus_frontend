@@ -12,7 +12,7 @@ const DocumentosForm = ({
     editingId,
     setMostrarFormulario,
     setMostrarModalEliminar,
-    setDocumentoAEliminar,
+    setDocumentoAEliminar
 }) => {
     return (
         <div
@@ -29,7 +29,7 @@ const DocumentosForm = ({
                 zIndex: 1000,
                 display: "flex",
                 flexDirection: "column",
-                borderRadius: "12px",
+                borderRadius: "12px"
             }}
         >
             <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
@@ -39,9 +39,7 @@ const DocumentosForm = ({
             <form onSubmit={handleSubmit} style={{ flex: 1 }}>
                 {/* 1. Nombre del archivo */}
                 <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>
-                        Nombre del archivo
-                    </label>
+                    <label style={{ display: "block", marginBottom: "6px" }}>Nombre del archivo</label>
                     <input
                         name="nombrearchivo"
                         value={form.nombrearchivo}
@@ -51,16 +49,14 @@ const DocumentosForm = ({
                             width: "100%",
                             padding: "10px",
                             border: "1px solid #ccc",
-                            borderRadius: "6px",
+                            borderRadius: "6px"
                         }}
                     />
                 </div>
 
                 {/* 2. Tipo de documento */}
                 <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>
-                        Tipo de documento
-                    </label>
+                    <label style={{ display: "block", marginBottom: "6px" }}>Tipo de documento</label>
                     <select
                         name="idtipodocumento"
                         value={form.idtipodocumento}
@@ -70,11 +66,11 @@ const DocumentosForm = ({
                             width: "100%",
                             padding: "10px",
                             border: "1px solid #ccc",
-                            borderRadius: "6px",
+                            borderRadius: "6px"
                         }}
                     >
                         <option value="">Seleccione...</option>
-                        {tiposDocumento.map((t) => (
+                        {tiposDocumento.map(t => (
                             <option key={t.idtipodocumento} value={t.idtipodocumento}>
                                 {t.nombretipo}
                             </option>
@@ -84,30 +80,23 @@ const DocumentosForm = ({
 
                 {/* 3. Empleado */}
                 <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>
-                        Empleado
-                    </label>
+                    <label style={{ display: "block", marginBottom: "6px" }}>Empleado</label>
                     <Select
-                        options={empleados.map((e) => ({
+                        options={empleados.map(e => ({
                             value: e.idempleado,
-                            label: `${e.nombre} ${e.apellido}`,
+                            label: `${e.nombre} ${e.apellido}`
                         }))}
                         value={
                             form.idempleado
                                 ? {
-                                    value: form.idempleado,
-                                    label: `${empleados.find(
-                                        (emp) => emp.idempleado === form.idempleado
-                                    )?.nombre} ${empleados.find(
-                                        (emp) => emp.idempleado === form.idempleado
-                                    )?.apellido
-                                        }`,
-                                }
+                                      value: form.idempleado,
+                                      label: `${empleados.find(emp => emp.idempleado === form.idempleado)?.nombre} ${
+                                          empleados.find(emp => emp.idempleado === form.idempleado)?.apellido
+                                      }`
+                                  }
                                 : null
                         }
-                        onChange={(selected) =>
-                            setForm((f) => ({ ...f, idempleado: selected?.value }))
-                        }
+                        onChange={selected => setForm(f => ({ ...f, idempleado: selected?.value }))}
                         placeholder="Busca y selecciona un empleado..."
                         isClearable
                     />
@@ -125,17 +114,13 @@ const DocumentosForm = ({
                         style={{ marginBottom: "6px" }}
                     />
                     <small style={{ color: "#666" }}>
-                        {editingId
-                            ? "Sube un archivo solo si   desea reemplazar el existente."
-                            : ""}
+                        {editingId ? "Sube un archivo solo si   desea reemplazar el existente." : ""}
                     </small>
                 </div>
 
                 {/* 5. Fecha de subida */}
                 <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>
-                        Fecha de subida
-                    </label>
+                    <label style={{ display: "block", marginBottom: "6px" }}>Fecha de subida</label>
                     <input
                         type="date"
                         name="fechasubida"
@@ -146,7 +131,7 @@ const DocumentosForm = ({
                             width: "100%",
                             padding: "10px",
                             border: "1px solid #ccc",
-                            borderRadius: "6px",
+                            borderRadius: "6px"
                         }}
                     />
                 </div>
@@ -160,7 +145,7 @@ const DocumentosForm = ({
                         color: "#FFF",
                         border: "none",
                         borderRadius: "6px",
-                        cursor: "pointer",
+                        cursor: "pointer"
                     }}
                 >
                     {editingId ? "Actualizar" : "Guardar"}
@@ -181,7 +166,7 @@ const DocumentosForm = ({
                             borderRadius: "6px",
                             padding: "8px 12px",
                             cursor: "pointer",
-                            width: "100%",
+                            width: "100%"
                         }}
                     >
                         Eliminar archivo actual
@@ -199,7 +184,7 @@ const DocumentosForm = ({
                     right: "15px",
                     background: "transparent",
                     border: "none",
-                    cursor: "pointer",
+                    cursor: "pointer"
                 }}
                 title="Cerrar"
             >

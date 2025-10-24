@@ -14,7 +14,7 @@ import EquipoForm from "./EquipoForm";
 import EquiposTable from "./EquiposTable";
 
 const API_BASE = "http://127.0.0.1:8000/api";
-const toNum = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
+const toNum = v => (v === null || v === undefined || v === "" ? null : Number(v));
 
 // ---------- UI helpers para la vista de detalle ----------
 const Section = ({ title, children }) => (
@@ -27,7 +27,7 @@ const Section = ({ title, children }) => (
                 borderBottom: "1px solid #e5e7eb",
                 paddingBottom: 6,
                 color: "#0f172a",
-                letterSpacing: 0.2,
+                letterSpacing: 0.2
             }}
         >
             {title}
@@ -41,7 +41,7 @@ const Grid = ({ children }) => (
         style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 14,
+            gap: 14
         }}
     >
         {children}
@@ -55,7 +55,7 @@ const Item = ({ label, value, full }) => (
             background: "#f9fafb",
             border: "1px solid #eef2f7",
             borderRadius: 12,
-            padding: 12,
+            padding: 12
         }}
     >
         <div
@@ -64,20 +64,18 @@ const Item = ({ label, value, full }) => (
                 textTransform: "uppercase",
                 letterSpacing: 0.4,
                 color: "#6b7280",
-                marginBottom: 6,
+                marginBottom: 6
             }}
         >
             {label}
         </div>
-        <div style={{ fontWeight: 700, fontSize: 18, color: "#0f172a", lineHeight: 1.35 }}>
-            {value || "—"}
-        </div>
+        <div style={{ fontWeight: 700, fontSize: 18, color: "#0f172a", lineHeight: 1.35 }}>{value || "—"}</div>
     </div>
 );
 
 // ---------- Component ----------
 const EquiposContainer = () => {
-    const [equipos, setEquipos] = useState([]);     // crudo desde API
+    const [equipos, setEquipos] = useState([]); // crudo desde API
     const [empleados, setEmpleados] = useState([]); // crudo desde API
 
     // UI / formulario
@@ -108,7 +106,7 @@ const EquiposContainer = () => {
         nombreEquipo: "",
         coordinadorNombre: "",
         miembrosNombres: [],
-        estado: true,
+        estado: true
     });
 
     // ====== Fetch inicial ======
@@ -120,32 +118,28 @@ const EquiposContainer = () => {
     const fetchEquipos = async () => {
         try {
             const res = await axios.get(`${API_BASE}/equipos/`);
-            const raw = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                    ? res.data.results
-                    : [];
-            const data = raw.map((e) => {
+            const raw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
+            const data = raw.map(e => {
                 const id = e.idEquipo ?? e.idequipo ?? e.id;
                 const coord = e.idCoordinador ?? e.idcoordinador ?? e.coordinadorId ?? null;
                 // Si la API trae miembros, normalizamos; si no, lo rellenaremos desde empleados más abajo
                 const posiblesListas =
                     e.miembros ?? e.integrantes ?? e.members ?? e.equipoMiembros ?? e.detalleMiembros ?? [];
                 const miembrosNormalizados = Array.isArray(posiblesListas)
-                    ? posiblesListas.map((x) =>
-                        Number(
-                            typeof x === "object"
-                                ? (x.idEmpleado ?? x.idempleado ?? x.id ?? x.pk ?? x.uuid ?? x.codigo)
-                                : x
-                        )
-                    )
+                    ? posiblesListas.map(x =>
+                          Number(
+                              typeof x === "object"
+                                  ? x.idEmpleado ?? x.idempleado ?? x.id ?? x.pk ?? x.uuid ?? x.codigo
+                                  : x
+                          )
+                      )
                     : [];
                 return {
                     idEquipo: Number(id),
                     nombreEquipo: (e.nombreEquipo ?? e.nombreequipo ?? "") || "",
                     idCoordinador: coord == null ? null : Number(coord),
                     estado: e.estado !== false,
-                    miembros: miembrosNormalizados, // puede venir vacío
+                    miembros: miembrosNormalizados // puede venir vacío
                 };
             });
             setEquipos(data);
@@ -158,12 +152,8 @@ const EquiposContainer = () => {
     const fetchEmpleados = async () => {
         try {
             const res = await axios.get(`${API_BASE}/empleados/`);
-            const data = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                    ? res.data.results
-                    : [];
-            const activos = data.filter((e) => e.estado !== false);
+            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
+            const activos = data.filter(e => e.estado !== false);
             setEmpleados(activos);
         } catch (error) {
             console.error(error);
@@ -172,7 +162,7 @@ const EquiposContainer = () => {
     };
 
     // ====== Helpers de nombres/ids ======
-    const empleadoDisplayName = (emp) => {
+    const empleadoDisplayName = emp => {
         const candidates = [
             emp?.nombreCompleto,
             [emp?.nombres, emp?.apellidos].filter(Boolean).join(" "),
@@ -184,33 +174,33 @@ const EquiposContainer = () => {
             emp?.full_name,
             emp?.displayName,
             emp?.nombre_empleado,
-            emp?.name,
+            emp?.name
         ]
-            .map((s) => (typeof s === "string" ? s.trim() : ""))
+            .map(s => (typeof s === "string" ? s.trim() : ""))
             .filter(Boolean);
         if (candidates[0]) return candidates[0];
-        const id =
-            emp?.idEmpleado ?? emp?.idempleado ?? emp?.id ?? emp?.pk ?? emp?.uuid ?? emp?.codigo ?? "?";
+        const id = emp?.idEmpleado ?? emp?.idempleado ?? emp?.id ?? emp?.pk ?? emp?.uuid ?? emp?.codigo ?? "?";
         return `Empleado #${id}`;
     };
-    const empleadoId = (emp) =>
-        Number(emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo);
+    const empleadoId = emp => Number(emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo);
 
     const empleadosMap = useMemo(() => {
         const m = new Map();
-        empleados.forEach((e) => m.set(empleadoId(e), empleadoDisplayName(e)));
+        empleados.forEach(e => m.set(empleadoId(e), empleadoDisplayName(e)));
         return m;
     }, [empleados]);
 
     // ====== Derivar miembros desde empleados (para persistir tras refresh) ======
-    const empleadoEquipoId = (emp) => {
+    const empleadoEquipoId = emp => {
         // detecta el id de equipo de un empleado en varias formas
         const raw =
             emp?.idEquipo ??
             emp?.idequipo ??
             emp?.equipoId ??
             emp?.equipo_id ??
-            (typeof emp?.equipo === "object" ? (emp?.equipo?.id ?? emp?.equipo?.idEquipo ?? emp?.equipo?.idequipo) : emp?.equipo) ??
+            (typeof emp?.equipo === "object"
+                ? emp?.equipo?.id ?? emp?.equipo?.idEquipo ?? emp?.equipo?.idequipo
+                : emp?.equipo) ??
             null;
         return raw != null ? Number(raw) : null;
     };
@@ -218,7 +208,7 @@ const EquiposContainer = () => {
     // Mapa: idEquipo -> [idEmpleado, ...]
     const miembrosPorEquipoMap = useMemo(() => {
         const m = new Map();
-        empleados.forEach((emp) => {
+        empleados.forEach(emp => {
             const ideq = empleadoEquipoId(emp);
             const idem = empleadoId(emp);
             if (ideq != null && !Number.isNaN(ideq)) {
@@ -231,8 +221,8 @@ const EquiposContainer = () => {
 
     // Equipos fusionados: si API no trae miembros, usamos los derivados desde empleados
     const equiposConMiembros = useMemo(() => {
-        return (equipos || []).map((eq) => {
-            const listaApi = Array.isArray(eq.miembros) ? eq.miembros.filter((x) => x != null) : [];
+        return (equipos || []).map(eq => {
+            const listaApi = Array.isArray(eq.miembros) ? eq.miembros.filter(x => x != null) : [];
             const listaDerivada = miembrosPorEquipoMap.get(Number(eq.idEquipo)) || [];
             const miembrosFinal = listaApi.length ? listaApi : listaDerivada;
             return { ...eq, miembros: miembrosFinal };
@@ -242,15 +232,15 @@ const EquiposContainer = () => {
     // ====== Ocupados globales (coordinadores o miembros) ======
     const ocupadosGlobal = useMemo(() => {
         const set = new Set();
-        equiposConMiembros.forEach((eq) => {
+        equiposConMiembros.forEach(eq => {
             if (eq.idCoordinador != null) set.add(Number(eq.idCoordinador));
-            (eq.miembros || []).forEach((m) => set.add(Number(m)));
+            (eq.miembros || []).forEach(m => set.add(Number(m)));
         });
         return set;
     }, [equiposConMiembros]);
 
     // ====== fetchEquipoDetalle (solo /equipos/:id/ y fallback a derivados) ======
-    const extractIdsFrom = (obj) => {
+    const extractIdsFrom = obj => {
         if (!obj) return [];
         const candidates = [
             "miembros",
@@ -259,16 +249,14 @@ const EquiposContainer = () => {
             "empleados",
             "equipo_empleados",
             "equipoMiembros",
-            "detalleMiembros",
+            "detalleMiembros"
         ];
         for (const key of candidates) {
             const v = obj[key];
             if (Array.isArray(v) && v.length) {
-                return v.map((x) =>
+                return v.map(x =>
                     Number(
-                        typeof x === "object"
-                            ? (x.idEmpleado ?? x.idempleado ?? x.id ?? x.pk ?? x.uuid ?? x.codigo)
-                            : x
+                        typeof x === "object" ? x.idEmpleado ?? x.idempleado ?? x.id ?? x.pk ?? x.uuid ?? x.codigo : x
                     )
                 );
             }
@@ -278,7 +266,7 @@ const EquiposContainer = () => {
         return [];
     };
 
-    const fetchEquipoDetalle = async (id) => {
+    const fetchEquipoDetalle = async id => {
         try {
             const r1 = await axios.get(`${API_BASE}/equipos/${id}/`);
             const idsApi = extractIdsFrom(r1.data);
@@ -295,13 +283,13 @@ const EquiposContainer = () => {
         () =>
             new Set(
                 equiposConMiembros
-                    .filter((e) => e.idCoordinador != null && e.idEquipo !== editingId)
-                    .map((e) => e.idCoordinador)
+                    .filter(e => e.idCoordinador != null && e.idEquipo !== editingId)
+                    .map(e => e.idCoordinador)
             ),
         [equiposConMiembros, editingId]
     );
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         if (!idEquipo || !idCoordinador) return;
 
@@ -314,13 +302,9 @@ const EquiposContainer = () => {
         const originalesSet = new Set(
             [Number(originalEquipo.coord), ...originalEquipo.miembros.map(Number)].filter(Boolean)
         );
-        const ocupadosNoPropios = new Set(
-            [...ocupadosGlobal].filter((id) => !originalesSet.has(Number(id)))
-        );
+        const ocupadosNoPropios = new Set([...ocupadosGlobal].filter(id => !originalesSet.has(Number(id))));
 
-        const setUnique = Array.from(new Set(miembros.map(Number))).filter(
-            (id) => id !== toNum(idCoordinador)
-        );
+        const setUnique = Array.from(new Set(miembros.map(Number))).filter(id => id !== toNum(idCoordinador));
         if (setUnique.length !== miembros.length || miembros.includes(toNum(idCoordinador))) {
             showToast("Revisar duplicados / el coordinador no puede ir como miembro.", "error");
             return;
@@ -329,14 +313,14 @@ const EquiposContainer = () => {
             showToast("Máximo 6 acompañantes.", "error");
             return;
         }
-        const conflicto = setUnique.find((id) => ocupadosNoPropios.has(Number(id)));
+        const conflicto = setUnique.find(id => ocupadosNoPropios.has(Number(id)));
         if (conflicto != null) {
             showToast("Uno o más miembros ya pertenecen a otro equipo.", "error");
             return;
         }
 
         const idUsuario = toNum(sessionStorage.getItem("idUsuario"));
-        const equipoSel = equiposConMiembros.find((eq) => eq.idEquipo === idEquipo);
+        const equipoSel = equiposConMiembros.find(eq => eq.idEquipo === idEquipo);
         if (!equipoSel) {
             showToast("No se encontró el equipo seleccionado", "error");
             return;
@@ -348,13 +332,13 @@ const EquiposContainer = () => {
                 idcoordinador: toNum(idCoordinador),
                 miembros: setUnique,
                 idusuario: idUsuario,
-                validadoEn: new Date().toISOString(),
+                validadoEn: new Date().toISOString()
             };
 
             await axios.put(`${API_BASE}/equipos/${idEquipo}/`, payload);
 
             // Actualizamos cache local del equipo
-            setMiembrosCache((prev) => {
+            setMiembrosCache(prev => {
                 const copy = new Map(prev);
                 copy.set(idEquipo, setUnique);
                 return copy;
@@ -376,17 +360,14 @@ const EquiposContainer = () => {
         }
     };
 
-    const handleEdit = async (equipo) => {
+    const handleEdit = async equipo => {
         setIdEquipo(equipo.idEquipo);
         setIdCoordinador(equipo.idCoordinador ?? "");
         setEditingId(equipo.idEquipo);
 
         // Tomamos miembros del cache, o de la fusión equipos+empleados, o del detalle API
-        const merged = equiposConMiembros.find((e) => e.idEquipo === equipo.idEquipo);
-        let miembrosActuales =
-            miembrosCache.get(equipo.idEquipo) ??
-            (merged?.miembros || []) ??
-            [];
+        const merged = equiposConMiembros.find(e => e.idEquipo === equipo.idEquipo);
+        let miembrosActuales = miembrosCache.get(equipo.idEquipo) ?? (merged?.miembros || []) ?? [];
 
         if (!miembrosActuales.length) {
             setLoadingMiembros(true);
@@ -397,11 +378,9 @@ const EquiposContainer = () => {
             }
         }
 
-        const unique = Array.from(new Set(miembrosActuales.map(Number))).filter(
-            (m) => m !== toNum(equipo.idCoordinador)
-        );
+        const unique = Array.from(new Set(miembrosActuales.map(Number))).filter(m => m !== toNum(equipo.idCoordinador));
 
-        setMiembrosCache((prev) => {
+        setMiembrosCache(prev => {
             const copy = new Map(prev);
             copy.set(equipo.idEquipo, unique);
             return copy;
@@ -412,33 +391,27 @@ const EquiposContainer = () => {
         setMostrarFormulario(true);
     };
 
-    const handleVerDetalle = async (equipo) => {
+    const handleVerDetalle = async equipo => {
         try {
-            const merged = equiposConMiembros.find((e) => e.idEquipo === equipo.idEquipo);
+            const merged = equiposConMiembros.find(e => e.idEquipo === equipo.idEquipo);
             const idsMerged = merged?.miembros || [];
-            const ids =
-                idsMerged.length
-                    ? idsMerged
-                    : (await fetchEquipoDetalle(equipo.idEquipo)) || [];
+            const ids = idsMerged.length ? idsMerged : (await fetchEquipoDetalle(equipo.idEquipo)) || [];
 
             if (!miembrosCache.has(equipo.idEquipo)) {
-                setMiembrosCache((prev) => {
+                setMiembrosCache(prev => {
                     const copy = new Map(prev);
                     copy.set(equipo.idEquipo, ids);
                     return copy;
                 });
             }
-            const miembrosNombres = ids
-                .map((id) => empleadosMap.get(Number(id)) || `Empleado #${id}`)
-                .filter(Boolean);
+            const miembrosNombres = ids.map(id => empleadosMap.get(Number(id)) || `Empleado #${id}`).filter(Boolean);
 
             setDetalle({
                 idEquipo: equipo.idEquipo,
                 nombreEquipo: equipo.nombreEquipo || `Equipo #${equipo.idEquipo}`,
-                coordinadorNombre:
-                    empleadosMap.get(equipo.idCoordinador) || `#${equipo.idCoordinador ?? ""}`,
+                coordinadorNombre: empleadosMap.get(equipo.idCoordinador) || `#${equipo.idCoordinador ?? ""}`,
                 miembrosNombres,
-                estado: equipo.estado !== false,
+                estado: equipo.estado !== false
             });
             setMostrarDetalle(true);
         } catch (e) {
@@ -451,7 +424,7 @@ const EquiposContainer = () => {
     const equiposFiltrados = useMemo(() => {
         const texto = busqueda.toLowerCase().trim();
         if (!texto) return equiposConMiembros;
-        return equiposConMiembros.filter((e) => {
+        return equiposConMiembros.filter(e => {
             const porNombre = (e.nombreEquipo || "").toLowerCase().includes(texto);
             const porCoord = (empleadosMap.get(e.idCoordinador) || "").toLowerCase().includes(texto);
             return porNombre || porCoord;
@@ -472,7 +445,17 @@ const EquiposContainer = () => {
             <div style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
-                    <main className="main-content site-wrapper-reveal" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#EEF2F7", padding: "48px 20px 8rem" }}>
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Equipos Registrados</h2>
 
@@ -482,14 +465,14 @@ const EquiposContainer = () => {
                                     display: "flex",
                                     justifyContent: "space-between",
                                     marginBottom: "15px",
-                                    alignItems: "center",
+                                    alignItems: "center"
                                 }}
                             >
                                 <input
                                     type="text"
                                     placeholder="Buscar por equipo o coordinador..."
                                     value={busqueda}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                         setBusqueda(e.target.value);
                                         setPaginaActual(1);
                                     }}
@@ -514,18 +497,18 @@ const EquiposContainer = () => {
                                     type="number"
                                     min="1"
                                     value={elementosPorPagina}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                         const numero = Number((e.target.value || "1").replace(/\D/g, "")) || 1;
                                         setElementosPorPagina(numero);
                                         setPaginaActual(1);
                                     }}
-                                    onFocus={(e) => e.target.select()}
+                                    onFocus={e => e.target.select()}
                                     style={{
                                         width: 80,
                                         padding: 10,
                                         borderRadius: 8,
                                         border: "1px solid #ccc",
-                                        textAlign: "center",
+                                        textAlign: "center"
                                     }}
                                 />
                             </div>
@@ -564,7 +547,7 @@ const EquiposContainer = () => {
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
-                            zIndex: 4000,
+                            zIndex: 4000
                         }}
                     >
                         <div
@@ -577,7 +560,7 @@ const EquiposContainer = () => {
                                 padding: 28,
                                 paddingRight: 43,
                                 borderRadius: 16,
-                                position: "relative",
+                                position: "relative"
                             }}
                         >
                             <div
@@ -588,7 +571,7 @@ const EquiposContainer = () => {
                                     width: "100%",
                                     height: 0,
                                     pointerEvents: "none",
-                                    overflow: "visible",
+                                    overflow: "visible"
                                 }}
                             >
                                 <button
@@ -613,11 +596,11 @@ const EquiposContainer = () => {
                                         color: "#0f172a",
                                         transition: "background .15s, transform .05s",
                                         outline: "none",
-                                        boxShadow: "0 1px 6px rgba(0,0,0,.06)",
+                                        boxShadow: "0 1px 6px rgba(0,0,0,.06)"
                                     }}
-                                    onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.97)")}
-                                    onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                                    onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                                    onMouseDown={e => (e.currentTarget.style.transform = "scale(0.97)")}
+                                    onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
+                                    onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
                                 >
                                     ✕
                                 </button>
@@ -633,7 +616,7 @@ const EquiposContainer = () => {
                                     alignItems: "center",
                                     gap: 10,
                                     flexWrap: "wrap",
-                                    margin: "6px 0 10px 0",
+                                    margin: "6px 0 10px 0"
                                 }}
                             >
                                 <div style={{ fontSize: 22, fontWeight: 700 }}>{detalle.nombreEquipo}</div>
@@ -644,7 +627,7 @@ const EquiposContainer = () => {
                                         background: detalle.estado ? "rgba(16,185,129,.12)" : "rgba(239,68,68,.12)",
                                         color: detalle.estado ? "#065f46" : "#7f1d1d",
                                         fontWeight: 700,
-                                        fontSize: 14,
+                                        fontSize: 14
                                     }}
                                 >
                                     {detalle.estado ? "Activo" : "Inactivo"}
@@ -666,7 +649,7 @@ const EquiposContainer = () => {
                                                 border: "1px dashed #e5e7eb",
                                                 borderRadius: 12,
                                                 padding: 14,
-                                                color: "#6b7280",
+                                                color: "#6b7280"
                                             }}
                                         >
                                             Sin miembros asignados.

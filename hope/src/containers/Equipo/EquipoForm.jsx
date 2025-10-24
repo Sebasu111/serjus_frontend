@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-const displayName = (emp) => {
+const displayName = emp => {
     const candidates = [
         emp?.nombreCompleto,
         [emp?.nombres, emp?.apellidos].filter(Boolean).join(" "),
@@ -11,16 +11,16 @@ const displayName = (emp) => {
         emp?.full_name,
         emp?.displayName,
         emp?.nombre_empleado,
-        emp?.name,
+        emp?.name
     ]
-        .map((s) => (typeof s === "string" ? s.trim() : ""))
+        .map(s => (typeof s === "string" ? s.trim() : ""))
         .filter(Boolean);
     if (candidates[0]) return candidates[0];
     const id = emp?.idEmpleado ?? emp?.idempleado ?? emp?.id ?? emp?.pk ?? emp?.uuid ?? emp?.codigo ?? "?";
     return `Empleado #${id}`;
 };
-const empId = (emp) => emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
-const eqId = (eq) => eq.id ?? eq.idEquipo ?? eq.pk;
+const empId = emp => emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
+const eqId = eq => eq.id ?? eq.idEquipo ?? eq.pk;
 
 const EquipoForm = ({
     equipos = [],
@@ -36,7 +36,7 @@ const EquipoForm = ({
     handleSubmit,
     onClose,
     ocupadosSet = new Set(), // empleados ocupados globalmente
-    originales = { coord: null, miembros: [] }, // permitidos aunque estén ocupados
+    originales = { coord: null, miembros: [] } // permitidos aunque estén ocupados
 }) => {
     const [qCoord, setQCoord] = useState("");
     const [qMiembro, setQMiembro] = useState("");
@@ -44,18 +44,19 @@ const EquipoForm = ({
 
     const wrapperRef = useRef(null);
     useEffect(() => {
-        const onClick = (e) => {
+        const onClick = e => {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpenCoordMenu(false);
         };
         document.addEventListener("mousedown", onClick);
         return () => document.removeEventListener("mousedown", onClick);
     }, []);
 
-    const equipoSel = useMemo(() => equipos.find((eq) => Number(eqId(eq)) === Number(idEquipo)), [equipos, idEquipo]);
+    const equipoSel = useMemo(() => equipos.find(eq => Number(eqId(eq)) === Number(idEquipo)), [equipos, idEquipo]);
     const nombreEquipo = equipoSel?.nombre ?? equipoSel?.nombreEquipo ?? `Equipo #${idEquipo}`;
 
     const empleadosOrdenados = useMemo(
-        () => [...empleados].sort((a, b) => displayName(a).localeCompare(displayName(b), "es", { sensitivity: "base" })),
+        () =>
+            [...empleados].sort((a, b) => displayName(a).localeCompare(displayName(b), "es", { sensitivity: "base" })),
         [empleados]
     );
 
@@ -63,23 +64,23 @@ const EquipoForm = ({
     const permitidosActuales = useMemo(() => {
         const set = new Set();
         if (originales?.coord != null) set.add(Number(originales.coord));
-        (originales?.miembros || []).forEach((m) => set.add(Number(m)));
+        (originales?.miembros || []).forEach(m => set.add(Number(m)));
         return set;
     }, [originales]);
 
-    const estaOcupadoGlobal = (id) => ocupadosSet.has(Number(id)) && !permitidosActuales.has(Number(id));
+    const estaOcupadoGlobal = id => ocupadosSet.has(Number(id)) && !permitidosActuales.has(Number(id));
 
     // Coordinador: combobox con búsqueda integrada
     const opcionesCoord = useMemo(() => {
         const t = qCoord.trim().toLowerCase();
-        return empleadosOrdenados.filter((e) => {
+        return empleadosOrdenados.filter(e => {
             const id = empId(e);
             if (estaOcupadoGlobal(id)) return false;
             return displayName(e).toLowerCase().includes(t);
         });
     }, [empleadosOrdenados, qCoord, ocupadosSet, permitidosActuales]);
 
-    const seleccionarCoordinador = (id) => {
+    const seleccionarCoordinador = id => {
         setIdCoordinador(Number(id));
         setOpenCoordMenu(false);
     };
@@ -88,7 +89,7 @@ const EquipoForm = ({
     const opcionesMiembro = useMemo(() => {
         const t = qMiembro.trim().toLowerCase();
         const setActuales = new Set(miembros.map(Number));
-        return empleadosOrdenados.filter((e) => {
+        return empleadosOrdenados.filter(e => {
             const id = Number(empId(e));
             if (id === Number(idCoordinador)) return false;
             if (setActuales.has(id)) return false;
@@ -98,8 +99,8 @@ const EquipoForm = ({
     }, [empleadosOrdenados, qMiembro, idCoordinador, miembros, ocupadosSet, permitidosActuales]);
 
     const maxAcompanantes = 6;
-    const quitarMiembro = (id) => setMiembros(miembros.filter((x) => Number(x) !== Number(id)));
-    const agregarMiembro = (id) => {
+    const quitarMiembro = id => setMiembros(miembros.filter(x => Number(x) !== Number(id)));
+    const agregarMiembro = id => {
         id = Number(id);
         if (id === Number(idCoordinador)) return;
         if (miembros.includes(id)) return;
@@ -118,7 +119,7 @@ const EquipoForm = ({
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                zIndex: 3000,
+                zIndex: 3000
             }}
         >
             <div
@@ -130,7 +131,7 @@ const EquipoForm = ({
                     boxShadow: "0 0 30px rgba(0,0,0,0.25)",
                     padding: 28,
                     borderRadius: 12,
-                    position: "relative",
+                    position: "relative"
                 }}
                 ref={wrapperRef}
             >
@@ -145,7 +146,13 @@ const EquipoForm = ({
                                 type="text"
                                 readOnly
                                 value={nombreEquipo}
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db", background: "#f9fafb" }}
+                                style={{
+                                    width: "100%",
+                                    padding: 10,
+                                    borderRadius: 8,
+                                    border: "1px solid #d1d5db",
+                                    background: "#f9fafb"
+                                }}
                             />
                         </div>
 
@@ -158,10 +165,15 @@ const EquipoForm = ({
                                 value={
                                     openCoordMenu
                                         ? qCoord
-                                        : (empleadosOrdenados.find((e) => Number(empId(e)) === Number(idCoordinador)) &&
-                                            displayName(empleadosOrdenados.find((e) => Number(empId(e)) === Number(idCoordinador)))) || ""
+                                        : (empleadosOrdenados.find(e => Number(empId(e)) === Number(idCoordinador)) &&
+                                              displayName(
+                                                  empleadosOrdenados.find(
+                                                      e => Number(empId(e)) === Number(idCoordinador)
+                                                  )
+                                              )) ||
+                                          ""
                                 }
-                                onChange={(e) => {
+                                onChange={e => {
                                     setQCoord(e.target.value);
                                     if (!openCoordMenu) setOpenCoordMenu(true);
                                 }}
@@ -170,7 +182,7 @@ const EquipoForm = ({
                                     width: "100%",
                                     padding: 10,
                                     borderRadius: 8,
-                                    border: "1px solid #d1d5db",
+                                    border: "1px solid #d1d5db"
                                 }}
                             />
                             {openCoordMenu && (
@@ -185,13 +197,13 @@ const EquipoForm = ({
                                         width: "100%",
                                         maxHeight: 220,
                                         overflow: "auto",
-                                        boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+                                        boxShadow: "0 10px 20px rgba(0,0,0,0.08)"
                                     }}
                                 >
                                     {opcionesCoord.length === 0 ? (
                                         <div style={{ padding: 10, color: "#6b7280" }}>Sin resultados</div>
                                     ) : (
-                                        opcionesCoord.map((emp) => (
+                                        opcionesCoord.map(emp => (
                                             <button
                                                 key={empId(emp)}
                                                 type="button"
@@ -202,10 +214,10 @@ const EquipoForm = ({
                                                     padding: 10,
                                                     border: "none",
                                                     background: "transparent",
-                                                    cursor: "pointer",
+                                                    cursor: "pointer"
                                                 }}
-                                                onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
-                                                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                                                onMouseEnter={e => (e.currentTarget.style.background = "#f3f4f6")}
+                                                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                                                 title="Seleccionar coordinador"
                                             >
                                                 {displayName(emp)}
@@ -224,10 +236,12 @@ const EquipoForm = ({
                                     display: "flex",
                                     justifyContent: "space-between",
                                     alignItems: "center",
-                                    marginBottom: 6,
+                                    marginBottom: 6
                                 }}
                             >
-                                <label style={{ fontWeight: 600 }}>Miembros actuales ({miembros.length} / {maxAcompanantes})</label>
+                                <label style={{ fontWeight: 600 }}>
+                                    Miembros actuales ({miembros.length} / {maxAcompanantes})
+                                </label>
                                 <button
                                     type="button"
                                     onClick={vaciarMiembros}
@@ -237,7 +251,7 @@ const EquipoForm = ({
                                         borderRadius: 8,
                                         border: "1px solid #e5e7eb",
                                         background: "#f9fafb",
-                                        cursor: miembros.length && !loadingMiembros ? "pointer" : "not-allowed",
+                                        cursor: miembros.length && !loadingMiembros ? "pointer" : "not-allowed"
                                     }}
                                     title="Quitar todos"
                                 >
@@ -252,7 +266,7 @@ const EquipoForm = ({
                                         padding: 14,
                                         borderRadius: 10,
                                         color: "#6b7280",
-                                        marginBottom: 12,
+                                        marginBottom: 12
                                     }}
                                 >
                                     Cargando miembros…
@@ -264,7 +278,7 @@ const EquipoForm = ({
                                         padding: 14,
                                         borderRadius: 10,
                                         color: "#6b7280",
-                                        marginBottom: 12,
+                                        marginBottom: 12
                                     }}
                                 >
                                     No hay miembros asignados. Usa la búsqueda para agregarlos.
@@ -275,11 +289,11 @@ const EquipoForm = ({
                                         display: "grid",
                                         gridTemplateColumns: "repeat(2,minmax(0,1fr))",
                                         gap: 10,
-                                        marginBottom: 12,
+                                        marginBottom: 12
                                     }}
                                 >
-                                    {miembros.map((id) => {
-                                        const emp = empleadosOrdenados.find((e) => Number(empId(e)) === Number(id));
+                                    {miembros.map(id => {
+                                        const emp = empleadosOrdenados.find(e => Number(empId(e)) === Number(id));
                                         return (
                                             <div
                                                 key={id}
@@ -290,10 +304,12 @@ const EquipoForm = ({
                                                     padding: "10px 12px",
                                                     borderRadius: 10,
                                                     border: "1px solid #e5e7eb",
-                                                    background: "#f9fafb",
+                                                    background: "#f9fafb"
                                                 }}
                                             >
-                                                <span style={{ fontWeight: 600 }}>{emp ? displayName(emp) : `Empleado #${id}`}</span>
+                                                <span style={{ fontWeight: 600 }}>
+                                                    {emp ? displayName(emp) : `Empleado #${id}`}
+                                                </span>
                                                 <button
                                                     type="button"
                                                     onClick={() => quitarMiembro(id)}
@@ -304,7 +320,7 @@ const EquipoForm = ({
                                                         color: "#fff",
                                                         borderRadius: 8,
                                                         padding: "6px 10px",
-                                                        cursor: loadingMiembros ? "not-allowed" : "pointer",
+                                                        cursor: loadingMiembros ? "not-allowed" : "pointer"
                                                     }}
                                                     title="Quitar"
                                                 >
@@ -317,18 +333,20 @@ const EquipoForm = ({
                             )}
 
                             {/* Agregar nuevos */}
-                            <label style={{ display: "block", marginBottom: 6 }}>Agregar miembros (máx. {maxAcompanantes})</label>
+                            <label style={{ display: "block", marginBottom: 6 }}>
+                                Agregar miembros (máx. {maxAcompanantes})
+                            </label>
                             <input
                                 type="text"
                                 placeholder="Buscar por nombre para agregar..."
                                 value={qMiembro}
-                                onChange={(e) => setQMiembro(e.target.value)}
+                                onChange={e => setQMiembro(e.target.value)}
                                 style={{
                                     width: "100%",
                                     padding: 10,
                                     borderRadius: 8,
                                     border: "1px solid #d1d5db",
-                                    marginBottom: 8,
+                                    marginBottom: 8
                                 }}
                             />
 
@@ -342,13 +360,15 @@ const EquipoForm = ({
                                     border: "1px solid #f3f4f6",
                                     borderRadius: 10,
                                     padding: 8,
-                                    background: "#fff",
+                                    background: "#fff"
                                 }}
                             >
                                 {opcionesMiembro.length === 0 ? (
-                                    <div style={{ color: "#6b7280", padding: 8 }}>No hay resultados o ya no están disponibles.</div>
+                                    <div style={{ color: "#6b7280", padding: 8 }}>
+                                        No hay resultados o ya no están disponibles.
+                                    </div>
                                 ) : (
-                                    opcionesMiembro.map((emp) => (
+                                    opcionesMiembro.map(emp => (
                                         <button
                                             key={empId(emp)}
                                             type="button"
@@ -360,7 +380,10 @@ const EquipoForm = ({
                                                 borderRadius: 8,
                                                 border: "1px solid #e5e7eb",
                                                 background: "#fafafa",
-                                                cursor: miembros.length >= maxAcompanantes || loadingMiembros ? "not-allowed" : "pointer",
+                                                cursor:
+                                                    miembros.length >= maxAcompanantes || loadingMiembros
+                                                        ? "not-allowed"
+                                                        : "pointer"
                                             }}
                                             title="Agregar"
                                         >
@@ -369,7 +392,9 @@ const EquipoForm = ({
                                     ))
                                 )}
                             </div>
-                            <small style={{ color: "#6b7280" }}>El coordinador no puede ser miembro. No se permiten duplicados.</small>
+                            <small style={{ color: "#6b7280" }}>
+                                El coordinador no puede ser miembro. No se permiten duplicados.
+                            </small>
                         </div>
                     </div>
 
@@ -383,7 +408,7 @@ const EquipoForm = ({
                                 padding: "10px 18px",
                                 border: "none",
                                 borderRadius: 8,
-                                cursor: "pointer",
+                                cursor: "pointer"
                             }}
                         >
                             Cancelar
@@ -398,7 +423,7 @@ const EquipoForm = ({
                                 border: "none",
                                 borderRadius: 8,
                                 cursor: loadingMiembros ? "not-allowed" : "pointer",
-                                fontWeight: 600,
+                                fontWeight: 600
                             }}
                         >
                             Actualizar
@@ -414,7 +439,7 @@ const EquipoForm = ({
                         right: 18,
                         background: "transparent",
                         border: "none",
-                        cursor: "pointer",
+                        cursor: "pointer"
                     }}
                     title="Cerrar"
                 >

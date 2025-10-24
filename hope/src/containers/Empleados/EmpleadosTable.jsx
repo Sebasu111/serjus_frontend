@@ -115,12 +115,12 @@ const EmpleadosTable = ({
                                                 onClick={() => toggleMenu(r.id || r.idempleado || r.idEmpleado)}
                                                 style={comboBoxStyles.button.base}
                                                 onMouseEnter={e =>
-                                                (e.currentTarget.style.background =
-                                                    comboBoxStyles.button.hover.background)
+                                                    (e.currentTarget.style.background =
+                                                        comboBoxStyles.button.hover.background)
                                                 }
                                                 onMouseLeave={e =>
-                                                (e.currentTarget.style.background =
-                                                    comboBoxStyles.button.base.background)
+                                                    (e.currentTarget.style.background =
+                                                        comboBoxStyles.button.base.background)
                                                 }
                                             >
                                                 Opciones ▾
@@ -156,12 +156,12 @@ const EmpleadosTable = ({
                                                             onClick={() => handleToggle(r)}
                                                             style={comboBoxStyles.menu.item.desactivar.base}
                                                             onMouseEnter={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.desactivar.hover.background)
+                                                                (e.currentTarget.style.background =
+                                                                    comboBoxStyles.menu.item.desactivar.hover.background)
                                                             }
                                                             onMouseLeave={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.desactivar.base.background)
+                                                                (e.currentTarget.style.background =
+                                                                    comboBoxStyles.menu.item.desactivar.base.background)
                                                             }
                                                         >
                                                             Desactivar
@@ -171,12 +171,12 @@ const EmpleadosTable = ({
                                                             onClick={() => handleToggle(r)}
                                                             style={comboBoxStyles.menu.item.activar.base}
                                                             onMouseEnter={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.activar.hover.background)
+                                                                (e.currentTarget.style.background =
+                                                                    comboBoxStyles.menu.item.activar.hover.background)
                                                             }
                                                             onMouseLeave={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.activar.base.background)
+                                                                (e.currentTarget.style.background =
+                                                                    comboBoxStyles.menu.item.activar.base.background)
                                                             }
                                                         >
                                                             Activar

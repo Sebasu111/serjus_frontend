@@ -9,13 +9,13 @@ const EquiposTable = ({
     onVerDetalle,
     paginaActual,
     totalPaginas,
-    setPaginaActual,
+    setPaginaActual
 }) => {
     const [menuAbierto, setMenuAbierto] = useState(null);
     const containerRef = useRef(null);
 
     useEffect(() => {
-        const handleClickOutside = (e) => {
+        const handleClickOutside = e => {
             if (containerRef.current && !containerRef.current.contains(e.target)) {
                 setMenuAbierto(null);
             }
@@ -24,7 +24,7 @@ const EquiposTable = ({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const toggleMenu = (id) => setMenuAbierto(menuAbierto === id ? null : id);
+    const toggleMenu = id => setMenuAbierto(menuAbierto === id ? null : id);
 
     return (
         <div
@@ -33,7 +33,7 @@ const EquiposTable = ({
                 background: "#fff",
                 borderRadius: "12px",
                 padding: "20px 30px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)"
             }}
         >
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -47,7 +47,7 @@ const EquiposTable = ({
                 </thead>
                 <tbody>
                     {equipos.length > 0 ? (
-                        equipos.map((equipo) => (
+                        equipos.map(equipo => (
                             <tr key={equipo.idEquipo}>
                                 <td style={{ padding: 10, borderBottom: "1px solid #f0f0f0" }}>
                                     <button
@@ -61,7 +61,7 @@ const EquiposTable = ({
                                             color: "#1d4ed8",
                                             fontWeight: 700,
                                             cursor: "pointer",
-                                            textDecoration: "none", // ← sin subrayado
+                                            textDecoration: "none" // ← sin subrayado
                                         }}
                                         title="Ver detalle"
                                     >
@@ -77,7 +77,7 @@ const EquiposTable = ({
                                         textAlign: "center",
                                         color: equipo.estado ? "green" : "red",
                                         fontWeight: 600,
-                                        borderBottom: "1px solid #f0f0f0",
+                                        borderBottom: "1px solid #f0f0f0"
                                     }}
                                 >
                                     {equipo.estado ? "Activo" : "Inactivo"}
@@ -87,15 +87,21 @@ const EquiposTable = ({
                                         padding: 10,
                                         textAlign: "center",
                                         borderBottom: "1px solid #f0f0f0",
-                                        position: "relative",
+                                        position: "relative"
                                     }}
                                 >
                                     <div style={comboBoxStyles.container}>
                                         <button
                                             onClick={() => toggleMenu(equipo.idEquipo)}
                                             style={comboBoxStyles.button.base}
-                                            onMouseEnter={(e) => (e.currentTarget.style.background = comboBoxStyles.button.hover.background)}
-                                            onMouseLeave={(e) => (e.currentTarget.style.background = comboBoxStyles.button.base.background)}
+                                            onMouseEnter={e =>
+                                                (e.currentTarget.style.background =
+                                                    comboBoxStyles.button.hover.background)
+                                            }
+                                            onMouseLeave={e =>
+                                                (e.currentTarget.style.background =
+                                                    comboBoxStyles.button.base.background)
+                                            }
                                         >
                                             Opciones ▾
                                         </button>
@@ -105,11 +111,13 @@ const EquiposTable = ({
                                                 <button
                                                     onClick={() => handleEdit(equipo)}
                                                     style={comboBoxStyles.menu.item.editar.base}
-                                                    onMouseEnter={(e) =>
-                                                        (e.currentTarget.style.background = comboBoxStyles.menu.item.editar.hover.background)
+                                                    onMouseEnter={e =>
+                                                        (e.currentTarget.style.background =
+                                                            comboBoxStyles.menu.item.editar.hover.background)
                                                     }
-                                                    onMouseLeave={(e) =>
-                                                        (e.currentTarget.style.background = comboBoxStyles.menu.item.editar.base.background)
+                                                    onMouseLeave={e =>
+                                                        (e.currentTarget.style.background =
+                                                            comboBoxStyles.menu.item.editar.base.background)
                                                     }
                                                 >
                                                     Editar integrantes
@@ -139,7 +147,9 @@ const EquiposTable = ({
                             onClick={() => setPaginaActual(i + 1)}
                             style={{
                                 ...buttonStyles.paginacion.base,
-                                ...(paginaActual === i + 1 ? buttonStyles.paginacion.activo : buttonStyles.paginacion.inactivo),
+                                ...(paginaActual === i + 1
+                                    ? buttonStyles.paginacion.activo
+                                    : buttonStyles.paginacion.inactivo)
                             }}
                         >
                             {i + 1}

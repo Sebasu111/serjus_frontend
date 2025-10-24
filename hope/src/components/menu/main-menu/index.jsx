@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import { NavLink, useHistory } from "react-router-dom";
-import {
-    FaHome,
-    FaUsers,
-    FaUserTie,
-    FaClipboardList,
-    FaBook,
-    FaFileAlt,
-    FaSignOutAlt,
-} from "react-icons/fa";
+import { FaHome, FaUsers, FaUserTie, FaClipboardList, FaBook, FaFileAlt, FaSignOutAlt } from "react-icons/fa";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "./sidebar-menu.css";
 
@@ -39,7 +31,7 @@ const SidebarMenu = () => {
         return () => body.classList.remove("sidebar-open");
     }, [mobileOpen]);
 
-    const toggleSubmenu = (menuName) => {
+    const toggleSubmenu = menuName => {
         if (collapsed) {
             setCollapsed(false); // expandir el sidebar si está colapsado
             setOpenMenu(menuName); // abrir el submenu tocado
@@ -48,14 +40,14 @@ const SidebarMenu = () => {
         setOpenMenu(openMenu === menuName ? null : menuName);
     };
 
-    const handleLogout = (e) => {
+    const handleLogout = e => {
         e.preventDefault();
         // aquí tu lógica de logout si aplica
         history.push(`${base}/login`);
     };
 
     React.useEffect(() => {
-        const onKey = (e) => {
+        const onKey = e => {
             if (e.key === "Escape") {
                 setMobileOpen(false);
             }
@@ -72,7 +64,7 @@ const SidebarMenu = () => {
                 onClick={() => {
                     // On small screens we should open the overlay; on large screens toggle collapsed
                     if (window.innerWidth <= 991) {
-                        setMobileOpen((s) => !s);
+                        setMobileOpen(s => !s);
                         return;
                     }
                     const next = !collapsed;
@@ -82,7 +74,7 @@ const SidebarMenu = () => {
                 aria-label="Toggle sidebar"
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         e.currentTarget.click();
@@ -93,20 +85,13 @@ const SidebarMenu = () => {
             </div>
 
             {/* Overlay for mobile when sidebar is open */}
-            <div
-                className={`content-overlay ${mobileOpen ? "visible" : ""}`}
-                onClick={() => setMobileOpen(false)}
-            />
+            <div className={`content-overlay ${mobileOpen ? "visible" : ""}`} onClick={() => setMobileOpen(false)} />
 
             {/* SIDEBAR */}
             <nav className={`sidebar-menu ${collapsed ? "collapsed" : ""} ${mobileOpen ? "open" : ""}`}>
                 <div className="sidebar-logo">
                     <NavLink to={`${base}/home`}>
-                        <img
-                            src={`${process.env.PUBLIC_URL}/img/logo.png`}
-                            alt="Logo"
-                            className="logo"
-                        />
+                        <img src={`${process.env.PUBLIC_URL}/img/logo.png`} alt="Logo" className="logo" />
                     </NavLink>
                 </div>
 
@@ -121,11 +106,31 @@ const SidebarMenu = () => {
                             <FaUsers className="menu-icon" /> {!collapsed && "Personal"}
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "personal" ? "open" : ""}`}>
-                            <li><NavLink to={`${base}/Empleados`} className="sidebar-submenu-link">Colaboradores/as</NavLink></li>
-                            <li><NavLink to={`${base}/Contratos`} className="sidebar-submenu-link">Contrato</NavLink></li>
-                            <li><NavLink to={`${base}/Historial`} className="sidebar-submenu-link">Historial</NavLink></li>
-                            <li><NavLink to={`${base}/Usuarios`} className="sidebar-submenu-link">Usuarios</NavLink></li>
-                            <li><NavLink to={`${base}/Equipos`} className="sidebar-submenu-link">Equipos</NavLink></li>
+                            <li>
+                                <NavLink to={`${base}/Empleados`} className="sidebar-submenu-link">
+                                    Colaboradores/as
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Contratos`} className="sidebar-submenu-link">
+                                    Contrato
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Historial`} className="sidebar-submenu-link">
+                                    Historial
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Usuarios`} className="sidebar-submenu-link">
+                                    Usuarios
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Equipos`} className="sidebar-submenu-link">
+                                    Equipos
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
 
@@ -139,9 +144,21 @@ const SidebarMenu = () => {
                             <FaClipboardList className="menu-icon" /> {!collapsed && "Reclutamiento"}
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "reclutamiento" ? "open" : ""}`}>
-                            <li><NavLink to={`${base}/Convocatorias`} className="sidebar-submenu-link">Convocatorias</NavLink></li>
-                            <li><NavLink to={`${base}/Aspirantes`} className="sidebar-submenu-link">Aspirantes</NavLink></li>
-                            <li><NavLink to={`${base}/Seleccion`} className="sidebar-submenu-link">Selección / Contratación</NavLink></li>
+                            <li>
+                                <NavLink to={`${base}/Convocatorias`} className="sidebar-submenu-link">
+                                    Convocatorias
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Aspirantes`} className="sidebar-submenu-link">
+                                    Aspirantes
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Seleccion`} className="sidebar-submenu-link">
+                                    Selección / Contratación
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
 
@@ -155,8 +172,16 @@ const SidebarMenu = () => {
                             <FaBook className="menu-icon" /> {!collapsed && "Integración"}
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "integracion" ? "open" : ""}`}>
-                            <li><NavLink to={`${base}/Induccion`} className="sidebar-submenu-link">Inducción</NavLink></li>
-                            <li><NavLink to={`${base}/Capacitacion`} className="sidebar-submenu-link">Capacitación</NavLink></li>
+                            <li>
+                                <NavLink to={`${base}/Induccion`} className="sidebar-submenu-link">
+                                    Inducción
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Capacitacion`} className="sidebar-submenu-link">
+                                    Capacitación
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
 
@@ -170,8 +195,16 @@ const SidebarMenu = () => {
                             <FaClipboardList className="menu-icon" /> {!collapsed && "Desempeño"}
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "desempeno" ? "open" : ""}`}>
-                            <li><NavLink to={`${base}/Evaluaciones`} className="sidebar-submenu-link">Evaluaciones</NavLink></li>
-                            <li><NavLink to={`${base}/Criterios`} className="sidebar-submenu-link">Criterios</NavLink></li>
+                            <li>
+                                <NavLink to={`${base}/Evaluaciones`} className="sidebar-submenu-link">
+                                    Evaluaciones
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Criterios`} className="sidebar-submenu-link">
+                                    Criterios
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
 
@@ -185,8 +218,16 @@ const SidebarMenu = () => {
                             <FaUserTie className="menu-icon" /> {!collapsed && "Control Disciplinario"}
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "disciplinario" ? "open" : ""}`}>
-                            <li><NavLink to={`${base}/Ausencias`} className="sidebar-submenu-link">Ausencias</NavLink></li>
-                            <li><NavLink to={`${base}/Amonestaciones`} className="sidebar-submenu-link">Amonestaciones</NavLink></li>
+                            <li>
+                                <NavLink to={`${base}/Ausencias`} className="sidebar-submenu-link">
+                                    Ausencias
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Amonestaciones`} className="sidebar-submenu-link">
+                                    Amonestaciones
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
 
@@ -200,9 +241,21 @@ const SidebarMenu = () => {
                             <FaBook className="menu-icon" /> {!collapsed && "Catálogo"}
                         </div>
                         <ul className={`sidebar-submenu ${openMenu === "catalogo" ? "open" : ""}`}>
-                            <li><NavLink to={`${base}/PuebloCultura`} className="sidebar-submenu-link">Pueblo/Cultura</NavLink></li>
-                            <li><NavLink to={`${base}/Idiomas`} className="sidebar-submenu-link">Idiomas</NavLink></li>
-                            <li><NavLink to={`${base}/Puesto`} className="sidebar-submenu-link">Puesto</NavLink></li>
+                            <li>
+                                <NavLink to={`${base}/PuebloCultura`} className="sidebar-submenu-link">
+                                    Pueblo/Cultura
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Idiomas`} className="sidebar-submenu-link">
+                                    Idiomas
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to={`${base}/Puesto`} className="sidebar-submenu-link">
+                                    Puesto
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
 

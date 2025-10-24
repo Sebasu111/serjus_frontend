@@ -5,7 +5,20 @@ const pick = (o, ...keys) => {
     for (const k of keys) if (o && o[k] != null) return o[k];
 };
 const getId = o =>
-    pick(o, "id", "ididioma", "idIdioma", "idequipo", "idEquipo", "idpueblocultura", "idPuebloCultura", "idpuesto", "idPuesto", "pk", "codigo");
+    pick(
+        o,
+        "id",
+        "ididioma",
+        "idIdioma",
+        "idequipo",
+        "idEquipo",
+        "idpueblocultura",
+        "idPuebloCultura",
+        "idpuesto",
+        "idPuesto",
+        "pk",
+        "codigo"
+    );
 
 const getName = (o, type) => {
     if (type === "equipo")
@@ -80,14 +93,17 @@ async function urlToDataURL(urlOrImport) {
 
 /* ========= header (marco, logo, título) ========= */
 async function drawHeader(pdf, logoDataUrl) {
-    const L = 8, R = 202, T = 10, B = 287;
+    const L = 8,
+        R = 202,
+        T = 10,
+        B = 287;
     pdf.setLineWidth(0.4);
     pdf.rect(L, T, R - L, B - T);
 
     if (logoDataUrl) {
         try {
             pdf.addImage(logoDataUrl, "PNG", L + 2, T + 2, 24, 20);
-        } catch { }
+        } catch {}
     }
 
     pdf.setFont("helvetica", "bold");
@@ -114,12 +130,15 @@ function measureRowHeights(pdf, labels, values, tableW, leftW) {
 }
 
 function drawDynamicTable(pdf, labels, values) {
-    const L = 8, R = 202, T = 10;
+    const L = 8,
+        R = 202,
+        T = 10;
     const tableX = L + 2;
     const tableY = T + 28;
     const tableW = R - L - 4;
     const leftW = 104; // columna de Nº + etiqueta (más angosta)
-    const padX = 2, padY = 5;
+    const padX = 2,
+        padY = 5;
 
     const heights = measureRowHeights(pdf, labels, values, tableW, leftW);
     const totalH = heights.reduce((a, b) => a + b, 0);
@@ -159,8 +178,8 @@ function drawDynamicTable(pdf, labels, values) {
     const rightMargin = 202;
     const label1 = "Lugar y fecha de actualización:";
     const sigLabel = "Firma:";
-    const gap = 6;               // separación mínima entre texto y línea
-    const outerPad = 4;          // margen derecho interno del marco
+    const gap = 6; // separación mínima entre texto y línea
+    const outerPad = 4; // margen derecho interno del marco
 
     // Texto izquierda
     pdf.setFont("helvetica", "normal");
@@ -169,7 +188,7 @@ function drawDynamicTable(pdf, labels, values) {
 
     // Reservar espacio a la derecha para el bloque de firma
     const sigLabelW = pdf.getTextWidth(sigLabel);
-    const sigLineTargetW = 70;   // longitud objetivo de la línea de firma
+    const sigLineTargetW = 70; // longitud objetivo de la línea de firma
     // x donde empieza el bloque de firma (etiqueta + línea)
     const sigBlockStartX = rightMargin - (sigLabelW + gap + sigLineTargetW + outerPad);
 
@@ -227,13 +246,11 @@ export async function generarFichasPDF(empleados, cat, logoSrc) {
             e?.fechanacimiento ? `, ${formatDMY(e.fechanacimiento)}` : ""
         ].join("");
 
-        const inicioLaboral = e?.inicioLaboral
-            ? `Guatemala, ${formatDMY(e.inicioLaboral)}`
-            : "";
+        const inicioLaboral = e?.inicioLaboral ? `Guatemala, ${formatDMY(e.inicioLaboral)}` : "";
 
         const valores = [
             [e?.nombre, e?.apellido].filter(Boolean).join(" "),
-            nacimiento,                         // 2) Lugar y fecha de nacimiento (DD-MM-YYYY)
+            nacimiento, // 2) Lugar y fecha de nacimiento (DD-MM-YYYY)
             edadDesde(e?.fechanacimiento),
             e?.estadocivil || "",
             String(e?.numerohijos ?? ""),
@@ -248,7 +265,7 @@ export async function generarFichasPDF(empleados, cat, logoSrc) {
             String(e?.dpi || ""),
             String(e?.nit || ""),
             String(e?.numeroiggs || ""),
-            inicioLaboral,                       // 16) "Guatemala, DD-MM-YYYY"
+            inicioLaboral, // 16) "Guatemala, DD-MM-YYYY"
             labelFrom(e?.idpuesto, cat?.puestos, "puesto")
         ];
 

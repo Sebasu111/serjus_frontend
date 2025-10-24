@@ -27,17 +27,19 @@ const PuebloCulturaContainer = () => {
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
 
-    useEffect(() => { fetchAll(); }, []);
+    useEffect(() => {
+        fetchAll();
+    }, []);
 
     const fetchAll = async () => {
         try {
             const res = await axios.get(API);
-            const raw = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.results) ? res.data.results : []);
+            const raw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             // Normaliza a camelCase para la UI
             const data = raw.map(r => ({
                 idPuebloCultura: r.idPuebloCultura ?? r.idpueblocultura ?? r.id,
                 nombrePueblo: r.nombrePueblo ?? r.nombrepueblo,
-                estado: r.estado,
+                estado: r.estado
             }));
             setItems(data);
         } catch (e) {
@@ -46,13 +48,14 @@ const PuebloCulturaContainer = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         try {
             // validar duplicado (case-insensitive)
-            const yaExiste = items.some(i =>
-                (i.nombrePueblo || "").trim().toLowerCase() === nombrePueblo.trim().toLowerCase() &&
-                i.idPuebloCultura !== editingId
+            const yaExiste = items.some(
+                i =>
+                    (i.nombrePueblo || "").trim().toLowerCase() === nombrePueblo.trim().toLowerCase() &&
+                    i.idPuebloCultura !== editingId
             );
             if (yaExiste) {
                 showToast("Ya existe un registro con ese nombre", "warning");
@@ -64,7 +67,7 @@ const PuebloCulturaContainer = () => {
                 // payload en snake_case para DRF
                 nombrepueblo: nombrePueblo,
                 estado: Boolean(activoEditando),
-                idusuario: idUsuario,
+                idusuario: idUsuario
             };
 
             if (editingId) {
@@ -81,21 +84,28 @@ const PuebloCulturaContainer = () => {
             fetchAll();
         } catch (error) {
             const apiErr = error.response?.data;
-            const detalle = (apiErr && (apiErr.nombrepueblo?.[0] || apiErr.detail || JSON.stringify(apiErr))) || "desconocido";
+            const detalle =
+                (apiErr && (apiErr.nombrepueblo?.[0] || apiErr.detail || JSON.stringify(apiErr))) || "desconocido";
             console.error("POST/PUT pueblocultura error:", apiErr || error);
             showToast(`Error al guardar: ${detalle}`, "error");
         }
     };
 
-    const handleEdit = (row) => {
-        if (!row.estado) { showToast("No se puede editar un registro inactivo"); return; }
+    const handleEdit = row => {
+        if (!row.estado) {
+            showToast("No se puede editar un registro inactivo");
+            return;
+        }
         setNombrePueblo(row.nombrePueblo);
         setEditingId(row.idPuebloCultura);
         setActivoEditando(row.estado);
         setMostrarFormulario(true);
     };
 
-    const handleDelete = (row) => { setSeleccionado(row); setMostrarConfirmacion(true); };
+    const handleDelete = row => {
+        setSeleccionado(row);
+        setMostrarConfirmacion(true);
+    };
 
     const confirmarDesactivacion = async () => {
         if (!seleccionado) return;
@@ -104,7 +114,7 @@ const PuebloCulturaContainer = () => {
             await axios.put(`${API}${seleccionado.idPuebloCultura}/`, {
                 nombrepueblo: seleccionado.nombrePueblo,
                 estado: false,
-                idusuario: idUsuario,
+                idusuario: idUsuario
             });
             showToast("Desactivado correctamente");
             fetchAll();
@@ -117,7 +127,7 @@ const PuebloCulturaContainer = () => {
         }
     };
 
-    const handleActivate = async (id) => {
+    const handleActivate = async id => {
         try {
             const row = items.find(i => i.idPuebloCultura === id);
             if (!row) return;
@@ -125,7 +135,7 @@ const PuebloCulturaContainer = () => {
             await axios.put(`${API}${id}/`, {
                 nombrepueblo: row.nombrePueblo,
                 estado: true,
-                idusuario: idUsuario,
+                idusuario: idUsuario
             });
             showToast("Activado correctamente");
             fetchAll();
@@ -138,7 +148,7 @@ const PuebloCulturaContainer = () => {
     const filtrados = items.filter(i => {
         const t = busqueda.toLowerCase().trim();
         const n = i.nombrePueblo?.toLowerCase() || "";
-        const e = (i.estado ? "activo" : "inactivo");
+        const e = i.estado ? "activo" : "inactivo";
         return n.includes(t) || e.startsWith(t);
     });
 
@@ -153,22 +163,57 @@ const PuebloCulturaContainer = () => {
             <div style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
-                    <main className="main-content site-wrapper-reveal" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#EEF2F7", padding: "48px 20px 8rem" }}>
+                    <main
+                        className="main-content site-wrapper-reveal"
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#EEF2F7",
+                            padding: "48px 20px 8rem"
+                        }}
+                    >
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Pueblo / Cultura</h2>
 
                             {/* Buscador + Nuevo */}
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", alignItems: "center" }}>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    marginBottom: "15px",
+                                    alignItems: "center"
+                                }}
+                            >
                                 <input
                                     type="text"
                                     placeholder="Buscar nombre / estado..."
                                     value={busqueda}
-                                    onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }}
-                                    style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc", marginRight: "10px" }}
+                                    onChange={e => {
+                                        setBusqueda(e.target.value);
+                                        setPaginaActual(1);
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        marginRight: "10px"
+                                    }}
                                 />
                                 <button
                                     onClick={() => setMostrarFormulario(true)}
-                                    style={{ padding: "10px 20px", background: "#219ebc", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", whiteSpace: "nowrap" }}
+                                    style={{
+                                        padding: "10px 20px",
+                                        background: "#219ebc",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                        fontWeight: "600",
+                                        whiteSpace: "nowrap"
+                                    }}
                                 >
                                     Nuevo Registro
                                 </button>
@@ -190,14 +235,20 @@ const PuebloCulturaContainer = () => {
                                     type="number"
                                     min="1"
                                     value={elementosPorPagina}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                         const val = e.target.value.replace(/\D/g, "");
                                         const n = val === "" ? "" : Number(val);
                                         setElementosPorPagina(n > 0 ? n : 1);
                                         setPaginaActual(1);
                                     }}
-                                    onFocus={(e) => e.target.select()}
-                                    style={{ width: "80px", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", textAlign: "center" }}
+                                    onFocus={e => e.target.select()}
+                                    style={{
+                                        width: "80px",
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        textAlign: "center"
+                                    }}
                                 />
                             </div>
                         </div>

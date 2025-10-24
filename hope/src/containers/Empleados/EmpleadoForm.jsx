@@ -377,9 +377,7 @@ const EmpleadoForm = ({
                                         required
                                         style={inputStyle}
                                     />
-                                    {errors.dpi && (
-                                        <span style={warn}>{String(errors.dpi)}</span>
-                                    )}
+                                    {errors.dpi && <span style={warn}>{String(errors.dpi)}</span>}
                                 </div>
                                 <div style={field}>
                                     <label style={labelStyle}>NIT</label>
@@ -391,9 +389,7 @@ const EmpleadoForm = ({
                                         required={!form.isCF}
                                         style={inputStyle}
                                     />
-                                    {errors.nit && (
-                                        <span style={warn}>{String(errors.nit)}</span>
-                                    )}
+                                    {errors.nit && <span style={warn}>{String(errors.nit)}</span>}
                                     <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
                                         <input
                                             type="checkbox"
@@ -413,9 +409,7 @@ const EmpleadoForm = ({
                                         required
                                         style={inputStyle}
                                     />
-                                    {errors.numeroiggs && (
-                                        <span style={warn}>{String(errors.numeroiggs)}</span>
-                                    )}
+                                    {errors.numeroiggs && <span style={warn}>{String(errors.numeroiggs)}</span>}
                                 </div>
                             </div>
                         </fieldset>

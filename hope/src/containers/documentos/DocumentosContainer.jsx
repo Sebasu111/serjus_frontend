@@ -22,7 +22,7 @@ const DocumentosContainer = () => {
         idusuario: sessionStorage.getItem("idUsuario") || "",
         idtipodocumento: "",
         idempleado: "",
-        archivoFile: null,
+        archivoFile: null
     });
 
     const [mensaje, setMensaje] = useState("");
@@ -47,11 +47,7 @@ const DocumentosContainer = () => {
     const fetchDocumentos = async () => {
         try {
             const r = await axios.get(`${API}/documentos/`);
-            const data = Array.isArray(r.data)
-                ? r.data
-                : Array.isArray(r.data?.results)
-                    ? r.data.results
-                    : [];
+            const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setDocumentos(data);
         } catch (error) {
             console.error("Error al cargar documentos:", "error");
@@ -63,11 +59,7 @@ const DocumentosContainer = () => {
     const fetchTiposDocumento = async () => {
         try {
             const r = await axios.get(`${API}/tipodocumento/`);
-            const data = Array.isArray(r.data)
-                ? r.data
-                : Array.isArray(r.data?.results)
-                    ? r.data.results
-                    : [];
+            const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setTiposDocumento(data);
         } catch (error) {
             console.error("Error al cargar tipos de documento:", error);
@@ -79,11 +71,7 @@ const DocumentosContainer = () => {
     const fetchEmpleados = async () => {
         try {
             const r = await axios.get(`${API}/empleados/`);
-            const data = Array.isArray(r.data)
-                ? r.data
-                : Array.isArray(r.data?.results)
-                    ? r.data.results
-                    : [];
+            const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setEmpleados(data);
         } catch (error) {
             console.error("Error al cargar empleados:", error);
@@ -92,28 +80,28 @@ const DocumentosContainer = () => {
         }
     };
 
-    const onChange = (e) => {
+    const onChange = e => {
         const { name, files, value } = e.target;
         if (files && files.length > 0) {
             const file = files[0];
             const extension = file.name.split(".").pop().toLowerCase();
-            setForm((f) => ({
+            setForm(f => ({
                 ...f,
                 archivoFile: file,
                 mimearchivo: extension,
-                nombrearchivo: file.name,
+                nombrearchivo: file.name
             }));
         } else {
-            setForm((f) => ({
+            setForm(f => ({
                 ...f,
-                [name]: value,
+                [name]: value
             }));
         }
     };
 
     const openNewForm = () => {
         const today = new Date().toISOString().slice(0, 10);
-        setForm((f) => ({
+        setForm(f => ({
             ...f,
             nombrearchivo: "",
             mimearchivo: "",
@@ -121,13 +109,13 @@ const DocumentosContainer = () => {
             idusuario: sessionStorage.getItem("idUsuario") || "",
             idtipodocumento: "",
             idempleado: "",
-            archivoFile: null,
+            archivoFile: null
         }));
         setEditingId(null);
         setMostrarFormulario(true);
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
 
         if (
@@ -171,12 +159,12 @@ const DocumentosContainer = () => {
         try {
             if (editingId) {
                 await axios.put(`${API}/documentos/${editingId}/`, formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
+                    headers: { "Content-Type": "multipart/form-data" }
                 });
                 showToast("Documento actualizado correctamente");
             } else {
                 await axios.post(`${API}/documentos/`, formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
+                    headers: { "Content-Type": "multipart/form-data" }
                 });
                 showToast("Documento registrado correctamente");
             }
@@ -187,7 +175,7 @@ const DocumentosContainer = () => {
                 fechasubida: "",
                 idtipodocumento: "",
                 idempleado: "",
-                archivoFile: null,
+                archivoFile: null
             });
             setEditingId(null);
             setMostrarFormulario(false);
@@ -199,7 +187,7 @@ const DocumentosContainer = () => {
         }
     };
 
-    const handleEdit = (row) => {
+    const handleEdit = row => {
         const today = row.fechasubida ?? new Date().toISOString().slice(0, 10);
         setForm({
             nombrearchivo: row.nombrearchivo ?? "",
@@ -208,13 +196,13 @@ const DocumentosContainer = () => {
             idusuario: row.idusuario ?? (sessionStorage.getItem("idUsuario") || ""),
             idtipodocumento: row.idtipodocumento ?? "",
             idempleado: row.idempleado ?? "",
-            archivoFile: null,
+            archivoFile: null
         });
         setEditingId(row.iddocumento);
         setMostrarFormulario(true);
     };
 
-    const handleDeleteArchivo = async (id) => {
+    const handleDeleteArchivo = async id => {
         try {
             const formData = new FormData();
             formData.append("borrar_archivo", "true");
@@ -226,15 +214,15 @@ const DocumentosContainer = () => {
             formData.append("mimearchivo", "-----");
 
             await axios.put(`${API}/documentos/${id}/`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
+                headers: { "Content-Type": "multipart/form-data" }
             });
 
             showToast("Archivo eliminado correctamente");
-            setForm((f) => ({
+            setForm(f => ({
                 ...f,
                 archivoFile: null,
                 mimearchivo: "-----",
-                nombrearchivo: f.nombrearchivo + " (archivo eliminado)",
+                nombrearchivo: f.nombrearchivo + " (archivo eliminado)"
             }));
 
             setEditingId(null);
@@ -266,7 +254,7 @@ const DocumentosContainer = () => {
         }
     };
 
-    const documentosFiltrados = documentos.filter((d) => {
+    const documentosFiltrados = documentos.filter(d => {
         const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
 
         // Buscar el empleado correspondiente
@@ -288,14 +276,8 @@ const DocumentosContainer = () => {
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
-    const documentosPaginados = documentosFiltrados.slice(
-        indexOfFirst,
-        indexOfLast
-    );
-    const totalPaginas = Math.max(
-        1,
-        Math.ceil(documentosFiltrados.length / elementosPorPagina)
-    );
+    const documentosPaginados = documentosFiltrados.slice(indexOfFirst, indexOfLast);
+    const totalPaginas = Math.max(1, Math.ceil(documentosFiltrados.length / elementosPorPagina));
 
     return (
         <Layout>
@@ -305,16 +287,14 @@ const DocumentosContainer = () => {
                     <Header />
                     <main style={{ flex: 1, padding: "40px 20px", background: "#f0f2f5" }}>
                         <div style={{ maxWidth: "1000px", margin: "0 auto", paddingLeft: "225px" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
-                                Documentos Registrados
-                            </h2>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Documentos Registrados</h2>
 
                             {mensaje && (
                                 <p
                                     style={{
                                         textAlign: "center",
                                         color: mensaje.includes("Error") ? "red" : "green",
-                                        fontWeight: "bold",
+                                        fontWeight: "bold"
                                     }}
                                 >
                                     {mensaje}
@@ -326,14 +306,14 @@ const DocumentosContainer = () => {
                                     display: "flex",
                                     justifyContent: "space-between",
                                     marginBottom: "15px",
-                                    alignItems: "center",
+                                    alignItems: "center"
                                 }}
                             >
                                 <input
                                     type="text"
                                     placeholder="Buscar documento..."
                                     value={busqueda}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                         setBusqueda(e.target.value);
                                         setPaginaActual(1);
                                     }}
@@ -342,7 +322,7 @@ const DocumentosContainer = () => {
                                         padding: "10px",
                                         borderRadius: "6px",
                                         border: "1px solid #ccc",
-                                        marginRight: "10px",
+                                        marginRight: "10px"
                                     }}
                                 />
                                 <button
@@ -355,7 +335,7 @@ const DocumentosContainer = () => {
                                         borderRadius: "8px",
                                         cursor: "pointer",
                                         fontWeight: "600",
-                                        whiteSpace: "nowrap",
+                                        whiteSpace: "nowrap"
                                     }}
                                 >
                                     Nuevo Documento
@@ -377,13 +357,13 @@ const DocumentosContainer = () => {
                             <div
                                 style={{
                                     marginTop: "20px",
-                                    textAlign: "center",
+                                    textAlign: "center"
                                 }}
                             >
                                 <label
                                     style={{
                                         marginRight: "10px",
-                                        fontWeight: "600",
+                                        fontWeight: "600"
                                     }}
                                 >
                                     Mostrar:
@@ -392,25 +372,19 @@ const DocumentosContainer = () => {
                                     type="number"
                                     min="1"
                                     value={elementosPorPagina}
-                                    onChange={(e) => {
-                                        const val = e.target.value.replace(
-                                            /\D/g,
-                                            ""
-                                        );
-                                        const numero =
-                                            val === "" ? "" : Number(val);
-                                        setElementosPorPagina(
-                                            numero > 0 ? numero : 1
-                                        );
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, "");
+                                        const numero = val === "" ? "" : Number(val);
+                                        setElementosPorPagina(numero > 0 ? numero : 1);
                                         setPaginaActual(1);
                                     }}
-                                    onFocus={(e) => e.target.select()}
+                                    onFocus={e => e.target.select()}
                                     style={{
                                         width: "80px",
                                         padding: "10px",
                                         borderRadius: "6px",
                                         border: "1px solid #ccc",
-                                        textAlign: "center",
+                                        textAlign: "center"
                                     }}
                                 />
                             </div>

@@ -1,33 +1,58 @@
 import React from "react";
 import { X } from "lucide-react";
 
-const inputStyle = { width: "100%", padding: "12px 15px", borderRadius: 8, border: "1px solid #ccc", fontSize: 16, marginTop: 6 };
+const inputStyle = {
+    width: "100%",
+    padding: "12px 15px",
+    borderRadius: 8,
+    border: "1px solid #ccc",
+    fontSize: 16,
+    marginTop: 6
+};
 const fs = { border: "1px solid #eee", borderRadius: 10, padding: 16, marginBottom: 16 };
 const lg = { padding: "0 8px", fontWeight: 600 };
 const grid3 = { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 };
 const errStyle = { color: "#b00020", fontSize: 13, marginTop: 6, marginBottom: 6 };
-const btnPrimary = { width: "100%", marginTop: 16, padding: "12px 0", background: "#007bff", color: "#fff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer" };
+const btnPrimary = {
+    width: "100%",
+    marginTop: 16,
+    padding: "12px 0",
+    background: "#007bff",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    fontSize: 16,
+    fontWeight: 600,
+    cursor: "pointer"
+};
 
-const pick = (obj, ...keys) => { for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k]; };
-const getId = (o) => pick(o, "id", "ididioma", "idIdioma", "idpueblocultura", "idPuebloCultura");
+const pick = (obj, ...keys) => {
+    for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+};
+const getId = o => pick(o, "id", "ididioma", "idIdioma", "idpueblocultura", "idPuebloCultura");
 
-const getIdiomaLabel = (o) => pick(o, "nombreidioma", "nombreIdioma", "nombre", "descripcion", "label");
-const getPuebloLabel = (o) => pick(o, "nombrepueblo", "nombrePueblo", "pueblocultura", "descripcion", "label");
+const getIdiomaLabel = o => pick(o, "nombreidioma", "nombreIdioma", "nombre", "descripcion", "label");
+const getPuebloLabel = o => pick(o, "nombrepueblo", "nombrePueblo", "pueblocultura", "descripcion", "label");
 
-const AspiranteForm = ({
-    form, errors, onChange, handleSubmit, onClose, editingId, idiomas = [], pueblos = [],
-}) => {
+const AspiranteForm = ({ form, errors, onChange, handleSubmit, onClose, editingId, idiomas = [], pueblos = [] }) => {
     return (
         <div
             style={{
                 position: "fixed",
-                top: "50%", left: "50%",
+                top: "50%",
+                left: "50%",
                 transform: "translate(-50%, -50%)",
-                width: 1000, maxWidth: "95%",
-                background: "#fff", boxShadow: "0 0 20px rgba(0,0,0,0.2)",
-                padding: 30, zIndex: 1000, display: "flex",
-                flexDirection: "column", borderRadius: 12,
-                maxHeight: "90vh", overflowY: "auto",
+                width: 1000,
+                maxWidth: "95%",
+                background: "#fff",
+                boxShadow: "0 0 20px rgba(0,0,0,0.2)",
+                padding: 30,
+                zIndex: 1000,
+                display: "flex",
+                flexDirection: "column",
+                borderRadius: 12,
+                maxHeight: "90vh",
+                overflowY: "auto"
             }}
         >
             <h3 style={{ marginBottom: 6, textAlign: "center" }}>
@@ -45,7 +70,13 @@ const AspiranteForm = ({
                         </div>
                         <div>
                             <label>Apellido</label>
-                            <input name="apellido" value={form.apellido} onChange={onChange} required style={inputStyle} />
+                            <input
+                                name="apellido"
+                                value={form.apellido}
+                                onChange={onChange}
+                                required
+                                style={inputStyle}
+                            />
                             {errors.apellido && <div style={errStyle}>{errors.apellido}</div>}
                         </div>
                         <div>
@@ -58,7 +89,15 @@ const AspiranteForm = ({
                     <div style={grid3}>
                         <div>
                             <label>DPI (13 dígitos)</label>
-                            <input name="dpi" value={form.dpi} onChange={onChange} required style={inputStyle} maxLength={13} pattern="\d{13}" />
+                            <input
+                                name="dpi"
+                                value={form.dpi}
+                                onChange={onChange}
+                                required
+                                style={inputStyle}
+                                maxLength={13}
+                                pattern="\d{13}"
+                            />
                             {errors.dpi && <div style={errStyle}>{errors.dpi}</div>}
                         </div>
 
@@ -84,7 +123,14 @@ const AspiranteForm = ({
 
                         <div>
                             <label>Fecha de nacimiento</label>
-                            <input type="date" name="fechanacimiento" value={form.fechanacimiento} onChange={onChange} required style={inputStyle} />
+                            <input
+                                type="date"
+                                name="fechanacimiento"
+                                value={form.fechanacimiento}
+                                onChange={onChange}
+                                required
+                                style={inputStyle}
+                            />
                             {errors.fechanacimiento && <div style={errStyle}>{errors.fechanacimiento}</div>}
                         </div>
                     </div>
@@ -95,17 +141,36 @@ const AspiranteForm = ({
                     <div style={grid3}>
                         <div>
                             <label>Teléfono</label>
-                            <input name="telefono" value={form.telefono} onChange={onChange} required style={inputStyle} />
+                            <input
+                                name="telefono"
+                                value={form.telefono}
+                                onChange={onChange}
+                                required
+                                style={inputStyle}
+                            />
                             {errors.telefono && <div style={errStyle}>{errors.telefono}</div>}
                         </div>
                         <div>
                             <label>Email</label>
-                            <input type="email" name="email" value={form.email} onChange={onChange} required style={inputStyle} />
+                            <input
+                                type="email"
+                                name="email"
+                                value={form.email}
+                                onChange={onChange}
+                                required
+                                style={inputStyle}
+                            />
                             {errors.email && <div style={errStyle}>{errors.email}</div>}
                         </div>
                         <div>
                             <label>Dirección</label>
-                            <input name="direccion" value={form.direccion} onChange={onChange} required style={inputStyle} />
+                            <input
+                                name="direccion"
+                                value={form.direccion}
+                                onChange={onChange}
+                                required
+                                style={inputStyle}
+                            />
                             {errors.direccion && <div style={errStyle}>{errors.direccion}</div>}
                         </div>
                     </div>
@@ -115,21 +180,34 @@ const AspiranteForm = ({
                             <label>Idioma (opcional)</label>
                             <select name="ididioma" value={form.ididioma} onChange={onChange} style={inputStyle}>
                                 <option value="">Seleccione idioma</option>
-                                {idiomas.map((it) => {
+                                {idiomas.map(it => {
                                     const id = getId(it);
                                     const label = getIdiomaLabel(it) ?? `ID ${id}`;
-                                    return <option key={id} value={id}>{label}</option>;
+                                    return (
+                                        <option key={id} value={id}>
+                                            {label}
+                                        </option>
+                                    );
                                 })}
                             </select>
                         </div>
                         <div>
                             <label>Pueblo / Cultura (opcional)</label>
-                            <select name="idpueblocultura" value={form.idpueblocultura} onChange={onChange} style={inputStyle}>
+                            <select
+                                name="idpueblocultura"
+                                value={form.idpueblocultura}
+                                onChange={onChange}
+                                style={inputStyle}
+                            >
                                 <option value="">Seleccione pueblo/cultura</option>
-                                {pueblos.map((p) => {
+                                {pueblos.map(p => {
                                     const id = getId(p);
                                     const label = getPuebloLabel(p) ?? `ID ${id}`;
-                                    return <option key={id} value={id}>{label}</option>;
+                                    return (
+                                        <option key={id} value={id}>
+                                            {label}
+                                        </option>
+                                    );
                                 })}
                             </select>
                         </div>
@@ -147,7 +225,14 @@ const AspiranteForm = ({
 
             <button
                 onClick={onClose}
-                style={{ position: "absolute", top: 10, right: 15, background: "transparent", border: "none", cursor: "pointer" }}
+                style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 15,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer"
+                }}
                 title="Cerrar"
             >
                 <X size={24} color="#555" />

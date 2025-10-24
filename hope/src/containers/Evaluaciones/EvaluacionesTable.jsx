@@ -3,7 +3,7 @@ import React from "react";
 const pastel = {
     orangeBg: "#FED7AA",
     orangeBr: "#FDBA74",
-    orangeTx: "#7C2D12",
+    orangeTx: "#7C2D12"
 };
 
 const EvaluacionesTable = ({
@@ -13,14 +13,14 @@ const EvaluacionesTable = ({
     onVerDetalle,
     paginaActual,
     totalPaginas,
-    setPaginaActual,
+    setPaginaActual
 }) => (
     <div
         style={{
             background: "#fff",
             borderRadius: "12px",
             padding: "20px 30px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)"
         }}
     >
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -36,7 +36,7 @@ const EvaluacionesTable = ({
             </thead>
             <tbody>
                 {evaluaciones.length > 0 ? (
-                    evaluaciones.map((ev) => (
+                    evaluaciones.map(ev => (
                         <tr key={ev.idEvaluacion}>
                             <td style={{ padding: 10, borderBottom: "1px solid #f0f0f0" }}>
                                 <button
@@ -50,7 +50,7 @@ const EvaluacionesTable = ({
                                         color: "#1d4ed8",
                                         fontWeight: 600,
                                         cursor: "pointer",
-                                        textDecoration: "underline",
+                                        textDecoration: "underline"
                                     }}
                                     title="Ver detalle"
                                 >
@@ -72,7 +72,7 @@ const EvaluacionesTable = ({
                                     textAlign: "center",
                                     color: ev.estado ? "green" : "red",
                                     fontWeight: 600,
-                                    borderBottom: "1px solid #f0f0f0",
+                                    borderBottom: "1px solid #f0f0f0"
                                 }}
                             >
                                 {ev.estado ? "Activo" : "Inactivo"}
@@ -88,7 +88,7 @@ const EvaluacionesTable = ({
                                         border: `1px solid ${pastel.orangeBr}`,
                                         borderRadius: "6px",
                                         cursor: "pointer",
-                                        fontWeight: 600,
+                                        fontWeight: 600
                                     }}
                                     title="Editar"
                                 >
@@ -99,7 +99,9 @@ const EvaluacionesTable = ({
                     ))
                 ) : (
                     <tr>
-                        <td colSpan="6" style={{ textAlign: "center", padding: 20 }}>No hay evaluaciones registradas</td>
+                        <td colSpan="6" style={{ textAlign: "center", padding: 20 }}>
+                            No hay evaluaciones registradas
+                        </td>
                     </tr>
                 )}
             </tbody>
@@ -118,7 +120,7 @@ const EvaluacionesTable = ({
                             background: paginaActual === i + 1 ? "#219ebc" : "#fff",
                             color: paginaActual === i + 1 ? "#fff" : "#219ebc",
                             borderRadius: "5px",
-                            cursor: "pointer",
+                            cursor: "pointer"
                         }}
                     >
                         {i + 1}

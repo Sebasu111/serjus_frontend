@@ -1,10 +1,6 @@
 function flatDeep(arr, d = 1) {
     return d > 0
-        ? arr.reduce(
-              (acc, val) =>
-                  acc.concat(Array.isArray(val) ? flatDeep(val, d - 1) : val),
-              []
-          )
+        ? arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatDeep(val, d - 1) : val), [])
         : arr.slice();
 }
 
@@ -117,13 +113,4 @@ function containsObject(obj, list) {
     return -1;
 }
 
-export {
-    containsObject,
-    flatDeep,
-    slugify,
-    getSiblings,
-    getClosest,
-    slideUp,
-    slideDown,
-    slideToggle,
-};
+export { containsObject, flatDeep, slugify, getSiblings, getClosest, slideUp, slideDown, slideToggle };

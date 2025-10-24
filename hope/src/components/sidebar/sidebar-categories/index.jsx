@@ -3,16 +3,16 @@ import { Link } from "react-router-dom";
 import { flatDeep, slugify, containsObject } from "../../../utils";
 
 const SidebarCategories = ({ data }) => {
-    const cats = data.map((item) => {
+    const cats = data.map(item => {
         return item.categories;
     });
     let singleCatArray = flatDeep(cats);
     let categories = [];
-    singleCatArray.forEach((cat) => {
+    singleCatArray.forEach(cat => {
         const obj = {
             title: cat.trim(),
             slug: slugify(cat),
-            count: 1,
+            count: 1
         };
         const objIndex = containsObject(obj, categories);
         if (objIndex !== -1) {
@@ -20,7 +20,7 @@ const SidebarCategories = ({ data }) => {
             categories[objIndex] = {
                 title: cat.trim(),
                 slug: slugify(cat),
-                count: prevCount + 1,
+                count: prevCount + 1
             };
         } else {
             categories.push(obj);
@@ -32,12 +32,7 @@ const SidebarCategories = ({ data }) => {
                 {categories.map((cat, i) => {
                     return (
                         <li key={i}>
-                            <Link
-                                to={
-                                    process.env.PUBLIC_URL +
-                                    `/category/${cat.slug}`
-                                }
-                            >
+                            <Link to={process.env.PUBLIC_URL + `/category/${cat.slug}`}>
                                 {cat.title} <span>{cat.count}</span>
                             </Link>
                         </li>
@@ -49,7 +44,7 @@ const SidebarCategories = ({ data }) => {
 };
 
 SidebarCategories.propTypes = {
-    data: PropTypes.array,
+    data: PropTypes.array
 };
 
 export default SidebarCategories;

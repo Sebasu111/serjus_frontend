@@ -22,11 +22,7 @@ const CriterioEvaluacionContainer = () => {
     const fetchCriterios = async () => {
         try {
             const res = await axios.get("http://127.0.0.1:8000/api/criterioevaluacion/ ");
-            const data = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                ? res.data.results
-                : [];
+            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setCriterios(data);
         } catch (error) {
             console.error("Error al cargar criterios:", error);
@@ -35,21 +31,18 @@ const CriterioEvaluacionContainer = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         try {
             const data = {
                 nombrecriterio: nombreCriterio,
                 descripcioncriterio: descripcionCriterio,
                 estado: estadoActivo,
-                idusuario: 1, // reemplazar con usuario logueado
+                idusuario: 1 // reemplazar con usuario logueado
             };
 
             if (editingId) {
-                await axios.put(
-                    `http://127.0.0.1:8000/api/criterioevaluacion/ ${editingId}/`,
-                    data
-                );
+                await axios.put(`http://127.0.0.1:8000/api/criterioevaluacion/ ${editingId}/`, data);
                 setMensaje("Criterio actualizado correctamente");
             } else {
                 await axios.post("http://127.0.0.1:8000/api/criterioevaluacion/ ", data);
@@ -67,7 +60,7 @@ const CriterioEvaluacionContainer = () => {
         }
     };
 
-    const handleEdit = (criterio) => {
+    const handleEdit = criterio => {
         setNombreCriterio(criterio.nombrecriterio);
         setDescripcionCriterio(criterio.descripcioncriterio);
         setEstadoActivo(criterio.estado);
@@ -75,15 +68,15 @@ const CriterioEvaluacionContainer = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async id => {
         if (!window.confirm("¿Estás seguro de desactivar este criterio?")) return;
         try {
-            const crit = criterios.find((c) => c.idcriterioevaluacion === id);
+            const crit = criterios.find(c => c.idcriterioevaluacion === id);
             if (!crit) return;
 
             await axios.put(`http://127.0.0.1:8000/api/criterioevaluacion/ ${id}/`, {
                 ...crit,
-                estado: false,
+                estado: false
             });
 
             setMensaje("Criterio desactivado correctamente");
@@ -94,14 +87,14 @@ const CriterioEvaluacionContainer = () => {
         }
     };
 
-    const handleActivate = async (id) => {
+    const handleActivate = async id => {
         try {
-            const crit = criterios.find((c) => c.idcriterioevaluacion === id);
+            const crit = criterios.find(c => c.idcriterioevaluacion === id);
             if (!crit) return;
 
             await axios.put(`http://127.0.0.1:8000/api/criterioevaluacion/ ${id}/`, {
                 ...crit,
-                estado: true,
+                estado: true
             });
 
             setMensaje("Criterio activado correctamente");
@@ -121,23 +114,27 @@ const CriterioEvaluacionContainer = () => {
                 <main style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5" }}>
                     <div style={{ maxWidth: "800px", margin: "0 auto" }}>
                         {/* --- FORMULARIO --- */}
-                        <div style={{
-                            background: "#fff",
-                            padding: "40px",
-                            borderRadius: "12px",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                            marginBottom: "40px"
-                        }}>
+                        <div
+                            style={{
+                                background: "#fff",
+                                padding: "40px",
+                                borderRadius: "12px",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                                marginBottom: "40px"
+                            }}
+                        >
                             <h2 style={{ textAlign: "center", marginBottom: "30px" }}>
                                 {editingId ? "Editar Criterio" : "Registrar nuevo Criterio"}
                             </h2>
                             {mensaje && (
-                                <p style={{
-                                    textAlign: "center",
-                                    color: mensaje.includes("Error") ? "red" : "green",
-                                    marginBottom: "20px",
-                                    fontWeight: "bold",
-                                }}>
+                                <p
+                                    style={{
+                                        textAlign: "center",
+                                        color: mensaje.includes("Error") ? "red" : "green",
+                                        marginBottom: "20px",
+                                        fontWeight: "bold"
+                                    }}
+                                >
                                     {mensaje}
                                 </p>
                             )}
@@ -147,7 +144,7 @@ const CriterioEvaluacionContainer = () => {
                                     <input
                                         type="text"
                                         value={nombreCriterio}
-                                        onChange={(e) => setNombreCriterio(e.target.value)}
+                                        onChange={e => setNombreCriterio(e.target.value)}
                                         required
                                         style={{ width: "100%", padding: "10px" }}
                                     />
@@ -158,7 +155,7 @@ const CriterioEvaluacionContainer = () => {
                                     <input
                                         type="text"
                                         value={descripcionCriterio}
-                                        onChange={(e) => setDescripcionCriterio(e.target.value)}
+                                        onChange={e => setDescripcionCriterio(e.target.value)}
                                         required
                                         style={{ width: "100%", padding: "10px" }}
                                     />
@@ -168,7 +165,7 @@ const CriterioEvaluacionContainer = () => {
                                     <input
                                         type="checkbox"
                                         checked={estadoActivo}
-                                        onChange={(e) => setEstadoActivo(e.target.checked)}
+                                        onChange={e => setEstadoActivo(e.target.checked)}
                                     />{" "}
                                     Activo
                                 </div>
@@ -183,7 +180,7 @@ const CriterioEvaluacionContainer = () => {
                                         border: "none",
                                         borderRadius: "8px",
                                         fontWeight: "bold",
-                                        cursor: "pointer",
+                                        cursor: "pointer"
                                     }}
                                 >
                                     {editingId ? "Actualizar" : "Guardar"}
@@ -192,14 +189,16 @@ const CriterioEvaluacionContainer = () => {
                         </div>
 
                         {/* --- TABLA --- */}
-                        <div style={{
-                            background: "#fff",
-                            borderRadius: "12px",
-                            padding: "20px 30px",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                            maxHeight: "600px",
-                            overflowY: "auto"
-                        }}>
+                        <div
+                            style={{
+                                background: "#fff",
+                                borderRadius: "12px",
+                                padding: "20px 30px",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                maxHeight: "600px",
+                                overflowY: "auto"
+                            }}
+                        >
                             <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
                                 Criterios de Evaluación Registrados
                             </h3>
@@ -214,16 +213,22 @@ const CriterioEvaluacionContainer = () => {
                                 </thead>
                                 <tbody>
                                     {criterios.length > 0 ? (
-                                        criterios.map((c) => (
+                                        criterios.map(c => (
                                             <tr key={c.idcriterioevaluacion}>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{c.nombrecriterio}</td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{c.descripcioncriterio}</td>
-                                                <td style={{
-                                                    padding: "10px",
-                                                    textAlign: "center",
-                                                    color: c.estado ? "green" : "red",
-                                                    fontWeight: "600",
-                                                }}>
+                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                    {c.nombrecriterio}
+                                                </td>
+                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                                    {c.descripcioncriterio}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        padding: "10px",
+                                                        textAlign: "center",
+                                                        color: c.estado ? "green" : "red",
+                                                        fontWeight: "600"
+                                                    }}
+                                                >
                                                     {c.estado ? "Activo" : "Inactivo"}
                                                 </td>
                                                 <td style={{ padding: "10px", textAlign: "center" }}>
@@ -236,7 +241,7 @@ const CriterioEvaluacionContainer = () => {
                                                             border: "none",
                                                             borderRadius: "5px",
                                                             marginRight: "6px",
-                                                            cursor: "pointer",
+                                                            cursor: "pointer"
                                                         }}
                                                     >
                                                         Editar
@@ -250,7 +255,7 @@ const CriterioEvaluacionContainer = () => {
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius: "5px",
-                                                                cursor: "pointer",
+                                                                cursor: "pointer"
                                                             }}
                                                         >
                                                             Desactivar
@@ -264,7 +269,7 @@ const CriterioEvaluacionContainer = () => {
                                                                 color: "#fff",
                                                                 border: "none",
                                                                 borderRadius: "5px",
-                                                                cursor: "pointer",
+                                                                cursor: "pointer"
                                                             }}
                                                         >
                                                             Activar

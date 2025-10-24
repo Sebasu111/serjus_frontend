@@ -2,11 +2,7 @@ import PropTypes from "prop-types";
 
 const SocialIcon = ({ path, icon }) => {
     return (
-        <a
-            href={process.env.PUBLIC_URL + path}
-            target="_blank"
-            rel="noopener noreferrer"
-        >
+        <a href={process.env.PUBLIC_URL + path} target="_blank" rel="noopener noreferrer">
             <i className={icon}></i>
         </a>
     );
@@ -14,7 +10,7 @@ const SocialIcon = ({ path, icon }) => {
 
 SocialIcon.propTypes = {
     path: PropTypes.string,
-    icon: PropTypes.string,
+    icon: PropTypes.string
 };
 
 export default SocialIcon;

@@ -11,11 +11,11 @@ const SidebarTitle = ({ title, classOption }) => {
 
 SidebarTitle.propTypes = {
     title: PropTypes.string,
-    classOption: PropTypes.string,
+    classOption: PropTypes.string
 };
 
 SidebarTitle.defaultProps = {
-    classOption: "widget-title",
+    classOption: "widget-title"
 };
 
 export default SidebarTitle;

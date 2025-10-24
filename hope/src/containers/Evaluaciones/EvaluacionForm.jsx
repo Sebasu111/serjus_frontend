@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { X } from "lucide-react";
 
-const displayName = (emp) => {
+const displayName = emp => {
     const candidates = [
         emp?.nombreCompleto,
         [emp?.nombres, emp?.apellidos].filter(Boolean).join(" "),
@@ -11,18 +11,20 @@ const displayName = (emp) => {
         emp?.full_name,
         emp?.displayName,
         emp?.nombre_empleado,
-        emp?.name,
-    ].map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
+        emp?.name
+    ]
+        .map(s => (typeof s === "string" ? s.trim() : ""))
+        .filter(Boolean);
     if (candidates[0]) return candidates[0];
     const id = emp?.idEmpleado ?? emp?.idempleado ?? emp?.id ?? emp?.pk ?? emp?.uuid ?? emp?.codigo ?? "?";
     return `Empleado #${id}`;
 };
-const empId = (emp) => emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
+const empId = emp => emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
 
-const toLocalDT = (iso) => {
+const toLocalDT = iso => {
     if (!iso) return "";
     const d = new Date(iso);
-    const pad = (n) => String(n).padStart(2, "0");
+    const pad = n => String(n).padStart(2, "0");
     const yyyy = d.getFullYear();
     const mm = pad(d.getMonth() + 1);
     const dd = pad(d.getDate());
@@ -31,13 +33,7 @@ const toLocalDT = (iso) => {
     return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
 };
 
-const EvaluacionForm = ({
-    empleados = [],
-    editingId,
-    evaluacion,
-    onCancel,
-    onSubmit,
-}) => {
+const EvaluacionForm = ({ empleados = [], editingId, evaluacion, onCancel, onSubmit }) => {
     const [idEmpleado, setIdEmpleado] = useState(evaluacion?.idEmpleado ?? "");
     const [tipoEvaluacion, setTipoEvaluacion] = useState(evaluacion?.tipoEvaluacion ?? "");
     const [fechaEvaluacion, setFechaEvaluacion] = useState(toLocalDT(evaluacion?.fechaEvaluacion) || "");
@@ -48,16 +44,17 @@ const EvaluacionForm = ({
     const [qEmpleado, setQEmpleado] = useState("");
 
     const empleadosOrdenados = useMemo(
-        () => [...empleados].sort((a, b) => displayName(a).localeCompare(displayName(b), "es", { sensitivity: "base" })),
+        () =>
+            [...empleados].sort((a, b) => displayName(a).localeCompare(displayName(b), "es", { sensitivity: "base" })),
         [empleados]
     );
 
     const opcionesEmpleado = useMemo(() => {
         const t = qEmpleado.trim().toLowerCase();
-        return empleadosOrdenados.filter((e) => displayName(e).toLowerCase().includes(t));
+        return empleadosOrdenados.filter(e => displayName(e).toLowerCase().includes(t));
     }, [empleadosOrdenados, qEmpleado]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
         if (!idEmpleado || !tipoEvaluacion || !fechaEvaluacion) return;
 
@@ -70,7 +67,7 @@ const EvaluacionForm = ({
             fechaEvaluacion: iso,
             puntajeTotal,
             observacion,
-            estado,
+            estado
         });
     };
 
@@ -83,7 +80,7 @@ const EvaluacionForm = ({
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                zIndex: 3000,
+                zIndex: 3000
             }}
         >
             <div
@@ -94,7 +91,7 @@ const EvaluacionForm = ({
                     background: "#fff",
                     boxShadow: "0 0 30px rgba(0,0,0,0.25)",
                     padding: 24,
-                    borderRadius: 14,
+                    borderRadius: 14
                 }}
             >
                 <h2 style={{ textAlign: "center", marginTop: 0, marginBottom: 18 }}>
@@ -110,17 +107,25 @@ const EvaluacionForm = ({
                                 type="text"
                                 placeholder="Buscar empleado..."
                                 value={qEmpleado}
-                                onChange={(e) => setQEmpleado(e.target.value)}
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db", marginBottom: 8 }}
+                                onChange={e => setQEmpleado(e.target.value)}
+                                style={{
+                                    width: "100%",
+                                    padding: 10,
+                                    borderRadius: 8,
+                                    border: "1px solid #d1d5db",
+                                    marginBottom: 8
+                                }}
                             />
                             <select
                                 value={idEmpleado ?? ""}
-                                onChange={(e) => setIdEmpleado(Number(e.target.value))}
+                                onChange={e => setIdEmpleado(Number(e.target.value))}
                                 required
                                 style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
                             >
-                                <option value="" disabled>Selecciona un empleado...</option>
-                                {opcionesEmpleado.map((emp) => (
+                                <option value="" disabled>
+                                    Selecciona un empleado...
+                                </option>
+                                {opcionesEmpleado.map(emp => (
                                     <option key={empId(emp)} value={empId(emp)}>
                                         {displayName(emp)}
                                     </option>
@@ -134,7 +139,7 @@ const EvaluacionForm = ({
                             <input
                                 type="text"
                                 value={tipoEvaluacion}
-                                onChange={(e) => setTipoEvaluacion(e.target.value)}
+                                onChange={e => setTipoEvaluacion(e.target.value)}
                                 placeholder="p. ej. Desempeño trimestral"
                                 required
                                 maxLength={100}
@@ -148,7 +153,7 @@ const EvaluacionForm = ({
                             <input
                                 type="datetime-local"
                                 value={fechaEvaluacion}
-                                onChange={(e) => setFechaEvaluacion(e.target.value)}
+                                onChange={e => setFechaEvaluacion(e.target.value)}
                                 required
                                 style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
                             />
@@ -161,7 +166,7 @@ const EvaluacionForm = ({
                                 type="number"
                                 step="0.01"
                                 value={puntajeTotal}
-                                onChange={(e) => setPuntajeTotal(e.target.value)}
+                                onChange={e => setPuntajeTotal(e.target.value)}
                                 required
                                 style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
                             />
@@ -172,7 +177,7 @@ const EvaluacionForm = ({
                             <label style={{ display: "block", marginBottom: 6 }}>Estado</label>
                             <select
                                 value={String(estado)}
-                                onChange={(e) => setEstado(e.target.value === "true")}
+                                onChange={e => setEstado(e.target.value === "true")}
                                 style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
                             >
                                 <option value="true">Activo</option>
@@ -187,7 +192,7 @@ const EvaluacionForm = ({
                                 type="text"
                                 maxLength={150}
                                 value={observacion}
-                                onChange={(e) => setObservacion(e.target.value)}
+                                onChange={e => setObservacion(e.target.value)}
                                 placeholder="Comentario breve (máx. 150)"
                                 style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
                             />
@@ -204,7 +209,7 @@ const EvaluacionForm = ({
                                 padding: "10px 18px",
                                 border: "none",
                                 borderRadius: 8,
-                                cursor: "pointer",
+                                cursor: "pointer"
                             }}
                         >
                             Cancelar
@@ -218,7 +223,7 @@ const EvaluacionForm = ({
                                 border: "none",
                                 borderRadius: 8,
                                 cursor: "pointer",
-                                fontWeight: 600,
+                                fontWeight: 600
                             }}
                         >
                             {editingId ? "Actualizar" : "Crear"}
@@ -234,7 +239,7 @@ const EvaluacionForm = ({
                         right: 18,
                         background: "transparent",
                         border: "none",
-                        cursor: "pointer",
+                        cursor: "pointer"
                     }}
                     title="Cerrar"
                 >

@@ -19,7 +19,7 @@ const ConvocatoriasContainer = () => {
         fechafin: "",
         idpuesto: "",
         estado: true,
-        idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
+        idusuario: Number(sessionStorage.getItem("idUsuario")) || 1
     });
     const [mensaje, setMensaje] = useState("");
     const [rows, setRows] = useState([]);
@@ -39,11 +39,7 @@ const ConvocatoriasContainer = () => {
     const fetchList = async () => {
         try {
             const r = await axios.get(`${API}/convocatorias/`);
-            const data = Array.isArray(r.data)
-                ? r.data
-                : Array.isArray(r.data?.results)
-                    ? r.data.results
-                    : [];
+            const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setRows(data);
         } catch (e) {
             setMensaje("Error al cargar las convocatorias");
@@ -55,15 +51,15 @@ const ConvocatoriasContainer = () => {
         try {
             const r = await axios.get(`${API}/puestos/`);
             const data = Array.isArray(r.data?.results) ? r.data.results : [];
-            setPuestos(data.filter((p) => p.estado));
+            setPuestos(data.filter(p => p.estado));
         } catch (e) {
             setPuestos([]);
         }
     };
 
-    const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+    const onChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         try {
             const payload = {
@@ -87,14 +83,13 @@ const ConvocatoriasContainer = () => {
             fetchList();
             setMostrarFormulario(false);
             setEditingId(null);
-
         } catch (error) {
             console.error(error);
             setMensaje("Error al registrar/actualizar");
         }
     };
 
-    const handleEdit = (row) => {
+    const handleEdit = row => {
         setForm({ ...row });
         setEditingId(row.idconvocatoria);
         setMostrarFormulario(true);
@@ -104,7 +99,7 @@ const ConvocatoriasContainer = () => {
         try {
             await axios.put(`${API}/convocatorias/${row.idconvocatoria}/`, {
                 ...row,
-                estado: nuevo,
+                estado: nuevo
             });
             fetchList();
         } catch {}
@@ -118,15 +113,13 @@ const ConvocatoriasContainer = () => {
             fechafin: "",
             idpuesto: "",
             estado: true,
-            idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
+            idusuario: Number(sessionStorage.getItem("idUsuario")) || 1
         });
         setEditingId(null);
         setMostrarFormulario(false);
     };
 
-    const filtradas = rows.filter((r) =>
-        r.nombreconvocatoria.toLowerCase().includes(busqueda.toLowerCase())
-    );
+    const filtradas = rows.filter(r => r.nombreconvocatoria.toLowerCase().includes(busqueda.toLowerCase()));
     const indexOfLast = paginaActual * elementosPorPagina;
     const paginadas = filtradas.slice(indexOfLast - elementosPorPagina, indexOfLast);
     const totalPaginas = Math.ceil(filtradas.length / elementosPorPagina);

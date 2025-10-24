@@ -16,7 +16,7 @@ import ConfirmModalAspirante from "./ConfirmModalAspirante";
 const API = "http://127.0.0.1:8000/api";
 
 // resolver id flexible
-const aspId = (row) => row?.idaspirante ?? row?.idAspirante ?? row?.id;
+const aspId = row => row?.idaspirante ?? row?.idAspirante ?? row?.id;
 
 const AspirantesContainer = () => {
     const [form, setForm] = useState({
@@ -32,7 +32,7 @@ const AspirantesContainer = () => {
         ididioma: "",
         idpueblocultura: "",
         estado: true,
-        isCF: false,
+        isCF: false
     });
 
     const [errors, setErrors] = useState({});
@@ -118,7 +118,7 @@ const AspirantesContainer = () => {
         return msg;
     };
 
-    const onChange = (e) => {
+    const onChange = e => {
         const { name, value: rawValue, type, checked } = e.target;
         const value = type === "checkbox" ? checked : rawValue;
 
@@ -131,24 +131,25 @@ const AspirantesContainer = () => {
         }
         if (name === "isCF") {
             const flag = !!checked;
-            setForm((f) => ({ ...f, isCF: flag, nit: flag ? "" : f.nit }));
-            setErrors((er) => ({ ...er, nit: "" }));
+            setForm(f => ({ ...f, isCF: flag, nit: flag ? "" : f.nit }));
+            setErrors(er => ({ ...er, nit: "" }));
             return;
         }
 
-        setForm((f) => ({ ...f, [name]: value }));
-        setErrors((er) => ({ ...er, [name]: validateField(name, value) }));
+        setForm(f => ({ ...f, [name]: value }));
+        setErrors(er => ({ ...er, [name]: validateField(name, value) }));
     };
 
     const validateAll = () => {
         const req = ["dpi", "nombre", "apellido", "genero", "fechanacimiento", "email", "telefono", "direccion"];
         const newErrors = {};
-        req.forEach((k) => {
-            if (form[k] === "" || form[k] === null || form[k] === undefined) newErrors[k] = "Este campo es obligatorio.";
+        req.forEach(k => {
+            if (form[k] === "" || form[k] === null || form[k] === undefined)
+                newErrors[k] = "Este campo es obligatorio.";
         });
         if (!form.isCF && (form.nit ?? "") === "") newErrors.nit = "Este campo es obligatorio (o marque C/F).";
 
-        ["dpi", "nit", "telefono", "email"].forEach((k) => {
+        ["dpi", "nit", "telefono", "email"].forEach(k => {
             const msg = validateField(k, form[k]);
             if (msg) newErrors[k] = newErrors[k] || msg;
         });
@@ -160,8 +161,11 @@ const AspirantesContainer = () => {
     };
 
     // ===== Mapeo UI -> API (aspirante) =====
-    const toApi = (f) => {
-        let nit = String(f.nit || "").trim().toUpperCase().replace(/\s+/g, "");
+    const toApi = f => {
+        let nit = String(f.nit || "")
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, "");
         if (f.isCF) nit = "C/F";
         if (nit === "CF") nit = "C/F";
 
@@ -178,7 +182,7 @@ const AspirantesContainer = () => {
             estado: true,
             idusuario: getIdUsuario(),
             ididioma: f.ididioma || null,
-            idpueblocultura: f.idpueblocultura || null,
+            idpueblocultura: f.idpueblocultura || null
         };
     };
 
@@ -196,16 +200,19 @@ const AspirantesContainer = () => {
             ididioma: "",
             idpueblocultura: "",
             estado: true,
-            isCF: false,
+            isCF: false
         });
         setErrors({});
         setEditingId(null);
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         setMensaje("");
-        if (!validateAll()) { setMensaje("Corrige los errores antes de enviar."); return; }
+        if (!validateAll()) {
+            setMensaje("Corrige los errores antes de enviar.");
+            return;
+        }
         try {
             const payload = toApi(form);
             if (editingId) {
@@ -226,8 +233,11 @@ const AspirantesContainer = () => {
         }
     };
 
-    const handleEdit = (row) => {
-        if (row?.estado === false) { setMensaje("No se puede editar un aspirante inactivo"); return; }
+    const handleEdit = row => {
+        if (row?.estado === false) {
+            setMensaje("No se puede editar un aspirante inactivo");
+            return;
+        }
         setForm({
             dpi: row.dpi ?? "",
             nit: row.nit ?? "",
@@ -241,7 +251,10 @@ const AspirantesContainer = () => {
             ididioma: row.ididioma ?? row.idIdioma ?? "",
             idpueblocultura: row.idpueblocultura ?? row.idPuebloCultura ?? "",
             estado: true,
-            isCF: (String(row.nit || "").toUpperCase().replace(/\s+/g, "") === "C/F"),
+            isCF:
+                String(row.nit || "")
+                    .toUpperCase()
+                    .replace(/\s+/g, "") === "C/F"
         });
         setErrors({});
         setEditingId(aspId(row));
@@ -249,7 +262,7 @@ const AspirantesContainer = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const handleToggle = async (row) => {
+    const handleToggle = async row => {
         const id = aspId(row);
         if (!id) return;
 
@@ -258,7 +271,12 @@ const AspirantesContainer = () => {
             setShowConfirm(true);
         } else {
             try {
-                await axios.put(`${API}/aspirantes/${id}/`, { ...toApi(form), ...row, estado: true, idusuario: getIdUsuario() });
+                await axios.put(`${API}/aspirantes/${id}/`, {
+                    ...toApi(form),
+                    ...row,
+                    estado: true,
+                    idusuario: getIdUsuario()
+                });
                 setMensaje("Aspirante activado correctamente");
                 fetchList();
             } catch (e) {
@@ -285,13 +303,19 @@ const AspirantesContainer = () => {
     };
 
     // Filtro + paginación
-    const filtered = data.filter((r) => {
+    const filtered = data.filter(r => {
         if (!search) return true;
         const s = search.toLowerCase();
         return (
-            String(r.nombreaspirante ?? r.nombreAspirante ?? "").toLowerCase().includes(s) ||
-            String(r.apellidoaspirante ?? r.apellidoAspirante ?? "").toLowerCase().includes(s) ||
-            String(r.dpi ?? "").toLowerCase().includes(s)
+            String(r.nombreaspirante ?? r.nombreAspirante ?? "")
+                .toLowerCase()
+                .includes(s) ||
+            String(r.apellidoaspirante ?? r.apellidoAspirante ?? "")
+                .toLowerCase()
+                .includes(s) ||
+            String(r.dpi ?? "")
+                .toLowerCase()
+                .includes(s)
         );
     });
 
@@ -309,17 +333,44 @@ const AspirantesContainer = () => {
                         <div style={{ maxWidth: "1400px", width: "100%", margin: "0 auto" }}>
                             <h2 style={{ marginBottom: 20, textAlign: "center" }}>Aspirantes Registrados</h2>
 
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15, alignItems: "center" }}>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    marginBottom: 15,
+                                    alignItems: "center"
+                                }}
+                            >
                                 <input
                                     type="text"
                                     placeholder="Buscar por nombre, apellido o DPI"
                                     value={search}
-                                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                                    style={{ flex: 1, padding: 10, borderRadius: 6, border: "1px solid #ccc", marginRight: 10 }}
+                                    onChange={e => {
+                                        setSearch(e.target.value);
+                                        setPage(1);
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        padding: 10,
+                                        borderRadius: 6,
+                                        border: "1px solid #ccc",
+                                        marginRight: 10
+                                    }}
                                 />
                                 <button
-                                    onClick={() => { setShowForm(true); setEditingId(null); }}
-                                    style={{ padding: "10px 20px", background: "#219ebc", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+                                    onClick={() => {
+                                        setShowForm(true);
+                                        setEditingId(null);
+                                    }}
+                                    style={{
+                                        padding: "10px 20px",
+                                        background: "#219ebc",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: 8,
+                                        cursor: "pointer",
+                                        fontWeight: 600
+                                    }}
                                 >
                                     Nuevo Aspirante
                                 </button>
@@ -342,19 +393,32 @@ const AspirantesContainer = () => {
                                     type="number"
                                     min="1"
                                     value={elementosPorPagina}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                         const val = e.target.value.replace(/\D/g, "");
                                         const numero = val === "" ? "" : Number(val);
                                         setElementosPorPagina(numero > 0 ? numero : 1);
                                         setPage(1);
                                     }}
-                                    onFocus={(e) => e.target.select()}
-                                    style={{ width: 80, padding: 10, borderRadius: 6, border: "1px solid #ccc", textAlign: "center" }}
+                                    onFocus={e => e.target.select()}
+                                    style={{
+                                        width: 80,
+                                        padding: 10,
+                                        borderRadius: 6,
+                                        border: "1px solid #ccc",
+                                        textAlign: "center"
+                                    }}
                                 />
                             </div>
 
                             {mensaje && (
-                                <p style={{ textAlign: "center", color: mensaje.includes("Error") ? "red" : "green", marginTop: 12, fontWeight: 600 }}>
+                                <p
+                                    style={{
+                                        textAlign: "center",
+                                        color: mensaje.includes("Error") ? "red" : "green",
+                                        marginTop: 12,
+                                        fontWeight: 600
+                                    }}
+                                >
                                     {mensaje}
                                 </p>
                             )}

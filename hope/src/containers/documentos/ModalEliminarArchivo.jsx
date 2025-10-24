@@ -4,7 +4,7 @@ const ModalEliminarArchivo = ({
     mostrarModalEliminar,
     setMostrarModalEliminar,
     documentoAEliminar,
-    handleDeleteArchivo,
+    handleDeleteArchivo
 }) => {
     if (!mostrarModalEliminar) return null;
 
@@ -21,7 +21,7 @@ const ModalEliminarArchivo = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                zIndex: 2000,
+                zIndex: 2000
             }}
         >
             <div
@@ -31,13 +31,12 @@ const ModalEliminarArchivo = ({
                     borderRadius: "12px",
                     width: "400px",
                     textAlign: "center",
-                    boxShadow: "0 0 15px rgba(0,0,0,0.3)",
+                    boxShadow: "0 0 15px rgba(0,0,0,0.3)"
                 }}
             >
                 <h3 style={{ marginBottom: "15px" }}>¿Eliminar el archivo actual?</h3>
                 <p style={{ color: "#555", marginBottom: "20px" }}>
-                    Esta acción eliminará el archivo asociado al documento, pero
-                    conservará el registro.
+                    Esta acción eliminará el archivo asociado al documento, pero conservará el registro.
                 </p>
 
                 <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
@@ -52,7 +51,7 @@ const ModalEliminarArchivo = ({
                             border: "none",
                             borderRadius: "6px",
                             padding: "8px 20px",
-                            cursor: "pointer",
+                            cursor: "pointer"
                         }}
                     >
                         Sí, eliminar
@@ -65,7 +64,7 @@ const ModalEliminarArchivo = ({
                             border: "none",
                             borderRadius: "6px",
                             padding: "8px 20px",
-                            cursor: "pointer",
+                            cursor: "pointer"
                         }}
                     >
                         Cancelar

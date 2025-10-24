@@ -3,9 +3,9 @@ import SidebarTitle from "../sidebar-title";
 
 const Appointment = () => {
     const { register, handleSubmit, errors } = useForm({
-        mode: "onBlur",
+        mode: "onBlur"
     });
-    const onSubmit = (data) => console.log(data);
+    const onSubmit = data => console.log(data);
     return (
         <div className="widget-item">
             <div className="widget-appointment-form">
@@ -20,7 +20,7 @@ const Appointment = () => {
                                     name="name"
                                     placeholder="Name *"
                                     ref={register({
-                                        required: "Name is required",
+                                        required: "Name is required"
                                     })}
                                 />
                                 {errors.name && <p>{errors.name.message}</p>}
@@ -37,8 +37,8 @@ const Appointment = () => {
                                         required: "Email is required",
                                         pattern: {
                                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
-                                            message: "invalid email address",
-                                        },
+                                            message: "invalid email address"
+                                        }
                                     })}
                                 />
                                 {errors.email && <p>{errors.email.message}</p>}
@@ -52,7 +52,7 @@ const Appointment = () => {
                                     name="phone"
                                     placeholder="Phone"
                                     ref={register({
-                                        required: "Phone is required",
+                                        required: "Phone is required"
                                     })}
                                 />
                                 {errors.phone && <p>{errors.phone.message}</p>}
@@ -60,10 +60,7 @@ const Appointment = () => {
                         </div>
                         <div className="col-md-12">
                             <div className="form-group datepicker-group">
-                                <label
-                                    htmlFor="datepicker"
-                                    className="form-label icofont-calendar"
-                                >
+                                <label htmlFor="datepicker" className="form-label icofont-calendar">
                                     <input
                                         className="form-control"
                                         id="datepicker"
@@ -71,7 +68,7 @@ const Appointment = () => {
                                         name="date"
                                         placeholder="Date"
                                         ref={register({
-                                            required: "Date is required",
+                                            required: "Date is required"
                                         })}
                                     />
                                 </label>
@@ -85,12 +82,10 @@ const Appointment = () => {
                                     rows="4"
                                     placeholder="Message"
                                     ref={register({
-                                        required: "Message is required",
+                                        required: "Message is required"
                                     })}
                                 ></textarea>
-                                {errors.message && (
-                                    <p>{errors.message.message}</p>
-                                )}
+                                {errors.message && <p>{errors.message.message}</p>}
                             </div>
                         </div>
                         <div className="col-md-12">

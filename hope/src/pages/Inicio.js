@@ -25,15 +25,15 @@ const HomePage = () => {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 backgroundColor: "#EEF2F7", // fondo gris claro
-                                padding: "48px 20px 8rem",  // aire superior/lateral e inferior (8rem)
+                                padding: "48px 20px 8rem" // aire superior/lateral e inferior (8rem)
                             }}
                         >
                             <div style={{ width: "min(1100px, 96vw)" }}>
                                 {/* HERO */}
                                 <div className="py-5 text-center">
                                     <h1 className="display-5 fw-bold lh-sm">
-                                        <span className="text-primary">Bienvenidos/as</span> al sistema de
-                                        gestión de recursos humanos SERJUS
+                                        <span className="text-primary">Bienvenidos/as</span> al sistema de gestión de
+                                        recursos humanos SERJUS
                                     </h1>
 
                                     <div className="mx-auto mt-4" style={{ maxWidth: "86%" }}>

@@ -8,20 +8,14 @@ const SEO = ({ title }) => {
             <meta charSet="utf-8" />
             <title>{title}</title>
             <meta name="robots" content="noindex, follow" />
-            <meta
-                name="description"
-                content=" Health &amp; Medical React JS Template"
-            />
-            <meta
-                name="viewport"
-                content="width=device-width, initial-scale=1, shrink-to-fit=no"
-            />
+            <meta name="description" content=" Health &amp; Medical React JS Template" />
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         </Helmet>
     );
 };
 
 SEO.propTypes = {
-    title: PropTypes.string,
+    title: PropTypes.string
 };
 
 export default SEO;

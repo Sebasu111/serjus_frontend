@@ -22,14 +22,8 @@ const EvaluacionCriterioContainer = () => {
 
     const fetchEvaluaciones = async () => {
         try {
-            const res = await axios.get(
-                "http://127.0.0.1:8000/api/evaluacioncriterio/"
-            );
-            const data = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                ? res.data.results
-                : [];
+            const res = await axios.get("http://127.0.0.1:8000/api/evaluacioncriterio/");
+            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setEvaluaciones(data);
         } catch (error) {
             console.error("Error al cargar evaluaciones:", error);
@@ -38,7 +32,7 @@ const EvaluacionCriterioContainer = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         try {
             const data = {
@@ -46,20 +40,14 @@ const EvaluacionCriterioContainer = () => {
                 idcriterioevaluacion: idCriterioEvaluacion || null,
                 puntajecriterio: puntajeCriterio,
                 estado: estadoActivo,
-                idusuario: 1, // reemplazar por usuario logueado
+                idusuario: 1 // reemplazar por usuario logueado
             };
 
             if (editingId) {
-                await axios.put(
-                    `http://127.0.0.1:8000/api/evaluacioncriterio/${editingId}/`,
-                    data
-                );
+                await axios.put(`http://127.0.0.1:8000/api/evaluacioncriterio/${editingId}/`, data);
                 setMensaje("Evaluación actualizada correctamente");
             } else {
-                await axios.post(
-                    "http://127.0.0.1:8000/api/evaluacioncriterio/",
-                    data
-                );
+                await axios.post("http://127.0.0.1:8000/api/evaluacioncriterio/", data);
                 setMensaje("Evaluación registrada correctamente");
             }
 
@@ -72,15 +60,12 @@ const EvaluacionCriterioContainer = () => {
 
             fetchEvaluaciones();
         } catch (error) {
-            console.error(
-                "Error al guardar evaluación:",
-                error.response?.data || error
-            );
+            console.error("Error al guardar evaluación:", error.response?.data || error);
             setMensaje("Error al registrar la evaluación");
         }
     };
 
-    const handleEdit = (evaluacion) => {
+    const handleEdit = evaluacion => {
         setIdEvaluacion(evaluacion.idevaluacion || "");
         setIdCriterioEvaluacion(evaluacion.idcriterioevaluacion || "");
         setPuntajeCriterio(evaluacion.puntajecriterio);
@@ -89,56 +74,39 @@ const EvaluacionCriterioContainer = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de desactivar esta evaluación?"))
-            return;
+    const handleDelete = async id => {
+        if (!window.confirm("¿Estás seguro de desactivar esta evaluación?")) return;
         try {
-            const evaluacion = evaluaciones.find(
-                (e) => e.idevaluacioncriterio === id
-            );
+            const evaluacion = evaluaciones.find(e => e.idevaluacioncriterio === id);
             if (!evaluacion) return;
 
-            await axios.put(
-                `http://127.0.0.1:8000/api/evaluacioncriterio/${id}/`,
-                {
-                    ...evaluacion,
-                    estado: false,
-                }
-            );
+            await axios.put(`http://127.0.0.1:8000/api/evaluacioncriterio/${id}/`, {
+                ...evaluacion,
+                estado: false
+            });
 
             setMensaje("Evaluación desactivada correctamente");
             fetchEvaluaciones();
         } catch (error) {
-            console.error(
-                "Error al desactivar evaluación:",
-                error.response?.data || error
-            );
+            console.error("Error al desactivar evaluación:", error.response?.data || error);
             setMensaje("Error al desactivar la evaluación");
         }
     };
 
-    const handleActivate = async (id) => {
+    const handleActivate = async id => {
         try {
-            const evaluacion = evaluaciones.find(
-                (e) => e.idevaluacioncriterio === id
-            );
+            const evaluacion = evaluaciones.find(e => e.idevaluacioncriterio === id);
             if (!evaluacion) return;
 
-            await axios.put(
-                `http://127.0.0.1:8000/api/evaluacioncriterio/${id}/`,
-                {
-                    ...evaluacion,
-                    estado: true,
-                }
-            );
+            await axios.put(`http://127.0.0.1:8000/api/evaluacioncriterio/${id}/`, {
+                ...evaluacion,
+                estado: true
+            });
 
             setMensaje("Evaluación activada correctamente");
             fetchEvaluaciones();
         } catch (error) {
-            console.error(
-                "Error al activar evaluación:",
-                error.response?.data || error
-            );
+            console.error("Error al activar evaluación:", error.response?.data || error);
             setMensaje("Error al activar la evaluación");
         }
     };
@@ -151,7 +119,7 @@ const EvaluacionCriterioContainer = () => {
                 style={{
                     display: "flex",
                     flexDirection: "column",
-                    minHeight: "100vh",
+                    minHeight: "100vh"
                 }}
             >
                 <Header />
@@ -159,7 +127,7 @@ const EvaluacionCriterioContainer = () => {
                     style={{
                         flex: 1,
                         padding: "60px 20px",
-                        background: "#f0f2f5",
+                        background: "#f0f2f5"
                     }}
                 >
                     <div style={{ maxWidth: "900px", margin: "0 auto" }}>
@@ -170,28 +138,24 @@ const EvaluacionCriterioContainer = () => {
                                 padding: "40px",
                                 borderRadius: "12px",
                                 boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                                marginBottom: "40px",
+                                marginBottom: "40px"
                             }}
                         >
                             <h2
                                 style={{
                                     textAlign: "center",
-                                    marginBottom: "30px",
+                                    marginBottom: "30px"
                                 }}
                             >
-                                {editingId
-                                    ? "Editar Evaluación"
-                                    : "Registrar nueva Evaluación"}
+                                {editingId ? "Editar Evaluación" : "Registrar nueva Evaluación"}
                             </h2>
                             {mensaje && (
                                 <p
                                     style={{
                                         textAlign: "center",
-                                        color: mensaje.includes("Error")
-                                            ? "red"
-                                            : "green",
+                                        color: mensaje.includes("Error") ? "red" : "green",
                                         marginBottom: "20px",
-                                        fontWeight: "bold",
+                                        fontWeight: "bold"
                                     }}
                                 >
                                     {mensaje}
@@ -203,12 +167,10 @@ const EvaluacionCriterioContainer = () => {
                                     <input
                                         type="number"
                                         value={idEvaluacion}
-                                        onChange={(e) =>
-                                            setIdEvaluacion(e.target.value)
-                                        }
+                                        onChange={e => setIdEvaluacion(e.target.value)}
                                         style={{
                                             width: "100%",
-                                            padding: "10px",
+                                            padding: "10px"
                                         }}
                                     />
                                 </div>
@@ -218,14 +180,10 @@ const EvaluacionCriterioContainer = () => {
                                     <input
                                         type="number"
                                         value={idCriterioEvaluacion}
-                                        onChange={(e) =>
-                                            setIdCriterioEvaluacion(
-                                                e.target.value
-                                            )
-                                        }
+                                        onChange={e => setIdCriterioEvaluacion(e.target.value)}
                                         style={{
                                             width: "100%",
-                                            padding: "10px",
+                                            padding: "10px"
                                         }}
                                     />
                                 </div>
@@ -236,13 +194,11 @@ const EvaluacionCriterioContainer = () => {
                                         type="number"
                                         step="0.01"
                                         value={puntajeCriterio}
-                                        onChange={(e) =>
-                                            setPuntajeCriterio(e.target.value)
-                                        }
+                                        onChange={e => setPuntajeCriterio(e.target.value)}
                                         required
                                         style={{
                                             width: "100%",
-                                            padding: "10px",
+                                            padding: "10px"
                                         }}
                                     />
                                 </div>
@@ -251,9 +207,7 @@ const EvaluacionCriterioContainer = () => {
                                     <input
                                         type="checkbox"
                                         checked={estadoActivo}
-                                        onChange={(e) =>
-                                            setEstadoActivo(e.target.checked)
-                                        }
+                                        onChange={e => setEstadoActivo(e.target.checked)}
                                     />{" "}
                                     Activo
                                 </div>
@@ -268,7 +222,7 @@ const EvaluacionCriterioContainer = () => {
                                         border: "none",
                                         borderRadius: "8px",
                                         fontWeight: "bold",
-                                        cursor: "pointer",
+                                        cursor: "pointer"
                                     }}
                                 >
                                     {editingId ? "Actualizar" : "Guardar"}
@@ -284,13 +238,13 @@ const EvaluacionCriterioContainer = () => {
                                 padding: "20px 30px",
                                 boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                                 maxHeight: "600px",
-                                overflowY: "auto",
+                                overflowY: "auto"
                             }}
                         >
                             <h3
                                 style={{
                                     marginBottom: "20px",
-                                    textAlign: "center",
+                                    textAlign: "center"
                                 }}
                             >
                                 Evaluaciones por Criterio Registradas
@@ -298,7 +252,7 @@ const EvaluacionCriterioContainer = () => {
                             <table
                                 style={{
                                     width: "100%",
-                                    borderCollapse: "collapse",
+                                    borderCollapse: "collapse"
                                 }}
                             >
                                 <thead>
@@ -306,7 +260,7 @@ const EvaluacionCriterioContainer = () => {
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
-                                                padding: "10px",
+                                                padding: "10px"
                                             }}
                                         >
                                             Evaluación
@@ -314,7 +268,7 @@ const EvaluacionCriterioContainer = () => {
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
-                                                padding: "10px",
+                                                padding: "10px"
                                             }}
                                         >
                                             Criterio
@@ -322,7 +276,7 @@ const EvaluacionCriterioContainer = () => {
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
-                                                padding: "10px",
+                                                padding: "10px"
                                             }}
                                         >
                                             Puntaje
@@ -330,7 +284,7 @@ const EvaluacionCriterioContainer = () => {
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
-                                                padding: "10px",
+                                                padding: "10px"
                                             }}
                                         >
                                             Estado
@@ -338,7 +292,7 @@ const EvaluacionCriterioContainer = () => {
                                         <th
                                             style={{
                                                 borderBottom: "2px solid #eee",
-                                                padding: "10px",
+                                                padding: "10px"
                                             }}
                                         >
                                             Acciones
@@ -347,13 +301,12 @@ const EvaluacionCriterioContainer = () => {
                                 </thead>
                                 <tbody>
                                     {evaluaciones.length > 0 ? (
-                                        evaluaciones.map((e) => (
+                                        evaluaciones.map(e => (
                                             <tr key={e.idevaluacioncriterio}>
                                                 <td
                                                     style={{
                                                         padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
+                                                        borderBottom: "1px solid #f0f0f0"
                                                     }}
                                                 >
                                                     {e.idevaluacion || "N/A"}
@@ -361,18 +314,15 @@ const EvaluacionCriterioContainer = () => {
                                                 <td
                                                     style={{
                                                         padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
+                                                        borderBottom: "1px solid #f0f0f0"
                                                     }}
                                                 >
-                                                    {e.idcriterioevaluacion ||
-                                                        "N/A"}
+                                                    {e.idcriterioevaluacion || "N/A"}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
+                                                        borderBottom: "1px solid #f0f0f0"
                                                     }}
                                                 >
                                                     {e.puntajecriterio}
@@ -381,77 +331,56 @@ const EvaluacionCriterioContainer = () => {
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        color: e.estado
-                                                            ? "green"
-                                                            : "red",
-                                                        fontWeight: "600",
+                                                        color: e.estado ? "green" : "red",
+                                                        fontWeight: "600"
                                                     }}
                                                 >
-                                                    {e.estado
-                                                        ? "Activo"
-                                                        : "Inactivo"}
+                                                    {e.estado ? "Activo" : "Inactivo"}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
-                                                        textAlign: "center",
+                                                        textAlign: "center"
                                                     }}
                                                 >
                                                     <button
-                                                        onClick={() =>
-                                                            handleEdit(e)
-                                                        }
+                                                        onClick={() => handleEdit(e)}
                                                         style={{
                                                             padding: "6px 14px",
-                                                            background:
-                                                                " #FED7AA",
+                                                            background: " #FED7AA",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
                                                             marginRight: "6px",
-                                                            cursor: "pointer",
+                                                            cursor: "pointer"
                                                         }}
                                                     >
                                                         Editar
                                                     </button>
                                                     {e.estado ? (
                                                         <button
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    e.idevaluacioncriterio
-                                                                )
-                                                            }
+                                                            onClick={() => handleDelete(e.idevaluacioncriterio)}
                                                             style={{
-                                                                padding:
-                                                                    "6px 14px",
-                                                                background:
-                                                                    "#F87171",
+                                                                padding: "6px 14px",
+                                                                background: "#F87171",
                                                                 color: "#fff",
                                                                 border: "none",
-                                                                borderRadius:
-                                                                    "5px",
-                                                                cursor: "pointer",
+                                                                borderRadius: "5px",
+                                                                cursor: "pointer"
                                                             }}
                                                         >
                                                             Desactivar
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            onClick={() =>
-                                                                handleActivate(
-                                                                    e.idevaluacioncriterio
-                                                                )
-                                                            }
+                                                            onClick={() => handleActivate(e.idevaluacioncriterio)}
                                                             style={{
-                                                                padding:
-                                                                    "6px 14px",
-                                                                background:
-                                                                    "#28a745",
+                                                                padding: "6px 14px",
+                                                                background: "#28a745",
                                                                 color: "#fff",
                                                                 border: "none",
-                                                                borderRadius:
-                                                                    "5px",
-                                                                cursor: "pointer",
+                                                                borderRadius: "5px",
+                                                                cursor: "pointer"
                                                             }}
                                                         >
                                                             Activar
@@ -466,7 +395,7 @@ const EvaluacionCriterioContainer = () => {
                                                 colSpan="5"
                                                 style={{
                                                     textAlign: "center",
-                                                    padding: "20px",
+                                                    padding: "20px"
                                                 }}
                                             >
                                                 No hay evaluaciones registradas

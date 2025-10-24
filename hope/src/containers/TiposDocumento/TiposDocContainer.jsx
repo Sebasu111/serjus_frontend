@@ -22,14 +22,8 @@ const TiposDocumentoContainer = () => {
 
     const fetchTipos = async () => {
         try {
-            const res = await axios.get(
-                "http://127.0.0.1:8000/api/tipodocumento/"
-            );
-            const data = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data.results)
-                ? res.data.results
-                : [];
+            const res = await axios.get("http://127.0.0.1:8000/api/tipodocumento/");
+            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setTipos(data);
         } catch (error) {
             console.error("Error al cargar tipos de documento:", error);
@@ -38,30 +32,22 @@ const TiposDocumentoContainer = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         try {
             const data = {
                 nombretipo: nombreTipo,
-                cantidadrepetir: cantidadRepetir
-                    ? parseInt(cantidadRepetir)
-                    : null,
+                cantidadrepetir: cantidadRepetir ? parseInt(cantidadRepetir) : null,
                 descripcion,
                 estado: estadoActivo,
-                idusuario: 1, // reemplazar con usuario logueado
+                idusuario: 1 // reemplazar con usuario logueado
             };
 
             if (editingId) {
-                await axios.put(
-                    `http://127.0.0.1:8000/api/tipodocumento/${editingId}/`,
-                    data
-                );
+                await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${editingId}/`, data);
                 setMensaje("Tipo de documento actualizado correctamente");
             } else {
-                await axios.post(
-                    "http://127.0.0.1:8000/api/tipodocumento/",
-                    data
-                );
+                await axios.post("http://127.0.0.1:8000/api/tipodocumento/", data);
                 setMensaje("Tipo de documento registrado correctamente");
             }
 
@@ -77,7 +63,7 @@ const TiposDocumentoContainer = () => {
         }
     };
 
-    const handleEdit = (tipo) => {
+    const handleEdit = tipo => {
         setNombreTipo(tipo.nombretipo);
         setCantidadRepetir(tipo.cantidadrepetir || "");
         setDescripcion(tipo.descripcion);
@@ -86,15 +72,10 @@ const TiposDocumentoContainer = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const handleDelete = async (id) => {
-        if (
-            !window.confirm(
-                "¿Estás seguro de desactivar este tipo de documento?"
-            )
-        )
-            return;
+    const handleDelete = async id => {
+        if (!window.confirm("¿Estás seguro de desactivar este tipo de documento?")) return;
         try {
-            const tipo = tipos.find((t) => t.idtipodocumento === id);
+            const tipo = tipos.find(t => t.idtipodocumento === id);
             if (!tipo) return;
 
             await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${id}/`, {
@@ -102,23 +83,20 @@ const TiposDocumentoContainer = () => {
                 cantidadrepetir: tipo.cantidadrepetir,
                 descripcion: tipo.descripcion,
                 estado: false,
-                idusuario: tipo.idusuario,
+                idusuario: tipo.idusuario
             });
 
             setMensaje("Tipo de documento desactivado correctamente");
             fetchTipos();
         } catch (error) {
-            console.error(
-                "Error al desactivar tipo de documento:",
-                error.response?.data || error
-            );
+            console.error("Error al desactivar tipo de documento:", error.response?.data || error);
             setMensaje("Error al desactivar el tipo de documento");
         }
     };
 
-    const handleActivate = async (id) => {
+    const handleActivate = async id => {
         try {
-            const tipo = tipos.find((t) => t.idtipodocumento === id);
+            const tipo = tipos.find(t => t.idtipodocumento === id);
             if (!tipo) return;
 
             await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${id}/`, {
@@ -126,16 +104,13 @@ const TiposDocumentoContainer = () => {
                 cantidadrepetir: tipo.cantidadrepetir,
                 descripcion: tipo.descripcion,
                 estado: true,
-                idusuario: tipo.idusuario,
+                idusuario: tipo.idusuario
             });
 
             setMensaje("Tipo de documento activado correctamente");
             fetchTipos();
         } catch (error) {
-            console.error(
-                "Error al activar tipo de documento:",
-                error.response?.data || error
-            );
+            console.error("Error al activar tipo de documento:", error.response?.data || error);
             setMensaje("Error al activar el tipo de documento");
         }
     };
@@ -148,7 +123,7 @@ const TiposDocumentoContainer = () => {
                 style={{
                     display: "flex",
                     flexDirection: "column",
-                    minHeight: "100vh",
+                    minHeight: "100vh"
                 }}
             >
                 <Header />
@@ -157,7 +132,7 @@ const TiposDocumentoContainer = () => {
                     style={{
                         flex: 1,
                         padding: "60px 20px",
-                        background: "#f0f2f5",
+                        background: "#f0f2f5"
                     }}
                 >
                     <div style={{ maxWidth: "700px", margin: "0 auto" }}>
@@ -168,28 +143,24 @@ const TiposDocumentoContainer = () => {
                                 padding: "40px",
                                 borderRadius: "12px",
                                 boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                                marginBottom: "40px",
+                                marginBottom: "40px"
                             }}
                         >
                             <h2
                                 style={{
                                     textAlign: "center",
-                                    marginBottom: "30px",
+                                    marginBottom: "30px"
                                 }}
                             >
-                                {editingId
-                                    ? "Editar tipo de documento"
-                                    : "Registrar un nuevo tipo de documento"}
+                                {editingId ? "Editar tipo de documento" : "Registrar un nuevo tipo de documento"}
                             </h2>
                             {mensaje && (
                                 <p
                                     style={{
                                         textAlign: "center",
-                                        color: mensaje.includes("Error")
-                                            ? "red"
-                                            : "green",
+                                        color: mensaje.includes("Error") ? "red" : "green",
                                         marginBottom: "20px",
-                                        fontWeight: "bold",
+                                        fontWeight: "bold"
                                     }}
                                 >
                                     {mensaje}
@@ -202,7 +173,7 @@ const TiposDocumentoContainer = () => {
                                         style={{
                                             display: "block",
                                             marginBottom: "8px",
-                                            fontWeight: "600",
+                                            fontWeight: "600"
                                         }}
                                     >
                                         Nombre
@@ -211,16 +182,14 @@ const TiposDocumentoContainer = () => {
                                         type="text"
                                         id="nombreTipo"
                                         value={nombreTipo}
-                                        onChange={(e) =>
-                                            setNombreTipo(e.target.value)
-                                        }
+                                        onChange={e => setNombreTipo(e.target.value)}
                                         required
                                         style={{
                                             width: "100%",
                                             padding: "12px 15px",
                                             borderRadius: "8px",
                                             border: "1px solid #ccc",
-                                            fontSize: "16px",
+                                            fontSize: "16px"
                                         }}
                                     />
                                 </div>
@@ -231,7 +200,7 @@ const TiposDocumentoContainer = () => {
                                         style={{
                                             display: "block",
                                             marginBottom: "8px",
-                                            fontWeight: "600",
+                                            fontWeight: "600"
                                         }}
                                     >
                                         Cantidad a repetir
@@ -240,15 +209,13 @@ const TiposDocumentoContainer = () => {
                                         type="number"
                                         id="cantidadRepetir"
                                         value={cantidadRepetir}
-                                        onChange={(e) =>
-                                            setCantidadRepetir(e.target.value)
-                                        }
+                                        onChange={e => setCantidadRepetir(e.target.value)}
                                         style={{
                                             width: "100%",
                                             padding: "12px 15px",
                                             borderRadius: "8px",
                                             border: "1px solid #ccc",
-                                            fontSize: "16px",
+                                            fontSize: "16px"
                                         }}
                                     />
                                 </div>
@@ -259,7 +226,7 @@ const TiposDocumentoContainer = () => {
                                         style={{
                                             display: "block",
                                             marginBottom: "8px",
-                                            fontWeight: "600",
+                                            fontWeight: "600"
                                         }}
                                     >
                                         Descripción
@@ -268,16 +235,14 @@ const TiposDocumentoContainer = () => {
                                         type="text"
                                         id="descripcion"
                                         value={descripcion}
-                                        onChange={(e) =>
-                                            setDescripcion(e.target.value)
-                                        }
+                                        onChange={e => setDescripcion(e.target.value)}
                                         required
                                         style={{
                                             width: "100%",
                                             padding: "12px 15px",
                                             borderRadius: "8px",
                                             border: "1px solid #ccc",
-                                            fontSize: "16px",
+                                            fontSize: "16px"
                                         }}
                                     />
                                 </div>
@@ -287,26 +252,24 @@ const TiposDocumentoContainer = () => {
                                         marginBottom: "30px",
                                         display: "flex",
                                         alignItems: "center",
-                                        gap: "10px",
+                                        gap: "10px"
                                     }}
                                 >
                                     <input
                                         type="checkbox"
                                         id="estadoActivo"
                                         checked={estadoActivo}
-                                        onChange={(e) =>
-                                            setEstadoActivo(e.target.checked)
-                                        }
+                                        onChange={e => setEstadoActivo(e.target.checked)}
                                         style={{
                                             width: "18px",
-                                            height: "18px",
+                                            height: "18px"
                                         }}
                                     />
                                     <label
                                         htmlFor="estadoActivo"
                                         style={{
                                             fontWeight: "600",
-                                            cursor: "pointer",
+                                            cursor: "pointer"
                                         }}
                                     >
                                         Activo
@@ -323,12 +286,10 @@ const TiposDocumentoContainer = () => {
                                         borderRadius: "8px",
                                         fontSize: "16px",
                                         fontWeight: "600",
-                                        cursor: "pointer",
+                                        cursor: "pointer"
                                     }}
                                 >
-                                    {editingId
-                                        ? "Actualizar Tipo"
-                                        : "Guardar Tipo"}
+                                    {editingId ? "Actualizar Tipo" : "Guardar Tipo"}
                                 </button>
                             </form>
                         </div>
@@ -341,13 +302,13 @@ const TiposDocumentoContainer = () => {
                                 padding: "20px 30px",
                                 boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                                 maxHeight: "600px",
-                                overflowY: "auto",
+                                overflowY: "auto"
                             }}
                         >
                             <h3
                                 style={{
                                     marginBottom: "20px",
-                                    textAlign: "center",
+                                    textAlign: "center"
                                 }}
                             >
                                 Tipos de Documento Registrados
@@ -355,7 +316,7 @@ const TiposDocumentoContainer = () => {
                             <table
                                 style={{
                                     width: "100%",
-                                    borderCollapse: "collapse",
+                                    borderCollapse: "collapse"
                                 }}
                             >
                                 <thead>
@@ -364,7 +325,7 @@ const TiposDocumentoContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "left",
+                                                textAlign: "left"
                                             }}
                                         >
                                             Nombre
@@ -373,7 +334,7 @@ const TiposDocumentoContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "center",
+                                                textAlign: "center"
                                             }}
                                         >
                                             Cantidad
@@ -382,7 +343,7 @@ const TiposDocumentoContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "left",
+                                                textAlign: "left"
                                             }}
                                         >
                                             Descripción
@@ -391,7 +352,7 @@ const TiposDocumentoContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "center",
+                                                textAlign: "center"
                                             }}
                                         >
                                             Estado
@@ -400,7 +361,7 @@ const TiposDocumentoContainer = () => {
                                             style={{
                                                 borderBottom: "2px solid #eee",
                                                 padding: "10px",
-                                                textAlign: "center",
+                                                textAlign: "center"
                                             }}
                                         >
                                             Acciones
@@ -408,15 +369,13 @@ const TiposDocumentoContainer = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {Array.isArray(tipos) &&
-                                    tipos.length > 0 ? (
-                                        tipos.map((tipo) => (
+                                    {Array.isArray(tipos) && tipos.length > 0 ? (
+                                        tipos.map(tipo => (
                                             <tr key={tipo.idtipodocumento}>
                                                 <td
                                                     style={{
                                                         padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
+                                                        borderBottom: "1px solid #f0f0f0"
                                                     }}
                                                 >
                                                     {tipo.nombretipo}
@@ -425,18 +384,15 @@ const TiposDocumentoContainer = () => {
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
+                                                        borderBottom: "1px solid #f0f0f0"
                                                     }}
                                                 >
-                                                    {tipo.cantidadrepetir ||
-                                                        "-"}
+                                                    {tipo.cantidadrepetir || "-"}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
+                                                        borderBottom: "1px solid #f0f0f0"
                                                     }}
                                                 >
                                                     {tipo.descripcion}
@@ -445,41 +401,32 @@ const TiposDocumentoContainer = () => {
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        color: tipo.estado
-                                                            ? "green"
-                                                            : "red",
+                                                        color: tipo.estado ? "green" : "red",
                                                         fontWeight: "600",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
+                                                        borderBottom: "1px solid #f0f0f0"
                                                     }}
                                                 >
-                                                    {tipo.estado
-                                                        ? "Activo"
-                                                        : "Inactivo"}
+                                                    {tipo.estado ? "Activo" : "Inactivo"}
                                                 </td>
                                                 <td
                                                     style={{
                                                         padding: "10px",
                                                         textAlign: "center",
-                                                        borderBottom:
-                                                            "1px solid #f0f0f0",
+                                                        borderBottom: "1px solid #f0f0f0"
                                                     }}
                                                 >
                                                     <button
                                                         type="button"
-                                                        onClick={() =>
-                                                            handleEdit(tipo)
-                                                        }
+                                                        onClick={() => handleEdit(tipo)}
                                                         style={{
                                                             padding: "6px 14px",
-                                                            background:
-                                                                " #FED7AA",
+                                                            background: " #FED7AA",
                                                             color: "#fff",
                                                             border: "none",
                                                             borderRadius: "5px",
                                                             cursor: "pointer",
                                                             fontSize: "14px",
-                                                            marginRight: "6px",
+                                                            marginRight: "6px"
                                                         }}
                                                     >
                                                         Editar
@@ -488,23 +435,15 @@ const TiposDocumentoContainer = () => {
                                                     {tipo.estado ? (
                                                         <button
                                                             type="button"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    tipo.idtipodocumento
-                                                                )
-                                                            }
+                                                            onClick={() => handleDelete(tipo.idtipodocumento)}
                                                             style={{
-                                                                padding:
-                                                                    "6px 14px",
-                                                                background:
-                                                                    "#F87171",
+                                                                padding: "6px 14px",
+                                                                background: "#F87171",
                                                                 color: "#fff",
                                                                 border: "none",
-                                                                borderRadius:
-                                                                    "5px",
+                                                                borderRadius: "5px",
                                                                 cursor: "pointer",
-                                                                fontSize:
-                                                                    "14px",
+                                                                fontSize: "14px"
                                                             }}
                                                         >
                                                             Desactivar
@@ -512,23 +451,15 @@ const TiposDocumentoContainer = () => {
                                                     ) : (
                                                         <button
                                                             type="button"
-                                                            onClick={() =>
-                                                                handleActivate(
-                                                                    tipo.idtipodocumento
-                                                                )
-                                                            }
+                                                            onClick={() => handleActivate(tipo.idtipodocumento)}
                                                             style={{
-                                                                padding:
-                                                                    "6px 14px",
-                                                                background:
-                                                                    "#28a745",
+                                                                padding: "6px 14px",
+                                                                background: "#28a745",
                                                                 color: "#fff",
                                                                 border: "none",
-                                                                borderRadius:
-                                                                    "5px",
+                                                                borderRadius: "5px",
                                                                 cursor: "pointer",
-                                                                fontSize:
-                                                                    "14px",
+                                                                fontSize: "14px"
                                                             }}
                                                         >
                                                             Activar
@@ -543,11 +474,10 @@ const TiposDocumentoContainer = () => {
                                                 colSpan="5"
                                                 style={{
                                                     textAlign: "center",
-                                                    padding: "20px",
+                                                    padding: "20px"
                                                 }}
                                             >
-                                                No hay tipos de documento
-                                                registrados
+                                                No hay tipos de documento registrados
                                             </td>
                                         </tr>
                                     )}
