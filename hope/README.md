@@ -1,70 +1,204 @@
-# Getting Started with Create React App
+# SERJUS Frontend - Sistema de Gestión de Recursos Humanos
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sistema frontend desarrollado en React para la gestión integral de recursos humanos de SERJUS, incluyendo módulos de empleados, capacitaciones, evaluaciones, contratos y más.
 
-## Available Scripts
+## 🚀 Características Principales
 
-In the project directory, you can run:
+- **Gestión de Empleados**: Registro, edición y seguimiento completo de empleados
+- **Sistema de Capacitaciones**: Asignación y seguimiento de capacitaciones del personal
+- **Evaluaciones**: Módulo completo de evaluaciones de desempeño
+- **Gestión Documental**: Manejo de documentos y contratos laborales
+- **Módulo de Inducciones**: Sistema de inducción para nuevos empleados
+- **Dashboard Interactivo**: Visualización de métricas y estadísticas
+- **Sistema de Notificaciones**: Alertas y recordatorios automatizados
 
-### `yarn start`
+## 🛠️ Tecnologías Utilizadas
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **React 18.2.0** - Biblioteca principal de UI
+- **React Router DOM 5.2.0** - Navegación y enrutamiento
+- **React Hook Form 6.14.2** - Manejo de formularios
+- **Axios 1.12.2** - Cliente HTTP para API calls
+- **React Toastify 11.0.5** - Sistema de notificaciones
+- **Sass 1.32.8** - Preprocesador CSS
+- **AOS 2.3.4** - Animaciones on scroll
+- **React Icons 5.5.0** - Iconografía
+- **React Select 5.10.2** - Componentes de selección avanzados
+- **Swiper 6.5.6** - Componentes de carrusel
+- **Lucide React 0.544.0** - Iconos modernos
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 📋 Prerrequisitos
 
-### `yarn test`
+Antes de comenzar, asegúrate de tener instalado:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Node.js** (versión 14 o superior)
+- **Yarn** o **npm** como gestor de paquetes
+- **Git** para control de versiones
 
-### `yarn build`
+## 🔧 Instalación y Configuración
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/Sebasu111/serjus_frontend.git
+cd serjus_frontend/hope
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 2. Instalar dependencias
+```bash
+yarn install
+# o
+npm install
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 3. Configurar variables de entorno
+Crea un archivo `.env` en la raíz del proyecto:
+```env
+REACT_APP_API_URL=http://localhost:8000/api
+REACT_APP_ENV=development
+```
 
-### `yarn eject`
+### 4. Ejecutar en modo desarrollo
+```bash
+yarn start
+# o
+npm start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+La aplicación estará disponible en [http://localhost:3000](http://localhost:3000)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📝 Scripts Disponibles
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Desarrollo
+```bash
+yarn start          # Inicia el servidor de desarrollo
+yarn test           # Ejecuta las pruebas
+yarn lint           # Ejecuta ESLint para revisar el código
+yarn lint:fix       # Ejecuta ESLint y corrige errores automáticamente
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Producción
+```bash
+yarn build          # Construye la aplicación para producción
+yarn build:analyze  # Analiza el tamaño del bundle
+```
 
-## Learn More
+## 🏗️ Estructura del Proyecto
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+src/
+├── assets/             # Recursos estáticos (CSS, imágenes, fuentes)
+│   ├── css/           # Archivos CSS externos
+│   ├── scss/          # Archivos Sass/SCSS
+│   └── fonts/         # Fuentes personalizadas
+├── components/         # Componentes reutilizables
+│   ├── menu/          # Componentes de navegación
+│   ├── sidebar/       # Componentes de barra lateral
+│   └── social-icon/   # Iconos sociales
+├── containers/         # Contenedores principales de funcionalidad
+│   ├── Empleados/     # Módulo de empleados
+│   ├── capacitacion/  # Módulo de capacitaciones
+│   ├── Evaluaciones/  # Módulo de evaluaciones
+│   ├── contratos/     # Módulo de contratos
+│   └── ...           # Otros módulos
+├── layouts/           # Layouts principales
+│   ├── header/        # Componente de header
+│   └── footer/        # Componente de footer
+├── pages/             # Páginas principales
+├── utils/             # Utilidades y helpers
+└── stylesGenerales/   # Estilos globales reutilizables
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🔍 Características de Código
 
-### Code Splitting
+### ESLint Configuración
+El proyecto incluye una configuración robusta de ESLint con:
+- Reglas específicas para React
+- Configuración para JSX
+- Integración con Prettier
+- Reglas de accesibilidad
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Responsive Design
+- Diseño completamente responsive
+- Mobile-first approach
+- Breakpoints optimizados para diferentes dispositivos
 
-### Analyzing the Bundle Size
+### Optimizaciones de Performance
+- Lazy loading de componentes
+- Optimización de imágenes
+- Code splitting automático
+- Bundle analysis incluido
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 🧪 Testing
 
-### Making a Progressive Web App
+```bash
+yarn test              # Ejecuta todas las pruebas
+yarn test:coverage     # Ejecuta pruebas con reporte de cobertura
+yarn test:watch        # Ejecuta pruebas en modo watch
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🚀 Deployment
 
-### Advanced Configuration
+### Build para Producción
+```bash
+yarn build
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Los archivos optimizados se generarán en la carpeta `build/`.
 
-### Deployment
+### Variables de Entorno para Producción
+```env
+REACT_APP_API_URL=https://api.serjus.com
+REACT_APP_ENV=production
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 🔧 Resolución de Problemas Comunes
 
-### `yarn build` fails to minify
+### Error de ESLint Plugin Conflictos
+Este problema se resolvió actualizando las dependencias de ESLint:
+- Actualización de ESLint a versión 8.57.0
+- Compatibilidad mejorada entre plugins
+- Configuración unificada en `.eslintrc.js`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Problemas de Sass Deprecation
+Las advertencias de Sass son conocidas y no afectan la funcionalidad. Para resolverlas:
+```bash
+yarn add sass@latest
+```
+
+## 📦 Dependencias Principales
+
+### Producción
+- React 18.2.0 & React DOM
+- React Router DOM para navegación
+- Axios para peticiones HTTP
+- React Hook Form para formularios
+- React Toastify para notificaciones
+
+### Desarrollo
+- ESLint 8.57.0 con plugins actualizados
+- Prettier para formateo de código
+- Babel ESLint Parser
+- React Scripts 5.0.1
+
+## 👥 Contribución
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -m 'Añadir nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto es propiedad de SERJUS. Todos los derechos reservados.
+
+## 🆘 Soporte
+
+Para soporte técnico o preguntas sobre el proyecto:
+- Abrir un issue en GitHub
+- Contactar al equipo de desarrollo
+
+---
+
+**Última actualización**: Octubre 2025  
+**Versión**: 0.1.0  
+**Estado**: ✅ Funcionando correctamente
