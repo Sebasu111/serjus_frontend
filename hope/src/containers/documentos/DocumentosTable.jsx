@@ -48,7 +48,6 @@ const DocumentosTable = ({
                 <thead>
                     <tr>
                         <th style={thStyle}>Nombre</th>
-                        <th style={{ ...thStyle, textAlign: "left" }}>MIME</th>
                         <th style={thStyle}>Fecha</th>
                         <th style={thStyle}>Empleado</th>
                         <th style={thStyle}>Tipo</th>
@@ -64,7 +63,6 @@ const DocumentosTable = ({
                                         ? d.nombrearchivo
                                         : `${d.nombrearchivo} (sin archivo)`}
                                 </td>
-                                <td style={tdStyle}>{d.mimearchivo}</td>
                                 <td style={tdStyle}>{formatDate(d.fechasubida)}</td>
                                 <td style={tdStyle}>
                                     {empleados.find((e) => e.idempleado === d.idempleado)
@@ -138,7 +136,7 @@ const DocumentosTable = ({
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
+                            <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
                                 No hay documentos registrados
                             </td>
                         </tr>
