@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 import Layout from "../../layouts";
@@ -7,9 +7,7 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import { ToastContainer } from "react-toastify";
-
-import PuebloCulturaForm from "./PuebloCulturaForm";
+import {  } from "react-toastify";import PuebloCulturaForm from "./PuebloCulturaForm";
 import ConfirmModal from "./ConfirmModal";
 import PuebloCulturaTable from "./PuebloCulturaTable";
 
@@ -145,12 +143,19 @@ const PuebloCulturaContainer = () => {
         }
     };
 
-    const filtrados = items.filter(i => {
-        const t = busqueda.toLowerCase().trim();
-        const n = i.nombrePueblo?.toLowerCase() || "";
-        const e = i.estado ? "activo" : "inactivo";
-        return n.includes(t) || e.startsWith(t);
-    });
+    const filtrados = items
+        // Ordenar alfabéticamente por nombre (A-Z)
+        .sort((a, b) => {
+            const nombreA = (a.nombrePueblo || "").toLowerCase();
+            const nombreB = (b.nombrePueblo || "").toLowerCase();
+            return nombreA.localeCompare(nombreB);
+        })
+        .filter(i => {
+            const t = busqueda.toLowerCase().trim();
+            const n = i.nombrePueblo?.toLowerCase() || "";
+            const e = i.estado ? "activo" : "inactivo";
+            return n.includes(t) || e.startsWith(t);
+        });
 
     const indexLast = paginaActual * elementosPorPagina;
     const indexFirst = indexLast - elementosPorPagina;
@@ -276,7 +281,6 @@ const PuebloCulturaContainer = () => {
                     />
                 )}
 
-                <ToastContainer />
                 <ScrollToTop />
             </div>
         </Layout>
@@ -284,3 +288,4 @@ const PuebloCulturaContainer = () => {
 };
 
 export default PuebloCulturaContainer;
+

@@ -5,7 +5,6 @@ import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
-import { ToastContainer } from "react-toastify";
 import { showToast } from "../../utils/toast.js";
 import PuestoForm from "./PuestoForm";
 import PuestosTable from "./PuestosTable";
@@ -87,12 +86,19 @@ const PuestosContainer = () => {
         }
     };
 
-    const puestosFiltrados = puestos.filter(p => {
-        const texto = busqueda.toLowerCase().trim();
-        const nombreCoincide = p.nombrepuesto?.toLowerCase().includes(texto) || false;
-        const estadoCoincide = (p.estado ? "activo" : "inactivo").startsWith(texto);
-        return nombreCoincide || estadoCoincide;
-    });
+    const puestosFiltrados = puestos
+        // Ordenar alfabéticamente por nombre (A-Z)
+        .sort((a, b) => {
+            const nombreA = (a.nombrepuesto || "").toLowerCase();
+            const nombreB = (b.nombrepuesto || "").toLowerCase();
+            return nombreA.localeCompare(nombreB);
+        })
+        .filter(p => {
+            const texto = busqueda.toLowerCase().trim();
+            const nombreCoincide = p.nombrepuesto?.toLowerCase().includes(texto) || false;
+            const estadoCoincide = (p.estado ? "activo" : "inactivo").startsWith(texto);
+            return nombreCoincide || estadoCoincide;
+        });
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
@@ -206,8 +212,6 @@ const PuestosContainer = () => {
                         onCancel={() => setConfirmModalVisible(false)}
                     />
                 )}
-
-                <ToastContainer />
             </div>
         </Layout>
     );

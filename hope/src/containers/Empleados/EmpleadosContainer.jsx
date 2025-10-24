@@ -15,8 +15,7 @@ import { generarFichasPDF } from "./fichasPdf";
 import logo from "./logo-asjerjus.png";
 
 // 🔔 toasts y estilos compartidos
-import { showToast } from "../../utils/toast.js";
-import { ToastContainer } from "react-toastify";
+import { showToast, showPDFToasts } from "../../utils/toast.js";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 const API = "http://127.0.0.1:8000/api";
@@ -156,6 +155,7 @@ const EmpleadosContainer = () => {
     const [accionEstado, setAccionEstado] = useState(null); // "activar" | "desactivar"
     const [showDownload, setShowDownload] = useState(false);
     const [hoverDesc, setHoverDesc] = useState(false);
+    const [generandoPDF, setGenerandoPDF] = useState(false);
 
     // catálogo
     const [idiomas, setIdiomas] = useState([]);
@@ -251,7 +251,8 @@ const EmpleadosContainer = () => {
         }
         if (name === "nit" && !form.isCF) {
             const v = String(value).trim().toUpperCase().replace(/\s+/g, "");
-            if (!/^\d{8}$/.test(v)) msg = "Debe tener 8 dígitos";
+            // Validar formato: 7-8 dígitos, opcionalmente terminado en K
+            if (!/^(\d{7,8}|\d{7}K)$/.test(v)) msg = "Formato inválido";
         }
         if (name === "email" && value && !emailRegex.test(String(value))) msg = "Correo inválido";
         if (name === "numerohijos") {
@@ -277,8 +278,20 @@ const EmpleadosContainer = () => {
             if (String(val).length > 13) return;
         }
         if (name === "nit") {
-            if (!/^\d*$/.test(raw)) return;
-            if (String(raw).length > 8) return;
+            // Permitir dígitos y la letra K (solo una K al final como dígito verificador)
+            const cleanValue = String(raw).toUpperCase();
+            if (!/^[\dK]*$/.test(cleanValue)) return;
+            if (cleanValue.length > 8) return;
+            // Si hay una K, debe ser solo una y al final
+            const kCount = (cleanValue.match(/K/g) || []).length;
+            if (kCount > 1) return;
+            if (kCount === 1 && !cleanValue.endsWith('K')) return;
+            
+            // Actualizar el valor con la K en mayúscula si aplica
+            setForm(f => ({ ...f, [name]: cleanValue }));
+            const msg = validateField(name, cleanValue);
+            setErrors(er => ({ ...er, [name]: msg || false }));
+            return;
         }
         if (["telefonoresidencial", "telefonocelular", "telefonoemergencia"].includes(name)) {
             if (!/^\d*$/.test(String(raw))) return;
@@ -316,10 +329,11 @@ const EmpleadosContainer = () => {
             }
         }
 
-        // Chequeo de NIT duplicado en tiempo real cuando alcanza 8 dígitos
+        // Chequeo de NIT duplicado en tiempo real cuando alcanza longitud válida
         if (name === "nit" && !form.isCF) {
-            const s = String(raw || "");
-            if (s.length === 8) {
+            const s = String(raw || "").toUpperCase();
+            // Validar cuando tenga 7-8 caracteres (incluyendo K al final)
+            if (s.length >= 7 && (s.length === 8 || (s.length === 8 && s.endsWith('K')))) {
                 const found = data.find(r => {
                     const nitR = String(r.nit || "").trim().toUpperCase().replace(/\s+/g, "");
                     return nitR === s && nitR !== "C/F";
@@ -407,7 +421,7 @@ const EmpleadosContainer = () => {
 
         if (form.dpi && String(form.dpi).length !== 13) put("dpi", "Debe tener 13 dígitos");
         if (form.numeroiggs && String(form.numeroiggs).length !== 13) put("numeroiggs", "Debe tener 13 dígitos");
-        if (!form.isCF && form.nit && !/^\d{8}$/.test(String(form.nit).trim())) put("nit", "Debe tener 8 dígitos");
+        if (!form.isCF && form.nit && !/^(\d{7,8}|\d{7}K)$/.test(String(form.nit).trim().toUpperCase())) put("nit", "Formato inválido (7-8 dígitos o 7 dígitos + K)");
 
         // DPI único (si se ingresa)
         if (form.dpi) {
@@ -536,13 +550,23 @@ const EmpleadosContainer = () => {
 
     const handleGeneratePDF = async seleccion => {
         try {
+            setGenerandoPDF(true);
+            showPDFToasts.generando();
+            
             const catalogos = { idiomas, pueblos, equipos, puestos };
             await generarFichasPDF(seleccion, catalogos, logo);
+            
+            // Primero cerramos el modal y limpiamos el estado
             setShowDownload(false);
-            showToast("PDF generado correctamente");
+            setGenerandoPDF(false);
+            
+            // Mostrar toast de éxito con transición suave
+            showPDFToasts.descargado();
+            
         } catch (e) {
             console.error(e);
-            showToast("No se pudo generar el PDF", "error");
+            setGenerandoPDF(false);
+            showPDFToasts.error();
         }
     };
 
@@ -719,7 +743,12 @@ const EmpleadosContainer = () => {
     };
     const indexable = useMemo(
         () =>
-            data.map(r => {
+            // Ordenar por ID descendente (último agregado primero)
+            [...data].sort((a, b) => {
+                const idA = empId(a) || 0;
+                const idB = empId(b) || 0;
+                return idB - idA; // Orden descendente
+            }).map(r => {
                 const idioma = labelFrom(r.ididioma, idiomas, "idioma");
                 const pueblo = labelFrom(r.idpueblocultura, pueblos, "pueblo");
                 const equipo = labelFrom(r.idequipo, equipos, "equipo");
@@ -828,12 +857,15 @@ const EmpleadosContainer = () => {
                                         Nuevo Empleado
                                     </button>
                                     <button
-                                        onClick={() => setShowDownload(true)}
+                                        onClick={() => !generandoPDF && setShowDownload(true)}
                                         onMouseEnter={() => setHoverDesc(true)}
                                         onMouseLeave={() => setHoverDesc(false)}
+                                        disabled={generandoPDF}
                                         style={{
                                             ...buttonStyles.descargar,
-                                            background: hoverDesc ? "#021826" : buttonStyles.descargar.background,
+                                            background: generandoPDF ? "#cccccc" : (hoverDesc ? "#021826" : buttonStyles.descargar.background),
+                                            opacity: generandoPDF ? 0.6 : 1,
+                                            cursor: generandoPDF ? "not-allowed" : "pointer",
                                             display: "inline-flex",
                                             alignItems: "center",
                                             gap: 10
@@ -870,7 +902,7 @@ const EmpleadosContainer = () => {
                                                 strokeLinejoin="round"
                                             />
                                         </svg>
-                                        <span>Descargar ficha(s)</span>
+                                        <span>{generandoPDF ? "Generando PDF..." : "Descargar ficha(s)"}</span>
                                     </button>
                                 </div>
                             </div>
@@ -950,6 +982,7 @@ const EmpleadosContainer = () => {
                         empleados={data}
                         onClose={() => setShowDownload(false)}
                         onGenerate={handleGeneratePDF}
+                        generandoPDF={generandoPDF}
                     />
                 )}
 
@@ -1099,8 +1132,6 @@ const EmpleadosContainer = () => {
                     </div>
                 )}
             </div>
-
-            <ToastContainer />
         </Layout>
     );
 };

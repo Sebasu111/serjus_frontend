@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+﻿import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header/index.jsx";
@@ -8,11 +8,12 @@ import SEO from "../../components/seo/index.jsx";
 import ContratoEditor from "./ContratoEditor.jsx";
 import ContratoForm from "./ContratoForm.jsx";
 import html2pdf from "html2pdf.js";
-import { ToastContainer } from "react-toastify";
+import { showPDFToasts } from "../../utils/toast.js";
 
 const API = "http://127.0.0.1:8000/api";
 
 const ContratosContainer = () => {
+    const [generandoPDF, setGenerandoPDF] = useState(false);
     const [data, setData] = useState({
         nombreEmpleadora: "",
         edadEmpleadora: "",
@@ -49,48 +50,71 @@ const ContratosContainer = () => {
         setData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handlePrint = () => {
-        const content = document.getElementById("printable");
-        if (!content) return;
+    const handlePrint = async () => {
+        try {
+            setGenerandoPDF(true);
+            showPDFToasts.generando();
 
-        // Guardamos los estilos originales
-        const inputs = content.querySelectorAll(".input-field");
-        const originalStyles = [];
-        inputs.forEach((el, i) => {
-            originalStyles[i] = {
-                background: el.style.background,
-                border: el.style.border,
-                boxShadow: el.style.boxShadow,
-                padding: el.style.padding
-            };
-            el.style.background = "transparent";
-            el.style.border = "none";
-            el.style.boxShadow = "none";
-            el.style.padding = "0";
-        });
+            const content = document.getElementById("printable");
+            if (!content) {
+                throw new Error("No se encontró el contenido a imprimir");
+            }
 
-        const opt = {
-            margin: [20, 20, 20, 20],
-            filename: "Contrato_Individual_de_Trabajo.pdf",
-            image: { type: "jpeg", quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
-            pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-        };
-
-        html2pdf()
-            .set(opt)
-            .from(content)
-            .save()
-            .finally(() => {
-                // Restauramos estilos originales
-                inputs.forEach((el, i) => {
-                    el.style.background = originalStyles[i].background;
-                    el.style.border = originalStyles[i].border;
-                    el.style.boxShadow = originalStyles[i].boxShadow;
-                    el.style.padding = originalStyles[i].padding;
-                });
+            // Guardamos los estilos originales
+            const inputs = content.querySelectorAll(".input-field");
+            const originalStyles = [];
+            inputs.forEach((el, i) => {
+                originalStyles[i] = {
+                    background: el.style.background,
+                    border: el.style.border,
+                    boxShadow: el.style.boxShadow,
+                    padding: el.style.padding
+                };
+                el.style.background = "transparent";
+                el.style.border = "none";
+                el.style.boxShadow = "none";
+                el.style.padding = "0";
             });
+
+            const opt = {
+                margin: [20, 20, 20, 20],
+                filename: "Contrato_Individual_de_Trabajo.pdf",
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
+                pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+            };
+
+            // Envolver html2pdf en una promesa
+            await new Promise((resolve, reject) => {
+                html2pdf()
+                    .set(opt)
+                    .from(content)
+                    .save()
+                    .then(() => {
+                        // Restauramos estilos originales
+                        inputs.forEach((el, i) => {
+                            el.style.background = originalStyles[i].background;
+                            el.style.border = originalStyles[i].border;
+                            el.style.boxShadow = originalStyles[i].boxShadow;
+                            el.style.padding = originalStyles[i].padding;
+                        });
+                        // Simular tiempo de procesamiento y descarga
+                        setTimeout(() => {
+                            resolve();
+                        }, 1200);
+                    })
+                    .catch(reject);
+            });
+
+            setGenerandoPDF(false);
+            showPDFToasts.descargado();
+
+        } catch (error) {
+            console.error("Error al generar contrato:", error);
+            setGenerandoPDF(false);
+            showPDFToasts.error();
+        }
     };
 
     return (
@@ -113,7 +137,7 @@ const ContratosContainer = () => {
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Contratos</h2>
 
-                            <ContratoForm data={data} onChange={onChange} imprimirContrato={handlePrint} />
+                            <ContratoForm data={data} onChange={onChange} imprimirContrato={handlePrint} generandoPDF={generandoPDF} />
 
                             {/* Pasamos el ref al editor */}
                             <ContratoEditor ref={editorRef} data={data} />
@@ -122,10 +146,11 @@ const ContratosContainer = () => {
                     <Footer />
                     <ScrollToTop />
                 </div>
-                <ToastContainer />
+                
             </div>
         </Layout>
     );
 };
 
 export default ContratosContainer;
+

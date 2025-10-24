@@ -5,7 +5,6 @@ import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
-import { ToastContainer } from "react-toastify";
 import { showToast } from "../../utils/toast.js";
 import AsistenciaModal from "../../components/confirmarasistencia/AsistenciaModal.jsx";
 import CapacitacionesSection from "./CapacitacionesSection.jsx";
@@ -146,8 +145,6 @@ const PerfilContainer = () => {
                     capacitacion={capacitacionSeleccionada}
                     onGuardar={actualizarCapacitacion}
                 />
-
-                <ToastContainer position="top-right" autoClose={5000} />
             </div>
         </Layout>
     );

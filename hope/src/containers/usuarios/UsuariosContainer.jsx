@@ -6,7 +6,6 @@ import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
-import { ToastContainer } from "react-toastify";
 import { showToast } from "../../utils/toast.js";
 
 import FormUsuario from "../../containers/usuarios/FormUsuario";
@@ -214,13 +213,16 @@ const UsuariosContainer = () => {
     };
 
     // --- Filtrado y paginación ---
-    const usuariosFiltrados = usuarios.filter(u => {
-        const textoBusqueda = busqueda.toLowerCase().trim();
-        const nombreCoincide = u.nombreusuario.toLowerCase().includes(textoBusqueda);
-        const estadoTexto = u.estado ? "activo" : "inactivo";
-        const estadoCoincide = estadoTexto.startsWith(textoBusqueda);
-        return nombreCoincide || estadoCoincide;
-    });
+    const usuariosFiltrados = usuarios
+        // Ordenar por ID descendente (último agregado primero)
+        .sort((a, b) => (b.idusuario || 0) - (a.idusuario || 0))
+        .filter(u => {
+            const textoBusqueda = busqueda.toLowerCase().trim();
+            const nombreCoincide = u.nombreusuario.toLowerCase().includes(textoBusqueda);
+            const estadoTexto = u.estado ? "activo" : "inactivo";
+            const estadoCoincide = estadoTexto.startsWith(textoBusqueda);
+            return nombreCoincide || estadoCoincide;
+        });
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
@@ -357,8 +359,6 @@ const UsuariosContainer = () => {
                     usuarioSeleccionado={usuarioSeleccionado}
                     confirmarDesactivacion={confirmarDesactivacion}
                 />
-
-                <ToastContainer />
             </div>
         </Layout>
     );

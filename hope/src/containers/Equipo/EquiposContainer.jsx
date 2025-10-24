@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+﻿import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 
 import Layout from "../../layouts";
@@ -7,8 +7,7 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import { ToastContainer } from "react-toastify";
-import { buttonStyles } from "../../stylesGenerales/buttons.js";
+import {  } from "react-toastify";import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 import EquipoForm from "./EquipoForm";
 import EquiposTable from "./EquiposTable";
@@ -69,7 +68,7 @@ const Item = ({ label, value, full }) => (
         >
             {label}
         </div>
-        <div style={{ fontWeight: 700, fontSize: 18, color: "#0f172a", lineHeight: 1.35 }}>{value || "—"}</div>
+        <div style={{ fontWeight: 700, fontSize: 18, color: "#0f172a", lineHeight: 1.35 }}>{value || "â€”"}</div>
     </div>
 );
 
@@ -423,8 +422,16 @@ const EquiposContainer = () => {
     // ====== Búsqueda y paginado (en equiposConMiembros) ======
     const equiposFiltrados = useMemo(() => {
         const texto = busqueda.toLowerCase().trim();
-        if (!texto) return equiposConMiembros;
-        return equiposConMiembros.filter(e => {
+        const equiposOrdenados = [...equiposConMiembros]
+            // Ordenar alfabéticamente por nombre (A-Z)
+            .sort((a, b) => {
+                const nombreA = (a.nombreEquipo || "").toLowerCase();
+                const nombreB = (b.nombreEquipo || "").toLowerCase();
+                return nombreA.localeCompare(nombreB);
+            });
+            
+        if (!texto) return equiposOrdenados;
+        return equiposOrdenados.filter(e => {
             const porNombre = (e.nombreEquipo || "").toLowerCase().includes(texto);
             const porCoord = (empleadosMap.get(e.idCoordinador) || "").toLowerCase().includes(texto);
             return porNombre || porCoord;
@@ -520,7 +527,7 @@ const EquiposContainer = () => {
 
                 {mostrarFormulario && (
                     <EquipoForm
-                        equipos={equiposConMiembros} // ← pasamos la versión fusionada
+        equipos={equiposConMiembros} // ← pasamos la versión fusionada
                         idEquipo={idEquipo}
                         setIdEquipo={setIdEquipo}
                         idCoordinador={idCoordinador}
@@ -602,7 +609,7 @@ const EquiposContainer = () => {
                                     onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
                                     onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
                                 >
-                                    ✕
+                                    âœ•
                                 </button>
                             </div>
 
@@ -637,7 +644,7 @@ const EquiposContainer = () => {
                             <div style={{ display: "grid", gap: 22 }}>
                                 <Section title="Coordinación">
                                     <Grid>
-                                        <Item label="Coordinador" value={detalle.coordinadorNombre || "—"} />
+                                        <Item label="Coordinador" value={detalle.coordinadorNombre || "â€”"} />
                                     </Grid>
                                 </Section>
 
@@ -667,10 +674,10 @@ const EquiposContainer = () => {
                     </div>
                 )}
 
-                <ToastContainer />
             </div>
         </Layout>
     );
 };
 
 export default EquiposContainer;
+

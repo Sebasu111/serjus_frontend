@@ -5,8 +5,6 @@ import SEO from "../components/seo";
 import axios from "axios";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { showToast } from "../utils/toast.js";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage = () => {
     const history = useHistory();
@@ -259,8 +257,6 @@ const LoginPage = () => {
                     </form>
                 </div>
             </div>
-            {/*   Contenedor global de toasts */}
-            <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
         </>
     );
 };

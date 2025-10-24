@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
-import { ToastContainer } from "react-toastify";
-import { X } from "lucide-react";
+import {  } from "react-toastify";import { X } from "lucide-react";
 
 const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
     const [empleados, setEmpleados] = useState([]);
     const [capacitaciones, setCapacitaciones] = useState([]);
     const [empleadosSeleccionados, setEmpleadosSeleccionados] = useState([]);
-    const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(capacitacionInicial || "");
+    const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(
+        capacitacionInicial ? (capacitacionInicial.idcapacitacion || capacitacionInicial.id) : ""
+    );
     const [observacion, setObservacion] = useState("");
     const [showError, setShowError] = useState(false);
     const [busqueda, setBusqueda] = useState(""); // <-- Nuevo estado para búsqueda
@@ -100,7 +101,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
             }
 
             if (asignacionesRealizadas > 0) {
-                showToast("Capacitación asignada correctamente", "success");
+                showToast("Colaboradores asignados correctamente", "success");
                 setEmpleadosSeleccionados([]);
                 setCapacitacionSeleccionada(capacitacionInicial || "");
                 setObservacion("");
@@ -109,7 +110,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
             }
         } catch (error) {
             console.error(error);
-            showToast("Error al asignar capacitación", "error");
+            showToast("Error al asignar colaboradores", "error");
         }
     };
 
@@ -137,51 +138,52 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 flexDirection: "column"
             }}
         >
-            <h3 style={{ textAlign: "center", marginBottom: "20px" }}>Asignar Capacitación</h3>
+            <h3 style={{ textAlign: "center", marginBottom: "20px" }}>Asignar Colaboradores</h3>
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                 {/* Capacitación */}
-                <div>
-                    <label style={{ display: "block", marginBottom: "6px" }}>
-                        Seleccione una capacitación <span style={{ color: "red" }}>*</span>
-                    </label>
-                    <select
-                        value={capacitacionSeleccionada}
-                        onChange={e => setCapacitacionSeleccionada(e.target.value)}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            borderRadius: "6px",
-                            border: "1px solid #ccc"
-                        }}
-                    >
-                        <option value="">Seleccione una capacitación</option>
-                        {capacitaciones.map(cap => (
-                            <option key={cap.idcapacitacion || cap.id} value={cap.idcapacitacion || cap.id}>
-                                {cap.nombreevento}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Filtro de empleados */}
-                <div>
-                    <label style={{ display: "block", marginBottom: "6px" }}>Buscar empleado</label>
-                    <input
-                        type="text"
-                        placeholder="Buscar por nombre o apellido..."
-                        value={busqueda}
-                        onChange={e => setBusqueda(e.target.value)}
-                        style={{
-                            width: "100%",
-                            padding: "8px",
-                            borderRadius: "6px",
-                            border: "1px solid #ccc",
-                            marginBottom: "8px"
-                        }}
-                    />
-                </div>
+                {capacitacionInicial ? (
+                    // Mostrar capacitación preseleccionada
+                    <div style={{ 
+                        padding: "12px", 
+                        backgroundColor: "#e3f2fd", 
+                        border: "1px solid #2196f3", 
+                        borderRadius: "6px",
+                        marginBottom: "10px"
+                    }}>
+                        <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold", color: "#1976d2" }}>
+                            Capacitación seleccionada:
+                        </label>
+                        <div style={{ fontSize: "16px", color: "#0d47a1" }}>
+                            {capacitacionInicial.nombreevento}
+                        </div>
+                    </div>
+                ) : (
+                    // Mostrar selector cuando no hay capacitación preseleccionada
+                    <div>
+                        <label style={{ display: "block", marginBottom: "6px" }}>
+                            Seleccione una capacitación <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <select
+                            value={capacitacionSeleccionada}
+                            onChange={e => setCapacitacionSeleccionada(e.target.value)}
+                            required
+                            style={{
+                                width: "100%",
+                                padding: "10px",
+                                borderRadius: "6px",
+                                border: "1px solid #ccc"
+                            }}
+                        >
+                            <option value="">Seleccione una capacitación</option>
+                            {capacitaciones.map(cap => (
+                                <option key={cap.idcapacitacion || cap.id} value={cap.idcapacitacion || cap.id}>
+                                    {cap.nombreevento}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
                 {/* Empleados */}
                 <div>
@@ -191,41 +193,105 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
 
                     <div
                         style={{
-                            maxHeight: "120px",
-                            overflowY: "auto",
                             border: `1px solid ${empleadosSeleccionados.length === 0 && showError ? "red" : "#ccc"}`,
                             borderRadius: "6px",
-                            padding: "8px",
                             backgroundColor: "#f9fafb"
                         }}
                     >
-                        {empleadosFiltrados.length > 0 ? (
-                            empleadosFiltrados.map(emp => (
-                                <label
-                                    key={emp.idempleado || emp.id}
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
-                                        padding: "6px 4px",
-                                        borderBottom: "1px solid #eee",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={empleadosSeleccionados.includes(emp.idempleado || emp.id)}
-                                        onChange={() => toggleEmpleadoSeleccionado(emp.idempleado || emp.id)}
-                                    />
-                                    <span>
-                                        {emp.nombre} {emp.apellido}
-                                    </span>
-                                </label>
-                            ))
-                        ) : (
-                            <p style={{ fontSize: "14px", color: "#777" }}>No se encontraron empleados</p>
-                        )}
+                        {/* Búsqueda integrada */}
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre o apellido..."
+                            value={busqueda}
+                            onChange={e => setBusqueda(e.target.value)}
+                            style={{
+                                width: "100%",
+                                padding: "10px",
+                                border: "none",
+                                borderBottom: "1px solid #e5e5e5",
+                                borderRadius: "6px 6px 0 0",
+                                outline: "none",
+                                backgroundColor: "#fff"
+                            }}
+                        />
+
+                        {/* Lista de empleados */}
+                        <div
+                            style={{
+                                maxHeight: "150px",
+                                overflowY: "auto",
+                                padding: "8px"
+                            }}
+                        >
+                            {empleadosFiltrados.length > 0 ? (
+                                empleadosFiltrados.map(emp => (
+                                    <label
+                                        key={emp.idempleado || emp.id}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "10px",
+                                            padding: "8px 6px",
+                                            cursor: "pointer",
+                                            borderRadius: "4px",
+                                            transition: "background-color 0.2s",
+                                            backgroundColor: empleadosSeleccionados.includes(emp.idempleado || emp.id) 
+                                                ? "#e3f2fd" : "transparent"
+                                        }}
+                                        onMouseEnter={e => {
+                                            if (!empleadosSeleccionados.includes(emp.idempleado || emp.id)) {
+                                                e.target.style.backgroundColor = "#f5f5f5";
+                                            }
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (!empleadosSeleccionados.includes(emp.idempleado || emp.id)) {
+                                                e.target.style.backgroundColor = "transparent";
+                                            }
+                                        }}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={empleadosSeleccionados.includes(emp.idempleado || emp.id)}
+                                            onChange={() => toggleEmpleadoSeleccionado(emp.idempleado || emp.id)}
+                                            style={{
+                                                width: "16px",
+                                                height: "16px",
+                                                accentColor: "#2196f3"
+                                            }}
+                                        />
+                                        <span style={{ 
+                                            fontSize: "14px",
+                                            fontWeight: empleadosSeleccionados.includes(emp.idempleado || emp.id) ? "500" : "normal"
+                                        }}>
+                                            {emp.nombre} {emp.apellido}
+                                        </span>
+                                    </label>
+                                ))
+                            ) : (
+                                <div style={{ 
+                                    padding: "20px", 
+                                    textAlign: "center", 
+                                    color: "#777",
+                                    fontSize: "14px" 
+                                }}>
+                                    {busqueda ? "No se encontraron empleados con ese nombre" : "No hay empleados disponibles"}
+                                </div>
+                            )}
+                        </div>
                     </div>
+
+                    {empleadosSeleccionados.length > 0 && (
+                        <div style={{ 
+                            marginTop: "8px", 
+                            padding: "6px 8px", 
+                            backgroundColor: "#e8f5e8", 
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            color: "#2e7d32"
+                        }}>
+                            {empleadosSeleccionados.length} empleado{empleadosSeleccionados.length > 1 ? "s" : ""} seleccionado{empleadosSeleccionados.length > 1 ? "s" : ""}
+                        </div>
+                    )}
 
                     {empleadosSeleccionados.length === 0 && showError && (
                         <span
@@ -297,9 +363,9 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 </button>
             </form>
 
-            <ToastContainer />
         </div>
     );
 };
 
 export default AsignarCapacitacion;
+

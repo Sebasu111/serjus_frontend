@@ -208,69 +208,90 @@ function drawDynamicTable(pdf, labels, values) {
 
 /* ========= API principal ========= */
 export async function generarFichasPDF(empleados, cat, logoSrc) {
-    if (!Array.isArray(empleados) || empleados.length === 0) return;
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!Array.isArray(empleados) || empleados.length === 0) {
+                reject(new Error("No hay empleados para generar el PDF"));
+                return;
+            }
 
-    const pdf = new jsPDF({ unit: "mm", format: "a4" });
-    const labels = [
-        "1 NOMBRES Y APELLIDOS (COMPLETOS)",
-        "2 LUGAR Y FECHA DE NACIMIENTO",
-        "3 EDAD",
-        "4 ESTADO CIVIL",
-        "5 NUMERO DE HIJOS",
-        "6 TITULO DE NIVEL MEDIO",
-        "6 ESTUDIOS/TITULO UNIVERSITARIO",
-        "7 IDIOMA (S)",
-        "8 PUEBLO / CULTURA / IDENTIDAD",
-        "9 DIRECCION DE RESIDENCIA",
-        "10 NUMERO DE TELEFONO RESIDENCIAL",
-        "11 NÚMERO DE TELEFONO CELULAR",
-        "12 NÚMERO DE TELEFONO EN CASO DE EMERGENCIA",
-        "13 NUMERO DE CÓDIGO UNICO DE IDENTIFICACIÓN (CUI)",
-        "14 NUMERO DE NIT",
-        "15 NUMERO DE AFILIACIÓN IGSS",
-        "16 FECHA INICIO DE LA RELACIÓN LABORAL",
-        "17 PUESTO"
-    ];
+            const pdf = new jsPDF({ unit: "mm", format: "a4" });
+            const labels = [
+                "1 NOMBRES Y APELLIDOS (COMPLETOS)",
+                "2 LUGAR Y FECHA DE NACIMIENTO",
+                "3 EDAD",
+                "4 ESTADO CIVIL",
+                "5 NUMERO DE HIJOS",
+                "6 TITULO DE NIVEL MEDIO",
+                "6 ESTUDIOS/TITULO UNIVERSITARIO",
+                "7 IDIOMA (S)",
+                "8 PUEBLO / CULTURA / IDENTIDAD",
+                "9 DIRECCION DE RESIDENCIA",
+                "10 NUMERO DE TELEFONO RESIDENCIAL",
+                "11 NÚMERO DE TELEFONO CELULAR",
+                "12 NÚMERO DE TELEFONO EN CASO DE EMERGENCIA",
+                "13 NUMERO DE CÓDIGO UNICO DE IDENTIFICACIÓN (CUI)",
+                "14 NUMERO DE NIT",
+                "15 NUMERO DE AFILIACIÓN IGSS",
+                "16 FECHA INICIO DE LA RELACIÓN LABORAL",
+                "17 PUESTO"
+            ];
 
-    const logoDataUrl = logoSrc ? await urlToDataURL(logoSrc) : null;
+            const logoDataUrl = logoSrc ? await urlToDataURL(logoSrc) : null;
 
-    for (let p = 0; p < empleados.length; p++) {
-        if (p > 0) pdf.addPage();
-        await drawHeader(pdf, logoDataUrl);
+            for (let p = 0; p < empleados.length; p++) {
+                if (p > 0) pdf.addPage();
+                await drawHeader(pdf, logoDataUrl);
 
-        const e = empleados[p];
+                const e = empleados[p];
 
-        // NUEVO: composición de textos con formato requerido
-        const nacimiento = [
-            e?.lugarnacimiento || "",
-            e?.fechanacimiento ? `, ${formatDMY(e.fechanacimiento)}` : ""
-        ].join("");
+                // NUEVO: composición de textos con formato requerido
+                const nacimiento = [
+                    e?.lugarnacimiento || "",
+                    e?.fechanacimiento ? `, ${formatDMY(e.fechanacimiento)}` : ""
+                ].join("");
 
-        const inicioLaboral = e?.inicioLaboral ? `Guatemala, ${formatDMY(e.inicioLaboral)}` : "";
+                const inicioLaboral = e?.inicioLaboral ? `Guatemala, ${formatDMY(e.inicioLaboral)}` : "";
 
-        const valores = [
-            [e?.nombre, e?.apellido].filter(Boolean).join(" "),
-            nacimiento, // 2) Lugar y fecha de nacimiento (DD-MM-YYYY)
-            edadDesde(e?.fechanacimiento),
-            e?.estadocivil || "",
-            String(e?.numerohijos ?? ""),
-            e?.titulonivelmedio || e?.tituloNivelMedio || "",
-            e?.estudiosuniversitarios || e?.estudiosUniversitarios || "",
-            labelFrom(e?.ididioma, cat?.idiomas, "idioma"),
-            labelFrom(e?.idpueblocultura, cat?.pueblos, "pueblo"),
-            e?.direccion || "",
-            e?.telefonoresidencial || e?.telefonoResidencial || "",
-            e?.telefonocelular || e?.telefonoCelular || "",
-            e?.telefonoemergencia || e?.telefonoEmergencia || "",
-            String(e?.dpi || ""),
-            String(e?.nit || ""),
-            String(e?.numeroiggs || ""),
-            inicioLaboral, // 16) "Guatemala, DD-MM-YYYY"
-            labelFrom(e?.idpuesto, cat?.puestos, "puesto")
-        ];
+                const valores = [
+                    [e?.nombre, e?.apellido].filter(Boolean).join(" "),
+                    nacimiento, // 2) Lugar y fecha de nacimiento (DD-MM-YYYY)
+                    edadDesde(e?.fechanacimiento),
+                    e?.estadocivil || "",
+                    String(e?.numerohijos ?? ""),
+                    e?.titulonivelmedio || e?.tituloNivelMedio || "",
+                    e?.estudiosuniversitarios || e?.estudiosUniversitarios || "",
+                    labelFrom(e?.ididioma, cat?.idiomas, "idioma"),
+                    labelFrom(e?.idpueblocultura, cat?.pueblos, "pueblo"),
+                    e?.direccion || "",
+                    e?.telefonoresidencial || e?.telefonoResidencial || "",
+                    e?.telefonocelular || e?.telefonoCelular || "",
+                    e?.telefonoemergencia || e?.telefonoEmergencia || "",
+                    String(e?.dpi || ""),
+                    String(e?.nit || ""),
+                    String(e?.numeroiggs || ""),
+                    inicioLaboral, // 16) "Guatemala, DD-MM-YYYY"
+                    labelFrom(e?.idpuesto, cat?.puestos, "puesto")
+                ];
 
-        drawDynamicTable(pdf, labels, valores);
-    }
+                drawDynamicTable(pdf, labels, valores);
+            }
 
-    pdf.save("fichas-empleados.pdf");
+            // Usar setTimeout para simular el tiempo que toma el procesamiento final y descarga
+            setTimeout(() => {
+                try {
+                    pdf.save("fichas-empleados.pdf");
+                    // Resolver la promesa después de un delay más largo para que se vea natural
+                    setTimeout(() => {
+                        resolve();
+                    }, 1500); // 1.5 segundos para simular descarga real
+                } catch (error) {
+                    reject(error);
+                }
+            }, 800); // 800ms para permitir que el PDF se procese completamente
+
+        } catch (error) {
+            reject(error);
+        }
+    });
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts";
 import Header from "../../layouts/header";
@@ -6,9 +6,7 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import { ToastContainer } from "react-toastify";
-
-import AusenciaForm from "./AusenciaForm.jsx";
+import {  } from "react-toastify";import AusenciaForm from "./AusenciaForm.jsx";
 import AusenciaTable from "./AusenciaTable.jsx";
 
 const AusenciaContainer = () => {
@@ -168,7 +166,6 @@ const AusenciaContainer = () => {
                     </div>
                 )}
 
-                <ToastContainer />
                 <ScrollToTop />
             </div>
         </Layout>
@@ -176,3 +173,4 @@ const AusenciaContainer = () => {
 };
 
 export default AusenciaContainer;
+

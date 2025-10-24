@@ -37,8 +37,8 @@ const ContratoEditor = forwardRef(({ data }, ref) => {
         #printable .no-underline strong { text-decoration: none; }
 
         .input-field {
-          background-color: rgba(200,200,200,0.3);
-          border-bottom: 1px solid #999;
+          background-color: rgba(255, 215, 0, 0.6);
+          border-bottom: 1px solid #FFD700;
           padding: 0 2px;
         }
 

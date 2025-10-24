@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
 import Layout from "../../layouts";
@@ -6,8 +6,7 @@ import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
-import { ToastContainer } from "react-toastify";
-import { showToast } from "../../utils/toast.js";
+import {  } from "react-toastify";import { showToast } from "../../utils/toast.js";
 
 import EvaluacionesTable from "./EvaluacionesTable";
 import EvaluacionForm from "./EvaluacionForm";
@@ -298,11 +297,11 @@ const EvaluacionesContainer = () => {
                                     {empleadosMap.get(Number(detalle.idEmpleado)) || `#${detalle.idEmpleado ?? ""}`}
                                 </p>
                                 <p>
-                                    <strong>Tipo:</strong> {detalle.tipoEvaluacion || "—"}
+                                    <strong>Tipo:</strong> {detalle.tipoEvaluacion || "â€”"}
                                 </p>
                                 <p>
                                     <strong>Fecha:</strong>{" "}
-                                    {detalle.fechaEvaluacion ? new Date(detalle.fechaEvaluacion).toLocaleString() : "—"}
+                                    {detalle.fechaEvaluacion ? new Date(detalle.fechaEvaluacion).toLocaleString() : "â€”"}
                                 </p>
                                 <p>
                                     <strong>Puntaje total:</strong> {Number(detalle.puntajeTotal || 0).toFixed(2)}
@@ -338,10 +337,10 @@ const EvaluacionesContainer = () => {
                     </div>
                 )}
 
-                <ToastContainer />
             </div>
         </Layout>
     );
 };
 
 export default EvaluacionesContainer;
+

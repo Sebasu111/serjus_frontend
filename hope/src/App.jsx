@@ -3,6 +3,10 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
+// Toast notifications
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 // Estilos globales
 import "./assets/css/bootstrap.min.css";
 import "./assets/scss/style.scss";
@@ -154,6 +158,20 @@ const App = () => {
                     <Route exact path={`${base}/Documentos`} component={DocumentosContainer} />
                 </Switch>
             </NavScrollTop>
+            
+            {/* ToastContainer global para todas las notificaciones */}
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
         </Router>
     );
 };

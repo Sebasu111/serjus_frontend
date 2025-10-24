@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
-import { ToastContainer } from "react-toastify";
-
-import ConvocatoriasTable from "./ConvocatoriasTable.jsx";
+import {  } from "react-toastify";import ConvocatoriasTable from "./ConvocatoriasTable.jsx";
 import ConvocatoriasForm from "./ConvocatoriasForm.jsx";
 
 const API = "http://127.0.0.1:8000/api";
@@ -176,10 +174,10 @@ const ConvocatoriasContainer = () => {
                     />
                 )}
 
-                <ToastContainer />
             </div>
         </Layout>
     );
 };
 
 export default ConvocatoriasContainer;
+

@@ -1,7 +1,7 @@
 // src/pages/empleados/FichaDownloadModal.jsx
 import React, { useMemo, useState } from "react";
 
-const FichaDownloadModal = ({ empleados = [], onClose, onGenerate }) => {
+const FichaDownloadModal = ({ empleados = [], onClose, onGenerate, generandoPDF = false }) => {
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState(() => new Set());
 
@@ -103,7 +103,7 @@ const FichaDownloadModal = ({ empleados = [], onClose, onGenerate }) => {
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead>
                             <tr>
-                                {/* Celda ✓ con botón/checkbox maestro */}
+                                {/* Celda de checkbox maestro */}
                                 <th style={thDark}>
                                     <button
                                         onClick={toggleAllFiltered}
@@ -181,11 +181,20 @@ const FichaDownloadModal = ({ empleados = [], onClose, onGenerate }) => {
                         </button>
                         <button
                             onClick={handleGenerate}
-                            style={{ ...btn, background: "#198754", color: "#fff" }}
-                            disabled={selected.size === 0}
-                            title={selected.size === 0 ? "Selecciona al menos uno" : "Generar PDF"}
+                            style={{ 
+                                ...btn, 
+                                background: generandoPDF ? "#cccccc" : "#198754", 
+                                color: "#fff",
+                                opacity: generandoPDF || selected.size === 0 ? 0.6 : 1,
+                                cursor: generandoPDF || selected.size === 0 ? "not-allowed" : "pointer"
+                            }}
+                            disabled={selected.size === 0 || generandoPDF}
+                            title={
+                                generandoPDF ? "Generando PDF..." : 
+                                selected.size === 0 ? "Selecciona al menos uno" : "Generar PDF"
+                            }
                         >
-                            Generar PDF
+                            {generandoPDF ? "Generando PDF..." : "Generar PDF"}
                         </button>
                     </div>
                 </div>

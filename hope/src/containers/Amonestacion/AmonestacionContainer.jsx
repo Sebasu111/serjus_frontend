@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header/index.jsx";
@@ -7,9 +7,7 @@ import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 import AmonestacionForm from "./AmonestacionForm.jsx";
 import AmonestacionTable from "./AmonestacionTable.jsx";
-import { ToastContainer } from "react-toastify";
-
-const AmonestacionContainer = () => {
+import {  } from "react-toastify";const AmonestacionContainer = () => {
     const [idEmpleado, setIdEmpleado] = useState("");
     const [tipo, setTipo] = useState("");
     const [fechaAmonestacion, setFechaAmonestacion] = useState("");
@@ -230,10 +228,10 @@ const AmonestacionContainer = () => {
                     <ScrollToTop />
                 </div>
 
-                <ToastContainer />
             </div>
         </Layout>
     );
 };
 
 export default AmonestacionContainer;
+

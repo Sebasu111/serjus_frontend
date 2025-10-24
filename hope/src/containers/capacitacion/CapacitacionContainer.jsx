@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts";
 import Header from "../../layouts/header";
@@ -6,8 +6,7 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import { ToastContainer } from "react-toastify";
-import { buttonStyles } from "../../stylesGenerales/buttons.js";
+import {  } from "react-toastify";import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 import CapacitacionForm from "./CapacitacionForm";
 import CapacitacionesTable from "./CapacitacionTable.jsx";
@@ -56,6 +55,16 @@ const CapacitacionContainer = () => {
         if (!formData.fechaFin) return showToast("La fecha de fin es obligatoria", "warning");
         if (new Date(formData.fechaInicio) > new Date(formData.fechaFin))
             return showToast("La fecha de fin no puede ser menor a la fecha de inicio", "warning");
+        
+        // Validar fechas pasadas para nuevas capacitaciones y al editar
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+        const fechaInicio = new Date(formData.fechaInicio);
+        
+        if (fechaInicio < hoy) {
+            return showToast("No se pueden programar capacitaciones en fechas pasadas", "warning");
+        }
+        
         if (!formData.institucion.trim()) return showToast("La institución facilitadora es obligatoria", "warning");
         if (isNaN(formData.monto) || Number(formData.monto) <= 0)
             return showToast("El monto debe ser mayor a 0", "warning");
@@ -121,8 +130,11 @@ const CapacitacionContainer = () => {
         setModalAccion({ tipo, data: cap });
     };
 
-    // Función para manejar la asignación de capacitación
-    const handleAsignarCapacitacion = () => {
+    // Función para manejar la asignación de colaboradores
+    const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
+    
+    const handleAsignarCapacitacion = (capacitacion) => {
+        setCapacitacionSeleccionada(capacitacion);
         setMostrarAsignacion(true);
     };
 
@@ -163,18 +175,25 @@ const CapacitacionContainer = () => {
     };
 
     // Filtrado y paginación
-    const capacitacionesFiltradas = capacitaciones.filter(c => {
-        const textoBusqueda = busqueda.toLowerCase();
-        if (textoBusqueda === "act" && !c.estado) return false;
-        if (textoBusqueda === "inac" && c.estado) return false;
+    const capacitacionesFiltradas = capacitaciones
+        // Ordenar por ID descendente (último agregado primero)
+        .sort((a, b) => {
+            const idA = a.idcapacitacion || a.id || 0;
+            const idB = b.idcapacitacion || b.id || 0;
+            return idB - idA;
+        })
+        .filter(c => {
+            const textoBusqueda = busqueda.toLowerCase();
+            if (textoBusqueda === "act" && !c.estado) return false;
+            if (textoBusqueda === "inac" && c.estado) return false;
 
-        return (
-            c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
-            c.lugar?.toLowerCase().includes(textoBusqueda) ||
-            c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
-            (c.estado ? "activo" : "inactivo").includes(textoBusqueda)
-        );
-    });
+            return (
+                c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
+                c.lugar?.toLowerCase().includes(textoBusqueda) ||
+                c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
+                (c.estado ? "activo" : "inactivo").includes(textoBusqueda)
+            );
+        });
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
@@ -280,7 +299,15 @@ const CapacitacionContainer = () => {
                     />
                 )}
 
-                {mostrarAsignacion && <AsignarCapacitacion onClose={() => setMostrarAsignacion(false)} />}
+                {mostrarAsignacion && (
+                    <AsignarCapacitacion 
+                        capacitacionInicial={capacitacionSeleccionada}
+                        onClose={() => {
+                            setMostrarAsignacion(false);
+                            setCapacitacionSeleccionada(null);
+                        }} 
+                    />
+                )}
 
                 {/*   Modal de confirmación genérico */}
                 {modalAccion && (
@@ -294,10 +321,10 @@ const CapacitacionContainer = () => {
                     />
                 )}
 
-                <ToastContainer />
             </div>
         </Layout>
     );
 };
 
 export default CapacitacionContainer;
+

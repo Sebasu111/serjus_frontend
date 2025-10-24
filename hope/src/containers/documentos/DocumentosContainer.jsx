@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header/index.jsx";
@@ -6,9 +6,7 @@ import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 import { showToast } from "../../utils/toast.js";
-import { ToastContainer } from "react-toastify";
-
-import DocumentosTable from "./DocumentosTable.jsx";
+import {  } from "react-toastify";import DocumentosTable from "./DocumentosTable.jsx";
 import DocumentosForm from "./DocumentosForm.jsx";
 import ModalEliminarArchivo from "./ModalEliminarArchivo.jsx";
 
@@ -254,25 +252,28 @@ const DocumentosContainer = () => {
         }
     };
 
-    const documentosFiltrados = documentos.filter(d => {
-        const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
+    const documentosFiltrados = documentos
+        // Ordenar por ID descendente (último agregado primero)
+        .sort((a, b) => (b.iddocumento || 0) - (a.iddocumento || 0))
+        .filter(d => {
+            const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
 
-        // Buscar el empleado correspondiente
-        const empleado = empleados.find(emp => emp.idempleado === d.idempleado);
-        const nombreEmpleado = empleado ? empleado.nombre.toLowerCase() : "";
-        const apellidoEmpleado = empleado ? empleado.apellido.toLowerCase() : "";
-        const nombreCompletoEmpleado = `${nombreEmpleado} ${apellidoEmpleado}`; // nombre + apellido
+            // Buscar el empleado correspondiente
+            const empleado = empleados.find(emp => emp.idempleado === d.idempleado);
+            const nombreEmpleado = empleado ? empleado.nombre.toLowerCase() : "";
+            const apellidoEmpleado = empleado ? empleado.apellido.toLowerCase() : "";
+            const nombreCompletoEmpleado = `${nombreEmpleado} ${apellidoEmpleado}`; // nombre + apellido
 
-        const terminoBusqueda = busqueda.toLowerCase();
+            const terminoBusqueda = busqueda.toLowerCase();
 
-        // Filtrar por nombre de documento, nombre, apellido o nombre completo del empleado
-        return (
-            nombreDocumento.includes(terminoBusqueda) ||
-            nombreEmpleado.includes(terminoBusqueda) ||
-            apellidoEmpleado.includes(terminoBusqueda) ||
-            nombreCompletoEmpleado.includes(terminoBusqueda)
-        );
-    });
+            // Filtrar por nombre de documento, nombre, apellido o nombre completo del empleado
+            return (
+                nombreDocumento.includes(terminoBusqueda) ||
+                nombreEmpleado.includes(terminoBusqueda) ||
+                apellidoEmpleado.includes(terminoBusqueda) ||
+                nombreCompletoEmpleado.includes(terminoBusqueda)
+            );
+        });
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
@@ -426,10 +427,10 @@ const DocumentosContainer = () => {
                     handleDeleteArchivo={handleDeleteArchivo}
                 />
 
-                <ToastContainer />
             </div>
         </Layout>
     );
 };
 
 export default DocumentosContainer;
+

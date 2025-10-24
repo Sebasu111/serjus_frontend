@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast"; // tu función de toast
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 const CapacitacionesToast = () => {
     useEffect(() => {
@@ -44,7 +42,7 @@ const CapacitacionesToast = () => {
         revisarCapacitaciones();
     }, []);
 
-    return <ToastContainer position="top-right" autoClose={5000} />;
+    return null; // Este componente solo maneja la lógica, no renderiza UI
 };
 
 export default CapacitacionesToast;

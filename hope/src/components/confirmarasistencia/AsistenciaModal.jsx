@@ -126,7 +126,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
                                 cursor: "pointer"
                             }}
                         >
-                            ✓ Asistió
+                            Asistió
                         </button>
                         <button
                             onClick={() => setMostrarFormulario(true)}
@@ -141,7 +141,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
                                 cursor: "pointer"
                             }}
                         >
-                            ✗ Justificar
+                            Justificar
                         </button>
                     </div>
                 </>

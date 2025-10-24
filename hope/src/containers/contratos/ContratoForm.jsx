@@ -16,7 +16,7 @@ const meses = [
     "diciembre"
 ];
 
-const ContratoForm = ({ data, onChange, imprimirContrato }) => {
+const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false }) => {
     const [pagina, setPagina] = useState(1);
     const formRef = useRef(null);
 
@@ -440,8 +440,17 @@ const ContratoForm = ({ data, onChange, imprimirContrato }) => {
                         </div>
 
                         <div style={{ textAlign: "center", marginTop: "20px" }}>
-                            <button type="submit" style={btnPrimary}>
-                                Imprimir Contrato
+                            <button 
+                                type="submit" 
+                                disabled={generandoPDF}
+                                style={{
+                                    ...btnPrimary,
+                                    background: generandoPDF ? "#cccccc" : "#023047",
+                                    opacity: generandoPDF ? 0.6 : 1,
+                                    cursor: generandoPDF ? "not-allowed" : "pointer"
+                                }}
+                            >
+                                {generandoPDF ? "Generando Contrato..." : "Imprimir Contrato"}
                             </button>
                         </div>
                     </div>

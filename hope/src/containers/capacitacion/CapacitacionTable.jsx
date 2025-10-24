@@ -172,11 +172,11 @@ const CapacitacionesTable = ({
                                                     <div
                                                         style={comboBoxStyles.menu.item.editar.base}
                                                         onClick={() => {
-                                                            handleAsignarCapacitacion();
+                                                            handleAsignarCapacitacion(c);
                                                             setOpenMenuId(null);
                                                         }}
                                                     >
-                                                        Asignar Capacitación
+                                                        Asignar Colaboradores
                                                     </div>
                                                     <div
                                                         style={{

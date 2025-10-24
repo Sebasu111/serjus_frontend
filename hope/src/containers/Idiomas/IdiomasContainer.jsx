@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layouts";
 import Header from "../../layouts/header";
@@ -6,8 +6,7 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import { ToastContainer } from "react-toastify";
-import { buttonStyles } from "../../stylesGenerales/buttons.js";
+import {  } from "react-toastify";import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 import IdiomaForm from "./IdiomaForm";
 import ConfirmModal from "./ConfirmModal";
@@ -141,12 +140,19 @@ const IdiomasContainer = () => {
         }
     };
 
-    const idiomasFiltrados = idiomas.filter(i => {
-        const texto = busqueda.toLowerCase().trim();
-        const nombreCoincide = i.nombreidioma?.toLowerCase().includes(texto) || false;
-        const estadoCoincide = (i.estado ? "activo" : "inactivo").startsWith(texto);
-        return nombreCoincide || estadoCoincide;
-    });
+    const idiomasFiltrados = idiomas
+        // Ordenar alfabéticamente por nombre (A-Z)
+        .sort((a, b) => {
+            const nombreA = (a.nombreidioma || "").toLowerCase();
+            const nombreB = (b.nombreidioma || "").toLowerCase();
+            return nombreA.localeCompare(nombreB);
+        })
+        .filter(i => {
+            const texto = busqueda.toLowerCase().trim();
+            const nombreCoincide = i.nombreidioma?.toLowerCase().includes(texto) || false;
+            const estadoCoincide = (i.estado ? "activo" : "inactivo").startsWith(texto);
+            return nombreCoincide || estadoCoincide;
+        });
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
@@ -265,7 +271,6 @@ const IdiomasContainer = () => {
                     />
                 )}
 
-                <ToastContainer />
                 <ScrollToTop />
             </div>
         </Layout>
@@ -273,3 +278,4 @@ const IdiomasContainer = () => {
 };
 
 export default IdiomasContainer;
+
