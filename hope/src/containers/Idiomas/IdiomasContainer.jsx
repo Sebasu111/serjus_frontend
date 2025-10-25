@@ -231,7 +231,7 @@ const IdiomasContainer = () => {
                                     onFocus={e => e.target.select()}
                                     style={{
                                         width: "80px",
-                                        padding: "10px",
+                                        padding: "6px",
                                         borderRadius: "6px",
                                         border: "1px solid #ccc",
                                         textAlign: "center"

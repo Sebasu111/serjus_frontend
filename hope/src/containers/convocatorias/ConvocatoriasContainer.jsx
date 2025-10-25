@@ -5,7 +5,7 @@ import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
-import {  } from "react-toastify";import ConvocatoriasTable from "./ConvocatoriasTable.jsx";
+import ConvocatoriasTable from "./ConvocatoriasTable.jsx";
 import ConvocatoriasForm from "./ConvocatoriasForm.jsx";
 
 const API = "http://127.0.0.1:8000/api";
@@ -60,31 +60,65 @@ const ConvocatoriasContainer = () => {
 
     const handleSubmit = async e => {
         e.preventDefault();
-        try {
-            const payload = {
-                nombreconvocatoria: form.nombreconvocatoria.trim(),
-                descripcion: form.descripcion.trim(),
-                fechainicio: form.fechainicio,
-                fechafin: form.fechafin,
-                estado: true,
-                idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
-                idpuesto: Number(form.idpuesto)
-            };
 
+        // Validaciones básicas
+        if (!form.nombreconvocatoria.trim()) {
+            setMensaje("El nombre de la convocatoria es obligatorio");
+            return;
+        }
+        if (!form.descripcion.trim()) {
+            setMensaje("La descripción es obligatoria");
+            return;
+        }
+        if (!form.fechainicio) {
+            setMensaje("La fecha de inicio es obligatoria");
+            return;
+        }
+        if (!form.fechafin){
+            setMensaje("La fecha fin es obligatoria");
+            return;
+        }
+        if (!form.idpuesto || Number(form.idpuesto) <= 0) {
+            setMensaje("Debes seleccionar un puesto válido");
+            return;
+        }
+
+        // Preparar payload
+        const payload = {
+            nombreconvocatoria: form.nombreconvocatoria.trim(),
+            descripcion: form.descripcion.trim(),
+            fechainicio: form.fechainicio,
+            fechafin: form.fechafin || null,  // permitimos que sea null
+            estado: true,
+            idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
+            idpuesto: Number(form.idpuesto)
+        };
+
+        try {
             if (editingId) {
                 await axios.put(`${API}/convocatorias/${editingId}/`, payload);
-                setMensaje("Convocatoria actualizada");
+                setMensaje("Convocatoria actualizada correctamente");
             } else {
                 await axios.post(`${API}/convocatorias/`, payload);
-                setMensaje("Convocatoria registrada");
+                setMensaje("Convocatoria registrada correctamente");
             }
 
             fetchList();
             setMostrarFormulario(false);
             setEditingId(null);
+            // resetForm(); // opcional, si quieres limpiar el formulario
         } catch (error) {
             console.error(error);
-            setMensaje("Error al registrar/actualizar");
+
+            // Si la API devuelve mensajes de validación, podemos mostrarlos
+            if (error.response?.data) {
+                const errores = Object.entries(error.response.data)
+                    .map(([campo, msgs]) => `${campo}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+                    .join(" | ");
+                setMensaje(`Error al registrar/actualizar: ${errores}`);
+            } else {
+                setMensaje("Error al registrar/actualizar. Revisa la información enviada.");
+            }
         }
     };
 
@@ -92,6 +126,34 @@ const ConvocatoriasContainer = () => {
         setForm({ ...row });
         setEditingId(row.idconvocatoria);
         setMostrarFormulario(true);
+    };
+
+    const handleNuevo = () => {
+        setForm({
+            nombreconvocatoria: "",
+            descripcion: "",
+            fechainicio: "",
+            fechafin: "",
+            idpuesto: "",
+            estado: true,
+            idusuario: Number(sessionStorage.getItem("idUsuario")) || 1
+        });
+        setEditingId(null);
+        setMostrarFormulario(true);
+    };
+
+    const handleCerrarFormulario = () => {
+        setMostrarFormulario(false); 
+        setForm({
+            nombreconvocatoria: "",
+            descripcion: "",
+            fechainicio: "",
+            fechafin: "",
+            idpuesto: "",
+            estado: true,
+            idusuario: Number(sessionStorage.getItem("idUsuario")) || 1
+        });
+        setEditingId(null);
     };
 
     const toggleEstado = async (row, nuevo) => {
@@ -104,21 +166,26 @@ const ConvocatoriasContainer = () => {
         } catch { }
     };
 
-    const resetForm = () => {
-        setForm({
-            nombreconvocatoria: "",
-            descripcion: "",
-            fechainicio: "",
-            fechafin: "",
-            idpuesto: "",
-            estado: true,
-            idusuario: Number(sessionStorage.getItem("idUsuario")) || 1
-        });
-        setEditingId(null);
-        setMostrarFormulario(false);
-    };
+    const textoBusqueda = busqueda.toLowerCase().trim();
 
-    const filtradas = rows.filter(r => r.nombreconvocatoria.toLowerCase().includes(busqueda.toLowerCase()));
+    const filtradas = rows.filter((r) => {
+        const nombre = (r.nombreconvocatoria || "").toLowerCase();
+        const puesto = (r.nombrepuesto || "").toLowerCase();
+        const descripcion = (r.descripcion || "").toLowerCase();
+        const estadoTexto = r.estado ? "activo" : "inactivo";
+        const fechaInicio = r.fechainicio ? new Date(r.fechainicio).toLocaleDateString("es-ES") : "";
+        const fechaFin = r.fechafin ? new Date(r.fechafin).toLocaleDateString("es-ES") : "";
+
+        const nombreCoincide = nombre.includes(textoBusqueda);
+        const puestoCoincide = puesto.includes(textoBusqueda);
+        const descripcionCoincide = descripcion.includes(textoBusqueda);
+        const estadoCoincide = estadoTexto.startsWith(textoBusqueda);
+        const fechaInicioCoincide = fechaInicio.includes(textoBusqueda);
+        const fechaFinCoincide = fechaFin.includes(textoBusqueda);
+
+        return nombreCoincide || puestoCoincide || descripcionCoincide || estadoCoincide || fechaInicioCoincide || fechaFinCoincide;
+    });
+
     const indexOfLast = paginaActual * elementosPorPagina;
     const paginadas = filtradas.slice(indexOfLast - elementosPorPagina, indexOfLast);
     const totalPaginas = Math.ceil(filtradas.length / elementosPorPagina);
@@ -155,7 +222,7 @@ const ConvocatoriasContainer = () => {
                                 totalPaginas={totalPaginas}
                                 handleEdit={handleEdit}
                                 toggleEstado={toggleEstado}
-                                setMostrarFormulario={setMostrarFormulario}
+                                setMostrarFormulario={handleNuevo}
                             />
                         </div>
                     </main>
@@ -169,7 +236,7 @@ const ConvocatoriasContainer = () => {
                         puestos={puestos}
                         onChange={onChange}
                         handleSubmit={handleSubmit}
-                        resetForm={resetForm}
+                        setMostrarFormulario={handleCerrarFormulario}
                         editingId={editingId}
                     />
                 )}
