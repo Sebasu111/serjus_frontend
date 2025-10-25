@@ -1,8 +1,9 @@
 import React from "react";
+import { X } from "lucide-react";
 
-const ConvocatoriasForm = ({ form, puestos, onChange, handleSubmit, resetForm, editingId }) => (
+const ConvocatoriasForm = ({ form, puestos, onChange, handleSubmit, setMostrarFormulario, editingId }) => (
     <div style={modalStyle}>
-        <h3 style={{ textAlign: "center", marginBottom: 20 }}>
+        <h3 style={{ textAlign: "center", marginBottom: 20,  }}>
             {editingId ? "Editar convocatoria" : "Registrar convocatoria"}
         </h3>
 
@@ -34,10 +35,20 @@ const ConvocatoriasForm = ({ form, puestos, onChange, handleSubmit, resetForm, e
                 onChange={onChange}
                 required
                 style={inputStyle}
+                min={new Date().toISOString().split("T")[0]}
             />
 
             <label>Fecha fin</label>
-            <input type="date" name="fechafin" value={form.fechafin} onChange={onChange} style={inputStyle} />
+            <input
+                type="date"
+                name="fechafin"
+                value={form.fechafin}
+                onChange={onChange}
+                required
+                style={inputStyle}
+                min={form.fechainicio || new Date().toISOString().split("T")[0]} 
+                disabled={!form.fechainicio} 
+            />
 
             <label>Puesto</label>
             <select name="idpuesto" value={form.idpuesto} onChange={onChange} required style={inputStyle}>
@@ -54,8 +65,19 @@ const ConvocatoriasForm = ({ form, puestos, onChange, handleSubmit, resetForm, e
             </button>
         </form>
 
-        <button onClick={resetForm} style={btnClose}>
-            Cerrar
+        <button
+            onClick={setMostrarFormulario} 
+            style={{
+                position: "absolute",
+                top: "10px",
+                right: "15px",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer"
+            }}
+            title="Cerrar"
+        >
+            <X size={24} color="#555" />
         </button>
     </div>
 );
@@ -68,13 +90,14 @@ const inputStyle = {
     border: "1px solid #ccc",
     marginBottom: 12
 };
-const btnPrimary = { padding: 10, width: "100%", background: "#007bff", color: "#fff", borderRadius: 6, marginTop: 12 };
-const btnClose = { ...btnPrimary, background: "#6c757d" };
+const btnPrimary = { padding: 10, width: "100%", background: "#219ebc", color: "#fff", borderRadius: 6, marginTop: 12, border: "none",     // quita el borde
+    outline: "none", };
+
 const modalStyle = {
     position: "fixed",
     top: "50%",
     left: "50%",
-    transform: "translate(-50%, -50%)",
+    transform: "translate(-15%, -50%)",
     width: 400,
     maxWidth: "95%",
     background: "#fff",
