@@ -1,0 +1,76 @@
+/* Header azul completo, con sombreado y degradado */
+.convocatorias-header {
+  background: linear-gradient(135deg, #0b347b, #1669c1);
+  color: #ffffff !important; /* fuerza letras blancas */
+  width: 100%;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  border-bottom: 3px solid #1669c1;
+  padding: 20px 0;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+
+/* Footer celeste completo, con sombra */
+.convocatorias-footer {
+  background-color: #327da0;
+  width: 100%;
+  position: relative;
+  bottom: 0;
+  left: 0;
+  color: #ffffff; /* Letras blancas */
+  font-weight: 500;
+}
+
+/* Contenedor principal centrado y separado */
+.convocatorias-container {
+  max-width: 900px;
+  background-color: #ffffff;
+  margin: 30px auto;
+  padding: 80px 30px 30px 30px; /* padding-top mayor para dejar espacio al header */
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* Items de convocatoria más visibles */
+.convocatoria-item {
+  background-color: #fff;
+  border: 2px solid #e6e6e6;
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  border-radius: 15px;
+}
+
+.convocatoria-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15); /* sombra al pasar el mouse */
+}
+
+/* Scroll limitado a 5 elementos */
+.list-group {
+  max-height: 650px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Scrollbar estilizado */
+.list-group::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list-group::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.list-group::-webkit-scrollbar-thumb {
+  background: #bbbbbb;
+  border-radius: 10px;
+}
+
+.list-group::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}

@@ -31,6 +31,11 @@ import NavScrollTop from "./components/nav-scroll-top";
 //Notificaciones
 import CapacitacionesToast from "./components/NotificacionCapacitaciones/CapacitacionesToast";
 
+// ============================================================
+// ConvocatoriasPublicas
+// ============================================================
+import ConvocatoriasPublicPage from "./ConvocatoriasPublicas/ConvocatoriasPublicPage";
+
 // =============================================================
 //   PERSONAL
 // =============================================================
@@ -109,6 +114,9 @@ const App = () => {
             <NavScrollTop>
                 <CapacitacionesToast />
                 <Switch>
+                    {/*Publico*/}
+                    <Route exact path={`${base}/Bolsadeempleo`} component={ConvocatoriasPublicPage} />
+
                     {/*Perfil*/}
                     <Route exact path={`${base}/perfil`} component={PerfilContainer} />
 

@@ -1,0 +1,98 @@
+/* Fondo del modal */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+/* Contenido del modal */
+.modal-content {
+  background: #ffffff;
+  padding: 30px 25px;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  position: relative;
+}
+
+/* Título */
+.modal-title {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #1a73e8;
+}
+
+/* Formulario */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: 500;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+/* Contenedor de los botones */
+.modal-actions {
+  display: flex;
+  justify-content: space-between; /* anterior a la izquierda, siguiente a la derecha */
+  margin-top: 25px;
+  flex-wrap: wrap;
+}
+
+/* Botones generales */
+.btn-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;      /* mismo ancho */
+  height: 45px;      /* mismo alto */
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* Botones normales */
+.btn-step:hover {
+  opacity: 0.9;
+}
+
+.btn-step.submit {
+  background-color: #1a73e8;
+  color: #fff;
+}
+
+.btn-step.cancel {
+  background-color: #f44336;
+  color: #fff;
+}
+
+/* Contenedor de botones finales centrado */
+.final-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* espacio entre Enviar y Cancelar */
+  width: 100%;
+}

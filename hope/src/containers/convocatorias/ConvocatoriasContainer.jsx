@@ -7,6 +7,7 @@ import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 import ConvocatoriasTable from "./ConvocatoriasTable.jsx";
 import ConvocatoriasForm from "./ConvocatoriasForm.jsx";
+import { showToast } from "../../utils/toast.js";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -41,7 +42,7 @@ const ConvocatoriasContainer = () => {
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setRows(data);
         } catch (e) {
-            setMensaje("Error al cargar las convocatorias");
+            showToast("Error al cargar las convocatorias", "error");
             setRows([]);
         }
     };
@@ -97,10 +98,10 @@ const ConvocatoriasContainer = () => {
         try {
             if (editingId) {
                 await axios.put(`${API}/convocatorias/${editingId}/`, payload);
-                setMensaje("Convocatoria actualizada correctamente");
+                showToast("Convocatoria actualizada correctamente", "success");
             } else {
                 await axios.post(`${API}/convocatorias/`, payload);
-                setMensaje("Convocatoria registrada correctamente");
+                showToast("Convocatoria registrada correctamente", "success");
             }
 
             fetchList();
@@ -115,9 +116,9 @@ const ConvocatoriasContainer = () => {
                 const errores = Object.entries(error.response.data)
                     .map(([campo, msgs]) => `${campo}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
                     .join(" | ");
-                setMensaje(`Error al registrar/actualizar: ${errores}`);
+                showToast("Error al registrar/actualizar: ${errores}", "error");
             } else {
-                setMensaje("Error al registrar/actualizar. Revisa la información enviada.");
+                showToast("Error al registrar/actualizar. Revisa la información enviada.", "error");
             }
         }
     };
