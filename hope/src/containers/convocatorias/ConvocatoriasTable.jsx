@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
+import { showToast } from "../../utils/toast";
+import ConfirmModal from "./ConfirmModal";
 
 const ConvocatoriasTable = ({
   mensaje,
@@ -19,6 +21,7 @@ const ConvocatoriasTable = ({
   const containerRef = useRef(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [descripcionSeleccionada, setDescripcionSeleccionada] = useState("");
+  const [confirmModal, setConfirmModal] = useState({ open: false, row: null, modo: "" });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -83,7 +86,7 @@ const ConvocatoriasTable = ({
           }}
           style={{ flex: 1, padding: 10, borderRadius: 6, border: "1px solid #ccc" }}
         />
-        <button onClick={setMostrarFormulario} style={btnPrimary}>
+        <button onClick={() => setMostrarFormulario(true)} style={btnPrimary}>
           Nueva Convocatoria
         </button>
       </div>
@@ -122,11 +125,24 @@ const ConvocatoriasTable = ({
                       </button>
                       {openMenuId === r.idconvocatoria && (
                         <div style={comboBoxStyles.menu.container}>
-                          <div onClick={() => handleEdit(r)} style={comboBoxStyles.menu.item.editar.base}>
+                          <div
+                            onClick={() => r.estado && handleEdit(r)}
+                            disabled={!r.estado}
+                            style={{
+                              ...comboBoxStyles.menu.item.editar.base,
+                              ...(r.estado ? {} : comboBoxStyles.menu.item.editar.disabled)
+                            }}
+                            onMouseEnter={e => { if (r.estado) e.currentTarget.style.background = comboBoxStyles.menu.item.editar.hover.background; }}
+                            onMouseLeave={e => { if (r.estado) e.currentTarget.style.background = comboBoxStyles.menu.item.editar.base.background; }}
+                            title={r.estado ? "Editar convocatoria" : "No se puede editar una convocatoria inactiva"}
+                          >
                             Editar
                           </div>
                           <div
-                            onClick={() => toggleEstado(r, !r.estado)}
+                            onClick={() => {
+                              setConfirmModal({ open: true, row: r, modo: r.estado ? "desactivar" : "activar" });
+                              setOpenMenuId(null);
+                            }}
                             style={r.estado ? comboBoxStyles.menu.item.desactivar.base : comboBoxStyles.menu.item.activar.base}
                           >
                             {r.estado ? "Desactivar" : "Activar"}
@@ -147,7 +163,7 @@ const ConvocatoriasTable = ({
           </tbody>
         </table>
 
-        {/* Paginación centrada dentro de la tabla */}
+        {/* Paginación centrada */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: 15, gap: 5 }}>
           {totalPaginas > 1 &&
             Array.from({ length: totalPaginas }, (_, i) => (
@@ -169,7 +185,7 @@ const ConvocatoriasTable = ({
         </div>
       </div>
 
-      {/* Selector “Mostrar X elementos” centrado */}
+      {/* Selector “Mostrar X elementos” */}
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, gap: 5 }}>
         <span>Mostrar: </span>
         <input
@@ -181,7 +197,7 @@ const ConvocatoriasTable = ({
         />
       </div>
 
-      {/* Modal */}
+      {/* Modal descripción */}
       {modalOpen && (
         <div
           style={{
@@ -229,6 +245,26 @@ const ConvocatoriasTable = ({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Modal confirmación */}
+      {confirmModal.open && (
+        <ConfirmModal
+          convocatoria={confirmModal.row}
+          modo={confirmModal.modo}
+          onConfirm={() => {
+            const nuevoEstado = !confirmModal.row.estado;
+            toggleEstado(confirmModal.row, nuevoEstado);
+
+            showToast(
+              nuevoEstado ? "Convocatoria activada" : "Convocatoria desactivada",
+              "success"
+            );
+
+            setConfirmModal({ open: false, row: null, modo: "" });
+          }}
+          onCancel={() => setConfirmModal({ open: false, row: null, modo: "" })}
+        />
       )}
     </div>
   );
