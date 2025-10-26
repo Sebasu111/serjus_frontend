@@ -105,7 +105,7 @@ const HistorialPuestoContainer = () => {
 
     return (
         <Layout>
-            <SEO title=" Historial de Puestos" />
+            <SEO title="Historial de Puestos" />
             <div className="wrapper" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                 <Header />
                 <main style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5" }}>

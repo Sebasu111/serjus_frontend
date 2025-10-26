@@ -117,7 +117,7 @@ const TiposDocumentoContainer = () => {
 
     return (
         <Layout>
-            <SEO title=" Tipos de Documento" />
+            <SEO title="Tipos de Documento" />
             <div
                 className="wrapper"
                 style={{

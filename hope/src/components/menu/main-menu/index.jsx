@@ -162,7 +162,7 @@ const SidebarMenu = () => {
                                     className="sidebar-submenu-link"
                                     activeClassName="active"
                                 >
-                                    Historial
+                                    Historial de Puestos
                                 </NavLink>
                             </li>
                             <li>

@@ -107,7 +107,7 @@ const CriterioEvaluacionContainer = () => {
 
     return (
         <Layout>
-            <SEO title=" Criterios de Evaluación" />
+            <SEO title="Criterios de Evaluación" />
             <div className="wrapper" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                 <Header />
 

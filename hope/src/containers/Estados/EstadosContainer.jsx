@@ -111,7 +111,7 @@ const EstadosContainer = () => {
 
     return (
         <Layout>
-            <SEO title=" Estados" />
+            <SEO title="Estados" />
             <div
                 className="wrapper"
                 style={{

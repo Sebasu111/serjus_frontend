@@ -109,7 +109,7 @@ const RolesContainer = () => {
 
     return (
         <Layout>
-            <SEO title=" Roles" />
+            <SEO title="Roles" />
             <div
                 className="wrapper"
                 style={{

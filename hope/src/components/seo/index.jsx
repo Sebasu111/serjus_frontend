@@ -8,7 +8,7 @@ const SEO = ({ title }) => {
             <meta charSet="utf-8" />
             <title>{title}</title>
             <meta name="robots" content="noindex, follow" />
-            <meta name="description" content=" Health &amp; Medical React JS Template" />
+            <meta name="description" content="SERJUS - Sistema de Gestión de Recursos Humanos" />
             <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         </Helmet>
     );

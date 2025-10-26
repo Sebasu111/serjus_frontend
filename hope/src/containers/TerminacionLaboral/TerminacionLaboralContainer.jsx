@@ -125,7 +125,7 @@ const TerminacionLaboralContainer = () => {
 
     return (
         <Layout>
-            <SEO title=" Terminaciones Laborales" />
+            <SEO title="Terminaciones Laborales" />
             <div className="wrapper" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                 <Header />
 

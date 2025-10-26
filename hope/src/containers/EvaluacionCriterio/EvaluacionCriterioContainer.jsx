@@ -113,7 +113,7 @@ const EvaluacionCriterioContainer = () => {
 
     return (
         <Layout>
-            <SEO title=" Evaluaciones por Criterio" />
+            <SEO title="Evaluaciones por Criterio" />
             <div
                 className="wrapper"
                 style={{

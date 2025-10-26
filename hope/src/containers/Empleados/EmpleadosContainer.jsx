@@ -286,7 +286,7 @@ const EmpleadosContainer = () => {
             const kCount = (cleanValue.match(/K/g) || []).length;
             if (kCount > 1) return;
             if (kCount === 1 && !cleanValue.endsWith('K')) return;
-            
+
             // Actualizar el valor con la K en mayúscula si aplica
             setForm(f => ({ ...f, [name]: cleanValue }));
             const msg = validateField(name, cleanValue);
@@ -552,17 +552,17 @@ const EmpleadosContainer = () => {
         try {
             setGenerandoPDF(true);
             showPDFToasts.generando();
-            
+
             const catalogos = { idiomas, pueblos, equipos, puestos };
             await generarFichasPDF(seleccion, catalogos, logo);
-            
+
             // Primero cerramos el modal y limpiamos el estado
             setShowDownload(false);
             setGenerandoPDF(false);
-            
+
             // Mostrar toast de éxito con transición suave
             showPDFToasts.descargado();
-            
+
         } catch (e) {
             console.error(e);
             setGenerandoPDF(false);
@@ -809,7 +809,7 @@ const EmpleadosContainer = () => {
 
     return (
         <Layout>
-            <SEO title="Hope – Empleados" />
+            <SEO title="SERJUS - Colaboradores" />
             <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
