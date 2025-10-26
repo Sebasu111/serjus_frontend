@@ -3,11 +3,57 @@ import { X } from "lucide-react";
 
 const PuestoForm = ({ puestoSeleccionado, handleSubmit, onClose }) => {
     const [descripcion, setDescripcion] = useState(puestoSeleccionado?.descripcion || "");
-    const [salarioBase, setSalarioBase] = useState(puestoSeleccionado?.salariobase || "");
+    const [salarioBase, setSalarioBase] = useState(() => {
+        // Formatear valor inicial para mostrar siempre con .00
+        const valorInicial = puestoSeleccionado?.salariobase || 0;
+        return parseFloat(valorInicial).toFixed(2);
+    });
+    const [isEditing, setIsEditing] = useState(false);
+
+    const formatearSalario = (valor) => {
+        // Si está vacío, mostrar 0.00
+        if (!valor || valor === '') return '0.00';
+
+        // Remover todo excepto números
+        const soloNumeros = valor.replace(/[^0-9]/g, '');
+
+        if (soloNumeros === '') return '0.00';
+
+        // Convertir a centavos y luego a formato decimal
+        const centavos = parseInt(soloNumeros);
+        const decimal = (centavos / 100).toFixed(2);
+
+        return decimal;
+    };
 
     const handleSalarioChange = e => {
-        const valor = e.target.value.replace(/[^0-9.]/g, ""); // solo números y punto
-        setSalarioBase(valor);
+        setIsEditing(true);
+        const valor = e.target.value;
+
+        // Si el usuario está borrando todo, permitir campo vacío momentáneamente
+        if (valor === '') {
+            setSalarioBase('');
+            return;
+        }
+
+        const salarioFormateado = formatearSalario(valor);
+        setSalarioBase(salarioFormateado);
+    };
+
+    const handleSalarioFocus = () => {
+        setIsEditing(true);
+        // Si es el valor por defecto, limpiar para empezar a escribir
+        if (salarioBase === '0.00') {
+            setSalarioBase('');
+        }
+    };
+
+    const handleSalarioBlur = () => {
+        setIsEditing(false);
+        // Si queda vacío al salir del campo, volver a 0.00
+        if (salarioBase === '') {
+            setSalarioBase('0.00');
+        }
     };
 
     const onSubmit = e => {
@@ -96,12 +142,16 @@ const PuestoForm = ({ puestoSeleccionado, handleSubmit, onClose }) => {
                         type="text"
                         value={salarioBase}
                         onChange={handleSalarioChange}
+                        onFocus={handleSalarioFocus}
+                        onBlur={handleSalarioBlur}
+                        placeholder="0.00"
                         required
                         style={{
                             width: "100%",
                             padding: "10px",
                             border: "1px solid #ccc",
-                            borderRadius: "6px"
+                            borderRadius: "6px",
+                            textAlign: "right" // Alinear números a la derecha como en calculadoras
                         }}
                     />
                 </div>

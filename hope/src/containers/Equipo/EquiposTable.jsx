@@ -39,9 +39,7 @@ const EquiposTable = ({
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                     <tr>
-                        <th style={{ borderBottom: "2px solid #eee", padding: 10, textAlign: "left" }}>Equipo</th>
-                        <th style={{ borderBottom: "2px solid #eee", padding: 10, textAlign: "left" }}>Coordinador</th>
-                        <th style={{ borderBottom: "2px solid #eee", padding: 10, textAlign: "center" }}>Estado</th>
+                        <th style={{ borderBottom: "2px solid #eee", padding: 10, textAlign: "left" }}>Nombre del Equipo</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: 10, textAlign: "center" }}>Acciones</th>
                     </tr>
                 </thead>
@@ -61,26 +59,12 @@ const EquiposTable = ({
                                             color: "#1d4ed8",
                                             fontWeight: 700,
                                             cursor: "pointer",
-                                            textDecoration: "none" // ← sin subrayado
+                                            textDecoration: "none"
                                         }}
                                         title="Ver detalle"
                                     >
                                         {equipo.nombreEquipo || "—"}
                                     </button>
-                                </td>
-                                <td style={{ padding: 10, borderBottom: "1px solid #f0f0f0" }}>
-                                    {empleadosMap.get(equipo.idCoordinador) || `#${equipo.idCoordinador ?? ""}`}
-                                </td>
-                                <td
-                                    style={{
-                                        padding: 10,
-                                        textAlign: "center",
-                                        color: equipo.estado ? "green" : "red",
-                                        fontWeight: 600,
-                                        borderBottom: "1px solid #f0f0f0"
-                                    }}
-                                >
-                                    {equipo.estado ? "Activo" : "Inactivo"}
                                 </td>
                                 <td
                                     style={{
@@ -95,12 +79,12 @@ const EquiposTable = ({
                                             onClick={() => toggleMenu(equipo.idEquipo)}
                                             style={comboBoxStyles.button.base}
                                             onMouseEnter={e =>
-                                                (e.currentTarget.style.background =
-                                                    comboBoxStyles.button.hover.background)
+                                            (e.currentTarget.style.background =
+                                                comboBoxStyles.button.hover.background)
                                             }
                                             onMouseLeave={e =>
-                                                (e.currentTarget.style.background =
-                                                    comboBoxStyles.button.base.background)
+                                            (e.currentTarget.style.background =
+                                                comboBoxStyles.button.base.background)
                                             }
                                         >
                                             Opciones ▾
@@ -112,12 +96,12 @@ const EquiposTable = ({
                                                     onClick={() => handleEdit(equipo)}
                                                     style={comboBoxStyles.menu.item.editar.base}
                                                     onMouseEnter={e =>
-                                                        (e.currentTarget.style.background =
-                                                            comboBoxStyles.menu.item.editar.hover.background)
+                                                    (e.currentTarget.style.background =
+                                                        comboBoxStyles.menu.item.editar.hover.background)
                                                     }
                                                     onMouseLeave={e =>
-                                                        (e.currentTarget.style.background =
-                                                            comboBoxStyles.menu.item.editar.base.background)
+                                                    (e.currentTarget.style.background =
+                                                        comboBoxStyles.menu.item.editar.base.background)
                                                     }
                                                 >
                                                     Editar integrantes
@@ -131,7 +115,7 @@ const EquiposTable = ({
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="4" style={{ textAlign: "center", padding: 20 }}>
+                            <td colSpan="2" style={{ textAlign: "center", padding: 20 }}>
                                 No hay equipos registrados
                             </td>
                         </tr>

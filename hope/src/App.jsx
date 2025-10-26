@@ -28,9 +28,6 @@ import PerfilContainer from "./containers/perfil/PerfilContainer";
 // Componentes generales
 import NavScrollTop from "./components/nav-scroll-top";
 
-//Notificaciones
-import CapacitacionesToast from "./components/NotificacionCapacitaciones/CapacitacionesToast";
-
 // ============================================================
 // ConvocatoriasPublicas
 // ============================================================
@@ -112,7 +109,6 @@ const App = () => {
     return (
         <Router>
             <NavScrollTop>
-                <CapacitacionesToast />
                 <Switch>
                     {/*Publico*/}
                     <Route exact path={`${base}/Bolsadeempleo`} component={ConvocatoriasPublicPage} />
@@ -166,7 +162,7 @@ const App = () => {
                     <Route exact path={`${base}/Documentos`} component={DocumentosContainer} />
                 </Switch>
             </NavScrollTop>
-            
+
             {/* ToastContainer global para todas las notificaciones */}
             <ToastContainer
                 position="top-right"

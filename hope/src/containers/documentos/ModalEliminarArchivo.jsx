@@ -1,4 +1,5 @@
 import React from "react";
+import ModalConfirmacionStyles from "../../stylesGenerales/ConfirmModalStyles";
 
 const ModalEliminarArchivo = ({
     mostrarModalEliminar,
@@ -9,48 +10,24 @@ const ModalEliminarArchivo = ({
     if (!mostrarModalEliminar) return null;
 
     return (
-        <div
-            style={{
-                paddingLeft: "225px",
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                background: "rgba(0,0,0,0.5)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 2000
-            }}
-        >
-            <div
-                style={{
-                    background: "#fff",
-                    padding: "25px",
-                    borderRadius: "12px",
-                    width: "400px",
-                    textAlign: "center",
-                    boxShadow: "0 0 15px rgba(0,0,0,0.3)"
-                }}
-            >
-                <h3 style={{ marginBottom: "15px" }}>¿Eliminar el archivo actual?</h3>
-                <p style={{ color: "#555", marginBottom: "20px" }}>
-                    Esta acción eliminará el archivo asociado al documento, pero conservará el registro.
+        <div style={ModalConfirmacionStyles.overlay}>
+            <div style={ModalConfirmacionStyles.modal}>
+                <h3 style={ModalConfirmacionStyles.titulo}>Confirmar eliminación</h3>
+                <p style={ModalConfirmacionStyles.mensaje}>
+                    ¿Está seguro que desea eliminar el archivo actual?
+                    <br />
+                    <small>Esta acción eliminará el archivo asociado al documento, pero conservará el registro.</small>
                 </p>
-
-                <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+                <div style={ModalConfirmacionStyles.botonesContainer}>
                     <button
                         onClick={async () => {
                             await handleDeleteArchivo(documentoAEliminar);
                             setMostrarModalEliminar(false);
                         }}
                         style={{
-                            background: "#fb8500",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "6px",
-                            padding: "8px 20px",
+                            ...ModalConfirmacionStyles.boton,
+                            background: "#FCA5A5",
+                            color: "#000",
                             cursor: "pointer"
                         }}
                     >
@@ -59,11 +36,8 @@ const ModalEliminarArchivo = ({
                     <button
                         onClick={() => setMostrarModalEliminar(false)}
                         style={{
-                            background: "#ccc",
-                            color: "#333",
-                            border: "none",
-                            borderRadius: "6px",
-                            padding: "8px 20px",
+                            ...ModalConfirmacionStyles.botonCancelar,
+                            color: "#000",
                             cursor: "pointer"
                         }}
                     >

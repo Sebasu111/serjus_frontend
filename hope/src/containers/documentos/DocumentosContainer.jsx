@@ -6,7 +6,7 @@ import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 import { showToast } from "../../utils/toast.js";
-import {  } from "react-toastify";import DocumentosTable from "./DocumentosTable.jsx";
+import { } from "react-toastify"; import DocumentosTable from "./DocumentosTable.jsx";
 import DocumentosForm from "./DocumentosForm.jsx";
 import ModalEliminarArchivo from "./ModalEliminarArchivo.jsx";
 
@@ -35,6 +35,7 @@ const DocumentosContainer = () => {
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
     const [busqueda, setBusqueda] = useState("");
+    const [mostrarSinArchivo, setMostrarSinArchivo] = useState(false);
 
     useEffect(() => {
         fetchDocumentos();
@@ -83,11 +84,13 @@ const DocumentosContainer = () => {
         if (files && files.length > 0) {
             const file = files[0];
             const extension = file.name.split(".").pop().toLowerCase();
+            // Quitar la extensión del nombre del archivo
+            const nombreSinExtension = file.name.replace(/\.[^/.]+$/, "");
             setForm(f => ({
                 ...f,
                 archivoFile: file,
                 mimearchivo: extension,
-                nombrearchivo: file.name
+                nombrearchivo: nombreSinExtension
             }));
         } else {
             setForm(f => ({
@@ -98,12 +101,11 @@ const DocumentosContainer = () => {
     };
 
     const openNewForm = () => {
-        const today = new Date().toISOString().slice(0, 10);
         setForm(f => ({
             ...f,
             nombrearchivo: "",
             mimearchivo: "",
-            fechasubida: today,
+            fechasubida: "",
             idusuario: sessionStorage.getItem("idUsuario") || "",
             idtipodocumento: "",
             idempleado: "",
@@ -118,7 +120,6 @@ const DocumentosContainer = () => {
 
         if (
             !form.nombrearchivo ||
-            !form.fechasubida ||
             !form.idtipodocumento ||
             !form.idempleado ||
             (!form.archivoFile && !editingId)
@@ -131,24 +132,21 @@ const DocumentosContainer = () => {
         const idUsuario = sessionStorage.getItem("idUsuario");
         const formData = new FormData();
 
+        // Siempre usar la fecha actual
+        const fechaActual = new Date().toISOString().slice(0, 10);
+
         let nombreFinal = form.nombrearchivo;
         let extension = form.mimearchivo;
 
         if (form.archivoFile) {
             extension = form.archivoFile.name.split(".").pop().toLowerCase();
-            if (!nombreFinal.endsWith(`.${extension}`)) {
-                nombreFinal = `${nombreFinal}.${extension}`;
-            }
+            // Solo agregar extensión para el archivo físico, no para el nombre mostrado
             formData.append("archivo", form.archivoFile);
-        } else if (editingId) {
-            if (!nombreFinal.endsWith(`.${extension}`)) {
-                nombreFinal = `${nombreFinal}.${extension}`;
-            }
         }
 
         formData.append("nombrearchivo", nombreFinal);
         formData.append("mimearchivo", extension);
-        formData.append("fechasubida", form.fechasubida);
+        formData.append("fechasubida", fechaActual);
         formData.append("estado", true);
         formData.append("idusuario", idUsuario);
         formData.append("idtipodocumento", form.idtipodocumento);
@@ -186,11 +184,10 @@ const DocumentosContainer = () => {
     };
 
     const handleEdit = row => {
-        const today = row.fechasubida ?? new Date().toISOString().slice(0, 10);
         setForm({
             nombrearchivo: row.nombrearchivo ?? "",
             mimearchivo: row.mimearchivo ?? "",
-            fechasubida: today,
+            fechasubida: "",
             idusuario: row.idusuario ?? (sessionStorage.getItem("idUsuario") || ""),
             idtipodocumento: row.idtipodocumento ?? "",
             idempleado: row.idempleado ?? "",
@@ -266,13 +263,22 @@ const DocumentosContainer = () => {
 
             const terminoBusqueda = busqueda.toLowerCase();
 
-            // Filtrar por nombre de documento, nombre, apellido o nombre completo del empleado
-            return (
+            // Filtro por texto de búsqueda
+            const coincideTexto = (
                 nombreDocumento.includes(terminoBusqueda) ||
                 nombreEmpleado.includes(terminoBusqueda) ||
                 apellidoEmpleado.includes(terminoBusqueda) ||
                 nombreCompletoEmpleado.includes(terminoBusqueda)
             );
+
+            // Filtro por estado de archivo
+            if (mostrarSinArchivo) {
+                // Solo mostrar los que NO tienen archivo
+                return coincideTexto && !d.archivo_url;
+            } else {
+                // Mostrar todos (con y sin archivo)
+                return coincideTexto;
+            }
         });
 
     const indexOfLast = paginaActual * elementosPorPagina;
@@ -364,40 +370,73 @@ const DocumentosContainer = () => {
                                 totalPaginas={totalPaginas}
                             />
 
-                            {/* LÍMITE */}
+                            {/* CONTROLES DE VISUALIZACIÓN */}
                             <div
                                 style={{
                                     marginTop: "20px",
-                                    textAlign: "center"
+                                    textAlign: "center",
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    gap: "30px",
+                                    flexWrap: "wrap"
                                 }}
                             >
-                                <label
-                                    style={{
-                                        marginRight: "10px",
-                                        fontWeight: "600"
-                                    }}
-                                >
-                                    Mostrar:
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={elementosPorPagina}
-                                    onChange={e => {
-                                        const val = e.target.value.replace(/\D/g, "");
-                                        const numero = val === "" ? "" : Number(val);
-                                        setElementosPorPagina(numero > 0 ? numero : 1);
-                                        setPaginaActual(1);
-                                    }}
-                                    onFocus={e => e.target.select()}
-                                    style={{
-                                        width: "80px",
-                                        padding: "10px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #ccc",
-                                        textAlign: "center"
-                                    }}
-                                />
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <label
+                                        style={{
+                                            fontWeight: "600"
+                                        }}
+                                    >
+                                        Mostrar:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={elementosPorPagina}
+                                        onChange={e => {
+                                            const val = e.target.value.replace(/\D/g, "");
+                                            const numero = val === "" ? "" : Number(val);
+                                            setElementosPorPagina(numero > 0 ? numero : 1);
+                                            setPaginaActual(1);
+                                        }}
+                                        onFocus={e => e.target.select()}
+                                        style={{
+                                            width: "80px",
+                                            padding: "10px",
+                                            borderRadius: "6px",
+                                            border: "1px solid #ccc",
+                                            textAlign: "center"
+                                        }}
+                                    />
+                                </div>
+
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <input
+                                        type="checkbox"
+                                        id="mostrarSinArchivo"
+                                        checked={mostrarSinArchivo}
+                                        onChange={e => {
+                                            setMostrarSinArchivo(e.target.checked);
+                                            setPaginaActual(1);
+                                        }}
+                                        style={{
+                                            width: "18px",
+                                            height: "18px",
+                                            cursor: "pointer"
+                                        }}
+                                    />
+                                    <label
+                                        htmlFor="mostrarSinArchivo"
+                                        style={{
+                                            fontWeight: "600",
+                                            cursor: "pointer",
+                                            color: mostrarSinArchivo ? "#1a73e8" : "#333"
+                                        }}
+                                    >
+                                        Mostrar solo sin archivo
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </main>

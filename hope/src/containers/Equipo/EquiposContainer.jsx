@@ -7,9 +7,9 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import {  } from "react-toastify";import { buttonStyles } from "../../stylesGenerales/buttons.js";
+import { } from "react-toastify"; import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
-import EquipoForm from "./EquipoForm";
+import EquipoFormNuevo from "./EquipoFormNuevo";
 import EquiposTable from "./EquiposTable";
 
 const API_BASE = "http://127.0.0.1:8000/api";
@@ -126,12 +126,12 @@ const EquiposContainer = () => {
                     e.miembros ?? e.integrantes ?? e.members ?? e.equipoMiembros ?? e.detalleMiembros ?? [];
                 const miembrosNormalizados = Array.isArray(posiblesListas)
                     ? posiblesListas.map(x =>
-                          Number(
-                              typeof x === "object"
-                                  ? x.idEmpleado ?? x.idempleado ?? x.id ?? x.pk ?? x.uuid ?? x.codigo
-                                  : x
-                          )
-                      )
+                        Number(
+                            typeof x === "object"
+                                ? x.idEmpleado ?? x.idempleado ?? x.id ?? x.pk ?? x.uuid ?? x.codigo
+                                : x
+                        )
+                    )
                     : [];
                 return {
                     idEquipo: Number(id),
@@ -308,10 +308,6 @@ const EquiposContainer = () => {
             showToast("Revisar duplicados / el coordinador no puede ir como miembro.", "error");
             return;
         }
-        if (setUnique.length > 6) {
-            showToast("Máximo 6 acompañantes.", "error");
-            return;
-        }
         const conflicto = setUnique.find(id => ocupadosNoPropios.has(Number(id)));
         if (conflicto != null) {
             showToast("Uno o más miembros ya pertenecen a otro equipo.", "error");
@@ -325,14 +321,24 @@ const EquiposContainer = () => {
             return;
         }
 
+        // Asegurar que todos los campos sean del tipo correcto
+        const nombreEquipoStr = Array.isArray(equipoSel.nombreEquipo)
+            ? equipoSel.nombreEquipo[0]
+            : String(equipoSel.nombreEquipo || "");
+
+        const coordinadorId = toNum(idCoordinador);
+        const miembrosArray = Array.isArray(setUnique) ? setUnique.map(Number) : [];
+
         try {
             const payload = {
-                nombreequipo: equipoSel.nombreEquipo ?? "",
-                idcoordinador: toNum(idCoordinador),
-                miembros: setUnique,
+                nombreequipo: nombreEquipoStr,
+                idcoordinador: coordinadorId,
+                miembros: miembrosArray,
                 idusuario: idUsuario,
-                validadoEn: new Date().toISOString()
+                estado: true
             };
+
+            console.log("Payload enviado:", payload); // Para debug
 
             await axios.put(`${API_BASE}/equipos/${idEquipo}/`, payload);
 
@@ -355,7 +361,10 @@ const EquiposContainer = () => {
             setMostrarFormulario(false);
         } catch (error) {
             console.error("PUT /equipos error:", error.response?.data || error);
-            showToast("Error al actualizar el equipo", "error");
+            const errorMsg = error.response?.data?.nombreequipo?.[0] ||
+                error.response?.data?.detail ||
+                "Error al actualizar el equipo";
+            showToast(errorMsg, "error");
         }
     };
 
@@ -392,29 +401,59 @@ const EquiposContainer = () => {
 
     const handleVerDetalle = async equipo => {
         try {
-            const merged = equiposConMiembros.find(e => e.idEquipo === equipo.idEquipo);
-            const idsMerged = merged?.miembros || [];
-            const ids = idsMerged.length ? idsMerged : (await fetchEquipoDetalle(equipo.idEquipo)) || [];
+            console.log("Ver detalle de equipo:", equipo); // Debug
 
-            if (!miembrosCache.has(equipo.idEquipo)) {
+            // Intentar obtener miembros desde varias fuentes
+            let ids = [];
+
+            // 1. Desde cache si existe
+            if (miembrosCache.has(equipo.idEquipo)) {
+                ids = miembrosCache.get(equipo.idEquipo);
+                console.log("Miembros desde cache:", ids);
+            }
+            // 2. Desde equiposConMiembros (fusionado)
+            else {
+                const merged = equiposConMiembros.find(e => e.idEquipo === equipo.idEquipo);
+                ids = merged?.miembros || [];
+                console.log("Miembros desde equiposConMiembros:", ids);
+
+                // 3. Si no hay miembros, intentar desde API
+                if (!ids.length) {
+                    try {
+                        ids = (await fetchEquipoDetalle(equipo.idEquipo)) || [];
+                        console.log("Miembros desde API:", ids);
+                    } catch (apiError) {
+                        console.warn("No se pudieron cargar miembros desde API:", apiError);
+                    }
+                }
+
+                // Actualizar cache con los miembros encontrados
                 setMiembrosCache(prev => {
                     const copy = new Map(prev);
                     copy.set(equipo.idEquipo, ids);
                     return copy;
                 });
             }
-            const miembrosNombres = ids.map(id => empleadosMap.get(Number(id)) || `Empleado #${id}`).filter(Boolean);
+
+            // Convertir IDs a nombres, asegurar que sean números válidos
+            const miembrosNombres = ids
+                .map(Number)
+                .filter(id => !isNaN(id) && id > 0)
+                .map(id => empleadosMap.get(id) || `Empleado #${id}`)
+                .filter(Boolean);
+
+            console.log("Miembros nombres finales:", miembrosNombres);
 
             setDetalle({
                 idEquipo: equipo.idEquipo,
                 nombreEquipo: equipo.nombreEquipo || `Equipo #${equipo.idEquipo}`,
-                coordinadorNombre: empleadosMap.get(equipo.idCoordinador) || `#${equipo.idCoordinador ?? ""}`,
+                coordinadorNombre: empleadosMap.get(equipo.idCoordinador) || "Sin coordinador asignado",
                 miembrosNombres,
                 estado: equipo.estado !== false
             });
             setMostrarDetalle(true);
         } catch (e) {
-            console.error(e);
+            console.error("Error al cargar detalle del equipo:", e);
             showToast("No se pudo cargar el detalle del equipo", "error");
         }
     };
@@ -429,12 +468,15 @@ const EquiposContainer = () => {
                 const nombreB = (b.nombreEquipo || "").toLowerCase();
                 return nombreA.localeCompare(nombreB);
             });
-            
+
         if (!texto) return equiposOrdenados;
         return equiposOrdenados.filter(e => {
             const porNombre = (e.nombreEquipo || "").toLowerCase().includes(texto);
             const porCoord = (empleadosMap.get(e.idCoordinador) || "").toLowerCase().includes(texto);
-            return porNombre || porCoord;
+            const porMiembros = (e.miembros || []).some(idMiembro =>
+                (empleadosMap.get(Number(idMiembro)) || "").toLowerCase().includes(texto)
+            );
+            return porNombre || porCoord || porMiembros;
         });
     }, [equiposConMiembros, empleadosMap, busqueda]);
 
@@ -466,7 +508,7 @@ const EquiposContainer = () => {
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Equipos Registrados</h2>
 
-                            {/* Buscador */}
+                            {/* Buscador y botón nuevo */}
                             <div
                                 style={{
                                     display: "flex",
@@ -477,7 +519,7 @@ const EquiposContainer = () => {
                             >
                                 <input
                                     type="text"
-                                    placeholder="Buscar por equipo o coordinador..."
+                                    placeholder="Buscar equipo..."
                                     value={busqueda}
                                     onChange={e => {
                                         setBusqueda(e.target.value);
@@ -485,7 +527,18 @@ const EquiposContainer = () => {
                                     }}
                                     style={buttonStyles.buscador}
                                 />
-                                <div style={{ width: 160 }} />
+                                <button
+                                    onClick={() => {
+                                        setIdEquipo("");
+                                        setIdCoordinador("");
+                                        setMiembros([]);
+                                        setEditingId(null);
+                                        setMostrarFormulario(true);
+                                    }}
+                                    style={buttonStyles.nuevo}
+                                >
+                                    Nuevo Equipo
+                                </button>
                             </div>
 
                             <EquiposTable
@@ -526,8 +579,8 @@ const EquiposContainer = () => {
                 </div>
 
                 {mostrarFormulario && (
-                    <EquipoForm
-        equipos={equiposConMiembros} // ← pasamos la versión fusionada
+                    <EquipoFormNuevo
+                        equipos={equiposConMiembros}
                         idEquipo={idEquipo}
                         setIdEquipo={setIdEquipo}
                         idCoordinador={idCoordinador}
@@ -536,15 +589,12 @@ const EquiposContainer = () => {
                         miembros={miembros}
                         setMiembros={setMiembros}
                         editingId={editingId}
-                        loadingMiembros={loadingMiembros}
                         handleSubmit={handleSubmit}
                         onClose={() => setMostrarFormulario(false)}
                         ocupadosSet={ocupadosSet}
                         originales={{ coord: originalEquipo.coord, miembros: originalEquipo.miembros }}
                     />
-                )}
-
-                {/* === DETALLE estilizado === */}
+                )}                {/* === DETALLE estilizado === */}
                 {mostrarDetalle && (
                     <div
                         style={{
@@ -609,7 +659,7 @@ const EquiposContainer = () => {
                                     onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
                                     onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
                                 >
-                                    âœ•
+                                    ✕
                                 </button>
                             </div>
 

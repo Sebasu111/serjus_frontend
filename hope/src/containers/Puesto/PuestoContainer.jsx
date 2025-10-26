@@ -6,6 +6,7 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
+import { buttonStyles } from "../../stylesGenerales/buttons.js";
 import PuestoForm from "./PuestoForm";
 import PuestosTable from "./PuestosTable";
 import ConfirmModal from "./ConfirmModal";
@@ -96,8 +97,9 @@ const PuestosContainer = () => {
         .filter(p => {
             const texto = busqueda.toLowerCase().trim();
             const nombreCoincide = p.nombrepuesto?.toLowerCase().includes(texto) || false;
-            const estadoCoincide = (p.estado ? "activo" : "inactivo").startsWith(texto);
-            return nombreCoincide || estadoCoincide;
+            const descripcionCoincide = p.descripcion?.toLowerCase().includes(texto) || false;
+            const salarioCoincide = p.salariobase?.toString().includes(texto) || false;
+            return nombreCoincide || descripcionCoincide || salarioCoincide;
         });
 
     const indexOfLast = paginaActual * elementosPorPagina;
@@ -108,7 +110,7 @@ const PuestosContainer = () => {
     return (
         <Layout>
             <SEO title="Puestos" />
-            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
+            <div style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
                     <main
@@ -125,7 +127,7 @@ const PuestosContainer = () => {
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Puestos Registrados</h2>
 
-                            {/*Buscador */}
+                            {/* Buscador y botón nuevo */}
                             <div
                                 style={{
                                     display: "flex",
@@ -142,17 +144,18 @@ const PuestosContainer = () => {
                                         setBusqueda(e.target.value);
                                         setPaginaActual(1);
                                     }}
-                                    style={{
-                                        flex: 1,
-                                        padding: "10px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #ccc",
-                                        marginRight: "10px"
-                                    }}
+                                    style={buttonStyles.buscador}
                                 />
-                            </div>
-
-                            {/* Tabla de Puestos */}
+                                <button
+                                    onClick={() => {
+                                        setPuestoSeleccionado(null);
+                                        setMostrarFormulario(true);
+                                    }}
+                                    style={buttonStyles.nuevo}
+                                >
+                                    Nuevo Puesto
+                                </button>
+                            </div>                            {/* Tabla de Puestos */}
                             <PuestosTable
                                 puestos={puestosPaginados}
                                 onAsignarSalario={puesto => {
@@ -165,24 +168,22 @@ const PuestosContainer = () => {
                                 totalPaginas={totalPaginas}
                             />
 
-                            {/* Selector de cantidad */}
                             <div style={{ marginTop: "20px", textAlign: "center" }}>
                                 <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
                                 <input
                                     type="number"
                                     min="1"
-                                    max={puestosFiltrados.length} // opcional: limitar máximo
                                     value={elementosPorPagina}
                                     onChange={e => {
                                         const val = e.target.value.replace(/\D/g, "");
-                                        const numero = val === "" ? 1 : Number(val); // mínimo 1
-                                        setElementosPorPagina(numero);
-                                        setPaginaActual(1); // siempre volver a la primera página
+                                        const numero = val === "" ? "" : Number(val);
+                                        setElementosPorPagina(numero > 0 ? numero : 1);
+                                        setPaginaActual(1);
                                     }}
                                     onFocus={e => e.target.select()}
                                     style={{
                                         width: "80px",
-                                        padding: "10px",
+                                        padding: "6px",
                                         borderRadius: "6px",
                                         border: "1px solid #ccc",
                                         textAlign: "center"
@@ -192,11 +193,10 @@ const PuestosContainer = () => {
                         </div>
                     </main>
                     <Footer />
-                    <ScrollToTop />
                 </div>
 
                 {/* Modal Asignar Salario */}
-                {mostrarFormulario && puestoSeleccionado && (
+                {mostrarFormulario && (
                     <PuestoForm
                         puestoSeleccionado={puestoSeleccionado}
                         handleSubmit={handleSubmit}
@@ -212,6 +212,8 @@ const PuestosContainer = () => {
                         onCancel={() => setConfirmModalVisible(false)}
                     />
                 )}
+
+                <ScrollToTop />
             </div>
         </Layout>
     );

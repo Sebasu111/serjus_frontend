@@ -32,42 +32,32 @@ const DocumentosForm = ({
                 borderRadius: "12px"
             }}
         >
-            <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
+            <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
                 {editingId ? "Editar documento" : "Registrar documento"}
             </h3>
 
             <form onSubmit={handleSubmit} style={{ flex: 1 }}>
                 {/* 1. Nombre del archivo */}
-                <div style={{ marginBottom: "12px" }}>
+                <div style={{ marginBottom: "15px" }}>
                     <label style={{ display: "block", marginBottom: "6px" }}>Nombre del archivo</label>
                     <input
                         name="nombrearchivo"
                         value={form.nombrearchivo}
                         onChange={onChange}
                         required
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "6px"
-                        }}
+                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
                     />
                 </div>
 
                 {/* 2. Tipo de documento */}
-                <div style={{ marginBottom: "12px" }}>
+                <div style={{ marginBottom: "15px" }}>
                     <label style={{ display: "block", marginBottom: "6px" }}>Tipo de documento</label>
                     <select
                         name="idtipodocumento"
                         value={form.idtipodocumento}
                         onChange={onChange}
                         required
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "6px"
-                        }}
+                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
                     >
                         <option value="">Seleccione...</option>
                         {tiposDocumento.map(t => (
@@ -79,7 +69,7 @@ const DocumentosForm = ({
                 </div>
 
                 {/* 3. Empleado */}
-                <div style={{ marginBottom: "12px" }}>
+                <div style={{ marginBottom: "15px" }}>
                     <label style={{ display: "block", marginBottom: "6px" }}>Empleado</label>
                     <Select
                         options={empleados.map(e => ({
@@ -89,11 +79,10 @@ const DocumentosForm = ({
                         value={
                             form.idempleado
                                 ? {
-                                      value: form.idempleado,
-                                      label: `${empleados.find(emp => emp.idempleado === form.idempleado)?.nombre} ${
-                                          empleados.find(emp => emp.idempleado === form.idempleado)?.apellido
-                                      }`
-                                  }
+                                    value: form.idempleado,
+                                    label: `${empleados.find(emp => emp.idempleado === form.idempleado)?.nombre} ${empleados.find(emp => emp.idempleado === form.idempleado)?.apellido
+                                        }`
+                                }
                                 : null
                         }
                         onChange={selected => setForm(f => ({ ...f, idempleado: selected?.value }))}
@@ -103,7 +92,7 @@ const DocumentosForm = ({
                 </div>
 
                 {/* 4. Archivo */}
-                <div style={{ marginBottom: "12px" }}>
+                <div style={{ marginBottom: "15px" }}>
                     <label style={{ display: "block", marginBottom: "6px" }}>Archivo</label>
                     <input
                         type="file"
@@ -114,26 +103,8 @@ const DocumentosForm = ({
                         style={{ marginBottom: "6px" }}
                     />
                     <small style={{ color: "#666" }}>
-                        {editingId ? "Sube un archivo solo si   desea reemplazar el existente." : ""}
+                        {editingId ? "Sube un archivo solo si desea reemplazar el existente." : ""}
                     </small>
-                </div>
-
-                {/* 5. Fecha de subida */}
-                <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>Fecha de subida</label>
-                    <input
-                        type="date"
-                        name="fechasubida"
-                        value={form.fechasubida}
-                        onChange={onChange}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "6px"
-                        }}
-                    />
                 </div>
 
                 <button
@@ -145,7 +116,8 @@ const DocumentosForm = ({
                         color: "#FFF",
                         border: "none",
                         borderRadius: "6px",
-                        cursor: "pointer"
+                        cursor: "pointer",
+                        fontWeight: "600"
                     }}
                 >
                     {editingId ? "Actualizar" : "Guardar"}
@@ -192,6 +164,4 @@ const DocumentosForm = ({
             </button>
         </div>
     );
-};
-
-export default DocumentosForm;
+}; export default DocumentosForm;
