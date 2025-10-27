@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
 const PostularModal = ({ show, onClose, convocatoriaId }) => {
   const [step, setStep] = useState(1);
+  const [idiomas, setIdiomas] = useState([]);
+  const [pueblos, setPueblos] = useState([]);
+  const [cvFile, setCvFile] = useState(null);
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
@@ -13,18 +16,150 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
     fechanacimiento: "",
     telefono: "",
     direccion: "",
+    ididioma: "",
+    idpueblocultura: "",
   });
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/idiomas/")
+      .then(res => res.json())
+      .then(data => setIdiomas(data.results))
+      .catch(err => console.error("Error cargando idiomas:", err));
+
+    fetch("http://127.0.0.1:8000/api/pueblocultura/")
+      .then(res => res.json())
+      .then(data => setPueblos(data.results))
+      .catch(err => console.error("Error cargando pueblos:", err));
+  }, []);
 
   if (!show) return null;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => { setFormData({ ...formData, [e.target.name]: e.target.value }); };
 
-  const handleSubmit = (e) => {
+  const handleDpiChange = async (e) => {
+  const dpiValue = e.target.value;
+  setFormData({ ...formData, dpi: dpiValue });
+
+  if (dpiValue.length >= 7) { // Longitud mínima aproximada
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/aspirantes/?dpi=${dpiValue}`);
+      const data = await res.json();
+      if (data.length > 0) {
+        alert(" Este DPI ya está registrado");
+      }
+    } catch (err) {
+      console.error("Error verificando DPI:", err);
+    }
+  }
+};
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Formulario enviado:", { ...formData, convocatoriaId });
-    onClose();
+
+    if (!cvFile) {
+      alert("Debe adjuntar su CV en PDF");
+      return;
+    }
+
+    try {
+      if (!cvFile) {
+        alert("Debe adjuntar su CV en PDF");
+        return;
+      }
+
+      if (!formData.dpi) {
+        alert("Debe ingresar un DPI válido");
+        return;
+      }
+      //  Buscar Aspirante por DPI
+      const checkRes = await fetch(`http://127.0.0.1:8000/api/aspirantes/?dpi=${formData.dpi}`);
+      const aspirantesExistentes = await checkRes.json();
+
+      let idAspirante;
+
+      if (aspirantesExistentes.length > 0) {
+        idAspirante = aspirantesExistentes[0].idaspirante;
+        console.log(" Aspirante existente:", idAspirante);
+      } else {
+        //  Crear aspirante
+        const dataAspirante = {
+          nombreaspirante: formData.nombre,
+          apellidoaspirante: formData.apellido,
+          nit: formData.nit,
+          dpi: formData.dpi,
+          genero: formData.genero,
+          email: formData.email,
+          fechanacimiento: formData.fechanacimiento,
+          telefono: formData.telefono,
+          direccion: formData.direccion,
+          ididioma: formData.ididioma ? Number(formData.ididioma) : null,
+          idpueblocultura: formData.idpueblocultura ? Number(formData.idpueblocultura) : null,
+          estado: true,
+          idusuario: 1
+        };
+
+        const resAspirante = await fetch("http://127.0.0.1:8000/api/aspirantes/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataAspirante),
+        });
+        if (!resAspirante.ok) throw new Error("Error creando aspirante");
+
+        const aspiranteData = await resAspirante.json();
+        idAspirante = aspiranteData.idaspirante;
+        console.log(" Aspirante creado:", idAspirante);
+      }
+
+      //  Crear postulación
+      const dataPostulacion = {
+        fechapostulacion: new Date().toISOString().split("T")[0],
+        observacion: "Postulación desde formulario",
+        estado: true,
+        idusuario: 1,
+        idaspirante: idAspirante,
+        idconvocatoria: convocatoriaId,
+      };
+
+      const resPostulacion = await fetch("http://127.0.0.1:8000/api/postulaciones/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataPostulacion),
+      });
+      if (!resPostulacion.ok) throw new Error("Error creando postulación");
+
+      console.log(" Postulación creada");
+
+      //  Subir CV
+      const formDataCv = new FormData();
+      const extension = cvFile.name.split(".").pop().toLowerCase();
+      const nombreSinExt = cvFile.name.replace(/\.[^/.]+$/, "");
+
+      formDataCv.append("archivo", cvFile);
+      formDataCv.append("nombrearchivo", nombreSinExt);
+      formDataCv.append("mimearchivo", extension);
+      formDataCv.append("fechasubida", new Date().toISOString().split("T")[0]);
+      formDataCv.append("estado", true);
+      formDataCv.append("idusuario", 1);
+      formDataCv.append("idtipodocumento", 1); // 📌 tipo "CV"
+      formDataCv.append("idempleado", ""); // puede ir vacío
+      formDataCv.append("idaspirante", idAspirante);
+
+      const resCV = await fetch("http://127.0.0.1:8000/api/documentos/", {
+        method: "POST",
+        body: formDataCv
+      });
+
+      if (!resCV.ok) throw new Error("Error subiendo CV");
+
+      console.log(" CV Subido");
+
+      alert(" ¡Postulación enviada con CV exitosamente!");
+      onClose();
+
+    } catch (error) {
+      console.error(error);
+      alert(" Error al procesar la postulación");
+    }
   };
 
   const next = () => setStep(s => Math.min(3, s + 1));
@@ -87,7 +222,7 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
           <>
             <div style={{ marginBottom: 15 }}>
               <label>DPI</label>
-              <input name="dpi" value={formData.dpi} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
+              <input name="dpi" value={formData.dpi} onChange={handleDpiChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
             </div>
             <div style={{ marginBottom: 15 }}>
               <label>Género</label>
@@ -102,6 +237,39 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
               <label>Email</label>
               <input type="email" name="email" value={formData.email} onChange={handleChange} required style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
             </div>
+            <div style={{ marginBottom: 15 }}>
+            <label>Idioma</label>
+            <select
+              name="ididioma"
+              value={formData.ididioma}
+              onChange={(e) => setFormData({ ...formData, ididioma: e.target.value })}
+              style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
+            >
+              <option value="">Seleccione un idioma</option>
+              {idiomas.map((idioma) => (
+                <option key={idioma.ididioma} value={idioma.ididioma}>
+                  {idioma.nombreidioma}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: 15 }}>
+            <label>Pueblo / Cultura</label>
+            <select
+              name="idpueblocultura"
+              value={formData.idpueblocultura}
+              onChange={(e) => setFormData({ ...formData, idpueblocultura: e.target.value })}
+              style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
+            >
+              <option value="">Seleccione un pueblo</option>
+              {pueblos.map((pueblo) => (
+                <option key={pueblo.idpueblocultura} value={pueblo.idpueblocultura}>
+                  {pueblo.nombrepueblo}
+                </option>
+              ))}
+            </select>
+          </div>
           </>
         )}
 
@@ -118,6 +286,16 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
             <div style={{ marginBottom: 15 }}>
               <label>Dirección</label>
               <input name="direccion" value={formData.direccion} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ marginBottom: 15 }}>
+              <label>Curriculum Vitae (PDF)</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setCvFile(e.target.files[0])}
+                required
+                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
+              />
             </div>
           </>
         )}
