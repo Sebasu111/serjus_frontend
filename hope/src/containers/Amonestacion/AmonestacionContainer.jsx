@@ -7,231 +7,206 @@ import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 import AmonestacionForm from "./AmonestacionForm.jsx";
 import AmonestacionTable from "./AmonestacionTable.jsx";
-import {  } from "react-toastify";const AmonestacionContainer = () => {
-    const [idEmpleado, setIdEmpleado] = useState("");
-    const [tipo, setTipo] = useState("");
-    const [fechaAmonestacion, setFechaAmonestacion] = useState("");
-    const [motivo, setMotivo] = useState("");
-    const [idDocumento, setIdDocumento] = useState("");
-    const [estadoActivo, setEstadoActivo] = useState(true);
-    const [mensaje, setMensaje] = useState("");
-    const [amonestaciones, setAmonestaciones] = useState([]);
-    const [editingId, setEditingId] = useState(null);
-    const [showForm, setShowForm] = useState(false);
-    const [busqueda, setBusqueda] = useState("");
 
-    useEffect(() => {
-        fetchAmonestaciones();
-    }, []);
+const AmonestacionContainer = () => {
+  const [amonestaciones, setAmonestaciones] = useState([]);
+  const [empleados, setEmpleados] = useState([]); 
+  const [editingAmonestacion, setEditingAmonestacion] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [mensaje, setMensaje] = useState("");
 
-    const fetchAmonestaciones = async () => {
-        try {
-            const res = await axios.get("http://127.0.0.1:8000/api/amonestaciones/");
-            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
-            setAmonestaciones(data);
-        } catch (error) {
-            console.error("Error al cargar amonestaciones:", error);
-            setAmonestaciones([]);
-            setMensaje("Error al cargar las amonestaciones");
-        }
-    };
+  useEffect(() => {
+    fetchAmonestaciones();
+    fetchEmpleados(); 
+  }, []);
 
-    const handleSubmit = async e => {
-        e.preventDefault();
-        try {
-            const data = {
-                idempleado: idEmpleado || null,
-                tipo,
-                fechaamonestacion: fechaAmonestacion,
-                motivo,
-                iddocumento: idDocumento,
-                estado: estadoActivo,
-                idusuario: 1
-            };
+  // 🔹 Fetch de amonestaciones
+  const fetchAmonestaciones = async () => {
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/amonestaciones/");
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.results)
+        ? res.data.results
+        : [];
+      setAmonestaciones(data);
+    } catch (error) {
+      console.error("Error al cargar amonestaciones:", error);
+      setMensaje("Error al cargar las amonestaciones");
+    }
+  };
 
-            if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${editingId}/`, data);
-                setMensaje("Amonestación actualizada correctamente");
-            } else {
-                await axios.post("http://127.0.0.1:8000/api/amonestaciones/", data);
-                setMensaje("Amonestación registrada correctamente");
-            }
+  // 🔹 Fetch de empleados
+  const fetchEmpleados = async () => {
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.results)
+        ? res.data.results
+        : [];
+      setEmpleados(data);
+    } catch (error) {
+      console.error("Error al cargar empleados:", error);
+      setMensaje("Error al cargar los empleados");
+    }
+  };
 
-            setIdEmpleado("");
-            setTipo("");
-            setFechaAmonestacion("");
-            setMotivo("");
-            setIdDocumento("");
-            setEstadoActivo(true);
-            setEditingId(null);
-            setShowForm(false);
+  // 🔹 Editar
+  const handleEdit = (amon) => {
+    setEditingAmonestacion(amon);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-            fetchAmonestaciones();
-        } catch (error) {
-            console.error("Error al guardar amonestación:", error.response?.data || error);
-            setMensaje("Error al registrar la amonestación");
-        }
-    };
+  // 🔹 Activar/Desactivar
+  const handleActivate = async (id, activar = true) => {
+    try {
+      const amon = amonestaciones.find((a) => a.idamonestacion === id);
+      if (!amon) return;
+      await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${id}/`, {
+        ...amon,
+        estado: activar,
+      });
+      setMensaje(
+        activar
+          ? "Amonestación activada correctamente"
+          : "Amonestación desactivada correctamente"
+      );
+      fetchAmonestaciones();
+    } catch (error) {
+      console.error("Error al cambiar el estado de amonestación:", error);
+      setMensaje("Error al actualizar la amonestación");
+    }
+  };
 
-    const handleEdit = amon => {
-        setIdEmpleado(amon.idempleado || "");
-        setTipo(amon.tipo);
-        setFechaAmonestacion(amon.fechaamonestacion);
-        setMotivo(amon.motivo);
-        setIdDocumento(amon.iddocumento);
-        setEstadoActivo(amon.estado);
-        setEditingId(amon.idamonestacion);
-        setShowForm(true);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    const handleDelete = async id => {
-        if (!window.confirm("¿Estás seguro de desactivar esta amonestación?")) return;
-        try {
-            const amon = amonestaciones.find(a => a.idamonestacion === id);
-            if (!amon) return;
-
-            await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${id}/`, {
-                ...amon,
-                estado: false
-            });
-
-            setMensaje("Amonestación desactivada correctamente");
-            fetchAmonestaciones();
-        } catch (error) {
-            console.error("Error al desactivar amonestación:", error.response?.data || error);
-            setMensaje("Error al desactivar la amonestación");
-        }
-    };
-
-    const handleActivate = async id => {
-        try {
-            const amon = amonestaciones.find(a => a.idamonestacion === id);
-            if (!amon) return;
-
-            await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${id}/`, {
-                ...amon,
-                estado: true
-            });
-
-            setMensaje("Amonestación activada correctamente");
-            fetchAmonestaciones();
-        } catch (error) {
-            console.error("Error al activar amonestación:", error.response?.data || error);
-            setMensaje("Error al activar la amonestación");
-        }
-    };
-
-    const amonestacionesFiltradas = amonestaciones.filter(a => {
-        const texto = busqueda.toLowerCase().trim();
-        return (
-            a.motivo?.toLowerCase().includes(texto) ||
-            a.tipo?.toLowerCase().includes(texto) ||
-            (a.estado ? "activo" : "inactivo").startsWith(texto)
+  // 🔹 Guardar o actualizar
+  const handleSubmit = async (dataAmonestacion, editingId) => {
+    try {
+      if (editingId) {
+        await axios.put(
+          `http://127.0.0.1:8000/api/amonestaciones/${editingId}/`,
+          dataAmonestacion
         );
-    });
+        setMensaje("Amonestación actualizada correctamente");
+      } else {
+        await axios.post(
+          "http://127.0.0.1:8000/api/amonestaciones/",
+          dataAmonestacion
+        );
+        setMensaje("Amonestación registrada correctamente");
+      }
+      setEditingAmonestacion(null);
+      setShowForm(false);
+      fetchAmonestaciones();
+    } catch (error) {
+      console.error("Error al guardar amonestación:", error);
+      setMensaje("Error al registrar la amonestación");
+    }
+  };
 
+  // 🔹 Filtrado de amonestaciones por búsqueda
+  const amonestacionesFiltradas = amonestaciones.filter((a) => {
+    const texto = busqueda.toLowerCase().trim();
     return (
-        <Layout>
-            <SEO title=" Amonestaciones" />
-            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                    <Header />
-                    <main
-                        className="main-content site-wrapper-reveal"
-                        style={{
-                            flex: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: "#EEF2F7",
-                            padding: "48px 20px 8rem"
-                        }}
-                    >
-                        <div style={{ width: "min(1100px, 96vw)" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Registro de Amonestaciones</h2>
-
-                            {/* Buscador y botón de nuevo */}
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    marginBottom: "15px",
-                                    alignItems: "center"
-                                }}
-                            >
-                                <input
-                                    type="text"
-                                    placeholder="Buscar amonestación..."
-                                    value={busqueda}
-                                    onChange={e => setBusqueda(e.target.value)}
-                                    style={{
-                                        flex: 1,
-                                        padding: "10px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #ccc",
-                                        marginRight: "10px"
-                                    }}
-                                />
-                                <button
-                                    onClick={() => setShowForm(true)}
-                                    style={{
-                                        padding: "10px 20px",
-                                        background: "#219ebc",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontWeight: "600",
-                                        whiteSpace: "nowrap"
-                                    }}
-                                >
-                                    Nueva Amonestación
-                                </button>
-                            </div>
-
-                            {/* Mostrar formulario solo si está activo */}
-                            {showForm && (
-                                <AmonestacionForm
-                                    idEmpleado={idEmpleado}
-                                    tipo={tipo}
-                                    fechaAmonestacion={fechaAmonestacion}
-                                    motivo={motivo}
-                                    idDocumento={idDocumento}
-                                    estadoActivo={estadoActivo}
-                                    mensaje={mensaje}
-                                    editingId={editingId}
-                                    setIdEmpleado={setIdEmpleado}
-                                    setTipo={setTipo}
-                                    setFechaAmonestacion={setFechaAmonestacion}
-                                    setMotivo={setMotivo}
-                                    setIdDocumento={setIdDocumento}
-                                    setEstadoActivo={setEstadoActivo}
-                                    handleSubmit={handleSubmit}
-                                    onClose={() => {
-                                        setShowForm(false);
-                                        setEditingId(null);
-                                    }}
-                                />
-                            )}
-
-                            {/* Tabla */}
-                            <AmonestacionTable
-                                amonestaciones={amonestacionesFiltradas}
-                                handleEdit={handleEdit}
-                                handleDelete={handleDelete}
-                                handleActivate={handleActivate}
-                            />
-                        </div>
-                    </main>
-                    <Footer />
-                    <ScrollToTop />
-                </div>
-
-            </div>
-        </Layout>
+      a.motivo?.toLowerCase().includes(texto) ||
+      a.tipo?.toLowerCase().includes(texto) ||
+      (a.estado ? "activo" : "inactivo").startsWith(texto)
     );
+  });
+
+  return (
+    <Layout>
+      <SEO title="Amonestaciones" />
+      <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Header />
+          <main
+            className="main-content site-wrapper-reveal"
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#EEF2F7",
+              padding: "48px 20px 8rem",
+            }}
+          >
+            <div style={{ width: "min(1100px, 96vw)" }}>
+              <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
+                Registro de Amonestaciones
+              </h2>
+
+              {/* Buscador y botón nuevo */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "15px",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Buscar amonestación..."
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  style={{
+                    flex: 1,
+                    minWidth: "200px",
+                    padding: "10px",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                  }}
+                />
+                <button
+                  onClick={() => setShowForm(true)}
+                  style={{
+                    padding: "10px 20px",
+                    background: "#219ebc",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Nueva Amonestación
+                </button>
+              </div>
+
+              {/* Formulario */}
+              {showForm && (
+                <AmonestacionForm
+                  empleados={empleados} 
+                  editingAmonestacion={editingAmonestacion}
+                  onSubmit={handleSubmit}
+                  onClose={() => {
+                    setShowForm(false);
+                    setEditingAmonestacion(null);
+                  }}
+                />
+              )}
+
+              {/* Tabla */}
+              <AmonestacionTable
+                amonestaciones={amonestacionesFiltradas}
+                empleados={empleados} 
+                handleEdit={handleEdit}
+                handleActivate={handleActivate}
+              />
+            </div>
+          </main>
+          <Footer />
+          <ScrollToTop />
+        </div>
+      </div>
+    </Layout>
+  );
 };
 
 export default AmonestacionContainer;
-
