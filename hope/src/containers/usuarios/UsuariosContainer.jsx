@@ -11,6 +11,7 @@ import { showToast } from "../../utils/toast.js";
 import FormUsuario from "../../containers/usuarios/FormUsuario";
 import TableUsuarios from "../../containers/usuarios/TableUsuarios";
 import ModalConfirmacion from "../../containers/usuarios/ModalConfirmacion";
+import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 const API = "http://127.0.0.1:8000/api/usuarios/";
 const API_ROLES = "http://127.0.0.1:8000/api/roles/";
@@ -79,60 +80,40 @@ const UsuariosContainer = () => {
         }
     };
 
-    // --- Crear / actualizar usuario ---
+    // --- Cambiar contraseña de usuario ---
     const handleSubmit = async e => {
         e.preventDefault();
 
-        const empleadoYaAsignado = usuarios.some(
-            u =>
-                u.idempleado === Number(form.idempleado) &&
-                (!editingUsuario || u.idusuario !== editingUsuario.idusuario)
-        );
-        if (empleadoYaAsignado) {
-            showToast("Este empleado ya tiene un usuario asignado", "error");
+        if (!editingUsuario) {
+            showToast("Error: No se puede crear usuarios desde aquí", "error");
+            return;
+        }
+
+        if (!form.contrasena) {
+            showToast("La nueva contraseña es obligatoria", "error");
+            return;
+        }
+
+        if (form.contrasena.length < 4) {
+            showToast("La contraseña debe tener al menos 4 caracteres", "error");
             return;
         }
 
         try {
             const ahora = new Date().toISOString();
 
-            if (!form.nombreusuario) {
-                showToast("El nombre de usuario es obligatorio", "error");
-                return;
-            }
-            if (!editingUsuario && !form.contrasena) {
-                showToast("La contraseña es obligatoria al crear un usuario", "error");
-                return;
-            }
-            if (!form.idrol) {
-                showToast("Debe seleccionar un rol", "error");
-                return;
-            }
-            if (!form.idempleado) {
-                showToast("Debe seleccionar un empleado", "error");
-                return;
-            }
-
             const payload = {
-                nombreusuario: form.nombreusuario,
-                estado: form.estado,
-                createdat: editingUsuario ? editingUsuario.createdat : ahora,
+                nombreusuario: editingUsuario.nombreusuario,
+                estado: editingUsuario.estado,
+                createdat: editingUsuario.createdat,
                 updatedat: ahora,
-                idrol: Number(form.idrol),
-                idempleado: Number(form.idempleado)
+                idrol: editingUsuario.idrol,
+                idempleado: editingUsuario.idempleado,
+                contrasena: form.contrasena
             };
 
-            if (form.contrasena && (!editingUsuario || cambiarContrasena)) {
-                payload.contrasena = form.contrasena;
-            }
-
-            if (editingUsuario) {
-                await axios.put(`${API}${editingUsuario.idusuario}/`, payload);
-                showToast("Usuario actualizado correctamente", "success");
-            } else {
-                await axios.post(API, payload);
-                showToast("Usuario registrado correctamente", "success");
-            }
+            await axios.put(`${API}${editingUsuario.idusuario}/`, payload);
+            showToast("Contraseña actualizada correctamente", "success");
 
             setForm({ nombreusuario: "", contrasena: "", estado: true, idrol: "", idempleado: "" });
             setCambiarContrasena(false);
@@ -140,15 +121,15 @@ const UsuariosContainer = () => {
             setMostrarFormulario(false);
             fetchUsuarios();
         } catch (error) {
-            console.error("Error al guardar usuario:", error.response?.data || error);
-            showToast("Error al registrar/actualizar usuario", "error");
+            console.error("Error al cambiar contraseña:", error.response?.data || error);
+            showToast("Error al cambiar la contraseña", "error");
         }
     };
 
-    // --- Editar usuario ---
+    // --- Editar usuario (solo cambiar contraseña) ---
     const handleEdit = usuario => {
         if (!usuario.estado) {
-            showToast("No se puede editar un usuario desactivado", "error");
+            showToast("No se puede cambiar la contraseña de un usuario desactivado", "error");
             return;
         }
 
@@ -160,7 +141,7 @@ const UsuariosContainer = () => {
             idempleado: usuario.idempleado
         });
         setEditingUsuario(usuario);
-        setCambiarContrasena(false);
+        setCambiarContrasena(true); // Siempre cambiar contraseña en modo edición
         setMostrarFormulario(true);
     };
 
@@ -218,10 +199,31 @@ const UsuariosContainer = () => {
         .sort((a, b) => (b.idusuario || 0) - (a.idusuario || 0))
         .filter(u => {
             const textoBusqueda = busqueda.toLowerCase().trim();
-            const nombreCoincide = u.nombreusuario.toLowerCase().includes(textoBusqueda);
-            const estadoTexto = u.estado ? "activo" : "inactivo";
-            const estadoCoincide = estadoTexto.startsWith(textoBusqueda);
-            return nombreCoincide || estadoCoincide;
+            if (!textoBusqueda) return true;
+
+            // Obtener nombres para búsqueda
+            const nombreEmpleado = empleados?.find(emp =>
+                (emp.id || emp.idempleado || emp.idEmpleado) === u.idempleado
+            );
+            const nombreCompletoEmpleado = nombreEmpleado ?
+                `${nombreEmpleado.nombre} ${nombreEmpleado.apellido}`.toLowerCase() : '';
+
+            const rol = roles?.find(r => r.idrol === u.idrol);
+            const nombreRol = rol ? rol.nombrerol.toLowerCase() : '';
+
+            // Campos a buscar
+            const usuario = u.nombreusuario.toLowerCase();
+            const estadoTexto = (u.estado ? "activo" : "inactivo").toLowerCase();
+
+            // Para el estado, usar coincidencia exacta si se busca específicamente "activo" o "inactivo"
+            const esCoincidenciaEstado = textoBusqueda === "activo" || textoBusqueda === "inactivo"
+                ? estadoTexto === textoBusqueda
+                : estadoTexto.includes(textoBusqueda);
+
+            return usuario.includes(textoBusqueda) ||
+                nombreCompletoEmpleado.includes(textoBusqueda) ||
+                nombreRol.includes(textoBusqueda) ||
+                esCoincidenciaEstado;
         });
 
     const indexOfLast = paginaActual * elementosPorPagina;
@@ -249,13 +251,10 @@ const UsuariosContainer = () => {
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Usuarios Registrados</h2>
 
-                            {/* Buscador y botón nuevo usuario */}
+                            {/* Solo buscador - sin botón nuevo usuario */}
                             <div
                                 style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    marginBottom: "15px",
-                                    alignItems: "center"
+                                    marginBottom: "15px"
                                 }}
                             >
                                 <input
@@ -267,28 +266,23 @@ const UsuariosContainer = () => {
                                         setPaginaActual(1);
                                     }}
                                     style={{
-                                        flex: 1,
-                                        padding: "10px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #ccc",
-                                        marginRight: "10px"
+                                        width: "100%",
+                                        padding: "12px 16px",
+                                        borderRadius: "8px",
+                                        border: "2px solid #e5e7eb",
+                                        fontSize: "16px",
+                                        transition: "border-color 0.2s, box-shadow 0.2s",
+                                        outline: "none"
+                                    }}
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = "#219ebc";
+                                        e.target.style.boxShadow = "0 0 0 3px rgba(33, 158, 188, 0.1)";
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.borderColor = "#e5e7eb";
+                                        e.target.style.boxShadow = "none";
                                     }}
                                 />
-                                <button
-                                    onClick={() => setMostrarFormulario(true)}
-                                    style={{
-                                        padding: "10px 20px",
-                                        background: "#219ebc",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontWeight: "600",
-                                        whiteSpace: "nowrap"
-                                    }}
-                                >
-                                    Nuevo Usuario
-                                </button>
                             </div>
 
                             {/* Tabla de usuarios */}
@@ -301,6 +295,8 @@ const UsuariosContainer = () => {
                                 paginaActual={paginaActual}
                                 totalPaginas={totalPaginas}
                                 setPaginaActual={setPaginaActual}
+                                empleados={empleados}
+                                roles={roles}
                             />
 
                             {/* Limite */}

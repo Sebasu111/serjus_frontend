@@ -1,6 +1,7 @@
 // components/usuarios/TableUsuarios.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
+import { buttonStyles } from "../../stylesGenerales/buttons";
 import ModalConfirmacion from "./ModalConfirmacion";
 
 const TableUsuarios = ({
@@ -11,22 +12,33 @@ const TableUsuarios = ({
     idUsuarioLogueado,
     paginaActual,
     totalPaginas,
-    setPaginaActual
+    setPaginaActual,
+    empleados,
+    roles
 }) => {
-    const [openMenuId, setOpenMenuId] = useState(null);
+    const [menuAbierto, setMenuAbierto] = useState(null);
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
     const [modo, setModo] = useState("desactivar"); // "desactivar" o "activar"
+    const containerRef = useRef(null);
 
-    const toggleMenu = id => {
-        setOpenMenuId(openMenuId === id ? null : id);
-    };
+    useEffect(() => {
+        const handleClickOutside = e => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setMenuAbierto(null);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const toggleMenu = id => setMenuAbierto(menuAbierto === id ? null : id);
 
     const abrirModal = (usuario, accion) => {
         setUsuarioSeleccionado(usuario);
         setModo(accion);
         setMostrarConfirmacion(true);
-        setOpenMenuId(null); // cerrar menú
+        setMenuAbierto(null); // cerrar menú
     };
 
     const confirmarAccion = () => {
@@ -38,8 +50,23 @@ const TableUsuarios = ({
         setMostrarConfirmacion(false);
     };
 
+    // Función para obtener nombre del empleado
+    const obtenerNombreEmpleado = (idEmpleado) => {
+        const empleado = empleados?.find(emp =>
+            (emp.id || emp.idempleado || emp.idEmpleado) === idEmpleado
+        );
+        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Empleado no encontrado";
+    };
+
+    // Función para obtener nombre del rol
+    const obtenerNombreRol = (idRol) => {
+        const rol = roles?.find(r => r.idrol === idRol);
+        return rol ? rol.nombrerol : "Rol no encontrado";
+    };
+
     return (
         <div
+            ref={containerRef}
             style={{
                 background: "#fff",
                 borderRadius: "12px",
@@ -50,147 +77,125 @@ const TableUsuarios = ({
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                     <tr>
-                        {["Usuario", "Estado", "Acciones"].map(h => (
-                            <th
-                                key={h}
-                                style={{
-                                    borderBottom: "2px solid #eee",
-                                    padding: "10px",
-                                    textAlign: "center",
-                                    fontWeight: "600",
-                                    background: "#f8f9fa"
-                                }}
-                            >
-                                {h}
-                            </th>
-                        ))}
+                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Usuario</th>
+                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Empleado</th>
+                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Rol</th>
+                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Estado</th>
+                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {usuariosPaginados.length > 0 ? (
-                        usuariosPaginados.map(u => {
-                            const isActive = u.estado;
+                        usuariosPaginados.map(usuario => (
+                            <tr key={usuario.idusuario}>
+                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                    {usuario.nombreusuario}
+                                </td>
+                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                    {obtenerNombreEmpleado(usuario.idempleado)}
+                                </td>
+                                <td style={{ padding: "10px", textAlign: "center", borderBottom: "1px solid #f0f0f0" }}>
+                                    {obtenerNombreRol(usuario.idrol)}
+                                </td>
+                                <td
+                                    style={{
+                                        padding: "10px",
+                                        textAlign: "center",
+                                        color: usuario.estado ? "green" : "red",
+                                        fontWeight: "600",
+                                        borderBottom: "1px solid #f0f0f0"
+                                    }}
+                                >
+                                    {usuario.estado ? "Activo" : "Inactivo"}
+                                </td>
+                                <td
+                                    style={{
+                                        padding: 10,
+                                        textAlign: "center",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        position: "relative"
+                                    }}
+                                >
+                                    <div style={comboBoxStyles.container}>
+                                        <button
+                                            onClick={() => toggleMenu(usuario.idusuario)}
+                                            style={comboBoxStyles.button.base}
+                                            onMouseEnter={e =>
+                                            (e.currentTarget.style.background =
+                                                comboBoxStyles.button.hover.background)
+                                            }
+                                            onMouseLeave={e =>
+                                            (e.currentTarget.style.background =
+                                                comboBoxStyles.button.base.background)
+                                            }
+                                        >
+                                            Opciones ▾
+                                        </button>
 
-                            return (
-                                <tr key={u.idusuario}>
-                                    <td
-                                        style={{
-                                            padding: "10px",
-                                            textAlign: "center",
-                                            whiteSpace: "nowrap",
-                                            borderBottom: "1px solid #f0f0f0"
-                                        }}
-                                    >
-                                        {u.nombreusuario}
-                                    </td>
-                                    <td
-                                        style={{
-                                            padding: "10px",
-                                            textAlign: "center",
-                                            width: "120px",
-                                            color: isActive ? "green" : "red",
-                                            fontWeight: "600",
-                                            borderBottom: "1px solid #f0f0f0"
-                                        }}
-                                    >
-                                        {isActive ? "Activo" : "Inactivo"}
-                                    </td>
-                                    <td
-                                        style={{
-                                            padding: "10px",
-                                            textAlign: "center",
-                                            borderBottom: "1px solid #f0f0f0"
-                                        }}
-                                    >
-                                        {/* ComboBox de acciones */}
-                                        <div style={comboBoxStyles.container}>
-                                            <button
-                                                onClick={() => toggleMenu(u.idusuario)}
-                                                style={{
-                                                    ...comboBoxStyles.button.base,
-                                                    background: isActive
-                                                        ? comboBoxStyles.button.base.background
-                                                        : "#e5e7eb",
-                                                    cursor: "pointer"
-                                                }}
-                                            >
-                                                Opciones ▾
-                                            </button>
+                                        {menuAbierto === usuario.idusuario && (
+                                            <div style={comboBoxStyles.menu.container}>
+                                                <button
+                                                    onClick={() => handleEdit(usuario)}
+                                                    style={{
+                                                        ...comboBoxStyles.menu.item.editar.base,
+                                                        ...(usuario.estado
+                                                            ? {}
+                                                            : comboBoxStyles.menu.item.editar.disabled)
+                                                    }}
+                                                    onMouseEnter={e =>
+                                                        usuario.estado &&
+                                                        (e.currentTarget.style.background =
+                                                            comboBoxStyles.menu.item.editar.hover.background)
+                                                    }
+                                                    onMouseLeave={e =>
+                                                    (e.currentTarget.style.background =
+                                                        comboBoxStyles.menu.item.editar.base.background)
+                                                    }
+                                                >
+                                                    Cambiar contraseña
+                                                </button>
 
-                                            {openMenuId === u.idusuario && (
-                                                <div style={comboBoxStyles.menu.container}>
-                                                    {/* Editar */}
-                                                    <div
-                                                        onClick={() => handleEdit(u)}
-                                                        style={{
-                                                            ...comboBoxStyles.menu.item.editar.base,
-                                                            ...(!u.estado
-                                                                ? comboBoxStyles.menu.item.editar.disabled
-                                                                : {})
-                                                        }}
+                                                {/* Activar o Desactivar */}
+                                                {usuario.estado ? (
+                                                    <button
+                                                        onClick={() => abrirModal(usuario, "desactivar")}
+                                                        style={comboBoxStyles.menu.item.desactivar.base}
                                                         onMouseEnter={e =>
-                                                            u.estado &&
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.editar.hover.background)
+                                                        (e.currentTarget.style.background =
+                                                            comboBoxStyles.menu.item.desactivar.hover.background)
                                                         }
                                                         onMouseLeave={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.editar.base.background)
+                                                        (e.currentTarget.style.background =
+                                                            comboBoxStyles.menu.item.desactivar.base.background)
                                                         }
                                                     >
-                                                        Editar
-                                                    </div>
-
-                                                    {/* Activar o Desactivar */}
-                                                    {isActive ? (
-                                                        <div
-                                                            onClick={() => abrirModal(u, "desactivar")}
-                                                            style={{
-                                                                ...comboBoxStyles.menu.item.desactivar.base,
-                                                                cursor: "pointer",
-                                                                opacity: 1
-                                                            }}
-                                                            onMouseEnter={e =>
-                                                                (e.currentTarget.style.background =
-                                                                    comboBoxStyles.menu.item.desactivar.hover.background)
-                                                            }
-                                                            onMouseLeave={e =>
-                                                                (e.currentTarget.style.background =
-                                                                    comboBoxStyles.menu.item.desactivar.base.background)
-                                                            }
-                                                        >
-                                                            Desactivar
-                                                        </div>
-                                                    ) : (
-                                                        <div
-                                                            onClick={() => abrirModal(u, "activar")}
-                                                            style={{
-                                                                ...comboBoxStyles.menu.item.activar.base,
-                                                                cursor: "pointer",
-                                                                opacity: 1
-                                                            }}
-                                                            onMouseEnter={e =>
-                                                                (e.currentTarget.style.background =
-                                                                    comboBoxStyles.menu.item.activar.hover.background)
-                                                            }
-                                                            onMouseLeave={e =>
-                                                                (e.currentTarget.style.background =
-                                                                    comboBoxStyles.menu.item.activar.base.background)
-                                                            }
-                                                        >
-                                                            Activar
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })
+                                                        Desactivar
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => abrirModal(usuario, "activar")}
+                                                        style={comboBoxStyles.menu.item.activar.base}
+                                                        onMouseEnter={e =>
+                                                        (e.currentTarget.style.background =
+                                                            comboBoxStyles.menu.item.activar.hover.background)
+                                                        }
+                                                        onMouseLeave={e =>
+                                                        (e.currentTarget.style.background =
+                                                            comboBoxStyles.menu.item.activar.base.background)
+                                                        }
+                                                    >
+                                                        Activar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))
                     ) : (
                         <tr>
-                            <td colSpan="3" style={{ textAlign: "center", padding: "20px" }}>
+                            <td colSpan="5" style={{ textAlign: "center", padding: 20 }}>
                                 No hay usuarios registrados
                             </td>
                         </tr>
@@ -198,21 +203,17 @@ const TableUsuarios = ({
                 </tbody>
             </table>
 
-            {/* Paginación */}
             {totalPaginas > 1 && (
-                <div style={{ marginTop: "20px", textAlign: "center" }}>
+                <div style={{ marginTop: 20, textAlign: "center" }}>
                     {Array.from({ length: totalPaginas }, (_, i) => (
                         <button
                             key={i + 1}
                             onClick={() => setPaginaActual(i + 1)}
                             style={{
-                                margin: "0 5px",
-                                padding: "6px 12px",
-                                border: "1px solid #219ebc",
-                                background: paginaActual === i + 1 ? "#219ebc" : "#fff",
-                                color: paginaActual === i + 1 ? "#fff" : "#219ebc",
-                                borderRadius: "5px",
-                                cursor: "pointer"
+                                ...buttonStyles.paginacion.base,
+                                ...(paginaActual === i + 1
+                                    ? buttonStyles.paginacion.activo
+                                    : buttonStyles.paginacion.inactivo)
                             }}
                         >
                             {i + 1}
