@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
-import {  } from "react-toastify";import { X } from "lucide-react";
+import { } from "react-toastify"; import { X } from "lucide-react";
 
 const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
     const [empleados, setEmpleados] = useState([]);
@@ -144,10 +144,10 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 {/* Capacitación */}
                 {capacitacionInicial ? (
                     // Mostrar capacitación preseleccionada
-                    <div style={{ 
-                        padding: "12px", 
-                        backgroundColor: "#e3f2fd", 
-                        border: "1px solid #2196f3", 
+                    <div style={{
+                        padding: "12px",
+                        backgroundColor: "#e3f2fd",
+                        border: "1px solid #2196f3",
                         borderRadius: "6px",
                         marginBottom: "10px"
                     }}>
@@ -188,7 +188,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 {/* Empleados */}
                 <div>
                     <label style={{ display: "block", marginBottom: "6px" }}>
-                        Seleccione empleados <span style={{ color: "red" }}>*</span>
+                        Seleccione colaboradores <span style={{ color: "red" }}>*</span>
                     </label>
 
                     <div
@@ -235,7 +235,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                                             cursor: "pointer",
                                             borderRadius: "4px",
                                             transition: "background-color 0.2s",
-                                            backgroundColor: empleadosSeleccionados.includes(emp.idempleado || emp.id) 
+                                            backgroundColor: empleadosSeleccionados.includes(emp.idempleado || emp.id)
                                                 ? "#e3f2fd" : "transparent"
                                         }}
                                         onMouseEnter={e => {
@@ -259,7 +259,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                                                 accentColor: "#2196f3"
                                             }}
                                         />
-                                        <span style={{ 
+                                        <span style={{
                                             fontSize: "14px",
                                             fontWeight: empleadosSeleccionados.includes(emp.idempleado || emp.id) ? "500" : "normal"
                                         }}>
@@ -268,11 +268,11 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                                     </label>
                                 ))
                             ) : (
-                                <div style={{ 
-                                    padding: "20px", 
-                                    textAlign: "center", 
+                                <div style={{
+                                    padding: "20px",
+                                    textAlign: "center",
                                     color: "#777",
-                                    fontSize: "14px" 
+                                    fontSize: "14px"
                                 }}>
                                     {busqueda ? "No se encontraron empleados con ese nombre" : "No hay empleados disponibles"}
                                 </div>
@@ -281,10 +281,10 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                     </div>
 
                     {empleadosSeleccionados.length > 0 && (
-                        <div style={{ 
-                            marginTop: "8px", 
-                            padding: "6px 8px", 
-                            backgroundColor: "#e8f5e8", 
+                        <div style={{
+                            marginTop: "8px",
+                            padding: "6px 8px",
+                            backgroundColor: "#e8f5e8",
                             borderRadius: "4px",
                             fontSize: "12px",
                             color: "#2e7d32"

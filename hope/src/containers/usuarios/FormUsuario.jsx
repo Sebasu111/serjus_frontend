@@ -17,6 +17,20 @@ const FormUsuario = ({
     handleSubmit,
     setMostrarFormulario
 }) => {
+    // Función para obtener nombre del empleado
+    const obtenerNombreEmpleado = (idEmpleado) => {
+        const empleado = empleados?.find(emp =>
+            (emp.id || emp.idempleado || emp.idEmpleado) === idEmpleado
+        );
+        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Empleado no encontrado";
+    };
+
+    // Función para obtener nombre del rol
+    const obtenerNombreRol = (idRol) => {
+        const rol = roles?.find(r => r.idrol === idRol);
+        return rol ? rol.nombrerol : "Rol no encontrado";
+    };
+
     return (
         <div
             style={{
@@ -25,236 +39,93 @@ const FormUsuario = ({
                 left: "50%",
                 transform: "translate(-15%, -50%)",
                 width: "350px",
+                maxWidth: "90%",
                 background: "#fff",
-                borderRadius: "10px",
-                boxShadow: "2px 0 15px rgba(0,0,0,0.2)",
+                boxShadow: "0 0 20px rgba(0,0,0,0.2)",
                 padding: "30px",
                 zIndex: 1000,
                 display: "flex",
-                flexDirection: "column"
+                flexDirection: "column",
+                borderRadius: "12px"
             }}
         >
             <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
-                {editingUsuario ? "Editar Usuario" : "Registrar Usuario"}
-            </h3>
-
-            <form onSubmit={handleSubmit} style={{ flex: 1 }}>
-                {/* Nombre de usuario */}
-                <div style={{ marginBottom: "15px" }}>
-                    <label htmlFor="nombreusuario" style={{ display: "block", marginBottom: "8px" }}>
-                        Nombre de usuario
-                    </label>
-                    <input
-                        id="nombreusuario"
-                        type="text"
-                        value={form.nombreusuario}
-                        onChange={e => setForm(f => ({ ...f, nombreusuario: e.target.value }))}
-                        required
-                        disabled={!!editingUsuario}
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "6px",
-                            background: editingUsuario ? "#f0f0f0" : "#fff",
-                            cursor: editingUsuario ? "not-allowed" : "text"
-                        }}
-                    />
-                </div>
-
-                {/* Contraseña */}
-                <div style={{ marginBottom: "15px", position: "relative" }}>
-                    <label htmlFor="contrasena" style={{ display: "block", marginBottom: "8px" }}>
-                        Contraseña
-                    </label>
-
-                    {editingUsuario ? (
-                        <>
-                            {!cambiarContrasena ? (
-                                <button
-                                    type="button"
-                                    onClick={() => setCambiarContrasena(true)}
-                                    style={{
-                                        padding: "8px 12px",
-                                        background: "#219ebc",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "5px",
-                                        cursor: "pointer",
-                                        marginBottom: "10px"
-                                    }}
-                                >
-                                    Cambiar contraseña
-                                </button>
-                            ) : (
-                                <div style={{ position: "relative" }}>
-                                    <input
-                                        id="contrasena"
-                                        type={mostrarContrasena ? "text" : "password"}
-                                        value={form.contrasena}
-                                        onChange={e => setForm(f => ({ ...f, contrasena: e.target.value }))}
-                                        placeholder="Ingrese nueva contraseña"
-                                        required
-                                        style={{
-                                            width: "100%",
-                                            padding: "10px 40px 10px 10px",
-                                            border: "1px solid #ccc",
-                                            borderRadius: "6px"
-                                        }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setMostrarContrasena(!mostrarContrasena)}
-                                        style={{
-                                            position: "absolute",
-                                            right: "10px",
-                                            top: "50%",
-                                            transform: "translateY(-50%)",
-                                            background: "none",
-                                            border: "none",
-                                            cursor: "pointer"
-                                        }}
-                                    >
-                                        {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
-                                    </button>
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div style={{ position: "relative" }}>
-                            <input
-                                id="contrasena"
-                                type={mostrarContrasena ? "text" : "password"}
-                                value={form.contrasena}
-                                onChange={e => setForm(f => ({ ...f, contrasena: e.target.value }))}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "10px 40px 10px 10px",
-                                    border: "1px solid #ccc",
-                                    borderRadius: "6px"
-                                }}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setMostrarContrasena(!mostrarContrasena)}
-                                style={{
-                                    position: "absolute",
-                                    right: "10px",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    background: "none",
-                                    border: "none",
-                                    cursor: "pointer"
-                                }}
-                            >
-                                {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
-                            </button>
+                Cambiar Contraseña
+            </h3>            <form onSubmit={handleSubmit} style={{ flex: 1 }}>
+                {/* Información del usuario (solo lectura) */}
+                <div
+                    style={{
+                        backgroundColor: "#dbeafe",
+                        border: "1px solid #93c5fd",
+                        borderRadius: "6px",
+                        padding: "15px",
+                        marginBottom: "20px"
+                    }}
+                >
+                    <div style={{ marginBottom: "10px" }}>
+                        <strong style={{ color: "#1e40af", fontSize: "14px" }}>
+                            Nombre de usuario:
+                        </strong>
+                        <div style={{ color: "#1f2937", fontSize: "16px", marginTop: "2px" }}>
+                            {form.nombreusuario}
                         </div>
-                    )}
+                    </div>
+
+                    <div style={{ marginBottom: "10px" }}>
+                        <strong style={{ color: "#1e40af", fontSize: "14px" }}>
+                            Rol:
+                        </strong>
+                        <div style={{ color: "#1f2937", fontSize: "16px", marginTop: "2px" }}>
+                            {obtenerNombreRol(form.idrol)}
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong style={{ color: "#1e40af", fontSize: "14px" }}>
+                            Empleado:
+                        </strong>
+                        <div style={{ color: "#1f2937", fontSize: "16px", marginTop: "2px" }}>
+                            {obtenerNombreEmpleado(form.idempleado)}
+                        </div>
+                    </div>
                 </div>
 
-                {/* Rol */}
-                <div style={{ marginBottom: "15px" }}>
-                    <label htmlFor="rol" style={{ display: "block", marginBottom: "8px" }}>
-                        Rol
+                {/* Nueva Contraseña */}
+                <div style={{ marginBottom: "20px" }}>
+                    <label htmlFor="contrasena" style={{ display: "block", marginBottom: "8px" }}>
+                        Nueva Contraseña
                     </label>
-                    <select
-                        id="rol"
-                        value={form.idrol}
-                        onChange={e => setForm(f => ({ ...f, idrol: e.target.value }))}
-                        required
-                        disabled={!!editingUsuario}
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "6px",
-                            background: editingUsuario ? "#f0f0f0" : "#fff",
-                            cursor: editingUsuario ? "not-allowed" : "pointer"
-                        }}
-                    >
-                        <option value="">Seleccione un rol</option>
-                        {roles.map(r => (
-                            <option key={r.idrol} value={r.idrol}>
-                                {r.nombrerol}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Empleado */}
-                <div style={{ marginBottom: "15px" }}>
-                    <label htmlFor="empleado" style={{ display: "block", marginBottom: "8px" }}>
-                        Empleado
-                    </label>
-                    <input
-                        type="text"
-                        placeholder="Escriba nombre del empleado..."
-                        value={busquedaEmpleado}
-                        onChange={e => {
-                            if (!editingUsuario) {
-                                setBusquedaEmpleado(e.target.value);
-                                setForm(f => ({ ...f, idempleado: "" }));
-                            }
-                        }}
-                        disabled={!!editingUsuario}
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "6px",
-                            background: editingUsuario ? "#f0f0f0" : "#fff",
-                            cursor: editingUsuario ? "not-allowed" : "text"
-                        }}
-                    />
-                    {!editingUsuario && (
-                        <ul
+                    <div style={{ position: "relative" }}>
+                        <input
+                            id="contrasena"
+                            type={mostrarContrasena ? "text" : "password"}
+                            value={form.contrasena}
+                            onChange={e => setForm(f => ({ ...f, contrasena: e.target.value }))}
+                            required
                             style={{
-                                listStyle: "none",
-                                padding: 0,
-                                margin: 0,
-                                maxHeight: "90px",
-                                overflowY: "auto",
+                                width: "100%",
+                                padding: "10px 40px 10px 10px",
                                 border: "1px solid #ccc",
                                 borderRadius: "6px"
                             }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setMostrarContrasena(!mostrarContrasena)}
+                            style={{
+                                position: "absolute",
+                                right: "10px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer"
+                            }}
                         >
-                            {empleados
-                                .filter(
-                                    emp =>
-                                        !usuarios.some(
-                                            u =>
-                                                u.idempleado === emp.idempleado &&
-                                                (!editingUsuario || u.idusuario !== editingUsuario.idusuario)
-                                        )
-                                )
-                                .filter(emp =>
-                                    `${emp.nombre} ${emp.apellido}`
-                                        .toLowerCase()
-                                        .includes(busquedaEmpleado.toLowerCase())
-                                )
-                                .map(emp => (
-                                    <li
-                                        key={emp.idempleado}
-                                        onClick={() => {
-                                            setForm(f => ({ ...f, idempleado: emp.idempleado }));
-                                            setBusquedaEmpleado(`${emp.nombre} ${emp.apellido}`);
-                                        }}
-                                        style={{
-                                            padding: "8px 10px",
-                                            cursor: "pointer",
-                                            background: form.idempleado === emp.idempleado ? "#f0f0f0" : "#fff"
-                                        }}
-                                    >
-                                        {emp.nombre} {emp.apellido}
-                                    </li>
-                                ))}
-                        </ul>
-                    )}
-                </div>
-
-                <button
+                            {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
+                </div>                <button
                     type="submit"
                     style={{
                         width: "100%",
@@ -263,10 +134,11 @@ const FormUsuario = ({
                         color: "#fff",
                         border: "none",
                         borderRadius: "6px",
-                        cursor: "pointer"
+                        cursor: "pointer",
+                        fontWeight: "600"
                     }}
                 >
-                    {editingUsuario ? "Actualizar" : "Guardar"}
+                    Actualizar
                 </button>
             </form>
 

@@ -13,6 +13,7 @@ import EmpleadosTable from "./EmpleadosTable";
 import FichaDownloadModal from "./FichaDownloadModal";
 import { generarFichasPDF } from "./fichasPdf";
 import logo from "./logo-asjerjus.png";
+import UsuarioCreadoModal from "../../components/UsuarioCreado/UsuarioCreadoModal.jsx";
 
 // 🔔 toasts y estilos compartidos
 import { showToast, showPDFToasts } from "../../utils/toast.js";
@@ -167,6 +168,10 @@ const EmpleadosContainer = () => {
     const [mostrarDetalle, setMostrarDetalle] = useState(false);
     const [detalle, setDetalle] = useState(null);
 
+    // modal usuario creado
+    const [mostrarUsuarioCreado, setMostrarUsuarioCreado] = useState(false);
+    const [datosUsuarioCreado, setDatosUsuarioCreado] = useState(null);
+
     useEffect(() => {
         fetchList();
         fetchIdiomas();
@@ -184,6 +189,69 @@ const EmpleadosContainer = () => {
         const v = sessionStorage.getItem("idUsuario") || localStorage.getItem("idUsuario");
         const n = Number(v);
         return Number.isFinite(n) && n > 0 ? n : 1;
+    };
+
+    // Función para generar contraseña aleatoria
+    const generarContrasenaAleatoria = () => {
+        const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let contrasena = "";
+        for (let i = 0; i < 8; i++) {
+            contrasena += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+        return contrasena;
+    };
+
+    // Función para crear usuario automáticamente
+    const crearUsuarioAutomatico = async (empleadoId, nombre, apellido) => {
+        try {
+            // Generar nombre de usuario basado en nombre y apellido
+            const nombreUsuario = `${nombre.toLowerCase().split(' ')[0]}${apellido.toLowerCase().split(' ')[0]}`;
+
+            // Generar contraseña aleatoria
+            const contrasenaGenerada = generarContrasenaAleatoria();
+
+            // Obtener rol por defecto (asumir que existe un rol básico, ID = 1)
+            let idRolPorDefecto = 1;
+
+            // Intentar obtener roles para usar uno por defecto
+            try {
+                const rolesRes = await axios.get(`${API}/roles/`);
+                const roles = Array.isArray(rolesRes.data) ? rolesRes.data : rolesRes.data?.results || [];
+                if (roles.length > 0) {
+                    // Buscar un rol que se llame "Usuario" o "Empleado" o usar el primero
+                    const rolBasico = roles.find(r =>
+                        r.nombrerol?.toLowerCase().includes('usuario') ||
+                        r.nombrerol?.toLowerCase().includes('empleado') ||
+                        r.nombrerol?.toLowerCase().includes('básico')
+                    );
+                    idRolPorDefecto = rolBasico ? rolBasico.idrol : roles[0].idrol;
+                }
+            } catch (error) {
+                console.warn("No se pudieron cargar los roles, usando rol por defecto:", error);
+            }
+
+            const ahora = new Date().toISOString();
+
+            const payloadUsuario = {
+                nombreusuario: nombreUsuario,
+                contrasena: contrasenaGenerada,
+                estado: true,
+                createdat: ahora,
+                updatedat: ahora,
+                idrol: idRolPorDefecto,
+                idempleado: empleadoId
+            };
+
+            await axios.post(`${API}/usuarios/`, payloadUsuario);
+
+            return {
+                usuario: nombreUsuario,
+                contrasena: contrasenaGenerada
+            };
+        } catch (error) {
+            console.error("Error al crear usuario automático:", error);
+            throw error;
+        }
     };
 
     const fetchList = async () => {
@@ -389,11 +457,11 @@ const EmpleadosContainer = () => {
         "fechanacimiento",
         "estadocivil",
         "dpi",
-        "nit",
-        "numeroiggs"
+        "nit"
+        // numeroiggs removido - no es obligatorio
     ];
     const STEP2_FIELDS = [
-        "telefonoresidencial",
+        // telefonoresidencial removido - no es obligatorio
         "telefonocelular",
         "telefonoemergencia",
         "email",
@@ -650,8 +718,23 @@ const EmpleadosContainer = () => {
                 await axios.put(`${API}/empleados/${editingId}/`, payload);
                 showToast("Empleado actualizado correctamente");
             } else {
-                await axios.post(`${API}/empleados/`, payload);
+                const response = await axios.post(`${API}/empleados/`, payload);
+                const empleadoCreado = response.data;
+
+                // Obtener el ID del empleado recién creado
+                const empleadoId = empleadoCreado.id || empleadoCreado.idempleado || empleadoCreado.idEmpleado;
+
                 showToast("Empleado registrado correctamente");
+
+                // Crear usuario automáticamente solo si es un nuevo empleado
+                try {
+                    const datosUsuario = await crearUsuarioAutomatico(empleadoId, form.nombre, form.apellido);
+                    setDatosUsuarioCreado(datosUsuario);
+                    setMostrarUsuarioCreado(true);
+                } catch (userError) {
+                    console.error("Error al crear usuario automático:", userError);
+                    showToast("Empleado creado, pero hubo un error al generar el usuario automáticamente", "warning");
+                }
             }
 
             resetForm();
@@ -1131,6 +1214,13 @@ const EmpleadosContainer = () => {
                         </div>
                     </div>
                 )}
+
+                {/* MODAL USUARIO CREADO */}
+                <UsuarioCreadoModal
+                    mostrar={mostrarUsuarioCreado}
+                    onCerrar={() => setMostrarUsuarioCreado(false)}
+                    datosUsuario={datosUsuarioCreado}
+                />
             </div>
         </Layout>
     );

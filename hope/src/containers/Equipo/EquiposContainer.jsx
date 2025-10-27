@@ -508,13 +508,10 @@ const EquiposContainer = () => {
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Equipos Registrados</h2>
 
-                            {/* Buscador y botón nuevo */}
+                            {/* Solo buscador - sin botón nuevo equipo */}
                             <div
                                 style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    marginBottom: "15px",
-                                    alignItems: "center"
+                                    marginBottom: "15px"
                                 }}
                             >
                                 <input
@@ -525,20 +522,24 @@ const EquiposContainer = () => {
                                         setBusqueda(e.target.value);
                                         setPaginaActual(1);
                                     }}
-                                    style={buttonStyles.buscador}
-                                />
-                                <button
-                                    onClick={() => {
-                                        setIdEquipo("");
-                                        setIdCoordinador("");
-                                        setMiembros([]);
-                                        setEditingId(null);
-                                        setMostrarFormulario(true);
+                                    style={{
+                                        width: "100%",
+                                        padding: "12px 16px",
+                                        borderRadius: "8px",
+                                        border: "2px solid #e5e7eb",
+                                        fontSize: "16px",
+                                        transition: "border-color 0.2s, box-shadow 0.2s",
+                                        outline: "none"
                                     }}
-                                    style={buttonStyles.nuevo}
-                                >
-                                    Nuevo Equipo
-                                </button>
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = "#219ebc";
+                                        e.target.style.boxShadow = "0 0 0 3px rgba(33, 158, 188, 0.1)";
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.borderColor = "#e5e7eb";
+                                        e.target.style.boxShadow = "none";
+                                    }}
+                                />
                             </div>
 
                             <EquiposTable

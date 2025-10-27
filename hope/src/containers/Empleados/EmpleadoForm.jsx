@@ -73,11 +73,11 @@ const EmpleadoForm = ({
         "fechanacimiento",
         "estadocivil",
         "dpi",
-        "nit",
-        "numeroiggs"
+        "nit"
+        // numeroiggs removido - ahora es opcional
     ];
     const STEP2_FIELDS = [
-        "telefonoresidencial",
+        // telefonoresidencial removido - ahora es opcional
         "telefonocelular",
         "telefonoemergencia",
         "email",
@@ -109,7 +109,7 @@ const EmpleadoForm = ({
         onChange(e);
     };
 
-    // ⚠️ NUEVO: Forzamos que cualquier invalidación use nuestro texto
+    // NUEVO: Forzamos que cualquier invalidación use nuestro texto
     const handleInvalid = e => {
         // Evita que el navegador muestre su string por defecto
         e.preventDefault();
@@ -401,12 +401,11 @@ const EmpleadoForm = ({
                                     </div>
                                 </div>
                                 <div style={field}>
-                                    <label style={labelStyle}>Número IGSS</label>
+                                    <label style={labelStyle}>Número IGSS (opcional)</label>
                                     <input
                                         name="numeroiggs"
                                         value={form.numeroiggs}
                                         onChange={handleFieldChange}
-                                        required
                                         style={inputStyle}
                                     />
                                     {errors.numeroiggs && <span style={warn}>{String(errors.numeroiggs)}</span>}
@@ -423,12 +422,11 @@ const EmpleadoForm = ({
                             <legend style={lg}>Contacto</legend>
                             <div style={grid3}>
                                 <div style={field}>
-                                    <label style={labelStyle}>Tel. residencial</label>
+                                    <label style={labelStyle}>Tel. residencial (opcional)</label>
                                     <input
                                         name="telefonoresidencial"
                                         value={form.telefonoresidencial}
                                         onChange={handleFieldChange}
-                                        required
                                         style={inputStyle}
                                     />
                                     {errors.telefonoresidencial && (
