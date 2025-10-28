@@ -276,8 +276,8 @@ const DocumentosContainer = () => {
                 // Solo mostrar los que NO tienen archivo
                 return coincideTexto && !d.archivo_url;
             } else {
-                // Mostrar todos (con y sin archivo)
-                return coincideTexto;
+                // Solo mostrar los que SÍ tienen archivo
+                return coincideTexto && d.archivo_url;
             }
         });
 

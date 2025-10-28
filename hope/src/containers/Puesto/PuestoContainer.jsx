@@ -127,11 +127,11 @@ const PuestosContainer = () => {
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Puestos Registrados</h2>
 
-                            {/* Buscador y botón nuevo */}
+                            {/* Buscador */}
                             <div
                                 style={{
                                     display: "flex",
-                                    justifyContent: "space-between",
+                                    justifyContent: "flex-start",
                                     marginBottom: "15px",
                                     alignItems: "center"
                                 }}
@@ -146,15 +146,6 @@ const PuestosContainer = () => {
                                     }}
                                     style={buttonStyles.buscador}
                                 />
-                                <button
-                                    onClick={() => {
-                                        setPuestoSeleccionado(null);
-                                        setMostrarFormulario(true);
-                                    }}
-                                    style={buttonStyles.nuevo}
-                                >
-                                    Nuevo Puesto
-                                </button>
                             </div>                            {/* Tabla de Puestos */}
                             <PuestosTable
                                 puestos={puestosPaginados}
