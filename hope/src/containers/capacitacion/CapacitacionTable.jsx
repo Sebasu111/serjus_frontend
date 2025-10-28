@@ -109,7 +109,7 @@ const CapacitacionesTable = ({
                             const id = c.idcapacitacion || c.id;
                             return (
                                 <tr key={id}>
-                                    {/* 🔹 Nombre del evento sin subrayado */}
+                                    {/*   Nombre del evento sin subrayado */}
                                     <td
                                         style={{
                                             padding: "10px",

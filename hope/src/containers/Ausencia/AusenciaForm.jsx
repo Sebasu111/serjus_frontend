@@ -17,7 +17,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   const [errorFechaFin, setErrorFechaFin] = useState("");
   const [errorArchivo, setErrorArchivo] = useState("");
 
-  // 🔹 Inicializar formulario y obtener archivo si existe
+  //   Inicializar formulario y obtener archivo si existe
   useEffect(() => {
     if (editingAusencia) {
       setTipo(editingAusencia.tipo || "");

@@ -1,11 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { showToast } from "../utils/toast";
+
+const pick = (obj, ...keys) => {
+  for (const k of keys)
+    if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+};
+const getId = (o) =>
+  pick(o, "id", "ididioma", "idIdioma", "idpueblocultura", "idPuebloCultura");
+const getIdiomaLabel = (o) =>
+  pick(o, "nombreidioma", "nombreIdioma", "nombre", "descripcion", "label");
+const getPuebloLabel = (o) =>
+  pick(
+    o,
+    "nombrePueblo",
+    "nombrepueblo",
+    "nombrepueblocultura",
+    "pueblocultura",
+    "pueblo",
+    "descripcion",
+    "label"
+  );
 
 const PostularModal = ({ show, onClose, convocatoriaId }) => {
   const [step, setStep] = useState(1);
   const [idiomas, setIdiomas] = useState([]);
   const [pueblos, setPueblos] = useState([]);
   const [cvFile, setCvFile] = useState(null);
+  const [isCF, setIsCF] = useState(false);
+
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
@@ -22,298 +45,492 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/idiomas/")
-      .then(res => res.json())
-      .then(data => setIdiomas(data.results))
-      .catch(err => console.error("Error cargando idiomas:", err));
+      .then((res) => res.json())
+      .then((data) => setIdiomas(data.results))
+      .catch((err) => console.error("Error cargando idiomas:", err));
 
     fetch("http://127.0.0.1:8000/api/pueblocultura/")
-      .then(res => res.json())
-      .then(data => setPueblos(data.results))
-      .catch(err => console.error("Error cargando pueblos:", err));
+      .then((res) => res.json())
+      .then((data) => setPueblos(data.results))
+      .catch((err) => console.error("Error cargando pueblos:", err));
+
+    localStorage.removeItem("idaspirante");
   }, []);
 
   if (!show) return null;
 
-  const handleChange = (e) => { setFormData({ ...formData, [e.target.name]: e.target.value }); };
+  const handleFieldChange = (e) => {
+    const { name, value } = e.target;
 
-  const handleDpiChange = async (e) => {
-  const dpiValue = e.target.value;
-  setFormData({ ...formData, dpi: dpiValue });
-
-  if (dpiValue.length >= 7) { // Longitud mínima aproximada
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/api/aspirantes/?dpi=${dpiValue}`);
-      const data = await res.json();
-      if (data.length > 0) {
-        alert(" Este DPI ya está registrado");
-      }
-    } catch (err) {
-      console.error("Error verificando DPI:", err);
+    // Validaciones personalizadas inmediatas
+    if (name === "nombre" || name === "apellido") {
+      // Solo letras y espacios
+      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/.test(value)) return;
     }
+
+    if (name === "nit" && !isCF) {
+      // Solo números y una posible K o k final
+      if (!/^[0-9]*[Kk]?$/.test(value)) return;
+    }
+
+    if (name === "dpi") {
+      // Solo números, máximo 13
+      if (!/^[0-9]{0,13}$/.test(value)) return;
+    }
+
+    if (name === "telefono") {
+      // Solo números, máximo 13
+      if (!/^[0-9]{0,8}$/.test(value)) return;
+    }
+
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCFChange = (e) => {
+    const checked = e.target.checked;
+    setIsCF(checked);
+    setFormData({ ...formData, nit: checked ? "C/F" : "" });
+  };
+
+  const validateStep = () => {
+    const form = document.querySelector("#form-postulacion");
+    if (!form) return false;
+
+    const visibleInputs = form.querySelectorAll(
+      `[data-step="${step}"] input:invalid, [data-step="${step}"] select:invalid`
+    );
+
+    if (visibleInputs.length > 0) {
+      visibleInputs[0].reportValidity();
+      return false;
+    }
+    if (step === 3 && !cvFile) {
+       showToast("Debe adjuntar su CV en formato PDF.", "warning");
+      return false;
+    }
+    return true;
+  };
+
+  const next = (e) => {
+    e.preventDefault();
+    if (!validateStep()) return;
+    setStep((s) => Math.min(3, s + 1));
+  };
+
+  const back = (e) => {
+    e.preventDefault();
+    setStep((s) => Math.max(1, s - 1));
   }
-};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!cvFile) {
-      alert("Debe adjuntar su CV en PDF");
-      return;
-    }
+    if (!validateStep()) return;
 
     try {
-      if (!cvFile) {
-        alert("Debe adjuntar su CV en PDF");
-        return;
-      }
+      let idAspirante = localStorage.getItem("idaspirante");
 
-      if (!formData.dpi) {
-        alert("Debe ingresar un DPI válido");
-        return;
-      }
-      //  Buscar Aspirante por DPI
-      const checkRes = await fetch(`http://127.0.0.1:8000/api/aspirantes/?dpi=${formData.dpi}`);
-      const aspirantesExistentes = await checkRes.json();
+      //   Revisar si existe el aspirante por DPI solo si no hay ID guardado
+      if (!idAspirante) {
+        const resAspi = await fetch(
+          `http://127.0.0.1:8000/api/aspirantes/?dpi=${formData.dpi}`
+        );
+        const aspirantes = await resAspi.json();
 
-      let idAspirante;
+        if (aspirantes.length > 0) {
+          // Aspirante ya existe, reutilizamos ID
+          idAspirante = aspirantes[0].idaspirante;
+          showToast("Se reutiliza el ID de aspirante existente.", "info");
+        } else {
+          // Crear nuevo aspirante
+          const resCreate = await fetch("http://127.0.0.1:8000/api/aspirantes/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              nombreaspirante: formData.nombre,
+              apellidoaspirante: formData.apellido,
+              nit: formData.nit,
+              dpi: formData.dpi,
+              genero: formData.genero,
+              email: formData.email,
+              fechanacimiento: formData.fechanacimiento,
+              telefono: formData.telefono,
+              direccion: formData.direccion,
+              ididioma: Number(formData.ididioma) || null,
+              idpueblocultura: Number(formData.idpueblocultura) || null,
+              estado: true,
+              idusuario: 1,
+            }),
+          });
 
-      if (aspirantesExistentes.length > 0) {
-        idAspirante = aspirantesExistentes[0].idaspirante;
-        console.log(" Aspirante existente:", idAspirante);
+          if (!resCreate.ok) throw new Error("Error al crear el aspirante");
+
+          const creado = await resCreate.json();
+          idAspirante = creado.idaspirante;
+
+          // Guardamos ID en localStorage
+          localStorage.setItem("idaspirante", idAspirante);
+          showToast("Aspirante creado correctamente.", "success");
+        }
       } else {
-        //  Crear aspirante
-        const dataAspirante = {
-          nombreaspirante: formData.nombre,
-          apellidoaspirante: formData.apellido,
-          nit: formData.nit,
-          dpi: formData.dpi,
-          genero: formData.genero,
-          email: formData.email,
-          fechanacimiento: formData.fechanacimiento,
-          telefono: formData.telefono,
-          direccion: formData.direccion,
-          ididioma: formData.ididioma ? Number(formData.ididioma) : null,
-          idpueblocultura: formData.idpueblocultura ? Number(formData.idpueblocultura) : null,
-          estado: true,
-          idusuario: 1
-        };
-
-        const resAspirante = await fetch("http://127.0.0.1:8000/api/aspirantes/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(dataAspirante),
-        });
-        if (!resAspirante.ok) throw new Error("Error creando aspirante");
-
-        const aspiranteData = await resAspirante.json();
-        idAspirante = aspiranteData.idaspirante;
-        console.log(" Aspirante creado:", idAspirante);
+        showToast("Postulacion nueva procesada", "info");
       }
 
-      //  Crear postulación
-      const dataPostulacion = {
-        fechapostulacion: new Date().toISOString().split("T")[0],
-        observacion: "Postulación desde formulario",
-        estado: true,
-        idusuario: 1,
-        idaspirante: idAspirante,
-        idconvocatoria: convocatoriaId,
-      };
-
-      const resPostulacion = await fetch("http://127.0.0.1:8000/api/postulaciones/", {
+      //   Crear la postulación
+      const postRes = await fetch("http://127.0.0.1:8000/api/postulaciones/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataPostulacion),
+        body: JSON.stringify({
+          fechapostulacion: new Date().toISOString().split("T")[0],
+          observacion: "Postulación desde formulario",
+          estado: true,
+          idusuario: 1,
+          idaspirante: Number(idAspirante),
+          idconvocatoria: Number(convocatoriaId),
+        }),
       });
-      if (!resPostulacion.ok) throw new Error("Error creando postulación");
 
-      console.log(" Postulación creada");
+      if (!postRes.ok) {
+        const errText = await postRes.text();
+        
+        //   Verificar si es porque ya existe la postulación
+        if (errText.includes("ya está postulado")) {
+          showToast("Ya te has postulado a esta convocatoria.", "warning");
+          return; // Salir sin lanzar error
+        }
 
-      //  Subir CV
-      const formDataCv = new FormData();
-      const extension = cvFile.name.split(".").pop().toLowerCase();
-      const nombreSinExt = cvFile.name.replace(/\.[^/.]+$/, "");
+        throw new Error("Error al crear la postulación: " + errText);
+      }
 
-      formDataCv.append("archivo", cvFile);
-      formDataCv.append("nombrearchivo", nombreSinExt);
-      formDataCv.append("mimearchivo", extension);
-      formDataCv.append("fechasubida", new Date().toISOString().split("T")[0]);
-      formDataCv.append("estado", true);
-      formDataCv.append("idusuario", 1);
-      formDataCv.append("idtipodocumento", 1); // 📌 tipo "CV"
-      formDataCv.append("idempleado", ""); // puede ir vacío
-      formDataCv.append("idaspirante", idAspirante);
+      //   Subir CV
+      const fd = new FormData();
+      fd.append("archivo", cvFile);
+      fd.append("nombrearchivo", cvFile.name.replace(/\.[^/.]+$/, ""));
+      fd.append("mimearchivo", cvFile.name.split(".").pop());
+      fd.append("fechasubida", new Date().toISOString().split("T")[0]);
+      fd.append("estado", true);
+      fd.append("idusuario", 1);
+      fd.append("idtipodocumento", 1);
+      fd.append("idaspirante", Number(idAspirante));
 
-      const resCV = await fetch("http://127.0.0.1:8000/api/documentos/", {
+      const docRes = await fetch("http://127.0.0.1:8000/api/documentos/", {
         method: "POST",
-        body: formDataCv
+        body: fd,
       });
 
-      if (!resCV.ok) throw new Error("Error subiendo CV");
+      if (!docRes.ok) throw new Error("Error al subir el CV");
 
-      console.log(" CV Subido");
-
-      alert(" ¡Postulación enviada con CV exitosamente!");
+      showToast("¡Postulación enviada exitosamente!", "success");
       onClose();
-
-    } catch (error) {
-      console.error(error);
-      alert(" Error al procesar la postulación");
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Error al enviar la postulación.", "error");
     }
   };
 
-  const next = () => setStep(s => Math.min(3, s + 1));
-  const back = () => setStep(s => Math.max(1, s - 1));
 
-  const modalStyle = {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    background: "#fff",
-    borderRadius: 14,
-    padding: 28,
-    width: 600,
-    maxWidth: "95%",
-    maxHeight: "90vh",
-    overflowY: "auto",
-    boxShadow: "0 0 20px rgba(0,0,0,0.2)",
-    zIndex: 2000,
-    display: "flex",
-    flexDirection: "column",
+  //   Estilos
+  const fs = {
+    border: "1px solid #e5e7eb",
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 18,
+    background: "#fafafa",
   };
-
-  const btnStyle = {
-    minWidth: 120,
-    height: 45,
-    borderRadius: 10,
+  const lg = { padding: "0 8px", fontWeight: 700 };
+  const grid3 = {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: 18,
+    alignItems: "start",
+  };
+  const field = { display: "flex", flexDirection: "column", marginBottom: 10 };
+  const labelStyle = {
+    display: "block",
     fontWeight: 600,
-    cursor: "pointer",
-    border: "none",
+    marginBottom: 6,
   };
-
-  const btnPrimary = { ...btnStyle, background: "#1a73e8", color: "#fff" };
-  const btnGhost = { ...btnStyle, background: "#ccc", color: "#333" };
-  const btnCancel = { ...btnStyle, background: "#f44336", color: "#fff" };
+  const inputStyle = {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: 10,
+    border: "1px solid #d1d5db",
+    fontSize: 15,
+    background: "#fff",
+  };
+  const btnPrimary = {
+    width: "100%",
+    marginTop: 16,
+    padding: "12px 0",
+    background: "#219ebc",
+    color: "#fff",
+    border: "none",
+    borderRadius: 10,
+    fontSize: 16,
+    fontWeight: 700,
+    cursor: "pointer",
+  };
+  const btnGhost = {
+    padding: "10px 16px",
+    borderRadius: 10,
+    border: "1px solid #d1d5db",
+    background: "#fff",
+    cursor: "pointer",
+  };
 
   return (
-    <div style={modalStyle}>
-      <h2 style={{ textAlign: "center", marginBottom: 20 }}>Postularse a Convocatoria</h2>
+    <div
+      id="postularModalTop"
+      style={{
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: 800,
+        maxWidth: "95%",
+        background: "#fff",
+        boxShadow: "0 0 20px rgba(0,0,0,0.2)",
+        padding: 28,
+        zIndex: 1000,
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 14,
+        maxHeight: "90vh",
+        overflowY: "auto",
+      }}
+    >
+      <h3 style={{ textAlign: "center" }}>Postularse a Convocatoria</h3>
+      <div style={{ textAlign: "center", marginBottom: 18, color: "#374151" }}>
+        Paso {step} de 3
+      </div>
 
-      <form onSubmit={handleSubmit}>
+      <form id="form-postulacion" onSubmit={handleSubmit}>
+        {/* Paso 1 */}
         {step === 1 && (
-          <>
-            <div style={{ marginBottom: 15 }}>
-              <label>Nombre</label>
-              <input name="nombre" value={formData.nombre} onChange={handleChange} required style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
+          <fieldset style={fs} data-step="1">
+            <legend style={lg}>Datos personales</legend>
+            <div style={grid3}>
+              <div style={field}>
+                <label style={labelStyle}>Nombre</label>
+                <input
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleFieldChange}
+                  required
+                  style={inputStyle}
+                  title="Solo letras y espacios"
+                />
+              </div>
+              <div style={field}>
+                <label style={labelStyle}>Apellido</label>
+                <input
+                  name="apellido"
+                  value={formData.apellido}
+                  onChange={handleFieldChange}
+                  required
+                  style={inputStyle}
+                  title="Solo letras y espacios"
+                />
+              </div>
+              <div style={field}>
+                <label style={labelStyle}>NIT</label>
+                <input
+                  name="nit"
+                  value={formData.nit}
+                  onChange={handleFieldChange}
+                  required={!isCF}
+                  disabled={isCF}
+                  style={inputStyle}
+                  title="Solo números y una 'K' al final si aplica"
+                />
+                <label style={{ marginTop: 8, fontSize: 14 }}>
+                  <input
+                    type="checkbox"
+                    checked={isCF}
+                    onChange={handleCFChange}
+                    style={{ marginRight: 6 }}
+                  />
+                  Consumidor Final (C/F)
+                </label>
+              </div>
             </div>
-            <div style={{ marginBottom: 15 }}>
-              <label>Apellido</label>
-              <input name="apellido" value={formData.apellido} onChange={handleChange} required style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
-            </div>
-            <div style={{ marginBottom: 15 }}>
-              <label>NIT</label>
-              <input name="nit" value={formData.nit} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
-            </div>
-          </>
+          </fieldset>
         )}
 
+        {/* Paso 2 */}
         {step === 2 && (
-          <>
-            <div style={{ marginBottom: 15 }}>
-              <label>DPI</label>
-              <input name="dpi" value={formData.dpi} onChange={handleDpiChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
+          <fieldset style={fs} data-step="2">
+            <legend style={lg}>Contacto y cultura</legend>
+            <div style={grid3}>
+              <div style={field}>
+                <label style={labelStyle}>DPI</label>
+                <input
+                  name="dpi"
+                  value={formData.dpi}
+                  onChange={handleFieldChange}
+                  required
+                  pattern="^[0-9]{13}$"
+                  title="Ingrese exactamente 13 dígitos numéricos"
+                  style={inputStyle}
+                />
+              </div>
+              <div style={field}>
+                <label style={labelStyle}>Género</label>
+                <select
+                  name="genero"
+                  value={formData.genero}
+                  onChange={handleFieldChange}
+                  required
+                  style={inputStyle}
+                >
+                  <option value="">Seleccione</option>
+                  <option>Masculino</option>
+                  <option>Femenino</option>
+                  <option>Otro</option>
+                </select>
+              </div>
+              <div style={field}>
+                <label style={labelStyle}>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleFieldChange}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+              <div style={field}>
+                <label style={labelStyle}>Idioma</label>
+                <select
+                  name="ididioma"
+                  value={formData.ididioma}
+                  onChange={handleFieldChange}
+                  required
+                  style={inputStyle}
+                >
+                  <option value="">Seleccione idioma</option>
+                  {idiomas.map((it) => (
+                    <option key={getId(it)} value={getId(it)}>
+                      {getIdiomaLabel(it)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={field}>
+                <label style={labelStyle}>Pueblo / Cultura</label>
+                <select
+                  name="idpueblocultura"
+                  value={formData.idpueblocultura}
+                  onChange={handleFieldChange}
+                  required
+                  style={inputStyle}
+                >
+                  <option value="">Seleccione pueblo/cultura</option>
+                  {pueblos.map((p) => (
+                    <option key={getId(p)} value={getId(p)}>
+                      {getPuebloLabel(p)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div style={{ marginBottom: 15 }}>
-              <label>Género</label>
-              <select name="genero" value={formData.genero} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}>
-                <option value="">Seleccione</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Otro">Otro</option>
-              </select>
-            </div>
-            <div style={{ marginBottom: 15 }}>
-              <label>Email</label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} required style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
-            </div>
-            <div style={{ marginBottom: 15 }}>
-            <label>Idioma</label>
-            <select
-              name="ididioma"
-              value={formData.ididioma}
-              onChange={(e) => setFormData({ ...formData, ididioma: e.target.value })}
-              style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-            >
-              <option value="">Seleccione un idioma</option>
-              {idiomas.map((idioma) => (
-                <option key={idioma.ididioma} value={idioma.ididioma}>
-                  {idioma.nombreidioma}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ marginBottom: 15 }}>
-            <label>Pueblo / Cultura</label>
-            <select
-              name="idpueblocultura"
-              value={formData.idpueblocultura}
-              onChange={(e) => setFormData({ ...formData, idpueblocultura: e.target.value })}
-              style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-            >
-              <option value="">Seleccione un pueblo</option>
-              {pueblos.map((pueblo) => (
-                <option key={pueblo.idpueblocultura} value={pueblo.idpueblocultura}>
-                  {pueblo.nombrepueblo}
-                </option>
-              ))}
-            </select>
-          </div>
-          </>
+          </fieldset>
         )}
 
+        {/* Paso 3 */}
         {step === 3 && (
-          <>
-            <div style={{ marginBottom: 15 }}>
-              <label>Fecha de nacimiento</label>
-              <input type="date" name="fechanacimiento" value={formData.fechanacimiento} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
+          <fieldset style={fs} data-step="3">
+            <legend style={lg}>Información adicional</legend>
+            <div style={grid3}>
+              <div style={field}>
+                <label style={labelStyle}>Fecha de nacimiento</label>
+                <input
+                  type="date"
+                  name="fechanacimiento"
+                  value={formData.fechanacimiento}
+                  onChange={handleFieldChange}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+              <div style={field}>
+                <label style={labelStyle}>Teléfono</label>
+                <input
+                  name="telefono"
+                  value={formData.telefono}
+                  onChange={handleFieldChange}
+                  required
+                  pattern="[0-9]{8}"
+                  title="Ingrese 8 dígitos numéricos"
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ ...field, gridColumn: "1 / -1" }}>
+                <label style={labelStyle}>Dirección</label>
+                <input
+                  name="direccion"
+                  value={formData.direccion}
+                  onChange={handleFieldChange}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ ...field, gridColumn: "1 / -1" }}>
+                <label style={labelStyle}>Curriculum Vitae (PDF)</label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setCvFile(e.target.files[0])}
+                  required
+                  style={inputStyle}
+                />
+              </div>
             </div>
-            <div style={{ marginBottom: 15 }}>
-              <label>Teléfono</label>
-              <input name="telefono" value={formData.telefono} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
-            </div>
-            <div style={{ marginBottom: 15 }}>
-              <label>Dirección</label>
-              <input name="direccion" value={formData.direccion} onChange={handleChange} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }} />
-            </div>
-            <div style={{ marginBottom: 15 }}>
-              <label>Curriculum Vitae (PDF)</label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => setCvFile(e.target.files[0])}
-                required
-                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-              />
-            </div>
-          </>
+          </fieldset>
         )}
 
-        {/* BOTONES */}
-        <div style={{ display: "flex", justifyContent: step === 3 ? "center" : "space-between", gap: 12, marginTop: 20 }}>
-          {step > 1 && step < 3 && <button type="button" onClick={back} style={btnGhost}>Atrás</button>}
-          {step < 3 && <button type="button" onClick={next} style={btnPrimary}>Siguiente</button>}
-          {step === 3 && <>
-            <button type="submit" style={btnPrimary}>Enviar</button>
-            <button type="button" onClick={onClose} style={btnCancel}>Cancelar</button>
-          </>}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            marginTop: 10,
+          }}
+        >
+          <button
+            onClick={back}
+            disabled={step === 1}
+            style={{
+              ...btnGhost,
+              cursor: step === 1 ? "not-allowed" : "pointer",
+              opacity: step === 1 ? 0.6 : 1,
+            }}
+            type="button"
+          >
+            Atrás
+          </button>
+          {step < 3 ? (
+            <button onClick={next} style={btnPrimary} type="button">
+              Siguiente
+            </button>
+          ) : (
+            <button type="submit" style={btnPrimary}>
+              Enviar Postulación
+            </button>
+          )}
         </div>
       </form>
 
       <button
         onClick={onClose}
-        style={{ position: "absolute", top: 10, right: 15, background: "transparent", border: "none", cursor: "pointer" }}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 15,
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+        }}
         title="Cerrar"
       >
         <X size={24} color="#555" />
