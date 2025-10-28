@@ -215,15 +215,26 @@ const UsuariosContainer = () => {
             const usuario = u.nombreusuario.toLowerCase();
             const estadoTexto = (u.estado ? "activo" : "inactivo").toLowerCase();
 
-            // Para el estado, usar coincidencia exacta si se busca específicamente "activo" o "inactivo"
-            const esCoincidenciaEstado = textoBusqueda === "activo" || textoBusqueda === "inactivo"
-                ? estadoTexto === textoBusqueda
-                : estadoTexto.includes(textoBusqueda);
-
-            return usuario.includes(textoBusqueda) ||
-                nombreCompletoEmpleado.includes(textoBusqueda) ||
-                nombreRol.includes(textoBusqueda) ||
-                esCoincidenciaEstado;
+            // Verificar si está buscando por estado específicamente
+            const buscandoActivo = "activo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
+            const buscandoInactivo = "inactivo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
+            
+            // Si está buscando por estado, solo mostrar ese estado
+            if (buscandoActivo && !buscandoInactivo) {
+                return u.estado; // Solo usuarios activos
+            } else if (buscandoInactivo && !buscandoActivo) {
+                return !u.estado; // Solo usuarios inactivos
+            }
+            
+            // Si no está buscando por estado, buscar en otros campos
+            if (!buscandoActivo && !buscandoInactivo) {
+                return usuario.includes(textoBusqueda) ||
+                    nombreCompletoEmpleado.includes(textoBusqueda) ||
+                    nombreRol.includes(textoBusqueda);
+            }
+            
+            // Si hay conflicto (ej: busca algo que podría ser ambos), no mostrar nada
+            return false;
         });
 
     const indexOfLast = paginaActual * elementosPorPagina;
