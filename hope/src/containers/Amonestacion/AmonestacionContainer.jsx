@@ -21,7 +21,7 @@ const AmonestacionContainer = () => {
     fetchEmpleados(); 
   }, []);
 
-  // 🔹 Fetch de amonestaciones
+  //   Fetch de amonestaciones
   const fetchAmonestaciones = async () => {
     try {
       const res = await axios.get("http://127.0.0.1:8000/api/amonestaciones/");
@@ -37,7 +37,7 @@ const AmonestacionContainer = () => {
     }
   };
 
-  // 🔹 Fetch de empleados
+  //   Fetch de empleados
   const fetchEmpleados = async () => {
     try {
       const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
@@ -53,14 +53,14 @@ const AmonestacionContainer = () => {
     }
   };
 
-  // 🔹 Editar
+  //   Editar
   const handleEdit = (amon) => {
     setEditingAmonestacion(amon);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // 🔹 Activar/Desactivar
+  //   Activar/Desactivar
   const handleActivate = async (id, activar = true) => {
     try {
       const amon = amonestaciones.find((a) => a.idamonestacion === id);
@@ -81,7 +81,7 @@ const AmonestacionContainer = () => {
     }
   };
 
-  // 🔹 Guardar o actualizar
+  //   Guardar o actualizar
   const handleSubmit = async (dataAmonestacion, editingId) => {
     try {
       if (editingId) {
@@ -106,7 +106,7 @@ const AmonestacionContainer = () => {
     }
   };
 
-  // 🔹 Filtrado de amonestaciones por búsqueda
+  //   Filtrado de amonestaciones por búsqueda
   const amonestacionesFiltradas = amonestaciones.filter((a) => {
     const texto = busqueda.toLowerCase().trim();
     return (

@@ -14,6 +14,7 @@ const API = "http://127.0.0.1:8000/api";
 
 const AspirantesContainer = () => {
     const [data, setData] = useState([]);
+    const [documentos, setDocumentos] = useState([]);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
@@ -24,10 +25,12 @@ const AspirantesContainer = () => {
 
     useEffect(() => {
         fetchList();
+        fetchDocumentos();
         fetchIdiomas();
         fetchPueblos();
     }, []);
 
+    // Obtener aspirantes
     const fetchList = async () => {
         try {
             const res = await axios.get(`${API}/aspirantes/`);
@@ -40,6 +43,21 @@ const AspirantesContainer = () => {
         } catch (e) {
             console.error("Error al cargar aspirantes:", e);
             setMensaje("Error al cargar los aspirantes");
+        }
+    };
+
+    // Obtener documentos (CVs)
+    const fetchDocumentos = async () => {
+        try {
+            const res = await axios.get(`${API}/documentos/`);
+            const docs = Array.isArray(res.data)
+                ? res.data
+                : Array.isArray(res.data?.results)
+                ? res.data.results
+                : [];
+            setDocumentos(docs);
+        } catch (e) {
+            console.error("Error al cargar documentos:", e);
         }
     };
 
@@ -61,7 +79,13 @@ const AspirantesContainer = () => {
         }
     };
 
-    const filtered = data.filter(r => {
+    // Relacionar aspirantes con sus CVs
+    const aspirantesConCV = data.map(a => {
+        const cvs = documentos.filter(d => d.idaspirante === a.idaspirante && d.idtipodocumento === 1); // tipo CV
+        return { ...a, cvs };
+    });
+
+    const filtered = aspirantesConCV.filter(r => {
         if (!search) return true;
         const s = search.toLowerCase();
         return (
@@ -87,14 +111,7 @@ const AspirantesContainer = () => {
                                 Consulta de Aspirantes
                             </h2>
 
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "flex-start",
-                                    marginBottom: 15,
-                                    alignItems: "center"
-                                }}
-                            >
+                            <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 15, alignItems: "center" }}>
                                 <input
                                     type="text"
                                     placeholder="Buscar por nombre, apellido o DPI"
@@ -103,26 +120,18 @@ const AspirantesContainer = () => {
                                         setSearch(e.target.value);
                                         setPage(1);
                                     }}
-                                    style={{
-                                        flex: 1,
-                                        padding: 10,
-                                        borderRadius: 6,
-                                        border: "1px solid #ccc",
-                                        marginRight: 10
-                                    }}
+                                    style={{ flex: 1, padding: 10, borderRadius: 6, border: "1px solid #ccc", marginRight: 10 }}
                                 />
                             </div>
 
                             <AspirantesTable
                                 aspirantes={displayed}
-                                handleEdit={null} // 🔹 Ya no se usa
-                                handleToggle={null} // 🔹 Ya no se usa
                                 paginaActual={page}
                                 totalPaginas={totalPages}
                                 setPaginaActual={setPage}
                                 idiomas={idiomas}
                                 pueblos={pueblos}
-                                modoConsulta={true} // ← puedes usar esto para ocultar botones en la tabla
+                                modoConsulta={true}
                             />
 
                             <div style={{ marginTop: 20, textAlign: "center" }}>
@@ -136,25 +145,12 @@ const AspirantesContainer = () => {
                                         setElementosPorPagina(Math.max(1, numero));
                                         setPage(1);
                                     }}
-                                    style={{
-                                        width: 80,
-                                        padding: 10,
-                                        borderRadius: 6,
-                                        border: "1px solid #ccc",
-                                        textAlign: "center"
-                                    }}
+                                    style={{ width: 80, padding: 10, borderRadius: 6, border: "1px solid #ccc", textAlign: "center" }}
                                 />
                             </div>
 
                             {mensaje && (
-                                <p
-                                    style={{
-                                        textAlign: "center",
-                                        color: "red",
-                                        marginTop: 12,
-                                        fontWeight: 600
-                                    }}
-                                >
+                                <p style={{ textAlign: "center", color: "red", marginTop: 12, fontWeight: 600 }}>
                                     {mensaje}
                                 </p>
                             )}

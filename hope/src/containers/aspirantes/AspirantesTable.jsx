@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-// 🔹 Utilidades para obtener etiquetas correctas
+//   Utilidades
 const pick = (o, ...keys) => {
   for (const k of keys) if (o && o[k] != null) return o[k];
 };
@@ -15,7 +15,6 @@ const labelFrom = (id, list, type) => {
   return type === "idioma" ? getIdiomaName(found) : getPuebloName(found);
 };
 
-// 🔹 Formato fecha
 const fmtFecha = v => {
   if (!v) return "";
   const d = new Date(v);
@@ -23,7 +22,7 @@ const fmtFecha = v => {
   return String(v).slice(0, 10);
 };
 
-// 🔹 Estilos rápidos
+//   Estilos
 const thStyle = { borderBottom: "2px solid #eee", padding: 12, textAlign: "left", fontSize: 15 };
 const tdStyle = { padding: 12, borderBottom: "1px solid #f0f0f0", fontSize: 15 };
 const btnPrimary = {
@@ -43,10 +42,8 @@ const AspirantesTable = ({
   paginaActual,
   totalPaginas,
   setPaginaActual,
-  handleSeleccionar,
-  handleDescargarCV,
   idiomas = [],
-  pueblos = []
+  pueblos = [],
 }) => {
   const [modalAspirante, setModalAspirante] = useState(null);
 
@@ -77,7 +74,6 @@ const AspirantesTable = ({
 
                   return (
                     <tr key={r.idaspirante ?? r.idAspirante ?? r.id}>
-                      {/* Nombre → Abre modal */}
                       <td
                         style={{ ...tdStyle, color: "#0077cc", cursor: "pointer", fontWeight: 600 }}
                         onClick={() => setModalAspirante(r)}
@@ -99,12 +95,18 @@ const AspirantesTable = ({
                         {estado ? "Activo" : "Inactivo"}
                       </td>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>
-                        <button style={btnPrimary} onClick={() => handleSeleccionar(r)}>
-                          Seleccionar
-                        </button>
-                        <button style={btnDownload} onClick={() => handleDescargarCV(r)}>
-                          Descargar CV
-                        </button>
+                        {r.cvs && r.cvs.length > 0 ? (
+                          <a
+                            href={r.cvs[0].archivo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={btnDownload}
+                          >
+                            Ver CV
+                          </a>
+                        ) : (
+                          <span style={{ color: "#888", fontSize: 13 }}>Sin CV</span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -151,7 +153,7 @@ const AspirantesTable = ({
   );
 };
 
-// ✅ Modal Component
+// ✅ Modal de detalle de aspirante con CVs
 const ModalDetalle = ({ aspirante, onClose }) => (
   <div style={styles.overlay}>
     <div style={styles.modal}>
@@ -162,6 +164,28 @@ const ModalDetalle = ({ aspirante, onClose }) => (
       <p><strong>Email:</strong> {aspirante.email}</p>
       <p><strong>Dirección:</strong> {aspirante.direccion}</p>
       <p><strong>Fecha Nacimiento:</strong> {fmtFecha(aspirante.fechanacimiento)}</p>
+
+      {aspirante.cvs && aspirante.cvs.length > 0 ? (
+        <>
+          <h3 style={{ marginTop: 15 }}>Currículum(s) Vitae:</h3>
+          <ul>
+            {aspirante.cvs.map(cv => (
+              <li key={cv.iddocumento ?? cv.id}>
+                <a
+                  href={cv.archivo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#0077cc", textDecoration: "underline" }}
+                >
+                  {cv.nombrearchivo || "Ver archivo PDF"}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p style={{ color: "#777" }}>No hay CVs asociados.</p>
+      )}
 
       <button style={styles.btnClose} onClick={onClose}>Cerrar</button>
     </div>
@@ -176,9 +200,9 @@ const styles = {
     justifyContent: "center", zIndex: 9999
   },
   modal: {
-    background: "#fff", width: "420px", padding: 25,
+    background: "#fff", width: "450px", padding: 25,
     borderRadius: 10, animation: "fadeIn .25s ease-in-out",
-    boxShadow: "0 4px 25px rgba(0,0,0,0.3)"
+    boxShadow: "0 4px 25px rgba(0,0,0,0.3)", maxHeight: "90vh", overflowY: "auto"
   },
   btnClose: {
     marginTop: 15, background: "#E63946", color: "#fff",
