@@ -29,6 +29,7 @@ const LoginPage = () => {
             const usuario = res.data.usuario;
             localStorage.setItem("usuarioLogueado", JSON.stringify(usuario));
             sessionStorage.setItem("idUsuario", usuario.idusuario);
+            sessionStorage.setItem("idRol", usuario.idrol);
 
             showToast("Inicio de sesión exitoso", "success");
             history.push("/home");

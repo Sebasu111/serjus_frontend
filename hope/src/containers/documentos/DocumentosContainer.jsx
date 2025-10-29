@@ -342,21 +342,6 @@ const DocumentosContainer = () => {
                                         marginRight: "10px"
                                     }}
                                 />
-                                <button
-                                    onClick={openNewForm}
-                                    style={{
-                                        padding: "10px 20px",
-                                        background: "#219ebc",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontWeight: "600",
-                                        whiteSpace: "nowrap"
-                                    }}
-                                >
-                                    Nuevo Documento
-                                </button>
                             </div>
 
                             <DocumentosTable
