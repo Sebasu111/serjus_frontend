@@ -30,7 +30,8 @@ const CapacitacionContainer = () => {
         fechaInicio: "",
         fechaFin: "",
         institucion: "",
-        monto: ""
+        monto: "",
+        observacion: ""
     });
 
     useEffect(() => {
@@ -78,6 +79,7 @@ const CapacitacionContainer = () => {
                 fechafin: formData.fechaFin,
                 institucionfacilitadora: formData.institucion,
                 montoejecutado: formData.monto,
+                observacion: formData.observacion,
                 estado: Boolean(capacitacionActivaEditando),
                 idusuario: idUsuario
             };
@@ -96,7 +98,8 @@ const CapacitacionContainer = () => {
                 fechaInicio: "",
                 fechaFin: "",
                 institucion: "",
-                monto: ""
+                monto: "",
+                observacion: ""
             });
             setEditingId(null);
             setCapacitacionActivaEditando(true);
@@ -118,7 +121,8 @@ const CapacitacionContainer = () => {
             fechaInicio: cap.fechainicio,
             fechaFin: cap.fechafin,
             institucion: cap.institucionfacilitadora,
-            monto: cap.montoejecutado
+            monto: cap.montoejecutado,
+            observacion: cap.observacion || ""
         });
         setEditingId(cap.idcapacitacion || cap.id);
         setCapacitacionActivaEditando(cap.estado);
