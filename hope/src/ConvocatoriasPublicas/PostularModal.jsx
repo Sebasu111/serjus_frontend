@@ -69,8 +69,8 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
     }
 
     if (name === "nit" && !isCF) {
-      // Solo números y una posible K o k final
-      if (!/^[0-9]*[Kk]?$/.test(value)) return;
+      // Solo números, máximo 8, y opcional K/k final
+      if (!/^[0-9]{1,8}[Kk]?$/.test(value)) return;
     }
 
     if (name === "dpi") {
