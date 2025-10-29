@@ -204,19 +204,34 @@ const EquiposContainer = () => {
         return raw != null ? Number(raw) : null;
     };
 
-    // Mapa: idEquipo -> [idEmpleado, ...]
+    // Mapa: idEquipo -> [idEmpleado, ...] (excluyendo coordinadores)
     const miembrosPorEquipoMap = useMemo(() => {
         const m = new Map();
+
+        // Crear un mapa de coordinadores por equipo
+        const coordinadoresPorEquipo = new Map();
+        (equipos || []).forEach(eq => {
+            if (eq.idCoordinador != null) {
+                coordinadoresPorEquipo.set(Number(eq.idEquipo), Number(eq.idCoordinador));
+            }
+        });
+
         empleados.forEach(emp => {
             const ideq = empleadoEquipoId(emp);
             const idem = empleadoId(emp);
             if (ideq != null && !Number.isNaN(ideq)) {
-                if (!m.has(ideq)) m.set(ideq, []);
-                m.get(ideq).push(idem);
+                // Verificar si este empleado es el coordinador del equipo
+                const coordinadorDelEquipo = coordinadoresPorEquipo.get(ideq);
+
+                // Solo agregar como miembro si NO es el coordinador
+                if (idem !== coordinadorDelEquipo) {
+                    if (!m.has(ideq)) m.set(ideq, []);
+                    m.get(ideq).push(idem);
+                }
             }
         });
         return m;
-    }, [empleados]);
+    }, [empleados, equipos]);
 
     // Equipos fusionados: si API no trae miembros, usamos los derivados desde empleados
     const equiposConMiembros = useMemo(() => {
@@ -288,6 +303,77 @@ const EquiposContainer = () => {
         [equiposConMiembros, editingId]
     );
 
+    // ✅ NUEVA FUNCIÓN: Actualizar empleados para sincronizar con el equipo
+    const actualizarEmpleadosDelEquipo = async (equipoId, coordinadorId, nuevosMiembros) => {
+        try {
+            console.log("🔄 Actualizando empleados del equipo:", { equipoId, coordinadorId, nuevosMiembros });
+
+            // Obtener equipo anterior para saber qué empleados remover
+            const equipoAnterior = equiposConMiembros.find(e => e.idEquipo === equipoId);
+            const miembrosAnteriores = equipoAnterior?.miembros || [];
+            const coordinadorAnterior = equipoAnterior?.idCoordinador;
+
+            // 1. Limpiar empleados que ya no pertenecen al equipo
+            const empleadosARemover = [];
+
+            // Remover coordinador anterior si cambió
+            if (coordinadorAnterior && coordinadorAnterior !== coordinadorId) {
+                empleadosARemover.push(coordinadorAnterior);
+            }
+
+            // Remover miembros que ya no están seleccionados
+            miembrosAnteriores.forEach(miembroId => {
+                if (!nuevosMiembros.includes(Number(miembroId))) {
+                    empleadosARemover.push(Number(miembroId));
+                }
+            });
+
+            // Actualizar empleados que se removieron del equipo
+            for (const empId of empleadosARemover) {
+                const empleado = empleados.find(e => empleadoId(e) === empId);
+                if (empleado) {
+                    await axios.put(`${API_BASE}/empleados/${empId}/`, {
+                        ...empleado,
+                        idequipo: null, // Remover del equipo
+                        idusuario: toNum(sessionStorage.getItem("idUsuario"))
+                    });
+                    console.log(`✅ Empleado ${empId} removido del equipo`);
+                }
+            }
+
+            // 2. Actualizar coordinador
+            if (coordinadorId) {
+                const coordinador = empleados.find(e => empleadoId(e) === Number(coordinadorId));
+                if (coordinador) {
+                    await axios.put(`${API_BASE}/empleados/${coordinadorId}/`, {
+                        ...coordinador,
+                        idequipo: equipoId,
+                        idusuario: toNum(sessionStorage.getItem("idUsuario"))
+                    });
+                    console.log(`✅ Coordinador ${coordinadorId} asignado al equipo ${equipoId}`);
+                }
+            }
+
+            // 3. Actualizar miembros
+            for (const miembroId of nuevosMiembros) {
+                const miembro = empleados.find(e => empleadoId(e) === Number(miembroId));
+                if (miembro) {
+                    await axios.put(`${API_BASE}/empleados/${miembroId}/`, {
+                        ...miembro,
+                        idequipo: equipoId,
+                        idusuario: toNum(sessionStorage.getItem("idUsuario"))
+                    });
+                    console.log(`✅ Miembro ${miembroId} asignado al equipo ${equipoId}`);
+                }
+            }
+
+            console.log("🎉 Sincronización de empleados completada");
+        } catch (error) {
+            console.error("❌ Error al actualizar empleados del equipo:", error);
+            showToast("Equipo actualizado, pero hubo problemas al sincronizar algunos empleados", "warning");
+        }
+    };
+
     const handleSubmit = async e => {
         e.preventDefault();
         if (!idEquipo || !idCoordinador) return;
@@ -341,6 +427,9 @@ const EquiposContainer = () => {
             console.log("Payload enviado:", payload); // Para debug
 
             await axios.put(`${API_BASE}/equipos/${idEquipo}/`, payload);
+
+            // ✅ NUEVO: Actualizar empleados para sincronizar correctamente
+            await actualizarEmpleadosDelEquipo(idEquipo, coordinadorId, miembrosArray);
 
             // Actualizamos cache local del equipo
             setMiembrosCache(prev => {
@@ -401,7 +490,7 @@ const EquiposContainer = () => {
 
     const handleVerDetalle = async equipo => {
         try {
-            console.log("Ver detalle de equipo:", equipo); // Debug
+            console.log("🔍 Ver detalle de equipo:", equipo); // Debug
 
             // Intentar obtener miembros desde varias fuentes
             let ids = [];
@@ -409,21 +498,21 @@ const EquiposContainer = () => {
             // 1. Desde cache si existe
             if (miembrosCache.has(equipo.idEquipo)) {
                 ids = miembrosCache.get(equipo.idEquipo);
-                console.log("Miembros desde cache:", ids);
+                console.log("📋 Miembros desde cache:", ids);
             }
             // 2. Desde equiposConMiembros (fusionado)
             else {
                 const merged = equiposConMiembros.find(e => e.idEquipo === equipo.idEquipo);
                 ids = merged?.miembros || [];
-                console.log("Miembros desde equiposConMiembros:", ids);
+                console.log("🔄 Miembros desde equiposConMiembros:", ids);
 
                 // 3. Si no hay miembros, intentar desde API
                 if (!ids.length) {
                     try {
                         ids = (await fetchEquipoDetalle(equipo.idEquipo)) || [];
-                        console.log("Miembros desde API:", ids);
+                        console.log("🌐 Miembros desde API:", ids);
                     } catch (apiError) {
-                        console.warn("No se pudieron cargar miembros desde API:", apiError);
+                        console.warn("⚠️ No se pudieron cargar miembros desde API:", apiError);
                     }
                 }
 
@@ -439,10 +528,14 @@ const EquiposContainer = () => {
             const miembrosNombres = ids
                 .map(Number)
                 .filter(id => !isNaN(id) && id > 0)
-                .map(id => empleadosMap.get(id) || `Empleado #${id}`)
+                .map(id => {
+                    const nombre = empleadosMap.get(id);
+                    console.log(`👤 Empleado ID ${id} -> ${nombre || 'No encontrado'}`);
+                    return nombre || `Empleado #${id}`;
+                })
                 .filter(Boolean);
 
-            console.log("Miembros nombres finales:", miembrosNombres);
+            console.log("✅ Miembros nombres finales:", miembrosNombres);
 
             setDetalle({
                 idEquipo: equipo.idEquipo,
@@ -453,7 +546,7 @@ const EquiposContainer = () => {
             });
             setMostrarDetalle(true);
         } catch (e) {
-            console.error("Error al cargar detalle del equipo:", e);
+            console.error("❌ Error al cargar detalle del equipo:", e);
             showToast("No se pudo cargar el detalle del equipo", "error");
         }
     };

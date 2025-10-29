@@ -32,10 +32,12 @@ const EquipoFormNuevo = ({
             const empId = Number(emp.idempleado || emp.id);
             const noOcupado = !ocupadosSet.has(empId) || originalesSet.has(empId);
             const noEsMiembro = !miembros.includes(empId);
+            // Excluir el coordinador ya seleccionado de la lista
+            const noEsCoordinadorSeleccionado = empId !== Number(idCoordinador);
 
-            return coincideNombre && noOcupado && noEsMiembro && emp.estado !== false;
+            return coincideNombre && noOcupado && noEsMiembro && noEsCoordinadorSeleccionado && emp.estado !== false;
         });
-    }, [empleados, busquedaCoordinador, ocupadosSet, miembros, originales]);
+    }, [empleados, busquedaCoordinador, ocupadosSet, miembros, idCoordinador, originales]);
 
     // Filtros para miembros
     const miembrosFiltrados = useMemo(() => {
