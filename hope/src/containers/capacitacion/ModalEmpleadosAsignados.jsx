@@ -46,8 +46,6 @@ const ModalEmpleadosAsignados = ({ visible, onClose, empleados, evento, loading,
     color: "#374151"
   };
 
-  // Aquí usamos el valor correcto: primero revisamos observacionescapacitacion,
-  // si no existe, usamos observacion (lo que manda el form)
   const observaciones = evento.observacionescapacitacion || evento.observacion || "-";
 
   return (
@@ -173,7 +171,8 @@ const ModalEmpleadosAsignados = ({ visible, onClose, empleados, evento, loading,
                 }}
               >
                 <colgroup>
-                  <col style={{ width: "50%" }} />
+                  <col style={{ width: "35%" }} />
+                  <col style={{ width: "15%" }} />
                   <col style={{ width: "25%" }} />
                   <col style={{ width: "25%" }} />
                 </colgroup>
@@ -181,6 +180,7 @@ const ModalEmpleadosAsignados = ({ visible, onClose, empleados, evento, loading,
                   <tr style={{ background: "#f3f4f6" }}>
                     <th style={thStyle}>Empleado</th>
                     <th style={thStyle}>Asistencia</th>
+                    <th style={thStyle}>Documento</th>
                     <th style={thStyle}>Fecha envío</th>
                   </tr>
                 </thead>
@@ -197,7 +197,30 @@ const ModalEmpleadosAsignados = ({ visible, onClose, empleados, evento, loading,
                       >
                         {emp.asistencia || "No"}
                       </td>
-                      <td style={tdStyle}>{formatDate(emp.fechaenvio)}</td>
+                      <td style={tdStyle}>
+                        {emp.iddocumento ? (
+                          <a
+                            href={emp.archivo_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-block",
+                              padding: "6px 12px",
+                              background: "#2563eb",
+                              color: "#fff",
+                              borderRadius: 6,
+                              textDecoration: "none",
+                              fontWeight: 500,
+                              fontSize: 13
+                            }}
+                          >
+                            Descargar informe
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td style={tdStyle}>{emp.fechaenvio ? formatDate(emp.fechaenvio) : "-"}</td>
                     </tr>
                   ))}
                 </tbody>
