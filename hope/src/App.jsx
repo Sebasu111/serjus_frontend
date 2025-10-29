@@ -38,7 +38,6 @@ import ConvocatoriasPublicPage from "./ConvocatoriasPublicas/ConvocatoriasPublic
 // =============================================================
 import EmpleadosContainer from "./containers/Empleados/EmpleadosContainer";
 import ContratosContainer from "./containers/contratos/ContratosContainer";
-import HistorialPuestoContainer from "./containers/HistorialPuesto/HistorialPuestoContainer";
 import EquiposContainer from "./containers/Equipo/EquiposContainer";
 import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 
@@ -126,7 +125,6 @@ const App = () => {
                     {/*PERSONAL*/}
                     <Route exact path={`${base}/Empleados`} component={EmpleadosContainer} />
                     <Route exact path={`${base}/Contratos`} component={ContratosContainer} />
-                    <Route exact path={`${base}/HistorialPuesto`} component={HistorialPuestoContainer} />
                     {<Route exact path={`${base}/Equipos`} component={EquiposContainer} />}
                     <Route exact path={`${base}/Usuarios`} component={UsuariosContainer} />
 

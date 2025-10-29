@@ -14,12 +14,14 @@ import FichaDownloadModal from "./FichaDownloadModal";
 import { generarFichasPDF } from "./fichasPdf";
 import logo from "./logo-asjerjus.png";
 import UsuarioCreadoModal from "../../components/UsuarioCreado/UsuarioCreadoModal.jsx";
+import HistorialPuestosModal from "./HistorialPuestosModal.jsx";
 
 // 🔔 toasts y estilos compartidos
 import { showToast, showPDFToasts } from "../../utils/toast.js";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 const API = "http://127.0.0.1:8000/api";
+const API_HISTORIAL = "http://127.0.0.1:8000/api/historialpuestos/";
 const empId = row => row?.id ?? row?.idempleado ?? row?.idEmpleado;
 
 const pick = (o, ...keys) => {
@@ -172,6 +174,9 @@ const EmpleadosContainer = () => {
     const [mostrarUsuarioCreado, setMostrarUsuarioCreado] = useState(false);
     const [datosUsuarioCreado, setDatosUsuarioCreado] = useState(null);
 
+    // modal historial de puestos
+    const [mostrarHistorialPuestos, setMostrarHistorialPuestos] = useState(false);
+
     useEffect(() => {
         fetchList();
         fetchIdiomas();
@@ -199,6 +204,66 @@ const EmpleadosContainer = () => {
             contrasena += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
         }
         return contrasena;
+    };
+
+    // Función para crear entrada en historial de puestos
+    const crearHistorialPuesto = async (empleadoId, idPuesto, fechaInicio, salario = null) => {
+        try {
+            // Si no se proporcionó salario, intentar obtenerlo desde el catálogo de puestos
+            let salarioFinal = salario;
+            if (!salarioFinal || Number(salarioFinal) === 0) {
+                const puestoObj = puestos.find(p => Number(p.idpuesto || p.id) === Number(idPuesto));
+                salarioFinal = puestoObj?.salariobase ?? puestoObj?.salario ?? puestoObj?.salariominimo ?? 0;
+            }
+
+            const payload = {
+                idempleado: empleadoId,
+                idpuesto: idPuesto,
+                fechainicio: fechaInicio,
+                fechafin: null, // Se llena cuando cambie de puesto
+                salario: Number(salarioFinal) || 0,
+                observacion: "Registro automático por asignación/cambio de puesto",
+                estado: true,
+                idusuario: getIdUsuario()
+            };
+
+            await axios.post(API_HISTORIAL, payload);
+            console.log("Historial de puesto creado exitosamente");
+        } catch (error) {
+            console.error("Error al crear historial de puesto:", error);
+            // No mostramos toast de error aquí para no interrumpir el flujo principal
+        }
+    };
+
+    // Función para finalizar el historial anterior (poner fecha fin)
+    const finalizarHistorialAnterior = async (empleadoId) => {
+        try {
+            const res = await axios.get(API_HISTORIAL);
+            const todosHistoriales = Array.isArray(res.data) ? res.data : res.data?.results || [];
+
+            // Buscar el historial activo (sin fecha fin) de este empleado, ordenado por fecha más reciente
+            const historialesActivos = todosHistoriales
+                .filter(h =>
+                    h.idempleado === empleadoId &&
+                    h.estado === true &&
+                    (!h.fechafin || h.fechafin === null || h.fechafin === "")
+                )
+                .sort((a, b) => new Date(b.fechainicio) - new Date(a.fechainicio));
+
+            if (historialesActivos.length > 0) {
+                const historialActivo = historialesActivos[0]; // El más reciente
+                const fechaFin = new Date().toISOString().slice(0, 10); // Fecha actual
+
+                await axios.put(`${API_HISTORIAL}${historialActivo.idhistorialpuesto}/`, {
+                    ...historialActivo,
+                    fechafin: fechaFin,
+                    idusuario: getIdUsuario()
+                });
+                console.log(`Historial anterior finalizado: ID ${historialActivo.idhistorialpuesto}`);
+            }
+        } catch (error) {
+            console.error("Error al finalizar historial anterior:", error);
+        }
     };
 
     // Función para crear usuario automáticamente
@@ -715,7 +780,28 @@ const EmpleadosContainer = () => {
             }
 
             if (isEditing) {
+                // Obtener datos actuales del empleado para comparar puesto
+                const empleadoActual = data.find(emp => empId(emp) === editingId);
+                const puestoAnterior = Number(empleadoActual?.idpuesto || empleadoActual?.idPuesto || 0);
+                const puestoNuevo = Number(form.idpuesto || 0);
+
+                // Actualizar empleado
                 await axios.put(`${API}/empleados/${editingId}/`, payload);
+
+                // Si cambió el puesto y hay un puesto nuevo válido, manejar historial
+                if (puestoNuevo > 0 && puestoAnterior !== puestoNuevo) {
+                    console.log(`Cambio de puesto detectado: ${puestoAnterior} -> ${puestoNuevo}`);
+
+                    // Solo finalizar historial anterior si había un puesto anterior
+                    if (puestoAnterior > 0) {
+                        await finalizarHistorialAnterior(editingId);
+                    }
+
+                    // Crear nuevo registro en historial con la fecha actual
+                    const fechaInicio = new Date().toISOString().slice(0, 10);
+                    await crearHistorialPuesto(editingId, puestoNuevo, fechaInicio);
+                }
+
                 showToast("Empleado actualizado correctamente");
             } else {
                 const response = await axios.post(`${API}/empleados/`, payload);
@@ -723,6 +809,12 @@ const EmpleadosContainer = () => {
 
                 // Obtener el ID del empleado recién creado
                 const empleadoId = empleadoCreado.id || empleadoCreado.idempleado || empleadoCreado.idEmpleado;
+
+                // Crear historial inicial si se asignó un puesto
+                if (form.idpuesto && Number(form.idpuesto) > 0) {
+                    const fechaInicio = form.iniciolaboral || new Date().toISOString().slice(0, 10);
+                    await crearHistorialPuesto(empleadoId, Number(form.idpuesto), fechaInicio);
+                }
 
                 showToast("Empleado registrado correctamente");
 
@@ -1138,8 +1230,35 @@ const EmpleadosContainer = () => {
                                 </button>
                             </div>
 
-                            <div style={{ marginBottom: 12 }}>
+                            <div style={{ marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                 <h3 style={{ margin: 0, fontSize: 28, letterSpacing: 0.2 }}>Detalle del Colaborador</h3>
+                                <button
+                                    onClick={() => setMostrarHistorialPuestos(true)}
+                                    style={{
+                                        background: "#059669",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: 8,
+                                        padding: "10px 16px",
+                                        fontSize: 14,
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                        transition: "background 0.2s",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 8
+                                    }}
+                                    onMouseEnter={e => e.target.style.background = "#047857"}
+                                    onMouseLeave={e => e.target.style.background = "#059669"}
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M21 10H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M21 6H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M21 14H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M21 18H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                    Historial de Puestos
+                                </button>
                             </div>
 
                             <div
@@ -1220,6 +1339,13 @@ const EmpleadosContainer = () => {
                     mostrar={mostrarUsuarioCreado}
                     onCerrar={() => setMostrarUsuarioCreado(false)}
                     datosUsuario={datosUsuarioCreado}
+                />
+
+                {/* MODAL HISTORIAL PUESTOS */}
+                <HistorialPuestosModal
+                    mostrar={mostrarHistorialPuestos}
+                    empleado={detalle}
+                    onClose={() => setMostrarHistorialPuestos(false)}
                 />
             </div>
         </Layout>

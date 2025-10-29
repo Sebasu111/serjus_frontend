@@ -17,7 +17,6 @@ const SidebarMenu = () => {
     const routeToSubmenu = {
         '/Empleados': 'personal',
         '/Contratos': 'personal',
-        '/HistorialPuesto': 'personal',
         '/Usuarios': 'personal',
         '/Equipos': 'personal',
         '/Convocatorias': 'reclutamiento',
@@ -154,15 +153,6 @@ const SidebarMenu = () => {
                                     activeClassName="active"
                                 >
                                     Contrato
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to={`${base}/HistorialPuesto`}
-                                    className="sidebar-submenu-link"
-                                    activeClassName="active"
-                                >
-                                    Historial de Puestos
                                 </NavLink>
                             </li>
                             <li>
