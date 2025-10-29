@@ -4,10 +4,6 @@ import { X } from "lucide-react";
 
 const DocumentosForm = ({
     form,
-    setForm,
-    tiposDocumento,
-    empleados,
-    onChange,
     handleSubmit,
     editingId,
     setMostrarFormulario,
@@ -33,96 +29,10 @@ const DocumentosForm = ({
             }}
         >
             <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
-                {editingId ? "Editar documento" : "Registrar documento"}
+                ¿Desea eliminar el archivo?
             </h3>
 
             <form onSubmit={handleSubmit} style={{ flex: 1 }}>
-                {/* 1. Nombre del archivo */}
-                <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>Nombre del archivo</label>
-                    <input
-                        name="nombrearchivo"
-                        value={form.nombrearchivo}
-                        onChange={onChange}
-                        required
-                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                    />
-                </div>
-
-                {/* 2. Tipo de documento */}
-                <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>Tipo de documento</label>
-                    <select
-                        name="idtipodocumento"
-                        value={form.idtipodocumento}
-                        onChange={onChange}
-                        required
-                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
-                    >
-                        <option value="">Seleccione...</option>
-                        {tiposDocumento.map(t => (
-                            <option key={t.idtipodocumento} value={t.idtipodocumento}>
-                                {t.nombretipo}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* 3. Empleado */}
-                <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>Empleado</label>
-                    <Select
-                        options={empleados.map(e => ({
-                            value: e.idempleado,
-                            label: `${e.nombre} ${e.apellido}`
-                        }))}
-                        value={
-                            form.idempleado
-                                ? {
-                                    value: form.idempleado,
-                                    label: `${empleados.find(emp => emp.idempleado === form.idempleado)?.nombre} ${empleados.find(emp => emp.idempleado === form.idempleado)?.apellido
-                                        }`
-                                }
-                                : null
-                        }
-                        onChange={selected => setForm(f => ({ ...f, idempleado: selected?.value }))}
-                        placeholder="Busca y selecciona un empleado..."
-                        isClearable
-                    />
-                </div>
-
-                {/* 4. Archivo */}
-                <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", marginBottom: "6px" }}>Archivo</label>
-                    <input
-                        type="file"
-                        name="archivo"
-                        onChange={onChange}
-                        accept="*/*"
-                        required={!editingId}
-                        style={{ marginBottom: "6px" }}
-                    />
-                    <small style={{ color: "#666" }}>
-                        {editingId ? "Sube un archivo solo si desea reemplazar el existente." : ""}
-                    </small>
-                </div>
-
-                <button
-                    type="submit"
-                    style={{
-                        width: "100%",
-                        padding: "10px",
-                        background: "#219ebc",
-                        color: "#FFF",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        fontWeight: "600"
-                    }}
-                >
-                    {editingId ? "Actualizar" : "Guardar"}
-                </button>
-
                 {editingId && form.nombrearchivo && (
                     <button
                         type="button"
@@ -133,7 +43,7 @@ const DocumentosForm = ({
                         style={{
                             marginTop: "10px",
                             background: "#FCA5A5",
-                            color: "#FFF",
+                            color: "#000000ff",
                             border: "none",
                             borderRadius: "6px",
                             padding: "8px 12px",

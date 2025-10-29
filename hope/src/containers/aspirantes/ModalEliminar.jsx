@@ -10,28 +10,27 @@ const ModalEliminarAspirante = ({
   mostrarModal,
   setMostrarModal,
   setAspirantes,
-  recargarAspirantes,
 }) => {
   if (!mostrarModal || !aspiranteSeleccionado) return null;
 
   const handleEliminar = async () => {
-    try {
-      await axios.delete(`${API}/aspirantes/${aspiranteSeleccionado.idaspirante}/`);
+  try {
+    await axios.delete(`${API}/aspirantes/${aspiranteSeleccionado.idaspirante}/`);
 
-      showToast(`Aspirante ${aspiranteSeleccionado.nombreaspirante} eliminado correctamente.`, "success");
+    showToast(`Aspirante ${aspiranteSeleccionado.nombreaspirante} eliminado correctamente.`, "success");
 
-      // 🔹 Actualización inmediata del frontend
-      if (setAspirantes) {
-        setAspirantes(prev =>
-          prev.filter(a => a.idaspirante !== aspiranteSeleccionado.idaspirante)
-        );
-      }
-
-      setMostrarModal(false);
-    } catch (err) {
-      showToast("Error al eliminar el aspirante.", "error");
+    // 🔹 Actualización inmediata del frontend
+    if (setAspirantes) {
+      setAspirantes(prev =>
+        prev.filter(a => a.idaspirante !== aspiranteSeleccionado.idaspirante)
+      );
     }
-  };
+
+    setMostrarModal(false);
+  } catch (err) {
+    showToast("Error al eliminar el aspirante.", "error");
+  }
+};
 
   return (
     <div style={ModalConfirmacionStyles.overlay}>

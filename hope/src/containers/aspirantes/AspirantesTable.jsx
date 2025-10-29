@@ -149,25 +149,6 @@ const AspirantesTable = ({
 
                           {openCombo === idAspirante && (
                             <div style={comboBoxStyles.menu.container}>
-                              {/* Ver detalle */}
-                              <div
-                                style={comboBoxStyles.menu.item.editar.base}
-                                onClick={() => {
-                                  setModalAspirante(r);
-                                  setOpenCombo(null);
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.background =
-                                    comboBoxStyles.menu.item.editar.hover.background)
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.background =
-                                    comboBoxStyles.menu.item.editar.base.background)
-                                }
-                              >
-                                Ver detalle
-                              </div>
-
                               {/* Ver CV */}
                               <div
                                 style={comboBoxStyles.menu.item.activar.base}

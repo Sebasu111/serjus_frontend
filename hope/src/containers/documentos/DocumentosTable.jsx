@@ -104,7 +104,7 @@ const DocumentosTable = ({
                                                                 setOpenComboId(null);
                                                             }}
                                                         >
-                                                            Editar
+                                                            Eliminar
                                                         </div>
                                                         <div
                                                             style={comboBoxStyles.menu.item.activar.base}
