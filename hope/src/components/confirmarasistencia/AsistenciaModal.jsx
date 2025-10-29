@@ -48,13 +48,25 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
 
   if (!show || !capacitacion) return null;
 
+  // ✅ Función para formatear fecha de 2025-10-29 → 29-10-2025
+  const formatearFecha = (fecha) => {
+    if (!fecha) return "";
+    const [year, month, day] = fecha.split("-");
+    return `${day}-${month}-${year}`;
+  };
+
+  // 🔹 Manejar subida de archivo PDF + actualización de fecha actual
   const handleGuardarAsistencia = async (e) => {
     e.preventDefault();
 
     if (!archivo) {
-      // Mostrar tooltip de validación nativa
       const fileInput = document.getElementById("archivoInput");
       fileInput.reportValidity();
+      return;
+    }
+
+    if (archivo.type !== "application/pdf") {
+      showToast("Solo se permiten archivos PDF", "warning");
       return;
     }
 
@@ -62,20 +74,23 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
     try {
       const idUsuario = Number(sessionStorage.getItem("idUsuario"));
       const formData = new FormData();
+
       formData.append("archivo", archivo);
       formData.append("nombrearchivo", archivo.name);
-      formData.append("mimearchivo", archivo.name.split(".").pop().toLowerCase());
+      formData.append("mimearchivo", "pdf");
       formData.append("fechasubida", new Date().toISOString().slice(0, 10));
       formData.append("idusuario", idUsuario);
       formData.append("idtipodocumento", 2);
       formData.append("idempleado", capacitacion.idempleado);
 
+      // 🔹 Subir documento
       const resDoc = await axios.post(`${API}/documentos/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       const idDocumento = resDoc.data.iddocumento;
 
+      // 🔹 Llamar a onGuardar para actualizar empleadocapacitacion con fecha actual
       await onGuardar(
         capacitacion.idempleadocapacitacion,
         true,
@@ -83,7 +98,10 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
         idDocumento
       );
 
-      showToast("Asistencia registrada con documento", "success");
+      // ✅ Refrescar fecha en el frontend manualmente
+      capacitacion.fechaenvio = new Date().toISOString().slice(0, 10);
+
+      showToast("Asistencia registrada y documento PDF guardado", "success");
       onClose();
     } catch (error) {
       console.error("Error al subir archivo o registrar asistencia:", error.response?.data || error);
@@ -93,6 +111,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
     }
   };
 
+  // 🔹 Justificar inasistencia (sin archivo)
   const handleJustificar = async () => {
     await onGuardar(
       capacitacion.idempleadocapacitacion,
@@ -106,6 +125,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
+        {/* Cerrar modal */}
         <button
           onClick={onClose}
           style={{
@@ -125,14 +145,22 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
           Confirmar asistencia
         </h3>
 
+        {/* Info capacitación */}
         <div style={{ marginBottom: "15px" }}>
           <p><strong>Capacitación:</strong> {capacitacion.nombre}</p>
           <p><strong>Lugar:</strong> {capacitacion.lugar}</p>
-          <p><strong>Fecha inicio:</strong> {new Date(capacitacion.fechainicio || capacitacion.fecha).toLocaleDateString()}</p>
-          <p><strong>Fecha fin:</strong> {new Date(capacitacion.fechafin || capacitacion.fecha).toLocaleDateString()}</p>
+          <p><strong>Fecha inicio:</strong> {formatearFecha(capacitacion.fechainicio || capacitacion.fecha)}</p>
+          <p><strong>Fecha fin:</strong> {formatearFecha(capacitacion.fechafin || capacitacion.fecha)}</p>
+          
+          {/* ✅ Mostrar fecha de envío en formato DD-MM-YYYY */}
+          {capacitacion.fechaenvio && (
+            <p><strong>Fecha de envío:</strong> {formatearFecha(capacitacion.fechaenvio)}</p>
+          )}
+
           <p><strong>Observaciones:</strong> {capacitacion.observacion || "Sin observaciones"}</p>
         </div>
 
+        {/* Opciones de acción */}
         {!mostrarInputArchivo ? (
           <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
             <button
@@ -150,6 +178,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
             </button>
           </div>
         ) : (
+          // 🔹 Formulario para subir archivo PDF
           <form
             onSubmit={handleGuardarAsistencia}
             style={{
@@ -159,12 +188,20 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
               gap: "10px",
             }}
           >
+            <label htmlFor="archivoInput" style={{ fontWeight: "500" }}>
+              Adjunta tu comprobante (PDF):
+            </label>
             <input
               id="archivoInput"
               type="file"
               required
+              accept="application/pdf"
               onChange={(e) => setArchivo(e.target.files[0])}
-              style={{ border: "1px solid #ccc", borderRadius: "6px", padding: "6px" }}
+              style={{
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+                padding: "6px",
+              }}
             />
             <button
               type="submit"
