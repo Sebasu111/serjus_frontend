@@ -36,16 +36,14 @@ const MyContainer = () => {
                             padding: "48px 20px 8rem"
                         }}
                     >
-                        <div style={{ width: "min(1100px, 96vw)" }}>
-                            {/* Contenido principal aquí */}
-                        </div>
+                        <div style={{ width: "min(1100px, 96vw)" }}>{/* Contenido principal aquí */}</div>
                     </main>
                     <Footer />
                     <ScrollToTop />
                 </div>
 
                 {/* Modales y otros componentes flotantes aquí */}
-                
+
                 <ToastContainer />
             </div>
         </Layout>
@@ -67,31 +65,33 @@ export default MyContainer;
 
 ## ❌ Errores Comunes a Evitar
 
-- **NO usar `paddingLeft: "250px"`** - El sidebar se maneja automáticamente
-- **NO usar layouts personalizados** para el main content
-- **NO poner Footer fuera** del div principal
-- **NO usar estilos inconsistentes** para el background o padding
+-   **NO usar `paddingLeft: "250px"`** - El sidebar se maneja automáticamente
+-   **NO usar layouts personalizados** para el main content
+-   **NO poner Footer fuera** del div principal
+-   **NO usar estilos inconsistentes** para el background o padding
 
-## ✅ Containers Ya Corregidos
+## Containers Ya Corregidos
 
-- ✅ ContratosContainer
-- ✅ CapacitacionContainer  
-- ✅ EmpleadosContainer
-- ✅ UsuariosContainer
-- ✅ PuestoContainer
-- ✅ ConvocatoriasContainer
-- ✅ AmonestacionContainer
-- ✅ EvaluacionesContainer
-- ✅ PerfilContainer
+-   ContratosContainer
+-   CapacitacionContainer
+-   EmpleadosContainer
+-   UsuariosContainer
+-   PuestoContainer
+-   ConvocatoriasContainer
+-   AmonestacionContainer
+-   EvaluacionesContainer
+-   PerfilContainer
 
 ## 🔧 Containers Pendientes de Corrección
 
 Todos los containers principales han sido corregidos. Quedan algunos componentes menores:
-- Modales y tablas específicas (no requieren cambio global)
 
-## ✅ Verificación Final
+-   Modales y tablas específicas (no requieren cambio global)
+
+## Verificación Final
 
 Ejecuta esta búsqueda para verificar que no hay más containers con problemas:
+
 ```bash
 grep -r "paddingLeft.*250" src/containers/
 ```

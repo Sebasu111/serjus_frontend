@@ -35,7 +35,7 @@ export const comboBoxStyles = {
             border: "1px solid #ddd",
             borderRadius: "8px",
             boxShadow: "0 6px 15px rgba(0,0,0,0.1)",
-            zIndex: 10,
+            zIndex: 9999,
             overflow: "hidden"
         },
         item: {
