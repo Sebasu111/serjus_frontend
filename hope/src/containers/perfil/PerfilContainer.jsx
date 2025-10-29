@@ -49,48 +49,51 @@ const PerfilContainer = () => {
     fetchPerfil();
   }, []);
 
-  const cargarCapacitaciones = async idEmpleado => {
-  try {
-    const resCap = await axios.get(`${API}/empleadocapacitacion/`);
-    const capsEmpleado = resCap.data.results
-      ? resCap.data.results.filter(c => c.idempleado === idEmpleado)
-      : resCap.data.filter(c => c.idempleado === idEmpleado);
+  // ✅ Corrige fechas y toma correctamente la fechaenvio
+  const cargarCapacitaciones = async (idEmpleado) => {
+    try {
+      const resCap = await axios.get(`${API}/empleadocapacitacion/`);
+      const capsEmpleado = resCap.data.results
+        ? resCap.data.results.filter(c => c.idempleado === idEmpleado)
+        : resCap.data.filter(c => c.idempleado === idEmpleado);
 
-    const resCapsInfo = await axios.get(`${API}/capacitaciones/`);
-    const listaCapacitaciones = resCapsInfo.data.results || resCapsInfo.data;
+      const resCapsInfo = await axios.get(`${API}/capacitaciones/`);
+      const listaCapacitaciones = resCapsInfo.data.results || resCapsInfo.data;
 
-    const info = capsEmpleado.map(c => {
-      // 🔹 Extrae el ID real de la capacitación (por si viene como objeto)
-      const idCap = typeof c.idcapacitacion === "object"
-        ? c.idcapacitacion.idcapacitacion
-        : c.idcapacitacion;
+      const info = capsEmpleado.map(c => {
+        // Extrae el ID real de la capacitación (por si viene como objeto)
+        const idCap = typeof c.idcapacitacion === "object"
+          ? c.idcapacitacion.idcapacitacion
+          : c.idcapacitacion;
 
-      // 🔹 Busca la capacitación con ese ID
-      const cap = listaCapacitaciones.find(ci => ci.idcapacitacion === idCap);
+        // Busca la capacitación con ese ID
+        const cap = listaCapacitaciones.find(ci => ci.idcapacitacion === idCap);
 
-      return {
-        ...c,
-        idcapacitacion: idCap, // asegúrate de mantener el número, no objeto
-        nombre: cap?.nombreevento || "N/A",
-        lugar: cap?.lugar || "N/A",
-        fecha: cap?.fechainicio || c.fechaenvio,
-        observacion: cap?.observacion || "-", // ✅ se mostrará aquí correctamente
-      };
-    });
+        return {
+          ...c,
+          idcapacitacion: idCap,
+          nombre: cap?.nombreevento || "N/A",
+          lugar: cap?.lugar || "N/A",
+          // ✅ Usa fechaenvio si existe, sino la fechainicio
+          fecha: c.fechaenvio || cap?.fechainicio,
+          observacion: cap?.observacion || "-",
+        };
+      });
 
-    setCapacitacionesInfo(info);
-  } catch (error) {
-    console.error(error);
-    showToast("Error al cargar capacitaciones", "error");
-  }
-};
+      setCapacitacionesInfo(info);
+    } catch (error) {
+      console.error(error);
+      showToast("Error al cargar capacitaciones", "error");
+    }
+  };
 
-  const formatFecha = fecha => {
-    const d = new Date(fecha);
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
+  // ✅ Nueva versión: sin errores por zona horaria
+  const formatFecha = (fecha) => {
+    if (!fecha) return "-";
+    const partes = fecha.split("-");
+    if (partes.length !== 3) return fecha;
+    const [year, month, day] = partes;
+    return `${day}-${month}-${year}`;
   };
 
   // 🔹 Actualización de asistencia + idDocumento opcional
@@ -105,7 +108,8 @@ const PerfilContainer = () => {
         idcapacitacion: cap.idcapacitacion,
         asistencia: asistenciaBool ? "Sí" : "No",
         observacion: observacion || (asistenciaBool ? "Asistió" : "Inasistencia Justificada"),
-        fechaenvio: cap.fechaenvio || new Date().toISOString().split("T")[0],
+        // ✅ Guarda la fecha actual correctamente (sin desfase)
+        fechaenvio: new Date().toISOString().split("T")[0],
         estado: true,
         idusuario: idUsuario,
         iddocumento: idDocumento
