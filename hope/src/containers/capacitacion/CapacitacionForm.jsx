@@ -1,4 +1,3 @@
-// CapacitacionForm.jsx
 import React from "react";
 import { X } from "lucide-react";
 
@@ -66,7 +65,7 @@ const CapacitacionForm = ({
                         <input
                             type="date"
                             value={formData.fechaInicio}
-                            min={new Date().toISOString().split('T')[0]} // Restricción para crear y editar
+                            min={new Date().toISOString().split('T')[0]}
                             onChange={e => setFormData({ ...formData, fechaInicio: e.target.value })}
                             required
                             style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
@@ -77,7 +76,7 @@ const CapacitacionForm = ({
                         <input
                             type="date"
                             value={formData.fechaFin}
-                            min={formData.fechaInicio || new Date().toISOString().split('T')[0]} // No fechas pasadas ni antes de fecha inicio
+                            min={formData.fechaInicio || new Date().toISOString().split('T')[0]}
                             onChange={e => setFormData({ ...formData, fechaFin: e.target.value })}
                             required
                             style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
@@ -103,6 +102,17 @@ const CapacitacionForm = ({
                         onChange={e => setFormData({ ...formData, monto: e.target.value })}
                         required
                         style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                    />
+                </div>
+
+                <div style={{ marginBottom: "15px" }}>
+                    <label style={{ display: "block", marginBottom: "6px" }}>Observaciones</label>
+                    <textarea
+                        value={formData.observacion}
+                        onChange={e => setFormData({ ...formData, observacion: e.target.value })}
+                        rows={3}
+                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", resize: "vertical" }}
+                        placeholder="Ingrese observaciones sobre la capacitación"
                     />
                 </div>
 
