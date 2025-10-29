@@ -16,7 +16,7 @@ const meses = [
     "diciembre"
 ];
 
-const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false }) => {
+const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, puestos = [], departamentos = [] }) => {
     const [pagina, setPagina] = useState(1);
     const formRef = useRef(null);
 
@@ -156,6 +156,64 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false }
                 );
             }
 
+            // Menú desplegable para puesto
+            if (k === "puesto") {
+                console.log("🎯 Renderizando select de puestos, cantidad:", puestos.length);
+                console.log("📄 Puestos recibidos:", puestos);
+                return (
+                    <div key={k} style={{ display: "flex", flexDirection: "column" }}>
+                        <label
+                            htmlFor={k}
+                            style={{
+                                marginBottom: "4px",
+                                fontWeight: "bold",
+                                fontFamily: '"Inter", sans-serif'
+                            }}
+                        >
+                            {label}:
+                        </label>
+                        <select id={k} name={k} value={data[k]} onChange={onChange} style={input} {...commonProps}>
+                            <option value="">Seleccione un puesto...</option>
+                            {puestos.map(puesto => {
+                                console.log("🔍 Mapeando puesto:", puesto);
+                                const puestoNombre = puesto.nombrepuesto ?? puesto.nombrePuesto ?? puesto.puesto ?? puesto.nombre ?? `ID ${puesto.idpuesto || puesto.id}`;
+                                return (
+                                    <option key={puesto.idpuesto || puesto.id} value={puestoNombre}>
+                                        {puestoNombre}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    </div>
+                );
+            }
+
+            // Menú desplegable para departamento
+            if (k === "departamentoTrabajadora") {
+                return (
+                    <div key={k} style={{ display: "flex", flexDirection: "column" }}>
+                        <label
+                            htmlFor={k}
+                            style={{
+                                marginBottom: "4px",
+                                fontWeight: "bold",
+                                fontFamily: '"Inter", sans-serif'
+                            }}
+                        >
+                            {label}:
+                        </label>
+                        <select id={k} name={k} value={data[k]} onChange={onChange} style={input} {...commonProps}>
+                            <option value="">Seleccione un departamento...</option>
+                            {departamentos.map(dept => (
+                                <option key={dept} value={dept}>
+                                    {dept}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                );
+            }
+
             if (k === "fechaInicio" || k === "fechaContrato") {
                 return (
                     <div key={k} style={{ display: "flex", flexDirection: "column" }}>
@@ -276,22 +334,17 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false }
             <h1
                 style={{
                     textAlign: "center",
-                    marginBottom: "30px",
+                    marginBottom: "20px",
                     fontFamily: '"Inter", sans-serif',
-                    fontWeight: "600"
+                    fontWeight: "600",
+                    fontSize: "20px"
                 }}
             >
-                Editor de Contrato Individual de Trabajo
+                Editor de Contrato
             </h1>
             <div
                 style={{
-                    margin: "40px auto",
-                    padding: "30px 20px",
-                    maxWidth: "900px",
-                    width: "min(90vw, 900px)",
-                    backgroundColor: "#fff",
-                    borderRadius: "12px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    padding: "0",
                     fontFamily: '"Inter", sans-serif'
                 }}
             >
@@ -440,8 +493,8 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false }
                         </div>
 
                         <div style={{ textAlign: "center", marginTop: "20px" }}>
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 disabled={generandoPDF}
                                 style={{
                                     ...btnPrimary,

@@ -120,29 +120,15 @@ const ContratoEditor = forwardRef(({ data }, ref) => {
 
       <div
         style={{
-          maxWidth: "1000px",
-          margin: "40px auto 0",
+          width: "100%",
+          margin: "0",
           background: "#fff",
-          padding: "40px 20px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-          width: "min(95vw, 1000px)"
+          padding: "0",
         }}
       >
-        <h2
-          style={{
-            textAlign: "center",
-            marginBottom: "30px",
-            fontFamily: '"Inter", sans-serif',
-            fontWeight: "600"
-          }}
-        >
-          Vista
-        </h2>
-
         {/* Contrato */}
-        <div id="printable" ref={ref} style={{ padding: "0 20px" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+        <div id="printable" ref={ref} style={{ padding: "0 8px" }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }}>
             <img
               src={serjusHeader}
               alt="SERJUS Asociación Comunitaria para el Desarrollo"

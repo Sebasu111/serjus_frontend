@@ -12,8 +12,36 @@ import { showPDFToasts } from "../../utils/toast.js";
 
 const API = "http://127.0.0.1:8000/api";
 
+const DEPARTAMENTOS_GT = [
+    "Alta Verapaz",
+    "Baja Verapaz",
+    "Chimaltenango",
+    "Chiquimula",
+    "El Progreso",
+    "Escuintla",
+    "Guatemala",
+    "Huehuetenango",
+    "Izabal",
+    "Jalapa",
+    "Jutiapa",
+    "Petén",
+    "Quetzaltenango",
+    "Quiché",
+    "Retalhuleu",
+    "Sacatepéquez",
+    "San Marcos",
+    "Santa Rosa",
+    "Sololá",
+    "Suchitepéquez",
+    "Totonicapán",
+    "Zacapa"
+];
+
 const ContratosContainer = () => {
     const [generandoPDF, setGenerandoPDF] = useState(false);
+    const [puestos, setPuestos] = useState([]);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(document.body.classList.contains('sidebar-collapsed'));
     const [data, setData] = useState({
         nombreEmpleadora: "",
         edadEmpleadora: "",
@@ -44,6 +72,49 @@ const ContratosContainer = () => {
 
     // Aquí definimos el ref
     const editorRef = useRef();
+
+    useEffect(() => {
+        fetchPuestos();
+
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        // Observer para detectar cambios en las clases del body (sidebar collapse)
+        const observerCallback = (mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    setSidebarCollapsed(document.body.classList.contains('sidebar-collapsed'));
+                }
+            });
+        };
+
+        const observer = new MutationObserver(observerCallback);
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            observer.disconnect();
+        };
+    }, []);
+
+    const fetchPuestos = async () => {
+        try {
+            console.log("🔄 Cargando puestos desde:", `${API}/puestos/`);
+            const response = await axios.get(`${API}/puestos/`);
+            console.log("📄 Respuesta completa:", response.data);
+            const puestosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
+            console.log("📋 Puestos procesados:", puestosData);
+            setPuestos(puestosData);
+        } catch (error) {
+            console.error("❌ Error al cargar puestos:", error);
+            setPuestos([]);
+        }
+    };
+
+
 
     const onChange = e => {
         const { name, value } = e.target;
@@ -127,26 +198,62 @@ const ContratosContainer = () => {
                         className="main-content site-wrapper-reveal"
                         style={{
                             flex: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: "#EEF2F7",
-                            padding: "48px 20px 8rem"
+                            backgroundColor: "#fff",
+                            padding: "0",
+                            minHeight: "calc(100vh - 80px)",
+                            marginLeft: isMobile ? "0" : (sidebarCollapsed ? "90px" : "300px"),
+                            transition: "margin-left 0.3s ease"
                         }}
                     >
-                        <div style={{ width: "min(1100px, 96vw)" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Contratos</h2>
+                        <div style={{
+                            display: "flex",
+                            height: "calc(100vh - 80px)",
+                            gap: "2px",
+                            maxWidth: sidebarCollapsed ? "calc(100vw - 90px)" : "calc(100vw - 300px)",
+                            width: "100%",
+                            margin: "0",
+                            flexDirection: isMobile ? "column" : "row"
+                        }}>
+                            {/* Editor de Contrato - 70% */}
+                            <div style={{
+                                flex: isMobile ? "1" : "0 0 70%",
+                                backgroundColor: "#fff",
+                                overflow: "auto",
+                                minHeight: isMobile ? "400px" : "100%",
+                                padding: "8px"
+                            }}>
+                                <div style={{
+                                    transform: isMobile ? "scale(0.88)" : (sidebarCollapsed ? "scale(1.05)" : "scale(1)"),
+                                    transformOrigin: "top left",
+                                    width: isMobile ? "114%" : (sidebarCollapsed ? "95%" : "100%")
+                                }}>
+                                    <ContratoEditor ref={editorRef} data={data} />
+                                </div>
+                            </div>
 
-                            <ContratoForm data={data} onChange={onChange} imprimirContrato={handlePrint} generandoPDF={generandoPDF} />
-
-                            {/* Pasamos el ref al editor */}
-                            <ContratoEditor ref={editorRef} data={data} />
+                            {/* Formulario - 30% */}
+                            <div style={{
+                                flex: isMobile ? "1" : "0 0 30%",
+                                backgroundColor: "#f8f9fa",
+                                padding: "15px",
+                                overflow: "auto",
+                                borderLeft: isMobile ? "none" : "1px solid #e0e0e0"
+                            }}>
+                                <ContratoForm
+                                    data={data}
+                                    onChange={onChange}
+                                    imprimirContrato={handlePrint}
+                                    generandoPDF={generandoPDF}
+                                    puestos={puestos}
+                                    departamentos={DEPARTAMENTOS_GT}
+                                />
+                            </div>
                         </div>
                     </main>
                     <Footer />
                     <ScrollToTop />
                 </div>
-                
+
             </div>
         </Layout>
     );
