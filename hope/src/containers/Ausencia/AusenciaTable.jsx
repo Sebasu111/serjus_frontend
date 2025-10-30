@@ -7,6 +7,7 @@ const AusenciaTable = ({
   empleados = [],
   onEdit,
   onActivate,
+   onClickColaborador,
   paginaActual,
   totalPaginas,
   setPaginaActual,
@@ -25,16 +26,16 @@ const AusenciaTable = ({
     setOpenMenuId(null);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
+  
+  const calcularDias = (inicio, fin) => {
+    if (!inicio || !fin) return "-";
+    const diff = Math.ceil(
+      (new Date(fin) - new Date(inicio)) / (1000 * 60 * 60 * 24)
+    );
+    return diff >= 0 ? diff + 1 : "-";
   };
 
-  // ⚙️ Ordenar del más reciente al más antiguo (por createdat)
+  // Ordenar del más reciente al más antiguo
   const ausenciasOrdenadas = [...ausencias].sort(
     (a, b) => new Date(b.createdat) - new Date(a.createdat)
   );
@@ -51,11 +52,10 @@ const AusenciaTable = ({
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
-            <th style={{ padding: "10px", textAlign: "left" }}>Número IGSS</th>
+            <th style={{ padding: "10px", textAlign: "left" }}>Colaborador/a</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Tipo</th>
-            <th style={{ padding: "10px", textAlign: "left" }}>Motivo</th>
-            <th style={{ padding: "10px", textAlign: "center" }}>Fecha Inicio</th>
-            <th style={{ padding: "10px", textAlign: "center" }}>Fecha Fin</th>
+            <th style={{ padding: "10px", textAlign: "center" }}>Cantidad de días</th>
+            <th style={{ padding: "10px", textAlign: "left" }}>Diagnóstico</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Estado</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Acciones</th>
           </tr>
@@ -64,16 +64,51 @@ const AusenciaTable = ({
         <tbody>
           {ausenciasOrdenadas.length > 0 ? (
             ausenciasOrdenadas.map((row) => {
-              const empleado = empleados.find((e) => e.idempleado === row.idempleado) || {};
+              const empleado = empleados.find(
+                (e) => e.idempleado === row.idempleado
+              ) || {};
+
               return (
                 <tr key={row.idausencia}>
+                  <td
+  style={{
+    padding: "10px",
+    borderBottom: "1px solid #f0f0f0",
+    cursor: "pointer",
+    color: "#2563eb",
+    fontWeight: 700, // 🔹 negrita
+    textDecoration: "none"
+  }}
+  onClick={() => onClickColaborador && onClickColaborador(row)}
+>
+  {empleado.nombre
+    ? `${empleado.nombre} ${empleado.apellido || ""}`
+    : "-"}
+</td>
                   <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
-                    {empleado.numeroiggs || "-"}
+                    {row.tipo || "-"}
                   </td>
-                  <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{row.tipo}</td>
-                  <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>{row.motivo}</td>
-                  <td style={{ padding: "10px", textAlign: "center" }}>{formatDate(row.fechainicio)}</td>
-                  <td style={{ padding: "10px", textAlign: "center" }}>{formatDate(row.fechafin)}</td>
+                  <td
+                    style={{
+                      padding: "10px",
+                      textAlign: "center",
+                      borderBottom: "1px solid #f0f0f0",
+                    }}
+                  >
+                    {row.cantidaddias || calcularDias(row.fechainicio, row.fechafin)}
+                  </td>
+                  <td
+                    style={{
+                      padding: "10px",
+                      borderBottom: "1px solid #f0f0f0",
+                      maxWidth: "250px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {row.diagnostico || "-"}
+                  </td>
                   <td
                     style={{
                       padding: "10px",
@@ -84,6 +119,7 @@ const AusenciaTable = ({
                   >
                     {row.estado ? "Activo" : "Inactivo"}
                   </td>
+
                   <td style={{ padding: "10px", textAlign: "center" }}>
                     <div style={comboBoxStyles.container}>
                       <button
@@ -94,39 +130,49 @@ const AusenciaTable = ({
                       </button>
 
                       {openMenuId === row.idausencia && (
-                        <div style={comboBoxStyles.menu.container}>
-                          <div
-                            style={{
-                              ...comboBoxStyles.menu.item.editar.base,
-                              ...(row.estado ? {} : comboBoxStyles.menu.item.editar.disabled),
-                            }}
-                            onClick={() => {
-                              if (row.estado) {
-                                onEdit && onEdit(row);
-                                setOpenMenuId(null);
-                              }
-                            }}
-                          >
-                            Editar
-                          </div>
+  <div
+    style={{
+      ...comboBoxStyles.menu.container,
+      zIndex: 1000, // 🔹 menor que el modal (modal zIndex 4000)
+      position: "absolute", // aseguramos que se posicione sobre la tabla
+    }}
+  >
+    <div
+      style={{
+        ...comboBoxStyles.menu.item.editar.base,
+        ...(row.estado ? {} : comboBoxStyles.menu.item.editar.disabled),
+      }}
+      onClick={() => {
+        if (row.estado) {
+          onEdit && onEdit(row);
+          setOpenMenuId(null); // cerrar menú al hacer clic
+        }
+      }}
+    >
+      Editar
+    </div>
 
-                          {row.estado ? (
-                            <div
-                              style={comboBoxStyles.menu.item.desactivar.base}
-                              onClick={() => abrirModal(row, "desactivar")}
-                            >
-                              Desactivar
-                            </div>
-                          ) : (
-                            <div
-                              style={comboBoxStyles.menu.item.activar.base}
-                              onClick={() => abrirModal(row, "activar")}
-                            >
-                              Activar
-                            </div>
-                          )}
-                        </div>
-                      )}
+    {row.estado ? (
+      <div
+        style={{
+          ...comboBoxStyles.menu.item.desactivar.base,
+        }}
+        onClick={() => abrirModal(row, "desactivar")}
+      >
+        Desactivar
+      </div>
+    ) : (
+      <div
+        style={{
+          ...comboBoxStyles.menu.item.activar.base,
+        }}
+        onClick={() => abrirModal(row, "activar")}
+      >
+        Activar
+      </div>
+    )}
+  </div>
+)}
                     </div>
                   </td>
                 </tr>
@@ -134,7 +180,7 @@ const AusenciaTable = ({
             })
           ) : (
             <tr>
-              <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
+              <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
                 No hay ausencias registradas
               </td>
             </tr>
