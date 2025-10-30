@@ -51,41 +51,40 @@ const PerfilContainer = () => {
 
   // ✅ Corrige fechas y toma correctamente la fechaenvio
   const cargarCapacitaciones = async (idEmpleado) => {
-    try {
-      const resCap = await axios.get(`${API}/empleadocapacitacion/`);
-      const capsEmpleado = resCap.data.results
-        ? resCap.data.results.filter(c => c.idempleado === idEmpleado)
-        : resCap.data.filter(c => c.idempleado === idEmpleado);
+  try {
+    const resCap = await axios.get(`${API}/empleadocapacitacion/`);
+    const capsEmpleado = resCap.data.results
+      ? resCap.data.results.filter(c => c.idempleado === idEmpleado)
+      : resCap.data.filter(c => c.idempleado === idEmpleado);
 
-      const resCapsInfo = await axios.get(`${API}/capacitaciones/`);
-      const listaCapacitaciones = resCapsInfo.data.results || resCapsInfo.data;
+    const resCapsInfo = await axios.get(`${API}/capacitaciones/`);
+    const listaCapacitaciones = resCapsInfo.data.results || resCapsInfo.data;
 
-      const info = capsEmpleado.map(c => {
-        // Extrae el ID real de la capacitación (por si viene como objeto)
-        const idCap = typeof c.idcapacitacion === "object"
-          ? c.idcapacitacion.idcapacitacion
-          : c.idcapacitacion;
+    const info = capsEmpleado.map(c => {
+      const idCap = typeof c.idcapacitacion === "object"
+        ? c.idcapacitacion.idcapacitacion
+        : c.idcapacitacion;
 
-        // Busca la capacitación con ese ID
-        const cap = listaCapacitaciones.find(ci => ci.idcapacitacion === idCap);
+      const cap = listaCapacitaciones.find(ci => ci.idcapacitacion === idCap);
 
-        return {
-          ...c,
-          idcapacitacion: idCap,
-          nombre: cap?.nombreevento || "N/A",
-          lugar: cap?.lugar || "N/A",
-          // ✅ Usa fechaenvio si existe, sino la fechainicio
-          fecha: c.fechaenvio || cap?.fechainicio,
-          observacion: cap?.observacion || "-",
-        };
-      });
+      return {
+        ...c,
+        idcapacitacion: idCap,
+        nombre: cap?.nombreevento || "N/A",
+        lugar: cap?.lugar || "N/A",
+        fechaInicio: cap?.fechainicio || "-",   // 🔹 fecha de inicio
+        fechaFin: cap?.fechafin || "-",         // 🔹 fecha de fin
+        observacion: cap?.observacion || "-",
+      };
+    });
 
-      setCapacitacionesInfo(info);
-    } catch (error) {
-      console.error(error);
-      showToast("Error al cargar capacitaciones", "error");
-    }
-  };
+    setCapacitacionesInfo(info);
+  } catch (error) {
+    console.error(error);
+    showToast("Error al cargar capacitaciones", "error");
+  }
+};
+
 
   // ✅ Nueva versión: sin errores por zona horaria
   const formatFecha = (fecha) => {

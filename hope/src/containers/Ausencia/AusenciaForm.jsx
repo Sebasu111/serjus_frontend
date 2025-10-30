@@ -1,32 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import { X } from "lucide-react";
 
 const API = "http://127.0.0.1:8000/api";
 
+const displayName = (emp) => [emp?.nombre, emp?.apellido].filter(Boolean).join(" ");
+
+const empId = (emp) => emp.idempleado ?? emp.idEmpleado;
+
 const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }) => {
   const [idEmpleado, setIdEmpleado] = useState("");
+  const [qEmpleado, setQEmpleado] = useState("");
   const [tipo, setTipo] = useState("");
-  const [motivo, setMotivo] = useState("");
+  const [diagnostico, setDiagnostico] = useState("");
+  const [esIGSS, setEsIGSS] = useState(false);
+  const [otro, setOtro] = useState("");
+  const [cantidadDias, setCantidadDias] = useState(0);
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [archivo, setArchivo] = useState(null);
-  const [archivoActual, setArchivoActual] = useState(""); // ← nombre del archivo existente
+  const [archivoActual, setArchivoActual] = useState("");
   const [subiendo, setSubiendo] = useState(false);
-
   const [errorFechaFin, setErrorFechaFin] = useState("");
-  const [errorArchivo, setErrorArchivo] = useState("");
+  const [prevOtro, setPrevOtro] = useState("");
 
-  //   Inicializar formulario y obtener archivo si existe
+  const wrapperRef = useRef(null);
+  const [openMenu, setOpenMenu] = useState(false);
+
+  // Inicializar formulario
   useEffect(() => {
     if (editingAusencia) {
-      setTipo(editingAusencia.tipo || "");
-      setMotivo(editingAusencia.motivo || "");
-      setFechaInicio(editingAusencia.fechainicio || "");
-      setFechaFin(editingAusencia.fechafin || "");
-      setIdEmpleado(editingAusencia.idempleado || "");
+    setTipo(editingAusencia.tipo || "");
+    setDiagnostico(editingAusencia.diagnostico || "");
+    setEsIGSS(editingAusencia.es_iggs || false);
+    setOtro(editingAusencia.otro || "");
+    setPrevOtro(editingAusencia.otro || ""); // 🔹 Guardamos para recuperación
+    setFechaInicio(editingAusencia.fechainicio || "");
+    setFechaFin(editingAusencia.fechafin || "");
+    setCantidadDias(editingAusencia.cantidad_dias || 0);
+    setIdEmpleado(editingAusencia.idempleado || "");
 
-      // ⚡ Obtener nombre del archivo si hay documento asociado
       if (editingAusencia.iddocumento) {
         axios
           .get(`${API}/documentos/${editingAusencia.iddocumento}/`)
@@ -34,31 +47,59 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
           .catch(() => setArchivoActual("Sin archivo"));
       }
     } else if (usuario && empleados?.length > 0) {
-      let idEmp = usuario.idempleado;
-      if (!idEmp) {
-        const encontrado = empleados.find(e => e.idusuario === usuario.idusuario);
-        if (encontrado) idEmp = encontrado.idempleado;
-      }
-      if (idEmp) setIdEmpleado(idEmp);
+      const encontrado = empleados.find((e) => e.idusuario === usuario.idusuario);
+      if (encontrado) setIdEmpleado(encontrado.idempleado);
     }
   }, [editingAusencia, empleados, usuario]);
 
+  // Calcular cantidad de días automáticamente
+  useEffect(() => {
+    if (fechaInicio && fechaFin) {
+      const inicio = new Date(fechaInicio);
+      const fin = new Date(fechaFin);
+      if (fin >= inicio) {
+        const diff = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+        setCantidadDias(diff);
+        setErrorFechaFin("");
+      } else {
+        setErrorFechaFin("La fecha fin no puede ser anterior a la fecha inicio.");
+        setCantidadDias(0);
+      }
+    }
+  }, [fechaInicio, fechaFin]);
+
+  // Cerrar menú al hacer click afuera
+  useEffect(() => {
+    const onClick = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpenMenu(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
   const resetForm = () => {
+    setIdEmpleado("");
+    setQEmpleado("");
     setTipo("");
-    setMotivo("");
+    setDiagnostico("");
+    setEsIGSS(false);
+    setOtro("");
+    setCantidadDias(0);
     setFechaInicio("");
     setFechaFin("");
     setArchivo(null);
     setArchivoActual("");
-    setErrorArchivo("");
     setErrorFechaFin("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!tipo || !motivo || !fechaInicio || !fechaFin) {
-      alert("Completa todos los campos obligatorios");
+    if (!idEmpleado || !tipo || !fechaInicio || !fechaFin) {
+      alert("Complete todos los campos obligatorios");
+      return;
+    }
+    if (tipo !== "Personal" && !esIGSS && !otro.trim()) {
+      alert("Si no es IGSS, especifique la clínica u otro lugar.");
       return;
     }
 
@@ -92,7 +133,10 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
       const dataAusencia = {
         idempleado: Number(idEmpleado),
         tipo,
-        motivo,
+        diagnostico,
+        es_iggs: esIGSS,
+        otro: !esIGSS && tipo !== "Personal" ? otro || null : null,
+        cantidad_dias: cantidadDias,
         fechainicio: fechaInicio,
         fechafin: fechaFin,
         iddocumento: idDocumento,
@@ -110,6 +154,21 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     }
   };
 
+  // Filtrar empleados según búsqueda
+  const empleadosFiltrados = useMemo(() => {
+    const t = qEmpleado.toLowerCase().trim();
+    return empleados.filter(
+      (e) =>
+        displayName(e).toLowerCase().includes(t)
+    );
+  }, [qEmpleado, empleados]);
+
+  const seleccionarEmpleado = (emp) => {
+    setIdEmpleado(empId(emp));
+    setQEmpleado(displayName(emp));
+    setOpenMenu(false);
+  };
+
   return (
     <div
       style={{
@@ -123,45 +182,149 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
         boxShadow: "0 0 25px rgba(0,0,0,0.2)",
         padding: "30px",
         zIndex: 1000,
-        display: "flex",
-        flexDirection: "column",
         borderRadius: "12px",
       }}
+      ref={wrapperRef}
     >
       <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
         {editingAusencia ? "Editar Ausencia" : "Registrar Ausencia"}
       </h3>
 
-      <form onSubmit={handleSubmit} style={{ flex: 1 }}>
-        {/* Tipo */}
+      <form onSubmit={handleSubmit}>
+        {/* Colaborador/a con búsqueda tipo autocomplete */}
+        <div style={{ marginBottom: "15px", position: "relative" }}>
+  <label>Colaborador/a</label>
+  <input
+    type="text"
+    placeholder="Buscar colaborador/a por nombre o apellido..."
+    value={editingAusencia ? displayName(empleados.find(e => empId(e) === editingAusencia.idempleado)) : qEmpleado}
+    onChange={(e) => {
+      setQEmpleado(e.target.value);
+      setOpenMenu(true);
+    }}
+    onFocus={() => setOpenMenu(true)}
+    required
+    style={{
+      width: "100%",
+      padding: "10px",
+      borderRadius: "6px",
+      border: "1px solid #ccc",
+      background: editingAusencia ? "#f3f3f3" : "#fff", // opcional: mostrar como bloqueado si es edición
+    }}
+    disabled={!!editingAusencia} // 🚫 no permitir cambiar empleado al editar
+  />
+  {openMenu && !editingAusencia && ( 
+    <div
+      style={{
+        position: "absolute",
+        zIndex: 10,
+        background: "#fff",
+        border: "1px solid #e5e7eb",
+        borderRadius: 6,
+        marginTop: 4,
+        width: "100%",
+        maxHeight: 180,
+        overflowY: "auto",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+      }}
+    >
+      {empleadosFiltrados.length === 0 ? (
+        <div style={{ padding: 10, color: "#6b7280" }}>Sin resultados</div>
+      ) : (
+        empleadosFiltrados.map((emp) => (
+          <button
+            key={empId(emp)}
+            type="button"
+            onClick={() => seleccionarEmpleado(emp)}
+            style={{
+              width: "100%",
+              textAlign: "left",
+              padding: 10,
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            {displayName(emp)}
+          </button>
+        ))
+      )}
+    </div>
+  )}
+</div>
+
+        {/* Resto del formulario: tipo, IGSS, fechas, diagnóstico y documento */}
         <div style={{ marginBottom: "15px" }}>
           <label>Tipo</label>
           <select
             value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
+            onChange={(e) => {
+              setTipo(e.target.value);
+              if (e.target.value === "Personal") {
+                setEsIGSS(false);
+                setOtro("");
+              }
+            }}
             required
             style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
           >
-            <option value="">Seleccione tipo</option>
-            <option value="Salud">Salud</option>
-            <option value="Personal">Personal</option>
+            <option value="" disabled>Seleccione tipo de ausencia</option>
+            <option value="Enfermedad">Enfermedad</option>
+            <option value="Examen">Exámenes</option>
+            <option value="Personal">Asunto Personal</option>
           </select>
         </div>
 
-        {/* Motivo */}
+        {(tipo === "Enfermedad" || tipo === "Examen") && (
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "15px" }}>
+            <label style={{ flex: "0 0 60px" }}>IGSS:</label>
+            <input
+  type="checkbox"
+  checked={esIGSS}
+  onChange={(e) => {
+    const checked = e.target.checked;
+    setEsIGSS(checked);
+    if (checked) {
+      setPrevOtro(otro); // Guardamos lo que estaba
+      setOtro(""); // Limpiamos solo visualmente
+    } else {
+      setOtro(prevOtro); // Restauramos lo previo
+    }
+  }}
+/>
+            <input
+              type="text"
+              placeholder="Otro (nombre clínica)"
+              value={otro}
+              onChange={(e) => setOtro(e.target.value)}
+              disabled={esIGSS}
+              required={tipo !== "Personal" && !esIGSS}
+              style={{
+                flex: 1,
+                padding: "10px",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+                background: esIGSS ? "#f3f3f3" : "#fff",
+              }}
+            />
+          </div>
+        )}
+
         <div style={{ marginBottom: "15px" }}>
-          <label>Motivo / Diagnóstico</label>
+          <label>Diagnóstico</label>
           <input
             type="text"
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
+            value={diagnostico}
+            onChange={(e) => setDiagnostico(e.target.value)}
+            placeholder="Ingrese diagnóstico o descripción"
             required
             style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
           />
         </div>
 
-        {/* Fechas */}
-        <div style={{ display: "flex", gap: "15px", marginBottom: "15px" }}>
+        <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
           <div style={{ flex: 1 }}>
             <label>Fecha Inicio</label>
             <input
@@ -181,33 +344,35 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
               required
               style={{ width: "100%", padding: "10px", borderRadius: "6px", border: `1px solid ${errorFechaFin ? "red" : "#ccc"}` }}
             />
-            {errorFechaFin && (
-              <small style={{ color: "red", fontSize: "12px" }}>{errorFechaFin}</small>
-            )}
+            {errorFechaFin && <small style={{ color: "red", fontSize: "12px" }}>{errorFechaFin}</small>}
           </div>
         </div>
 
-        {/* Documento */}
+        <div style={{ marginBottom: "15px" }}>
+  <label>Cantidad de días</label>
+  <input
+    type="number"
+    value={cantidadDias}
+    readOnly // 🔒 bloqueado
+    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", background: "#f3f3f3" }}
+  />
+</div>
+
         <div style={{ marginBottom: "20px" }}>
-          <label>Documento (Comprobante)</label>
-          {editingAusencia?.iddocumento && !archivo && (
-            <div style={{ marginBottom: "6px", fontSize: "14px" }}>
-              Archivo actual: <strong>{archivoActual || "Sin archivo"}</strong>
-            </div>
-          )}
-          <input
-            type="file"
-            onChange={(e) => setArchivo(e.target.files[0])}
-            required={!editingAusencia || !archivoActual}
-            style={{ width: "100%", padding: "5px", borderRadius: "6px", border: "1px solid #ccc" }}
-          />
-          {editingAusencia && archivo && (
-            <small style={{ color: "#666", display: "block", marginTop: "5px" }}>
-              Se reemplazará el archivo existente al guardar.
-            </small>
-          )}
-          {errorArchivo && <small style={{ color: "red", fontSize: "12px" }}>{errorArchivo}</small>}
-        </div>
+  <label>Documento (Comprobante)</label>
+  {editingAusencia?.iddocumento && !archivo && (
+    <div style={{ marginBottom: "6px", fontSize: "14px" }}>
+      Archivo actual: <strong>{archivoActual || "Sin archivo"}</strong>
+    </div>
+  )}
+  <input
+    type="file"
+    accept="application/pdf" // ✅ solo PDFs
+    onChange={(e) => setArchivo(e.target.files[0])}
+    required={!editingAusencia || !archivoActual}
+    style={{ width: "100%", padding: "5px", borderRadius: "6px", border: "1px solid #ccc" }}
+  />
+</div>
 
         <button
           type="submit"

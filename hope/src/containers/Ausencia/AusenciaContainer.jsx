@@ -9,6 +9,11 @@ import { showToast } from "../../utils/toast.js";
 import AusenciaForm from "./AusenciaForm.jsx";
 import AusenciaTable from "./AusenciaTable.jsx";
 import { useHistory } from "react-router-dom";
+import ModalAusencia from "./AusenciaModal.jsx";
+
+const API = "http://127.0.0.1:8000/api";
+
+const displayName = (emp) => [emp?.nombre, emp?.apellido].filter(Boolean).join(" ");
 
 const AusenciaContainer = () => {
   const history = useHistory();
@@ -20,7 +25,12 @@ const AusenciaContainer = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const [elementosPorPagina, setElementosPorPagina] = useState(5);
   const [usuario, setUsuario] = useState(null);
+  const [modalAusenciaVisible, setModalAusenciaVisible] = useState(false);
+  const [modalAusenciaData, setModalAusenciaData] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
+
+  // 🔹 Cargar datos iniciales
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("usuarioLogueado"));
     if (!storedUser) {
@@ -33,44 +43,58 @@ const AusenciaContainer = () => {
     fetchEmpleados();
   }, []);
 
+  // 🔹 Obtener ausencias
   const fetchAusencias = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/ausencias/");
+      const res = await axios.get(`${API}/ausencias/`);
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
         ? res.data.results
         : [];
       setAusencias(data);
-    } catch {
+    } catch (error) {
+      console.error(error);
       showToast("Error al cargar las ausencias", "error");
     }
   };
 
+  // 🔹 Obtener empleados
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
+      const res = await axios.get(`${API}/empleados/`);
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
         ? res.data.results
         : [];
       setEmpleados(data);
-    } catch {
+    } catch (error) {
+      console.error(error);
       showToast("Error al cargar empleados", "error");
     }
   };
 
+  // 🔹 Guardar o actualizar ausencia
   const handleSubmit = async (dataAusencia, idAusencia) => {
     try {
+      // 🧮 Si no tiene cantidad_dias y tiene fechas, calcular automáticamente
+      if (
+        (!dataAusencia.cantidad_dias || dataAusencia.cantidad_dias <= 0) &&
+        dataAusencia.fechainicio &&
+        dataAusencia.fechafin
+      ) {
+        const fi = new Date(dataAusencia.fechainicio);
+        const ff = new Date(dataAusencia.fechafin);
+        const diff = Math.ceil((ff - fi) / (1000 * 60 * 60 * 24)) + 1;
+        dataAusencia.cantidad_dias = diff > 0 ? diff : 1;
+      }
+
       if (idAusencia) {
-        await axios.put(
-          `http://127.0.0.1:8000/api/ausencias/${idAusencia}/`,
-          dataAusencia
-        );
+        await axios.put(`${API}/ausencias/${idAusencia}/`, dataAusencia);
         showToast("Ausencia actualizada correctamente");
       } else {
-        await axios.post("http://127.0.0.1:8000/api/ausencias/", dataAusencia);
+        await axios.post(`${API}/ausencias/`, dataAusencia);
         showToast("Ausencia registrada correctamente");
       }
 
@@ -83,6 +107,7 @@ const AusenciaContainer = () => {
     }
   };
 
+  // 🔹 Editar
   const handleEdit = (ausencia) => {
     if (!ausencia.estado) {
       showToast("No se puede editar una ausencia inactiva", "warning");
@@ -92,49 +117,69 @@ const AusenciaContainer = () => {
     setMostrarFormulario(true);
   };
 
+  // 🔹 Activar / desactivar
   const handleActivate = async (id) => {
     try {
       const aus = ausencias.find((a) => a.idausencia === id);
       if (!aus) return;
-      await axios.put(`http://127.0.0.1:8000/api/ausencias/${id}/`, {
+
+      await axios.put(`${API}/ausencias/${id}/`, {
         ...aus,
         estado: !aus.estado,
       });
+
       showToast(aus.estado ? "Ausencia desactivada" : "Ausencia activada");
       fetchAusencias();
-    } catch {
+    } catch (error) {
+      console.error(error);
       showToast("Error al cambiar el estado", "error");
     }
   };
 
-  // 🔍 Filtrado
+  const handleOpenModal = async (ausencia) => {
+  setModalLoading(true);
+  setModalAusenciaVisible(true);
+
+  try {
+    // Obtener información del empleado
+    const empleado = empleados.find(e => e.idempleado === ausencia.idempleado) || {};
+
+    // Obtener documento relacionado (si existe)
+    let documento = null;
+    if (ausencia.iddocumento) {
+      const res = await axios.get(`${API}/documentos/${ausencia.iddocumento}/`);
+      documento = res.data;
+    }
+
+    // Guardar toda la info en el estado del modal
+    setModalAusenciaData({ ...ausencia, empleado, documento });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setModalLoading(false);
+  }
+};
+
+  // 🔍 Filtrado de ausencias por columnas visibles
   const ausenciasFiltradas = ausencias.filter((a) => {
     const t = busqueda.toLowerCase().trim();
     const empleado = empleados.find((e) => e.idempleado === a.idempleado) || {};
-    const numeroIGSS = empleado.numeroiggs ? String(empleado.numeroiggs).toLowerCase() : "";
-
-    const fechaInicioStr = a.fechainicio
-      ? (() => {
-          const d = new Date(a.fechainicio);
-          const day = String(d.getDate()).padStart(2, "0");
-          const month = String(d.getMonth() + 1).padStart(2, "0");
-          const year = d.getFullYear();
-          return `${day}-${month}-${year}`;
-        })()
-      : "";
-
-    const estadoStr = a.estado ? "activo" : "inactivo";
+    const nombreEmpleado = displayName(empleado).toLowerCase(); // Colaborador/a
+    const tipoStr = a.tipo ? a.tipo.toLowerCase() : ""; // Tipo
+    const diasStr = a.cantidad_dias ? a.cantidad_dias.toString() : ""; // Cantidad de días
+    const diagnosticoStr = a.diagnostico ? a.diagnostico.toLowerCase() : ""; // Diagnóstico
+    const estadoStr = a.estado ? "activo" : "inactivo"; // Estado
 
     return (
-      numeroIGSS.includes(t) ||
-      a.tipo?.toLowerCase().includes(t) ||
-      a.motivo?.toLowerCase().includes(t) ||
-      fechaInicioStr.includes(t) ||
-      estadoStr.startsWith(t)
+      nombreEmpleado.includes(t) ||
+      tipoStr.includes(t) ||
+      diasStr.includes(t) ||
+      diagnosticoStr.includes(t) ||
+      estadoStr.includes(t)
     );
   });
 
-  // 🔽 Ordenar del más reciente al más antiguo (por createdat)
+  // 🔽 Ordenar del más reciente al más antiguo
   const ausenciasOrdenadas = [...ausenciasFiltradas].sort(
     (a, b) => new Date(b.createdat) - new Date(a.createdat)
   );
@@ -162,8 +207,11 @@ const AusenciaContainer = () => {
             }}
           >
             <div style={{ width: "min(1100px, 96vw)", margin: "0 auto" }}>
-              <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Registro de Ausencias</h2>
+              <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+                Registro de Ausencias
+              </h2>
 
+              {/* 🔎 Búsqueda + Botón nueva ausencia */}
               <div
                 style={{
                   display: "flex",
@@ -207,18 +255,23 @@ const AusenciaContainer = () => {
                 </button>
               </div>
 
+              {/* Tabla de ausencias */}
               <AusenciaTable
                 ausencias={paginados}
                 empleados={empleados}
                 onEdit={handleEdit}
                 onActivate={handleActivate}
+                onClickColaborador={handleOpenModal}
                 paginaActual={paginaActual}
                 totalPaginas={totalPaginas}
                 setPaginaActual={setPaginaActual}
               />
 
+              {/* Control de paginación */}
               <div style={{ marginTop: "20px", textAlign: "center" }}>
-                <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
+                <label style={{ marginRight: "10px", fontWeight: "600" }}>
+                  Mostrar:
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -245,6 +298,7 @@ const AusenciaContainer = () => {
           <Footer />
         </div>
 
+        {/* Modal formulario */}
         {mostrarFormulario && (
           <AusenciaForm
             usuario={usuario}
@@ -257,6 +311,17 @@ const AusenciaContainer = () => {
             }}
           />
         )}
+
+        {/* Modal detalle de ausencia */}
+{modalAusenciaVisible && (
+  <ModalAusencia
+    visible={modalAusenciaVisible}
+    onClose={() => setModalAusenciaVisible(false)}
+    ausencia={modalAusenciaData}
+    loading={modalLoading}
+  />
+)}
+        
         <ScrollToTop />
       </div>
     </Layout>
