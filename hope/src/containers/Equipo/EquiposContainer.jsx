@@ -303,7 +303,7 @@ const EquiposContainer = () => {
         [equiposConMiembros, editingId]
     );
 
-    // ✅ NUEVA FUNCIÓN: Actualizar empleados para sincronizar con el equipo
+    //    NUEVA FUNCIÓN: Actualizar empleados para sincronizar con el equipo
     const actualizarEmpleadosDelEquipo = async (equipoId, coordinadorId, nuevosMiembros) => {
         try {
             console.log("🔄 Actualizando empleados del equipo:", { equipoId, coordinadorId, nuevosMiembros });
@@ -337,7 +337,7 @@ const EquiposContainer = () => {
                         idequipo: null, // Remover del equipo
                         idusuario: toNum(sessionStorage.getItem("idUsuario"))
                     });
-                    console.log(`✅ Empleado ${empId} removido del equipo`);
+                    console.log(`   Empleado ${empId} removido del equipo`);
                 }
             }
 
@@ -350,7 +350,7 @@ const EquiposContainer = () => {
                         idequipo: equipoId,
                         idusuario: toNum(sessionStorage.getItem("idUsuario"))
                     });
-                    console.log(`✅ Coordinador ${coordinadorId} asignado al equipo ${equipoId}`);
+                    console.log(`   Coordinador ${coordinadorId} asignado al equipo ${equipoId}`);
                 }
             }
 
@@ -363,13 +363,13 @@ const EquiposContainer = () => {
                         idequipo: equipoId,
                         idusuario: toNum(sessionStorage.getItem("idUsuario"))
                     });
-                    console.log(`✅ Miembro ${miembroId} asignado al equipo ${equipoId}`);
+                    console.log(`   Miembro ${miembroId} asignado al equipo ${equipoId}`);
                 }
             }
 
             console.log("🎉 Sincronización de empleados completada");
         } catch (error) {
-            console.error("❌ Error al actualizar empleados del equipo:", error);
+            console.error("  Error al actualizar empleados del equipo:", error);
             showToast("Equipo actualizado, pero hubo problemas al sincronizar algunos empleados", "warning");
         }
     };
@@ -428,7 +428,7 @@ const EquiposContainer = () => {
 
             await axios.put(`${API_BASE}/equipos/${idEquipo}/`, payload);
 
-            // ✅ NUEVO: Actualizar empleados para sincronizar correctamente
+            //    NUEVO: Actualizar empleados para sincronizar correctamente
             await actualizarEmpleadosDelEquipo(idEquipo, coordinadorId, miembrosArray);
 
             // Actualizamos cache local del equipo
@@ -535,7 +535,7 @@ const EquiposContainer = () => {
                 })
                 .filter(Boolean);
 
-            console.log("✅ Miembros nombres finales:", miembrosNombres);
+            console.log("   Miembros nombres finales:", miembrosNombres);
 
             setDetalle({
                 idEquipo: equipo.idEquipo,
@@ -546,7 +546,7 @@ const EquiposContainer = () => {
             });
             setMostrarDetalle(true);
         } catch (e) {
-            console.error("❌ Error al cargar detalle del equipo:", e);
+            console.error("  Error al cargar detalle del equipo:", e);
             showToast("No se pudo cargar el detalle del equipo", "error");
         }
     };

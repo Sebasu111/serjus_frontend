@@ -56,10 +56,10 @@ const PuestosContainer = () => {
 
             // Si el salario cambió, crear registros de historial para empleados con este puesto
             if (salarioAnterior !== salarioNuevo && salarioNuevo > 0) {
-                console.log("✅ Creando historial por cambio de salario");
+                console.log("   Creando historial por cambio de salario");
                 await crearHistorialCambioSalario(idpuesto, salarioNuevo);
             } else {
-                console.log("❌ No se creará historial:", {
+                console.log("  No se creará historial:", {
                     razon: salarioAnterior === salarioNuevo ? "Salario no cambió" : "Salario nuevo es 0 o inválido"
                 });
             }
@@ -97,7 +97,7 @@ const PuestosContainer = () => {
                 return tieneEsePuesto && estaActivo;
             });
 
-            console.log("✅ Empleados con el puesto modificado:", empleadosConEsePuesto.length);
+            console.log("   Empleados con el puesto modificado:", empleadosConEsePuesto.length);
 
             if (empleadosConEsePuesto.length === 0) {
                 console.log("ℹ️ No hay empleados activos con este puesto");
@@ -158,12 +158,12 @@ const PuestosContainer = () => {
 
                 console.log("➕ Creando nuevo historial:", nuevoHistorial);
                 await axios.post("http://127.0.0.1:8000/api/historialpuestos/", nuevoHistorial);
-                console.log("✅ Historial creado exitosamente para empleado:", empleadoId);
+                console.log("   Historial creado exitosamente para empleado:", empleadoId);
             }
 
             console.log(`🎉 Historial actualizado para ${empleadosConEsePuesto.length} empleado(s) con el nuevo salario`);
         } catch (error) {
-            console.error("❌ Error al actualizar historial por cambio de salario:", error);
+            console.error("  Error al actualizar historial por cambio de salario:", error);
             // No mostramos error al usuario para no interrumpir el flujo principal
         }
     };

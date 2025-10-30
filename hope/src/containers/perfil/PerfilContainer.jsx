@@ -74,7 +74,7 @@ const PerfilContainer = () => {
         nombre: cap?.nombreevento || "N/A",
         lugar: cap?.lugar || "N/A",
         fecha: cap?.fechainicio || c.fechaenvio,
-        observacion: cap?.observacion || "-", // ✅ se mostrará aquí correctamente
+        observacion: cap?.observacion || "-", //    se mostrará aquí correctamente
       };
     });
 
