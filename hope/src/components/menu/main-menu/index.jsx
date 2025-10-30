@@ -81,13 +81,6 @@ const SidebarMenu = () => {
             ]
         },
         {
-            id: "informes",
-            label: "Informes",
-            icon: <FaFileAlt className="menu-icon" />,
-            path: "/Informes",
-            roles: [1, 2, 3, 5]
-        },
-        {
             id: "documentos",
             label: "Documentos",
             icon: <FaFileAlt className="menu-icon" />,

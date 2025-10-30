@@ -178,26 +178,70 @@ const CapacitacionContainer = () => {
         setCapacitacionActivaEditando(true);
     };
 
-    // Filtrado y paginación
     const capacitacionesFiltradas = capacitaciones
-        // Ordenar por ID descendente (último agregado primero)
-        .sort((a, b) => {
-            const idA = a.idcapacitacion || a.id || 0;
-            const idB = b.idcapacitacion || b.id || 0;
-            return idB - idA;
-        })
-        .filter(c => {
-            const textoBusqueda = busqueda.toLowerCase();
-            if (textoBusqueda === "act" && !c.estado) return false;
-            if (textoBusqueda === "inac" && c.estado) return false;
+  .sort((a, b) => {
+    const idA = a.idcapacitacion || a.id || 0;
+    const idB = b.idcapacitacion || b.id || 0;
+    return idB - idA;
+  })
+  .filter(c => {
+    const textoBusqueda = busqueda.toLowerCase().trim();
+    if (!textoBusqueda) return true;
 
-            return (
-                c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
-                c.lugar?.toLowerCase().includes(textoBusqueda) ||
-                c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
-                (c.estado ? "activo" : "inactivo").includes(textoBusqueda)
-            );
-        });
+    // 🔹 Detectar rango de fechas con formato "dd-mm-yy a dd-mm-yy"
+    const rangoRegex = /(\d{1,2}-\d{1,2}-\d{2})\s*(?:a|-)\s*(\d{1,2}-\d{1,2}-\d{2})/;
+    const match = textoBusqueda.match(rangoRegex);
+
+    if (match) {
+      const [_, desdeStr, hastaStr] = match;
+
+      const parseFecha = str => {
+        const [dia, mes, anio2] = str.split("-");
+        const anio = Number(anio2) + 2000; // Convertir 2 dígitos a 4
+        return new Date(anio, Number(mes) - 1, Number(dia));
+      };
+
+      const desde = parseFecha(desdeStr);
+      const hasta = parseFecha(hastaStr);
+
+      const inicio = new Date(c.fechainicio);
+      const fin = new Date(c.fechafin);
+
+      // 🔹 Comparación rango: si inicio o fin está dentro del rango
+      if ((inicio >= desde && inicio <= hasta) || (fin >= desde && fin <= hasta)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    // 🔹 Búsqueda normal en otras columnas
+    const formatFecha = dateStr => {
+      if (!dateStr) return "";
+      const date = new Date(dateStr);
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = String(date.getFullYear()).slice(-2);
+      return `${day}-${month}-${year}`;
+    };
+
+    const fechaInicio = formatFecha(c.fechainicio);
+    const fechaFin = formatFecha(c.fechafin);
+
+    const montoStr = String(c.montoejecutado || "").toLowerCase();
+
+    return (
+      c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
+      c.lugar?.toLowerCase().includes(textoBusqueda) ||
+      c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
+      fechaInicio.includes(textoBusqueda) ||
+      fechaFin.includes(textoBusqueda) ||
+      montoStr.startsWith(textoBusqueda) ||
+      (c.estado ? "activo" : "inactivo").includes(textoBusqueda)
+    );
+  });
+
+
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;

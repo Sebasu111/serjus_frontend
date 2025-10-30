@@ -19,14 +19,19 @@ const overlayStyle = {
 };
 
 const modalStyle = {
-  background: "#fff",
-  borderRadius: "12px",
-  padding: "30px 25px",
-  width: "450px",
+  position: "fixed",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "500px",
   maxWidth: "95%",
-  boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
-  position: "relative",
-  animation: "fadeIn 0.3s ease",
+  background: "#fff",
+  padding: "30px",
+  boxShadow: "0 0 20px rgba(0,0,0,0.2)",
+  borderRadius: "12px",
+  zIndex: 1000,
+  display: "flex",
+  flexDirection: "column",
 };
 
 const buttonStyle = {
@@ -48,33 +53,26 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
 
   if (!show || !capacitacion) return null;
 
-  // ✅ Función para formatear fecha de 2025-10-29 → 29-10-2025
   const formatearFecha = (fecha) => {
-    if (!fecha) return "";
+    if (!fecha) return "-";
     const [year, month, day] = fecha.split("-");
     return `${day}-${month}-${year}`;
   };
 
-  // 🔹 Manejar subida de archivo PDF + actualización de fecha actual
   const handleGuardarAsistencia = async (e) => {
     e.preventDefault();
-
     if (!archivo) {
-      const fileInput = document.getElementById("archivoInput");
-      fileInput.reportValidity();
+      document.getElementById("archivoInput").reportValidity();
       return;
     }
-
     if (archivo.type !== "application/pdf") {
       showToast("Solo se permiten archivos PDF", "warning");
       return;
     }
-
     setSubiendo(true);
     try {
       const idUsuario = Number(sessionStorage.getItem("idUsuario"));
       const formData = new FormData();
-
       formData.append("archivo", archivo);
       formData.append("nombrearchivo", archivo.name);
       formData.append("mimearchivo", "pdf");
@@ -83,14 +81,12 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
       formData.append("idtipodocumento", 2);
       formData.append("idempleado", capacitacion.idempleado);
 
-      // 🔹 Subir documento
       const resDoc = await axios.post(`${API}/documentos/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       const idDocumento = resDoc.data.iddocumento;
 
-      // 🔹 Llamar a onGuardar para actualizar empleadocapacitacion con fecha actual
       await onGuardar(
         capacitacion.idempleadocapacitacion,
         true,
@@ -98,20 +94,16 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
         idDocumento
       );
 
-      // ✅ Refrescar fecha en el frontend manualmente
-      capacitacion.fechaenvio = new Date().toISOString().slice(0, 10);
-
       showToast("Asistencia registrada y documento PDF guardado", "success");
       onClose();
     } catch (error) {
-      console.error("Error al subir archivo o registrar asistencia:", error.response?.data || error);
+      console.error(error.response?.data || error);
       showToast("Error al subir archivo o registrar asistencia", "error");
     } finally {
       setSubiendo(false);
     }
   };
 
-  // 🔹 Justificar inasistencia (sin archivo)
   const handleJustificar = async () => {
     await onGuardar(
       capacitacion.idempleadocapacitacion,
@@ -125,7 +117,6 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
-        {/* Cerrar modal */}
         <button
           onClick={onClose}
           style={{
@@ -145,27 +136,22 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
           Confirmar asistencia
         </h3>
 
-        {/* Info capacitación */}
         <div style={{ marginBottom: "15px" }}>
           <p><strong>Capacitación:</strong> {capacitacion.nombre}</p>
           <p><strong>Lugar:</strong> {capacitacion.lugar}</p>
-          <p><strong>Fecha inicio:</strong> {formatearFecha(capacitacion.fechainicio || capacitacion.fecha)}</p>
-          <p><strong>Fecha fin:</strong> {formatearFecha(capacitacion.fechafin || capacitacion.fecha)}</p>
-          
-          {/* ✅ Mostrar fecha de envío en formato DD-MM-YYYY */}
-          {capacitacion.fechaenvio && (
-            <p><strong>Fecha de envío:</strong> {formatearFecha(capacitacion.fechaenvio)}</p>
-          )}
-
           <p><strong>Observaciones:</strong> {capacitacion.observacion || "Sin observaciones"}</p>
+
+          <div style={{ display: "flex", gap: "15px" }}>
+            <span><strong>Inicio:</strong> {formatearFecha(capacitacion.fechaInicio)}</span>
+            <span><strong>Fin:</strong> {formatearFecha(capacitacion.fechaFin)}</span>
+          </div>
         </div>
 
-        {/* Opciones de acción */}
         {!mostrarInputArchivo ? (
           <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
             <button
               onClick={() => setMostrarInputArchivo(true)}
-              style={{ ...buttonStyle, background: "#34D399" }}
+              style={{ ...buttonStyle, background: "#219ebc" }}
             >
               Asistió
             </button>
@@ -178,18 +164,12 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
             </button>
           </div>
         ) : (
-          // 🔹 Formulario para subir archivo PDF
           <form
             onSubmit={handleGuardarAsistencia}
-            style={{
-              marginTop: "15px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}
+            style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}
           >
             <label htmlFor="archivoInput" style={{ fontWeight: "500" }}>
-              Adjunta tu comprobante (PDF):
+              Adjuntar informe en PDF:
             </label>
             <input
               id="archivoInput"
@@ -197,18 +177,14 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar }) => {
               required
               accept="application/pdf"
               onChange={(e) => setArchivo(e.target.files[0])}
-              style={{
-                border: "1px solid #ccc",
-                borderRadius: "6px",
-                padding: "6px",
-              }}
+              style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
             />
             <button
               type="submit"
               disabled={subiendo}
               style={{
                 ...buttonStyle,
-                background: subiendo ? "#ccc" : "#34D399",
+                background: subiendo ? "#ccc" : "#219ebc",
                 cursor: subiendo ? "not-allowed" : "pointer",
               }}
             >
