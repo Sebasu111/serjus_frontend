@@ -109,7 +109,7 @@ const ContratosContainer = () => {
             console.log("📋 Puestos procesados:", puestosData);
             setPuestos(puestosData);
         } catch (error) {
-            console.error("❌ Error al cargar puestos:", error);
+            console.error("  Error al cargar puestos:", error);
             setPuestos([]);
         }
     };

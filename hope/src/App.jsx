@@ -69,6 +69,11 @@ import AusenciaContainer from "./containers/Ausencia/AusenciaContainer";
 import AmonestacionContainer from "./containers/Amonestacion/AmonestacionContainer";
 
 // =============================================================
+//   Seleccion/Contratacion
+// =============================================================
+import SeleccionContainer from "./containers/Seleccion/SeleccionContainer";
+
+// =============================================================
 //   AUXILIAR (catálogos, tablas de apoyo, etc.)
 // =============================================================
 import IdiomasContainer from "./containers/Idiomas/IdiomasContainer";
@@ -131,8 +136,7 @@ const App = () => {
                     {/*RECLUTAMIENTO*/}
                     {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
                     {<Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} />}
-                    {/* <Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} /> */}
-                    {/* <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} /> */}
+                    {<Route exact path={`${base}/Seleccion`} component={SeleccionContainer}/> }
 
                     {/*INTEGRACIÓN*/}
                     {<Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />}

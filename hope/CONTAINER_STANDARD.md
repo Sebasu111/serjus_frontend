@@ -63,7 +63,7 @@ export default MyContainer;
 6. **Modales**: Fuera del div principal pero dentro del wrapper
 7. **ToastContainer**: Al final, dentro del wrapper
 
-## ❌ Errores Comunes a Evitar
+## Errores Comunes a Evitar
 
 -   **NO usar `paddingLeft: "250px"`** - El sidebar se maneja automáticamente
 -   **NO usar layouts personalizados** para el main content
