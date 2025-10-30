@@ -48,16 +48,24 @@ const CapacitacionesTable = ({
             const empleadosRes = await axios.get("http://127.0.0.1:8000/api/empleados/");
             const empleados = empleadosRes.data.results || empleadosRes.data;
 
+            const resDocumentos = await axios.get("http://127.0.0.1:8000/api/documentos/");
+            const documentos = resDocumentos.data.results || resDocumentos.data;
+
             const listaFinal = asignados
                 .map(asig => {
                     const emp = empleados.find(e => Number(e.idempleado) === Number(asig.idempleado));
+                    let doc = null;
+            if (asig.iddocumento) {
+                doc = documentos.find(d => Number(d.iddocumento) === Number(asig.iddocumento)) || null;
+            }
                     return emp
                         ? {
                               nombre: emp.nombre,
                               apellido: emp.apellido,
                               asistencia: asig.asistencia,
                               observacion: asig.observacion,
-                              fechaenvio: asig.fechaenvio
+                              fechaenvio: asig.fechaenvio,
+                              documento: doc ? { nombrearchivo: doc.nombrearchivo, archivo_url: doc.archivo_url } : null
                           }
                         : null;
                 })
