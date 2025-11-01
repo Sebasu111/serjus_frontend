@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ModalDetalle from "./ModalDetalle";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
-import Swal from "sweetalert2";
 import ModalEliminarAspirante from "./ModalEliminar";
+import { showToast } from "../../utils/toast"; // si ya usás showToast en otros lados
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -36,13 +36,25 @@ const AspirantesTable = ({
 }) => {
   const [modalAspirante, setModalAspirante] = useState(null);
   const [convocatorias, setConvocatorias] = useState([]);
-  const [openCombo, setOpenCombo] = useState(null); // ID del combo abierto
+  const [postulaciones, setPostulaciones] = useState([]);
+  const [convocatoriaSeleccionada, setConvocatoriaSeleccionada] = useState(""); // 🧩 NUEVO
+  const [openCombo, setOpenCombo] = useState(null);
   const [aspiranteSeleccionado, setAspiranteSeleccionado] = useState(null);
   const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
-  
+
+  const recargarAspirantes = async () => {
+    try {
+      const res = await axios.get(`${API}/aspirantes/`);
+      const all = Array.isArray(res.data) ? res.data : res.data.results || [];
+      setAspirantes(all);
+    } catch (err) {
+      console.error("Error al recargar aspirantes:", err);
+    }
+  };
 
   useEffect(() => {
     fetchConvocatorias();
+    fetchPostulaciones();
   }, []);
 
   const fetchConvocatorias = async () => {
@@ -53,15 +65,39 @@ const AspirantesTable = ({
         : Array.isArray(res.data?.results)
         ? res.data.results
         : [];
-      setConvocatorias(all);
+      setConvocatorias(all.filter((c) => c.estado)); // Solo activas
     } catch (err) {
       console.error("Error al cargar convocatorias:", err);
+    }
+  };
+
+  const fetchPostulaciones = async () => {
+    try {
+      const res = await axios.get(`${API}/postulaciones/`);
+      const all = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.results)
+        ? res.data.results
+        : [];
+      setPostulaciones(all);
+    } catch (err) {
+      console.error("Error al cargar postulaciones:", err);
     }
   };
 
   const toggleMenu = (id) => {
     setOpenCombo((prev) => (prev === id ? null : id));
   };
+
+  // 🔹 Filtrar aspirantes por convocatoria seleccionada
+  const aspirantesFiltrados = React.useMemo(() => {
+    if (!convocatoriaSeleccionada) return aspirantes;
+    const postulados = postulaciones
+      .filter((p) => String(p.idconvocatoria) === String(convocatoriaSeleccionada))
+      .map((p) => p.idaspirante);
+
+    return aspirantes.filter((a) => postulados.includes(a.idaspirante));
+  }, [aspirantes, postulaciones, convocatoriaSeleccionada]);
 
   return (
     <>
@@ -73,34 +109,42 @@ const AspirantesTable = ({
           boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         }}
       >
+        {/* 🔹 Filtro por convocatoria */}
+        <div style={{ marginBottom: 20, display: "flex", gap: 10, alignItems: "center" }}>
+          <label style={{ fontWeight: 600 }}>Filtrar por convocatoria:</label>
+          <select
+            value={convocatoriaSeleccionada}
+            onChange={(e) => setConvocatoriaSeleccionada(e.target.value)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 6,
+              border: "1px solid #ccc",
+              minWidth: 250,
+            }}
+          >
+            <option value="">— Todas las convocatorias —</option>
+            {convocatorias.map((c) => (
+              <option key={c.idconvocatoria} value={c.idconvocatoria}>
+                {c.nombreconvocatoria}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div style={{ width: "100%" }}>
           <table style={{ width: "100%", minWidth: "900px", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {[
-                  "Nombre",
-                  "Género",
-                  "Teléfono",
-                  "Idioma",
-                  "Pueblo/Cultura",
-                  ...(ocultarEstado ? [] : ["Estado"]),
-                  "Acciones",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      ...thStyle,
-                      textAlign: h === "Estado" ? "center" : "left",
-                    }}
-                  >
+                {["Nombre", "Género", "Teléfono", "Idioma", "Pueblo/Cultura", ...(ocultarEstado ? [] : ["Estado"]), "Acciones"].map((h) => (
+                  <th key={h} style={{ ...thStyle, textAlign: h === "Estado" ? "center" : "left" }}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {Array.isArray(aspirantes) && aspirantes.length ? (
-                aspirantes.map((r) => {
+              {Array.isArray(aspirantesFiltrados) && aspirantesFiltrados.length ? (
+                aspirantesFiltrados.map((r) => {
                   const idioma = labelFrom(r.ididioma ?? r.idIdioma, idiomas, "idioma");
                   const pueblo = labelFrom(r.idpueblocultura ?? r.idPuebloCultura, pueblos, "pueblo");
                   const estado = !!r.estado;
@@ -109,12 +153,7 @@ const AspirantesTable = ({
                   return (
                     <tr key={idAspirante}>
                       <td
-                        style={{
-                          ...tdStyle,
-                          color: "#0077cc",
-                          cursor: "pointer",
-                          fontWeight: 600,
-                        }}
+                        style={{ ...tdStyle, color: "#0077cc", cursor: "pointer", fontWeight: 600 }}
                         onClick={() => setModalAspirante(r)}
                       >
                         {r.nombreaspirante} {r.apellidoaspirante}
@@ -149,48 +188,59 @@ const AspirantesTable = ({
 
                           {openCombo === idAspirante && (
                             <div style={comboBoxStyles.menu.container}>
-                              {/* Ver CV */}
                               <div
                                 style={comboBoxStyles.menu.item.activar.base}
                                 onClick={() => {
                                   if (r.cvs && r.cvs.length > 0) {
                                     window.open(r.cvs[0].archivo, "_blank");
                                   } else {
-                                    alert("⚠ Este aspirante no tiene CV cargado.");
+                                    showToast("Este aspirante no tiene CV cargado.", "warning");
                                   }
                                   setOpenCombo(null);
                                 }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.background =
-                                    comboBoxStyles.menu.item.activar.hover.background)
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.background =
-                                    comboBoxStyles.menu.item.activar.base.background)
-                                }
                               >
                                 Ver CV
                               </div>
 
-                              {/* Eliminar */}
-                                <div
-                                  style={comboBoxStyles.menu.item.desactivar.base}
-                                  onClick={() => {
-                                    setAspiranteSeleccionado(r);
-                                    setMostrarModalEliminar(true);
-                                    setOpenCombo(null);
-                                  }}
-                                  onMouseEnter={(e) =>
-                                    (e.currentTarget.style.background =
-                                      comboBoxStyles.menu.item.desactivar.hover.background)
+                              <div
+                                style={comboBoxStyles.menu.item.activar.base}
+                                onClick={() => {
+                                  const seleccionados = JSON.parse(localStorage.getItem("aspirantesSeleccionados") || "[]");
+                                  const existe = seleccionados.some((a) => a.id === r.idaspirante);
+                                  let nuevos;
+                                  if (existe) {
+                                    nuevos = seleccionados.filter((a) => a.id !== r.idaspirante);
+                                  } else {
+                                    if (seleccionados.length >= 3) {
+                                      showToast("Solo puedes seleccionar hasta 3 aspirantes para la evaluación.", "error");
+                                      setOpenCombo(null);
+                                      return;
+                                    }
+                                    nuevos = [...seleccionados, { id: r.idaspirante, nombre: `${r.nombreaspirante} ${r.apellidoaspirante}` }];
                                   }
-                                  onMouseLeave={(e) =>
-                                    (e.currentTarget.style.background =
-                                      comboBoxStyles.menu.item.desactivar.base.background)
-                                  }
-                                >
-                                  Eliminar
-                                </div>
+                                  localStorage.setItem("aspirantesSeleccionados", JSON.stringify(nuevos));
+                                  showToast(
+                                    existe
+                                      ? "Aspirante removido de la evaluación."
+                                      : "Aspirante seleccionado para la evaluación.",
+                                    "success"
+                                  );
+                                  setOpenCombo(null);
+                                }}
+                              >
+                                Seleccionar para Evaluación
+                              </div>
+
+                              <div
+                                style={comboBoxStyles.menu.item.desactivar.base}
+                                onClick={() => {
+                                  setAspiranteSeleccionado(r);
+                                  setMostrarModalEliminar(true);
+                                  setOpenCombo(null);
+                                }}
+                              >
+                                Eliminar
+                              </div>
                             </div>
                           )}
                         </div>
@@ -201,36 +251,13 @@ const AspirantesTable = ({
               ) : (
                 <tr>
                   <td colSpan={ocultarEstado ? 6 : 7} style={{ textAlign: "center", padding: 20 }}>
-                    No hay aspirantes
+                    No hay aspirantes {convocatoriaSeleccionada ? "para esta convocatoria" : ""}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-
-        {/*  Paginación */}
-        {totalPaginas > 1 && (
-          <div style={{ marginTop: 20, textAlign: "center" }}>
-            {Array.from({ length: totalPaginas }, (_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setPaginaActual(i + 1)}
-                style={{
-                  padding: "6px 12px",
-                  margin: "0 5px",
-                  borderRadius: 5,
-                  cursor: "pointer",
-                  background: paginaActual === i + 1 ? "#219ebc" : "#fff",
-                  color: paginaActual === i + 1 ? "#fff" : "#219ebc",
-                  border: "1px solid #219ebc",
-                }}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {modalAspirante && (
@@ -251,8 +278,8 @@ const AspirantesTable = ({
             setMostrarModalEliminar(mostrar);
             if (!mostrar) recargarAspirantes();
           }}
-          setAspirantes={setAspirantes} 
-          recargarAspirantes={recargarAspirantes} 
+          setAspirantes={setAspirantes}
+          recargarAspirantes={recargarAspirantes}
         />
       )}
     </>

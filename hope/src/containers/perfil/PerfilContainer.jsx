@@ -49,7 +49,7 @@ const PerfilContainer = () => {
     fetchPerfil();
   }, []);
 
-  // ✅ Corrige fechas y toma correctamente la fechaenvio
+  //   Corrige fechas y toma correctamente la fechaenvio
   const cargarCapacitaciones = async (idEmpleado) => {
   try {
     const resCap = await axios.get(`${API}/empleadocapacitacion/`);
@@ -86,7 +86,7 @@ const PerfilContainer = () => {
 };
 
 
-  // ✅ Nueva versión: sin errores por zona horaria
+  //   Nueva versión: sin errores por zona horaria
   const formatFecha = (fecha) => {
     if (!fecha) return "-";
     const partes = fecha.split("-");
@@ -107,7 +107,7 @@ const PerfilContainer = () => {
         idcapacitacion: cap.idcapacitacion,
         asistencia: asistenciaBool ? "Sí" : "No",
         observacion: observacion || (asistenciaBool ? "Asistió" : "Inasistencia Justificada"),
-        // ✅ Guarda la fecha actual correctamente (sin desfase)
+        //   Guarda la fecha actual correctamente (sin desfase)
         fechaenvio: new Date().toISOString().split("T")[0],
         estado: true,
         idusuario: idUsuario,

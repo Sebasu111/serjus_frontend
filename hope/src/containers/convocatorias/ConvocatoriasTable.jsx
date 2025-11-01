@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import { showToast } from "../../utils/toast";
 import ConfirmModal from "./ConfirmModal";
+import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 const ConvocatoriasTable = ({
   mensaje,
@@ -22,6 +23,12 @@ const ConvocatoriasTable = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [descripcionSeleccionada, setDescripcionSeleccionada] = useState("");
   const [confirmModal, setConfirmModal] = useState({ open: false, row: null, modo: "" });
+
+  const formatDate = dateStr => {
+       if (!dateStr) return "-";
+          const [year, month, day] = dateStr.split("-");
+          return `${day}-${month}-${year}`;
+    };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -45,11 +52,11 @@ const ConvocatoriasTable = ({
     setDescripcionSeleccionada("");
   };
 
-  const tdCenter = { padding: 10, borderBottom: "1px solid #f0f0f0", textAlign: "center", whiteSpace: "nowrap" };
+  const tdCenter = { padding: 10, borderBottom: "1px solid #f0f0f0", textAlign: "left", whiteSpace: "nowrap" };
   const tdCenterLongText = {
     padding: 10,
     borderBottom: "1px solid #f0f0f0",
-    textAlign: "center",
+    textAlign: "left",
     maxWidth: 250,
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -59,18 +66,21 @@ const ConvocatoriasTable = ({
   };
 
   const btnPrimary = {
-    padding: 10,
+    padding: "10px 20px",
     background: "#219ebc",
     color: "#fff",
     border: "none",
-    borderRadius: 6,
-    cursor: "pointer"
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "600",
+    whiteSpace: "nowrap",
+    transition: "all 0.2s ease"
   };
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }} ref={containerRef}>
       {mensaje && (
-        <p style={{ textAlign: "center", color: mensaje.includes("Error") ? "red" : "green", fontWeight: "bold" }}>
+        <p style={{ textAlign: "left", color: mensaje.includes("Error") ? "red" : "green", fontWeight: "bold" }}>
           {mensaje}
         </p>
       )}
@@ -97,7 +107,7 @@ const ConvocatoriasTable = ({
           <thead>
             <tr>
               {["Nombre", "Puesto", "Descripción", "Inicio", "Fin", "Estado", "Acciones"].map((h) => (
-                <th key={h} style={{ borderBottom: "2px solid #eee", padding: 10, textAlign: "center" }}>
+                <th key={h} style={{ borderBottom: "2px solid #eee", padding: 10, textAlign: "left" }}>
                   {h}
                 </th>
               ))}
@@ -115,8 +125,12 @@ const ConvocatoriasTable = ({
                   >
                     {r.descripcion.length > 50 ? r.descripcion.substring(0, 50) + "..." : r.descripcion}
                   </td>
-                  <td style={tdCenter}>{new Date(r.fechainicio).toLocaleDateString("es-ES")}</td>
-                  <td style={tdCenter}>{r.fechafin ? new Date(r.fechafin).toLocaleDateString("es-ES") : "-"}</td>
+                  <td style={tdCenter}>
+                    {formatDate(r.fechainicio) || "-"}
+                  </td>
+                  <td style={tdCenter}>
+                    {formatDate(r.fechafin) || "-"}
+                  </td>
                   <td style={{ ...tdCenter, color: r.estado ? "green" : "red" }}>{r.estado ? "Activo" : "Inactivo"}</td>
                   <td style={tdCenter}>
                     <div style={comboBoxStyles.container}>
@@ -140,12 +154,20 @@ const ConvocatoriasTable = ({
                           </div>
                           <div
                             onClick={() => {
-                              setConfirmModal({ open: true, row: r, modo: r.estado ? "desactivar" : "activar" });
+                              if (r.estado) {
+                                setConfirmModal({ open: true, row: r, modo: "finalizar" });
+                              } else {
+                                showToast("La convocatoria ya fue finalizada y no puede reactivarse.", "error");
+                              }
                               setOpenMenuId(null);
                             }}
-                            style={r.estado ? comboBoxStyles.menu.item.desactivar.base : comboBoxStyles.menu.item.activar.base}
+                            style={{
+                              ...(r.estado
+                                ? comboBoxStyles.menu.item.desactivar.base
+                                : { ...comboBoxStyles.menu.item.activar.base, cursor: "not-allowed" }),
+                            }}
                           >
-                            {r.estado ? "Desactivar" : "Activar"}
+                            {r.estado ? "Finalizar" : "Finalizada"}
                           </div>
                         </div>
                       )}
@@ -155,7 +177,7 @@ const ConvocatoriasTable = ({
               ))
             ) : (
               <tr>
-                <td colSpan="7" style={{ textAlign: "center", padding: 20 }}>
+                <td colSpan="7" style={{ textAlign: "left", padding: 20 }}>
                   Sin registros
                 </td>
               </tr>
@@ -164,7 +186,7 @@ const ConvocatoriasTable = ({
         </table>
 
         {/* Paginación centrada */}
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 15, gap: 5 }}>
+        <div style={{ display:"flex", justifyContent: "center", marginTop: 15, gap: 5 }}>
           {totalPaginas > 1 &&
             Array.from({ length: totalPaginas }, (_, i) => (
               <button
@@ -193,7 +215,7 @@ const ConvocatoriasTable = ({
           min="1"
           value={elementosPorPagina}
           onChange={(e) => setElementosPorPagina(Math.max(Number(e.target.value), 1))}
-          style={{ width: 80, padding: 6, borderRadius: 6, border: "1px solid #ccc", textAlign: "center" }}
+          style={{ width: "80px", padding: "6px", borderRadius: "6px", border: "1px solid #ccc", textAlign:"center" }}
         />
       </div>
 
@@ -208,8 +230,8 @@ const ConvocatoriasTable = ({
             height: "100%",
             background: "rgba(0,0,0,0.5)",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            alignItems: "left",
+            justifyContent: "left",
             zIndex: 1000
           }}
         >

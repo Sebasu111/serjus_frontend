@@ -22,7 +22,7 @@ const getPuebloLabel = (o) =>
     "label"
   );
 
-const PostularModal = ({ show, onClose, convocatoriaId }) => {
+const PostularModal = ({ show, onClose, convocatoria }) => {
   const [step, setStep] = useState(1);
   const [idiomas, setIdiomas] = useState([]);
   const [pueblos, setPueblos] = useState([]);
@@ -169,7 +169,6 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
 
           // Guardamos ID en localStorage
           localStorage.setItem("idaspirante", idAspirante);
-          showToast("Aspirante creado correctamente.", "success");
         }
       } else {
         showToast("Postulacion nueva procesada", "info");
@@ -185,7 +184,7 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
           estado: true,
           idusuario: 1,
           idaspirante: Number(idAspirante),
-          idconvocatoria: Number(convocatoriaId),
+          idconvocatoria: Number(convocatoria?.idconvocatoria),
         }),
       });
 
@@ -298,7 +297,9 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
         overflowY: "auto",
       }}
     >
-      <h3 style={{ textAlign: "center" }}>Postularse a Convocatoria</h3>
+      <h3 style={{ textAlign: "center" }}>
+        {convocatoria?.nombreconvocatoria || "Convocatoria"}
+      </h3>
       <div style={{ textAlign: "center", marginBottom: 18, color: "#374151" }}>
         Paso {step} de 3
       </div>
@@ -451,6 +452,11 @@ const PostularModal = ({ show, onClose, convocatoriaId }) => {
                   onChange={handleFieldChange}
                   required
                   style={inputStyle}
+                  max={new Date(
+                    new Date().setFullYear(new Date().getFullYear() - 18)
+                  )
+                    .toISOString()
+                    .split("T")[0]}
                 />
               </div>
               <div style={field}>

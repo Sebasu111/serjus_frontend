@@ -13,7 +13,17 @@ const ConvocatoriasPublicPage = () => {
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/convocatorias/")
       .then((res) => res.json())
-      .then((data) => setConvocatorias(data.results || []));
+      .then((data) => {
+        const convocatoriasOrdenadas = (data.results || []).sort((a, b) => {
+          const fechaA = new Date(a.fechainicio);
+          const fechaB = new Date(b.fechainicio);
+          return fechaB - fechaA; // más recientes primero
+        });
+        // Filtrar solo las convocatorias activas (estado true)
+        const convocatoriasActivas = convocatoriasOrdenadas.filter(conv => conv.estado);
+        setConvocatorias(convocatoriasActivas);
+      })
+      .catch((err) => console.error("Error cargando convocatorias:", err));
   }, []);
 
   const formatDate = (dateString) => {
@@ -58,6 +68,14 @@ const ConvocatoriasPublicPage = () => {
 
   return (
     <div className="page-container">
+      <header className="page-header">
+        <img
+          src="/img/logo.png"
+          alt="Logo SERJUS"
+          className="header-logo"
+          />
+          <h1>Bolsa de Empleo SERJUS</h1>
+      </header>
       <div className="main-layout">
         {/* ===== SIDEBAR ===== */}
         <aside className="sidebar">
@@ -104,15 +122,6 @@ const ConvocatoriasPublicPage = () => {
 
         {/* ===== CONTENIDO ===== */}
         <div className="content-layout">
-          <header className="page-header">
-            <img
-              src="/img/logo.png"
-              alt="Logo SERJUS"
-              className="header-logo"
-            />
-            <h1>Bolsa de Empleo SERJUS</h1>
-          </header>
-
           <main className="content">
             <div className="convocatorias-container">
               <h2 className="section-title">Convocatorias Disponibles</h2>
@@ -122,7 +131,7 @@ const ConvocatoriasPublicPage = () => {
                   No hay convocatorias disponibles en este momento.
                 </p>
               ) : (
-                <div className="convocatoria-list">
+                <div className="convocatoria-list scrollable-list">
                   {convocatorias.map((conv) => (
                     <div key={conv.idconvocatoria} className="convocatoria-card">
                       <div className="convocatoria-info">
@@ -136,7 +145,7 @@ const ConvocatoriasPublicPage = () => {
                       <button
                         className="btn-aplicar"
                         onClick={() => {
-                          setSelectedConvocatoria(conv.idconvocatoria);
+                          setSelectedConvocatoria(conv);
                           setModalOpen(true);
                         }}
                       >
@@ -150,15 +159,14 @@ const ConvocatoriasPublicPage = () => {
             <PostularModal
               show={modalOpen}
               onClose={() => setModalOpen(false)}
-              convocatoriaId={selectedConvocatoria}
+              convocatoria={selectedConvocatoria}
             />
           </main>
-
-          <footer className="page-footer">
-            Derechos reservados © 2025 Serjus
-          </footer>
         </div>
       </div>
+      <footer className="page-footer">
+        Derechos reservados © 2025 Serjus
+      </footer>
     </div>
   );
 };
