@@ -100,21 +100,6 @@ const DocumentosContainer = () => {
         }
     };
 
-    const openNewForm = () => {
-        setForm(f => ({
-            ...f,
-            nombrearchivo: "",
-            mimearchivo: "",
-            fechasubida: "",
-            idusuario: sessionStorage.getItem("idUsuario") || "",
-            idtipodocumento: "",
-            idempleado: "",
-            archivoFile: null
-        }));
-        setEditingId(null);
-        setMostrarFormulario(true);
-    };
-
     const handleSubmit = async e => {
         e.preventDefault();
 
@@ -250,36 +235,41 @@ const DocumentosContainer = () => {
     };
 
     const documentosFiltrados = documentos
-        // Ordenar por ID descendente (último agregado primero)
-        .sort((a, b) => (b.iddocumento || 0) - (a.iddocumento || 0))
-        .filter(d => {
-            const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
+    // Ordenar por ID descendente (último agregado primero)
+    .sort((a, b) => (b.iddocumento || 0) - (a.iddocumento || 0))
+    .filter(d => {
+        // 🚫 Excluir los documentos con idtipodocumento = 1
+        if (Number(d.idtipodocumento) === 1) {
+            return false;
+        }
 
-            // Buscar el empleado correspondiente
-            const empleado = empleados.find(emp => emp.idempleado === d.idempleado);
-            const nombreEmpleado = empleado ? empleado.nombre.toLowerCase() : "";
-            const apellidoEmpleado = empleado ? empleado.apellido.toLowerCase() : "";
-            const nombreCompletoEmpleado = `${nombreEmpleado} ${apellidoEmpleado}`; // nombre + apellido
+        const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
 
-            const terminoBusqueda = busqueda.toLowerCase();
+        // Buscar el empleado correspondiente
+        const empleado = empleados.find(emp => emp.idempleado === d.idempleado);
+        const nombreEmpleado = empleado ? empleado.nombre.toLowerCase() : "";
+        const apellidoEmpleado = empleado ? empleado.apellido.toLowerCase() : "";
+        const nombreCompletoEmpleado = `${nombreEmpleado} ${apellidoEmpleado}`;
 
-            // Filtro por texto de búsqueda
-            const coincideTexto = (
-                nombreDocumento.includes(terminoBusqueda) ||
-                nombreEmpleado.includes(terminoBusqueda) ||
-                apellidoEmpleado.includes(terminoBusqueda) ||
-                nombreCompletoEmpleado.includes(terminoBusqueda)
-            );
+        const terminoBusqueda = busqueda.toLowerCase();
 
-            // Filtro por estado de archivo
-            if (mostrarSinArchivo) {
-                // Solo mostrar los que NO tienen archivo
-                return coincideTexto && !d.archivo_url;
-            } else {
-                // Solo mostrar los que SÍ tienen archivo
-                return coincideTexto && d.archivo_url;
-            }
-        });
+        // Filtro por texto de búsqueda
+        const coincideTexto = (
+            nombreDocumento.includes(terminoBusqueda) ||
+            nombreEmpleado.includes(terminoBusqueda) ||
+            apellidoEmpleado.includes(terminoBusqueda) ||
+            nombreCompletoEmpleado.includes(terminoBusqueda)
+        );
+
+        // Filtro por estado de archivo
+        if (mostrarSinArchivo) {
+            // Solo mostrar los que NO tienen archivo
+            return coincideTexto && !d.archivo_url;
+        } else {
+            // Solo mostrar los que SÍ tienen archivo
+            return coincideTexto && d.archivo_url;
+        }
+    });
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;

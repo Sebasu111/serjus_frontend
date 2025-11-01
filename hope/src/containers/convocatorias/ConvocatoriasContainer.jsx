@@ -39,8 +39,17 @@ const ConvocatoriasContainer = () => {
     const fetchList = async () => {
         try {
             const r = await axios.get(`${API}/convocatorias/`);
-            const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
-            setRows(data);
+            const data = Array.isArray(r.data)
+                ? r.data
+                : Array.isArray(r.data?.results)
+                ? r.data.results
+                : [];
+
+            const dataOrdenada = data.sort(
+                (a, b) => (b.idconvocatoria || 0) - (a.idconvocatoria || 0)
+            );
+
+            setRows(dataOrdenada);
         } catch (e) {
             showToast("Error al cargar las convocatorias", "error");
             setRows([]);
@@ -59,72 +68,91 @@ const ConvocatoriasContainer = () => {
 
     const onChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-    const handleSubmit = async e => {
-        e.preventDefault();
+    const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        // Validaciones básicas
-        if (!form.nombreconvocatoria.trim()) {
-            setMensaje("El nombre de la convocatoria es obligatorio");
-            return;
-        }
-        if (!form.descripcion.trim()) {
-            setMensaje("La descripción es obligatoria");
-            return;
-        }
-        if (!form.fechainicio) {
-            setMensaje("La fecha de inicio es obligatoria");
-            return;
-        }
-        if (!form.fechafin){
-            setMensaje("La fecha fin es obligatoria");
-            return;
-        }
-        if (!form.idpuesto || Number(form.idpuesto) <= 0) {
-            setMensaje("Debes seleccionar un puesto válido");
-            return;
-        }
+    // Validaciones básicas
+    if (!form.nombreconvocatoria.trim()) {
+        setMensaje("El nombre de la convocatoria es obligatorio");
+        return;
+    }
+    if (!form.descripcion.trim()) {
+        setMensaje("La descripción es obligatoria");
+        return;
+    }
+    if (!form.fechainicio) {
+        setMensaje("La fecha de inicio es obligatoria");
+        return;
+    }
+    if (!form.fechafin) {
+        setMensaje("La fecha fin es obligatoria");
+        return;
+    }
+    if (!form.idpuesto || Number(form.idpuesto) <= 0) {
+        setMensaje("Debes seleccionar un puesto válido");
+        return;
+    }
 
-        // Preparar payload
-        const payload = {
-            nombreconvocatoria: form.nombreconvocatoria.trim(),
-            descripcion: form.descripcion.trim(),
-            fechainicio: form.fechainicio,
-            fechafin: form.fechafin || null,  // permitimos que sea null
-            estado: true,
-            idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
-            idpuesto: Number(form.idpuesto)
-        };
+    // 🚫 Nueva validación: no permitir convocatorias simultáneas para el mismo puesto
+    const hoy = new Date();
+    const existeActiva = rows.some((c) => {
+        // Si estamos editando, ignorar la misma convocatoria
+        if (editingId && c.idconvocatoria === editingId) return false;
 
-        try {
-            if (editingId) {
-                await axios.put(`${API}/convocatorias/${editingId}/`, payload);
-                showToast("Convocatoria actualizada correctamente", "success");
-            } else {
-                await axios.post(`${API}/convocatorias/`, payload);
-                showToast("Convocatoria registrada correctamente", "success");
-            }
+        const mismoPuesto = Number(c.idpuesto) === Number(form.idpuesto);
+        const fechaFin = c.fechafin ? new Date(c.fechafin) : null;
+        const activa = c.estado === true && (!fechaFin || fechaFin >= hoy);
 
-            fetchList();
-            setMostrarFormulario(false);
-            setEditingId(null);
-            // resetForm(); // opcional, si quieres limpiar el formulario
-        } catch (error) {
-            console.error(error);
+        return mismoPuesto && activa;
+    });
 
-            // Si la API devuelve mensajes de validación, podemos mostrarlos
-            if (error.response?.data) {
-                const errores = Object.entries(error.response.data)
-                    .map(([campo, msgs]) => `${campo}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
-                    .join(" | ");
-                showToast("Error al registrar/actualizar: ${errores}", "error");
-            } else {
-                showToast("Error al registrar/actualizar. Revisa la información enviada.", "error");
-            }
-        }
+    if (existeActiva) {
+        showToast("Ya existe una convocatoria activa o en curso para este puesto.", "error");
+        return;
+    }
+
+    // Preparar payload
+    const payload = {
+        nombreconvocatoria: form.nombreconvocatoria.trim(),
+        descripcion: form.descripcion.trim(),
+        fechainicio: form.fechainicio,
+        fechafin: form.fechafin || null,
+        estado: true,
+        idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
+        idpuesto: Number(form.idpuesto)
     };
 
-    const handleEdit = row => {
-        setForm({ ...row });
+    try {
+        if (editingId) {
+            await axios.put(`${API}/convocatorias/${editingId}/`, payload);
+            showToast("Convocatoria actualizada correctamente", "success");
+        } else {
+            await axios.post(`${API}/convocatorias/`, payload);
+            showToast("Convocatoria registrada correctamente", "success");
+        }
+
+        fetchList();
+        setMostrarFormulario(false);
+        setEditingId(null);
+    } catch (error) {
+        console.error(error);
+        if (error.response?.data) {
+            const errores = Object.entries(error.response.data)
+                .map(([campo, msgs]) => `${campo}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+                .join(" | ");
+            showToast(`Error al registrar/actualizar: ${errores}`, "error");
+        } else {
+            showToast("Error al registrar/actualizar. Revisa la información enviada.", "error");
+        }
+    }
+};
+
+   const handleEdit = (row) => {
+        setForm({
+            ...row,
+            fechainicio: row.fechainicio || "",
+            fechafin: row.fechafin || ""
+        });
         setEditingId(row.idconvocatoria);
         setMostrarFormulario(true);
     };
@@ -248,4 +276,3 @@ const ConvocatoriasContainer = () => {
 };
 
 export default ConvocatoriasContainer;
-

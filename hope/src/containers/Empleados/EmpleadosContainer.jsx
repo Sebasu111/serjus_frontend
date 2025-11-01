@@ -51,6 +51,17 @@ const getName = (o, type) => {
     return pick(o, "nombre", "descripcion", "label");
 };
 
+const mapaPuestoRol = {
+    1: 2, // Acompañante → Acompañantes
+    2: 1, // Coordinación operativa → Coordinadores
+    3: 1, // Coordinación de sub-programa → Coordinadores
+    4: 1, // Coordinación de programa → Coordinadores
+    5: 4, // Secretaría → Secretarias
+    6: 2, // Conserjería → Acompañantes
+    7: 3, // Contador auxiliar → Contadores
+    8: 3  // Contadora general → Contadores
+};
+
 const Section = ({ title, children }) => (
     <section style={{ marginBottom: 32 }}>
         <h4
@@ -266,8 +277,8 @@ const EmpleadosContainer = () => {
         }
     };
 
-    // Función para crear usuario automáticamente
-    const crearUsuarioAutomatico = async (empleadoId, nombre, apellido) => {
+    // Función para crear usuario automáticamente según el puesto
+    const crearUsuarioAutomatico = async (empleadoId, nombre, apellido, idPuesto) => {
         try {
             // Generar nombre de usuario basado en nombre y apellido
             const nombreUsuario = `${nombre.toLowerCase().split(' ')[0]}${apellido.toLowerCase().split(' ')[0]}`;
@@ -275,25 +286,20 @@ const EmpleadosContainer = () => {
             // Generar contraseña aleatoria
             const contrasenaGenerada = generarContrasenaAleatoria();
 
-            // Obtener rol por defecto (asumir que existe un rol básico, ID = 1)
-            let idRolPorDefecto = 1;
+            // 🔹 Mapeo fijo entre puestos y roles
+            const mapaPuestoRol = {
+                1: 2, // Acompañante → Acompañantes
+                2: 1, // Coordinación operativa → Coordinadores
+                3: 1, // Coordinación de sub-programa → Coordinadores
+                4: 1, // Coordinación de programa → Coordinadores
+                5: 4, // Secretaría → Secretarias
+                6: 2, // Conserjería → Acompañantes
+                7: 3, // Contador auxiliar → Contadores
+                8: 3  // Contadora general → Contadores
+            };
 
-            // Intentar obtener roles para usar uno por defecto
-            try {
-                const rolesRes = await axios.get(`${API}/roles/`);
-                const roles = Array.isArray(rolesRes.data) ? rolesRes.data : rolesRes.data?.results || [];
-                if (roles.length > 0) {
-                    // Buscar un rol que se llame "Usuario" o "Empleado" o usar el primero
-                    const rolBasico = roles.find(r =>
-                        r.nombrerol?.toLowerCase().includes('usuario') ||
-                        r.nombrerol?.toLowerCase().includes('empleado') ||
-                        r.nombrerol?.toLowerCase().includes('básico')
-                    );
-                    idRolPorDefecto = rolBasico ? rolBasico.idrol : roles[0].idrol;
-                }
-            } catch (error) {
-                console.warn("No se pudieron cargar los roles, usando rol por defecto:", error);
-            }
+            // Asignar el rol correspondiente, si no existe usar Acompañantes como default
+            const idRolAsignado = mapaPuestoRol[idPuesto] || 2;
 
             const ahora = new Date().toISOString();
 
@@ -303,21 +309,25 @@ const EmpleadosContainer = () => {
                 estado: true,
                 createdat: ahora,
                 updatedat: ahora,
-                idrol: idRolPorDefecto,
+                idrol: idRolAsignado,
                 idempleado: empleadoId
             };
 
             await axios.post(`${API}/usuarios/`, payloadUsuario);
 
+            console.log(`  Usuario creado: ${nombreUsuario} → Rol ID ${idRolAsignado}`);
+
             return {
                 usuario: nombreUsuario,
-                contrasena: contrasenaGenerada
+                contrasena: contrasenaGenerada,
+                idRolAsignado
             };
         } catch (error) {
             console.error("Error al crear usuario automático:", error);
             throw error;
         }
     };
+
 
     const fetchList = async () => {
         try {
@@ -800,10 +810,36 @@ const EmpleadosContainer = () => {
                     // Crear nuevo registro en historial con la fecha actual
                     const fechaInicio = new Date().toISOString().slice(0, 10);
                     await crearHistorialPuesto(editingId, puestoNuevo, fechaInicio);
+
+                    // 🔹 Actualizar rol del usuario asociado según el mapaPuestoRol
+                    try {
+                        const usuariosResponse = await axios.get(`${API}/usuarios/`);
+                        const usuario = usuariosResponse.data.results.find(u => u.idempleado === editingId);
+
+                        if (usuario) {
+                            const nuevoRol = mapaPuestoRol[puestoNuevo];
+                            if (usuario.idrol !== nuevoRol) {
+                                await axios.put(`${API}/usuarios/${usuario.idusuario}/`, {
+                                    nombreusuario: usuario.nombreusuario,
+                                    contrasena: usuario.contrasena,
+                                    estado: usuario.estado,
+                                    createdat: usuario.createdat,
+                                    updatedat: new Date().toISOString(),
+                                    idrol: nuevoRol,
+                                    idempleado: usuario.idempleado
+                                });
+                                showToast("Rol del usuario actualizado correctamente", "success");
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error al actualizar el rol del usuario:", error);
+                        showToast("Error al actualizar el rol del usuario", "error");
+                    }
                 }
 
                 showToast("Empleado actualizado correctamente");
-            } else {
+            } 
+            else {
                 const response = await axios.post(`${API}/empleados/`, payload);
                 const empleadoCreado = response.data;
 
@@ -820,7 +856,7 @@ const EmpleadosContainer = () => {
 
                 // Crear usuario automáticamente solo si es un nuevo empleado
                 try {
-                    const datosUsuario = await crearUsuarioAutomatico(empleadoId, form.nombre, form.apellido);
+                    const datosUsuario = await crearUsuarioAutomatico(empleadoId, form.nombre, form.apellido, form.idpuesto);
                     setDatosUsuarioCreado(datosUsuario);
                     setMostrarUsuarioCreado(true);
                 } catch (userError) {

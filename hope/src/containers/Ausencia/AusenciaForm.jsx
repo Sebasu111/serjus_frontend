@@ -367,7 +367,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   )}
   <input
     type="file"
-    accept="application/pdf" // ✅ solo PDFs
+    accept="application/pdf" //   solo PDFs
     onChange={(e) => setArchivo(e.target.files[0])}
     required={!editingAusencia || !archivoActual}
     style={{ width: "100%", padding: "5px", borderRadius: "6px", border: "1px solid #ccc" }}
