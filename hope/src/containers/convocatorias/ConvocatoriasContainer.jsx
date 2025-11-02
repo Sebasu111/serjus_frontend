@@ -66,7 +66,18 @@ const ConvocatoriasContainer = () => {
         }
     };
 
-    const onChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+   const onChange = (e) => {
+        const { name, value } = e.target;
+
+        // Si es un campo de fecha, asegurar formato ISO (YYYY-MM-DD)
+        if (name === "fechainicio" || name === "fechafin") {
+            // Evitar que se guarde en formato inválido
+            const isoValue = value ? new Date(value).toISOString().split("T")[0] : "";
+            setForm((prev) => ({ ...prev, [name]: isoValue }));
+        } else {
+            setForm((prev) => ({ ...prev, [name]: value }));
+        }
+    };
 
     const handleSubmit = async (e) => {
     e.preventDefault();
@@ -148,14 +159,24 @@ const ConvocatoriasContainer = () => {
 };
 
    const handleEdit = (row) => {
-        setForm({
-            ...row,
-            fechainicio: row.fechainicio || "",
-            fechafin: row.fechafin || ""
-        });
-        setEditingId(row.idconvocatoria);
-        setMostrarFormulario(true);
+    // Convertir fechas de la API a formato ISO (YYYY-MM-DD)
+    const parseDate = (d) => {
+        if (!d) return "";
+        // Si viene con hora o con "/", convertirlo
+        const date = new Date(d);
+        if (!isNaN(date)) return date.toISOString().split("T")[0];
+        return d;
     };
+
+    setForm({
+        ...row,
+        fechainicio: parseDate(row.fechainicio),
+        fechafin: parseDate(row.fechafin),
+    });
+    setEditingId(row.idconvocatoria);
+    setMostrarFormulario(true);
+    };
+
 
     const handleNuevo = () => {
         setForm({

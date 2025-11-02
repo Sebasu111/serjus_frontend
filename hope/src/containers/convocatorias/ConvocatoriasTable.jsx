@@ -177,7 +177,7 @@ const ConvocatoriasTable = ({
               ))
             ) : (
               <tr>
-                <td colSpan="7" style={{ textAlign: "left", padding: 20 }}>
+                <td colSpan="7" style={{ textAlign: "center", padding: 20 }}>
                   Sin registros
                 </td>
               </tr>
@@ -230,8 +230,8 @@ const ConvocatoriasTable = ({
             height: "100%",
             background: "rgba(0,0,0,0.5)",
             display: "flex",
-            alignItems: "left",
-            justifyContent: "left",
+            alignItems: "center",
+            justifyContent: "center",
             zIndex: 1000
           }}
         >

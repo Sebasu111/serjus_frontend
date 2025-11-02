@@ -39,7 +39,7 @@ const SidebarMenu = () => {
             icon: <FaClipboardList className="menu-icon" />,
             submenus: [
                 { path: "/Convocatorias", label: "Convocatorias", roles: [4, 5] },
-                { path: "/Aspirantes", label: "Aspirantes", roles: [1,5] },
+                { path: "/Postulaciones", label: "Postulaciones", roles: [1,5] },
                 { path: "/Seleccion", label: "Selección / Contratación", roles: [1,5] }
             ]
         },

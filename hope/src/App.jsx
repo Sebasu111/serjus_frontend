@@ -45,7 +45,7 @@ import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 //   RECLUTAMIENTO
 // =============================================================
 import ConvocatoriasContainer from "./containers/convocatorias/ConvocatoriasContainer";
-import AspirantesContainer from "./containers/aspirantes/AspirantesContainer";
+import PostulacionesContainer from "./containers/postulaciones/PostulacionesContainer";
 // import AspirantesContainer from "./containers/aspirantes";
 // import SeleccionContainer from "./containers/seleccion";
 
@@ -135,7 +135,7 @@ const App = () => {
 
                     {/*RECLUTAMIENTO*/}
                     {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
-                    {<Route exact path={`${base}/Aspirantes`} component={AspirantesContainer} />}
+                    {<Route exact path={`${base}/Postulaciones`} component={PostulacionesContainer} />}
                     {<Route exact path={`${base}/Seleccion`} component={SeleccionContainer}/> }
 
                     {/*INTEGRACIÓN*/}

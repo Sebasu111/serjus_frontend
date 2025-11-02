@@ -1,24 +1,55 @@
 import React from "react";
 import { X } from "lucide-react";
 
-const ConvocatoriasForm = ({ form, puestos, onChange, handleSubmit, setMostrarFormulario, editingId }) => {
+const ConvocatoriasForm = ({
+  form,
+  puestos,
+  onChange,
+  handleSubmit,
+  setMostrarFormulario,
+  editingId,
+}) => {
+  // 🔧 Helper para asegurar formato válido
+  const toISODate = (fecha) => {
+    if (!fecha) return "";
+    if (fecha.includes("/")) {
+      const [dia, mes, anio] = fecha.split("/");
+      return `${anio}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+    }
+    return fecha;
+  };
+
+  const fromISODate = (fecha) => {
+    if (!fecha) return "";
+    if (fecha.includes("-")) {
+      const [anio, mes, dia] = fecha.split("-");
+      return `${dia}/${mes}/${anio}`;
+    }
+    return fecha;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Si cambia la fecha de inicio, resetear fecha fin
-    if (name === "fechainicio") {
-      onChange({ target: { name: "fechainicio", value } });
-      onChange({ target: { name: "fechafin", value: "" } });
-    } else {
-      onChange(e);
+    // Si es una fecha, convertimos el formato al estilo DD/MM/YYYY
+    if (name === "fechainicio" || name === "fechafin") {
+      const formatted = fromISODate(value);
+      if (name === "fechainicio") {
+        onChange({ target: { name: "fechainicio", value: formatted } });
+        onChange({ target: { name: "fechafin", value: "" } });
+      } else {
+        onChange({ target: { name, value: formatted } });
+      }
+      return;
     }
+
+    onChange(e);
   };
 
   // Definir minFechaInicio según si es edición o creación
   const minFechaInicio = editingId
-    ? form.fechainicio || new Date().toISOString().split("T")[0] // permite mantener la misma fecha
-    : new Date().toISOString().split("T")[0]; // hoy para nueva convocatoria
+    ? toISODate(form.fechainicio) || new Date().toISOString().split("T")[0]
+    : new Date().toISOString().split("T")[0];
 
   return (
     <div style={modalStyle}>
@@ -46,27 +77,22 @@ const ConvocatoriasForm = ({ form, puestos, onChange, handleSubmit, setMostrarFo
           style={inputStyle}
         />
 
-        <label>Fecha inicio</label>
+        <label>Fecha de inicio:</label>
         <input
           type="date"
           name="fechainicio"
-          value={form.fechainicio}
-          onChange={handleInputChange}
-          required
-          style={inputStyle}
-          min={minFechaInicio}
+          value={form.fechainicio ? form.fechainicio.split("T")[0] : ""}
+          onChange={onChange}
+          className="form-control"
         />
 
-        <label>Fecha fin</label>
+        <label>Fecha fin:</label>
         <input
           type="date"
           name="fechafin"
-          value={form.fechafin}
-          onChange={handleInputChange}
-          required
-          style={inputStyle}
-          min={form.fechainicio || new Date().toISOString().split("T")[0]}
-          disabled={!form.fechainicio}
+          value={form.fechafin ? form.fechafin.split("T")[0] : ""}
+          onChange={onChange}
+          className="form-control"
         />
 
         <label>Puesto</label>
@@ -108,7 +134,7 @@ const ConvocatoriasForm = ({ form, puestos, onChange, handleSubmit, setMostrarFo
   );
 };
 
-// Estilos
+// ======== ESTILOS ========
 const inputStyle = {
   width: "100%",
   padding: 10,
