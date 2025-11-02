@@ -9,6 +9,7 @@ import SEO from "../../components/seo";
 import EmpleadoForm from "./EmpleadoForm";
 import ConfirmModal from "./ConfirmModal";
 import EmpleadosTable from "./EmpleadosTable";
+import TerminacionLaboralModal from "./TerminacionLaboralModal";
 
 import FichaDownloadModal from "./FichaDownloadModal";
 import { generarFichasPDF } from "./fichasPdf";
@@ -151,7 +152,8 @@ const EmpleadosContainer = () => {
         idequipo: "",
         numeroiggs: "",
         isCF: false,
-        iniciolaboral: ""
+        iniciolaboral: "",
+        cvFile: null
     });
     const [errors, setErrors] = useState({});
     const [data, setData] = useState([]);
@@ -187,6 +189,10 @@ const EmpleadosContainer = () => {
 
     // modal historial de puestos
     const [mostrarHistorialPuestos, setMostrarHistorialPuestos] = useState(false);
+
+    // modal terminación laboral
+    const [mostrarTerminacionLaboral, setMostrarTerminacionLaboral] = useState(false);
+    const [empleadoParaTerminacion, setEmpleadoParaTerminacion] = useState(null);
 
     useEffect(() => {
         fetchList();
@@ -523,6 +529,27 @@ const EmpleadosContainer = () => {
         setErrors(er => ({ ...er, [name]: msg || false }));
     };
 
+    // Función para manejar la carga del CV
+    const handleCvUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Validar que sea PDF
+            if (file.type !== 'application/pdf') {
+                showToast("Solo se permiten archivos PDF para el CV", "error");
+                e.target.value = '';
+                return;
+            }
+            // Validar tamaño (5MB máximo)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("El CV no puede ser mayor a 5MB", "error");
+                e.target.value = '';
+                return;
+            }
+            setForm(f => ({ ...f, cvFile: file }));
+            setErrors(er => ({ ...er, cvFile: false }));
+        }
+    };
+
     // ===== Helpers validación global (solo marca vacíos con true) =====
     const STEP1_FIELDS = [
         "nombre",
@@ -545,7 +572,7 @@ const EmpleadosContainer = () => {
         "idpueblocultura",
         "idpuesto"
     ];
-    const STEP3_FIELDS = ["numerohijos", "titulonivelmedio", "estudiosuniversitarios", "iniciolaboral"];
+    const STEP3_FIELDS = ["numerohijos", "titulonivelmedio", "estudiosuniversitarios", "iniciolaboral", "cvFile"];
 
     const validateAll = () => {
         const required = [...STEP1_FIELDS, ...STEP2_FIELDS, ...STEP3_FIELDS];
@@ -609,6 +636,11 @@ const EmpleadosContainer = () => {
         if (form.estadocivil && !estados.includes(String(form.estadocivil))) newErrors.estadocivil = true;
         const generos = ["Masculino", "Femenino", "Otros"];
         if (form.genero && !generos.includes(String(form.genero))) newErrors.genero = true;
+
+        // Validación del CV (obligatorio para empleados nuevos)
+        if (!editingId && !form.cvFile) {
+            newErrors.cvFile = true;
+        }
 
         setErrors(newErrors);
 
@@ -685,7 +717,8 @@ const EmpleadosContainer = () => {
             idequipo: equipoParam ? Number(equipoParam) : "",
             numeroiggs: "",
             isCF: false,
-            iniciolaboral: ""
+            iniciolaboral: "",
+            cvFile: null
         });
         setErrors({});
         setEditingId(null);
@@ -838,7 +871,7 @@ const EmpleadosContainer = () => {
                 }
 
                 showToast("Empleado actualizado correctamente");
-            } 
+            }
             else {
                 const response = await axios.post(`${API}/empleados/`, payload);
                 const empleadoCreado = response.data;
@@ -850,6 +883,27 @@ const EmpleadosContainer = () => {
                 if (form.idpuesto && Number(form.idpuesto) > 0) {
                     const fechaInicio = form.iniciolaboral || new Date().toISOString().slice(0, 10);
                     await crearHistorialPuesto(empleadoId, Number(form.idpuesto), fechaInicio);
+                }
+
+                // Subir CV si se proporcionó
+                if (form.cvFile) {
+                    try {
+                        const formDataCV = new FormData();
+                        formDataCV.append('archivo', form.cvFile);
+                        formDataCV.append('nombredocumento', `CV_${form.dpi}_${empleadoId}`);
+                        formDataCV.append('estado', true);
+                        formDataCV.append('idusuario', 1); // TODO: Usuario logueado
+
+                        await axios.post(`${API}/documentos/`, formDataCV, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data',
+                            },
+                        });
+                        showToast("CV subido correctamente", "success");
+                    } catch (cvError) {
+                        console.error("Error al subir CV:", cvError);
+                        showToast("Empleado creado, pero hubo un error al subir el CV", "warning");
+                    }
                 }
 
                 showToast("Empleado registrado correctamente");
@@ -946,6 +1000,18 @@ const EmpleadosContainer = () => {
         }
     };
 
+    // Manejar terminación laboral
+    const handleTerminacionLaboral = (empleado) => {
+        setEmpleadoParaTerminacion(empleado);
+        setMostrarTerminacionLaboral(true);
+    };
+
+    const handleTerminacionSuccess = () => {
+        setMostrarTerminacionLaboral(false);
+        setEmpleadoParaTerminacion(null);
+        fetchList(); // Refrescar la lista de empleados
+    };
+
     // BÚSQUEDA TOTAL (incluye casos "activo"/"inactivo")
     const labelFrom = (id, list, type) => {
         if (!id) return "";
@@ -1017,6 +1083,54 @@ const EmpleadosContainer = () => {
     };
 
     const equipoBloqueado = !!new URLSearchParams(window.location.search).get("equipo") || !!editingId;
+
+    // Función para descargar el CV del empleado
+    const descargarCV = async (empleado) => {
+        try {
+            // Buscar el documento CV del empleado
+            const response = await axios.get(`${API}/documentos/`);
+            const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
+
+            // Buscar el CV por nombre de documento que contenga el DPI y la palabra CV
+            const cvDocumento = documentos.find(doc =>
+                doc.nombredocumento &&
+                (doc.nombredocumento.includes(`CV_${empleado.dpi}`) ||
+                    doc.nombredocumento.toLowerCase().includes('cv') &&
+                    doc.nombredocumento.includes(empleado.dpi))
+            );
+
+            if (!cvDocumento) {
+                showToast("No se encontró el CV para este empleado", "warning");
+                return;
+            }
+
+            // Descargar el archivo
+            const fileResponse = await axios.get(`${API}/documentos/${cvDocumento.iddocumento}/archivo/`, {
+                responseType: 'blob'
+            });
+
+            // Crear URL del blob y descargar
+            const blob = new Blob([fileResponse.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `CV_${empleado.nombre}_${empleado.apellido}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            showToast("CV descargado correctamente", "success");
+
+        } catch (error) {
+            console.error("Error al descargar CV:", error);
+            if (error.response?.status === 404) {
+                showToast("No se encontró el CV para este empleado", "warning");
+            } else {
+                showToast("Error al descargar el CV", "error");
+            }
+        }
+    };
 
     return (
         <Layout>
@@ -1127,6 +1241,7 @@ const EmpleadosContainer = () => {
                                 setPaginaActual={setPage}
                                 equipos={equipos}
                                 onVerDetalle={onVerDetalle}
+                                onTerminacionLaboral={handleTerminacionLaboral}
                             />
 
                             <div style={{ marginTop: "20px", textAlign: "center" }}>
@@ -1170,6 +1285,7 @@ const EmpleadosContainer = () => {
                         equipos={equipos}
                         puestos={puestos}
                         lockEquipo={true}
+                        onCvUpload={handleCvUpload}
                     />
                 )}
 
@@ -1268,33 +1384,61 @@ const EmpleadosContainer = () => {
 
                             <div style={{ marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                 <h3 style={{ margin: 0, fontSize: 28, letterSpacing: 0.2 }}>Detalle del Colaborador</h3>
-                                <button
-                                    onClick={() => setMostrarHistorialPuestos(true)}
-                                    style={{
-                                        background: "#059669",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: 8,
-                                        padding: "10px 16px",
-                                        fontSize: 14,
-                                        fontWeight: 600,
-                                        cursor: "pointer",
-                                        transition: "background 0.2s",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 8
-                                    }}
-                                    onMouseEnter={e => e.target.style.background = "#047857"}
-                                    onMouseLeave={e => e.target.style.background = "#059669"}
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M21 10H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M21 6H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M21 14H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M21 18H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    Historial de Puestos
-                                </button>
+                                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                                    <button
+                                        onClick={() => descargarCV(detalle)}
+                                        style={{
+                                            background: "#2563eb",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: 8,
+                                            padding: "10px 16px",
+                                            fontSize: 14,
+                                            fontWeight: 600,
+                                            cursor: "pointer",
+                                            transition: "background 0.2s",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8
+                                        }}
+                                        onMouseEnter={e => e.target.style.background = "#1d4ed8"}
+                                        onMouseLeave={e => e.target.style.background = "#2563eb"}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        </svg>
+                                        Descargar CV
+                                    </button>
+                                    <button
+                                        onClick={() => setMostrarHistorialPuestos(true)}
+                                        style={{
+                                            background: "#059669",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: 8,
+                                            padding: "10px 16px",
+                                            fontSize: 14,
+                                            fontWeight: 600,
+                                            cursor: "pointer",
+                                            transition: "background 0.2s",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8
+                                        }}
+                                        onMouseEnter={e => e.target.style.background = "#047857"}
+                                        onMouseLeave={e => e.target.style.background = "#059669"}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M21 10H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M21 6H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M21 14H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M21 18H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        Historial de Puestos
+                                    </button>
+                                </div>
                             </div>
 
                             <div
@@ -1382,6 +1526,14 @@ const EmpleadosContainer = () => {
                     mostrar={mostrarHistorialPuestos}
                     empleado={detalle}
                     onClose={() => setMostrarHistorialPuestos(false)}
+                />
+
+                {/* MODAL TERMINACIÓN LABORAL */}
+                <TerminacionLaboralModal
+                    empleado={empleadoParaTerminacion}
+                    isOpen={mostrarTerminacionLaboral}
+                    onClose={() => setMostrarTerminacionLaboral(false)}
+                    onSuccess={handleTerminacionSuccess}
                 />
             </div>
         </Layout>

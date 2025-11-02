@@ -10,7 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 export const showToast = (mensaje, tipo = "success") => {
     // Crear un ID único basado en el mensaje y tipo para prevenir duplicados
     const toastId = `${tipo}-${mensaje.slice(0, 20).replace(/\s/g, '-')}`;
-    
+
     const options = {
         position: "top-right",
         autoClose: 3000, // 3 segundos
@@ -51,7 +51,7 @@ export const showToast = (mensaje, tipo = "success") => {
 export const showGeneralToast = mensaje => {
     // Crear un ID único para prevenir duplicados
     const toastId = `general-${mensaje.slice(0, 20).replace(/\s/g, '-')}`;
-    
+
     toast(mensaje, {
         position: "top-center",
         autoClose: 4000,
@@ -80,13 +80,13 @@ export const showPDFToasts = {
             draggable: true
         });
     },
-    
+
     descargado: () => {
         toast.dismiss("pdf-generando"); // Cierra específicamente el toast de generando
         setTimeout(() => {
             toast.success("PDF descargado correctamente", {
                 toastId: "pdf-descargado",
-                position: "top-right", 
+                position: "top-right",
                 autoClose: 4000,
                 hideProgressBar: false,
                 closeOnClick: true,
@@ -95,11 +95,26 @@ export const showPDFToasts = {
             });
         }, 300); // Pequeño delay para transición suave
     },
-    
-    error: () => {
+
+    success: (mensaje) => {
         toast.dismiss("pdf-generando");
         setTimeout(() => {
-            toast.error("Error al generar el PDF", {
+            toast.success(mensaje, {
+                toastId: "pdf-success",
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
+        }, 300);
+    },
+
+    error: (mensaje = "Error al generar el PDF") => {
+        toast.dismiss("pdf-generando");
+        setTimeout(() => {
+            toast.error(mensaje, {
                 toastId: "pdf-error",
                 position: "top-right",
                 autoClose: 5000,

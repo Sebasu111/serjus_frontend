@@ -60,7 +60,8 @@ const EmpleadoForm = ({
     pueblos = [],
     equipos = [],
     puestos = [],
-    lockEquipo = false
+    lockEquipo = false,
+    onCvUpload
 }) => {
     const [step, setStep] = useState(1);
 
@@ -87,7 +88,7 @@ const EmpleadoForm = ({
         "idpuesto",
         "idequipo"
     ];
-    const STEP3_FIELDS = ["numerohijos", "titulonivelmedio", "estudiosuniversitarios", "iniciolaboral"];
+    const STEP3_FIELDS = ["numerohijos", "titulonivelmedio", "estudiosuniversitarios", "iniciolaboral", "cvFile"];
 
     // goToStep desde el Container
     useEffect(() => {
@@ -651,6 +652,39 @@ const EmpleadoForm = ({
                                         style={inputStyle}
                                     />
                                     {errors.iniciolaboral && <span style={warn}>Este campo es obligatorio</span>}
+                                </div>
+                                <div style={{ ...field, gridColumn: "1 / -1" }}>
+                                    <label style={labelStyle}>CV del Empleado <span style={{ color: '#dc3545' }}>*</span></label>
+                                    <input
+                                        type="file"
+                                        name="cvFile"
+                                        accept=".pdf"
+                                        onChange={onCvUpload}
+                                        required
+                                        style={{
+                                            ...inputStyle,
+                                            padding: "8px 12px"
+                                        }}
+                                    />
+                                    <small style={{
+                                        color: "#666",
+                                        fontSize: "13px",
+                                        display: "block",
+                                        marginTop: "4px"
+                                    }}>
+                                        Sube el CV del empleado (Solo PDF, máx. 5MB)
+                                    </small>
+                                    {form.cvFile && (
+                                        <div style={{
+                                            marginTop: "8px",
+                                            fontSize: "14px",
+                                            color: "#28a745",
+                                            fontWeight: "600"
+                                        }}>
+                                            ✓ Archivo seleccionado: {form.cvFile.name}
+                                        </div>
+                                    )}
+                                    {errors.cvFile && <span style={warn}>Este campo es obligatorio</span>}
                                 </div>
                             </div>
                         </fieldset>

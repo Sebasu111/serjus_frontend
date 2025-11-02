@@ -16,7 +16,7 @@ const meses = [
     "diciembre"
 ];
 
-const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, puestos = [], empleados = [], historialPuestos = [], departamentos = [] }) => {
+const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, puestos = [], empleados = [], historialPuestos = [], departamentos = [], limpiarFormulario }) => {
     const [pagina, setPagina] = useState(1);
     const formRef = useRef(null);
 
@@ -95,12 +95,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
 
     const limpiarDatosEmpleado = () => {
         const camposEmpleado = [
-            'idHistorialPuesto', 'empleadoSeleccionado', 'nombreTrabajadora',
-            'edadTrabajadora', 'sexoTrabajadora', 'estadoCivilTrabajadora',
-            'dpiTrabajadora', 'direccionTrabajadora', 'residenciaTrabajadora',
-            'departamentoTrabajadora', 'puesto', 'salario'
+            'idHistorialPuesto', 'empleadoSeleccionado', 'nombreTrabajadora', 
+            'edadTrabajadora', 'sexoTrabajadora', 'estadoCivilTrabajadora', 
+            'dpiTrabajadora', 'direccionTrabajadora', 'residenciaTrabajadora', 
+            'departamentoTrabajadora', 'puesto'
         ];
-
+        
         camposEmpleado.forEach(campo => {
             onChange({ target: { name: campo, value: '' } });
         });
@@ -116,7 +116,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
 
         const historialSeleccionado = historialPuestos.find(h => (h.idhistorialpuesto || h.id) == value);
         if (historialSeleccionado) {
-
+            console.log("Historial seleccionado:", historialSeleccionado);
 
             // Auto-completar datos del empleado
             const empleadoId = historialSeleccionado.idempleado || historialSeleccionado.empleado_id || historialSeleccionado.empleado;
@@ -136,12 +136,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
             onChange({ target: { name: 'idHistorialPuesto', value: historialSeleccionado.idhistorialpuesto || historialSeleccionado.id } });
 
             if (empleadoRelacionado) {
-
-
+                console.log("Empleado completo encontrado:", empleadoRelacionado);
+                
                 // Nombre completo con múltiples variaciones posibles
                 const nombreCompleto = `${empleadoRelacionado.nombre || empleadoRelacionado.primernombre || empleadoRelacionado.primer_nombre || ''} ${empleadoRelacionado.segundonombre || empleadoRelacionado.segundo_nombre || ''} ${empleadoRelacionado.apellido || empleadoRelacionado.primerapellido || empleadoRelacionado.primer_apellido || ''} ${empleadoRelacionado.segundoapellido || empleadoRelacionado.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim();
                 onChange({ target: { name: 'nombreTrabajadora', value: nombreCompleto } });
-
+                
                 // Calcular edad desde fecha de nacimiento si no hay campo edad directo
                 let edad = '';
                 if (empleadoRelacionado.edad) {
@@ -158,7 +158,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                     edad = calculatedAge.toString();
                 }
                 onChange({ target: { name: 'edadTrabajadora', value: edad } });
-
+                
                 // Sexo/Género con múltiples variaciones
                 let sexo = '';
                 const sexoRaw = empleadoRelacionado.sexo || empleadoRelacionado.genero || empleadoRelacionado.gender || '';
@@ -178,7 +178,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                     }
                 }
                 onChange({ target: { name: 'sexoTrabajadora', value: sexo } });
-
+                
                 // Estado civil con múltiples variaciones y normalización
                 let estadoCivil = empleadoRelacionado.estadocivil || empleadoRelacionado.estado_civil || empleadoRelacionado.maritalStatus || '';
                 if (estadoCivil) {
@@ -195,24 +195,34 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                     // Si no coincide con ninguna opción, usar el valor original
                 }
                 onChange({ target: { name: 'estadoCivilTrabajadora', value: estadoCivil } });
-
+                
                 // DPI con múltiples variaciones
                 const dpi = empleadoRelacionado.dpi || empleadoRelacionado.cui || empleadoRelacionado.cedula || empleadoRelacionado.documento || '';
                 onChange({ target: { name: 'dpiTrabajadora', value: dpi } });
-
+                
                 // País/Nacionalidad
                 const pais = empleadoRelacionado.pais || empleadoRelacionado.nacionalidad || empleadoRelacionado.country || empleadoRelacionado.nationality || 'Guatemala';
                 onChange({ target: { name: 'direccionTrabajadora', value: pais } });
-
+                
                 // Dirección/Residencia
                 const residencia = empleadoRelacionado.direccion || empleadoRelacionado.address || empleadoRelacionado.residencia || '';
                 onChange({ target: { name: 'residenciaTrabajadora', value: residencia } });
-
+                
                 // Departamento
                 const departamento = empleadoRelacionado.departamento || empleadoRelacionado.department || empleadoRelacionado.provincia || '';
                 onChange({ target: { name: 'departamentoTrabajadora', value: departamento } });
-
-
+                
+                console.log("Datos auto-completados:", {
+                    nombre: nombreCompleto,
+                    edad,
+                    sexo,
+                    estadoCivil,
+                    estadoCivilOriginal: empleadoRelacionado.estadocivil || empleadoRelacionado.estado_civil || empleadoRelacionado.maritalStatus,
+                    dpi,
+                    pais,
+                    residencia,
+                    departamento
+                });
             }
 
             if (puestoRelacionado) {
@@ -223,6 +233,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
             if (historialSeleccionado.salario) {
                 const salarioFormateado = `Q ${Number(historialSeleccionado.salario).toLocaleString()}`;
                 onChange({ target: { name: 'salario', value: salarioFormateado } });
+                onChange({ target: { name: 'sueldoOrdinario', value: salarioFormateado } });
             }
         }
     };
@@ -237,7 +248,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
 
         const empleadoSeleccionado = empleados.find(emp => emp.idempleado == value);
         if (empleadoSeleccionado) {
-
+            console.log("Empleado seleccionado directamente:", empleadoSeleccionado);
 
             // Guardar el ID del empleado seleccionado
             onChange({ target: { name: 'empleadoSeleccionado', value: empleadoSeleccionado.idempleado } });
@@ -246,7 +257,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
             // Nombre completo con múltiples variaciones posibles
             const nombreCompleto = `${empleadoSeleccionado.nombre || empleadoSeleccionado.primernombre || empleadoSeleccionado.primer_nombre || ''} ${empleadoSeleccionado.segundonombre || empleadoSeleccionado.segundo_nombre || ''} ${empleadoSeleccionado.apellido || empleadoSeleccionado.primerapellido || empleadoSeleccionado.primer_apellido || ''} ${empleadoSeleccionado.segundoapellido || empleadoSeleccionado.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim();
             onChange({ target: { name: 'nombreTrabajadora', value: nombreCompleto } });
-
+            
             // Calcular edad desde fecha de nacimiento si no hay campo edad directo
             let edad = '';
             if (empleadoSeleccionado.edad) {
@@ -263,7 +274,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                 edad = calculatedAge.toString();
             }
             onChange({ target: { name: 'edadTrabajadora', value: edad } });
-
+            
             // Sexo/Género con múltiples variaciones
             let sexo = '';
             const sexoRaw = empleadoSeleccionado.sexo || empleadoSeleccionado.genero || empleadoSeleccionado.gender || '';
@@ -283,7 +294,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                 }
             }
             onChange({ target: { name: 'sexoTrabajadora', value: sexo } });
-
+            
             // Estado civil con múltiples variaciones y normalización
             let estadoCivil = empleadoSeleccionado.estadocivil || empleadoSeleccionado.estado_civil || empleadoSeleccionado.maritalStatus || '';
             if (estadoCivil) {
@@ -300,19 +311,19 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                 // Si no coincide con ninguna opción, usar el valor original
             }
             onChange({ target: { name: 'estadoCivilTrabajadora', value: estadoCivil } });
-
+            
             // DPI con múltiples variaciones
             const dpi = empleadoSeleccionado.dpi || empleadoSeleccionado.cui || empleadoSeleccionado.cedula || empleadoSeleccionado.documento || '';
             onChange({ target: { name: 'dpiTrabajadora', value: dpi } });
-
+            
             // País/Nacionalidad
             const pais = empleadoSeleccionado.pais || empleadoSeleccionado.nacionalidad || empleadoSeleccionado.country || empleadoSeleccionado.nationality || 'Guatemala';
             onChange({ target: { name: 'direccionTrabajadora', value: pais } });
-
+            
             // Dirección/Residencia
             const residencia = empleadoSeleccionado.direccion || empleadoSeleccionado.address || empleadoSeleccionado.residencia || '';
             onChange({ target: { name: 'residenciaTrabajadora', value: residencia } });
-
+            
             // Departamento
             const departamento = empleadoSeleccionado.departamento || empleadoSeleccionado.department || empleadoSeleccionado.provincia || '';
             onChange({ target: { name: 'departamentoTrabajadora', value: departamento } });
@@ -337,10 +348,12 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
 
     // Campos que se auto-completan cuando se selecciona un empleado
     const camposAutoCompletados = [
-        'nombreTrabajadora', 'edadTrabajadora', 'sexoTrabajadora',
-        'estadoCivilTrabajadora', 'dpiTrabajadora', 'direccionTrabajadora',
-        'residenciaTrabajadora', 'departamentoTrabajadora', 'puesto', 'salario'
-    ];    // Verifica si un campo está auto-completado (tiene empleado seleccionado y tiene valor)
+        'nombreTrabajadora', 'edadTrabajadora', 'sexoTrabajadora', 
+        'estadoCivilTrabajadora', 'dpiTrabajadora', 'direccionTrabajadora', 
+        'residenciaTrabajadora', 'departamentoTrabajadora', 'puesto'
+    ];
+
+    // Verifica si un campo está auto-completado (tiene empleado seleccionado y tiene valor)
     const esAutoCompletado = (campo) => {
         const tieneEmpleadoSeleccionado = data.idHistorialPuesto || data.empleadoSeleccionado;
         const tieneValor = data[campo] && data[campo].toString().trim() !== '';
@@ -351,7 +364,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
         Object.entries(fields).map(([k, { label, placeholder }]) => {
             if (k.includes("sexo")) {
                 const autoCompletado = esAutoCompletado(k);
-
+                
                 return (
                     <div key={k} style={{ display: "flex", flexDirection: "column" }}>
                         <label
@@ -390,7 +403,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
 
             if (k.includes("estadoCivil")) {
                 const autoCompletado = esAutoCompletado(k);
-
+                
                 return (
                     <div key={k} style={{ display: "flex", flexDirection: "column" }}>
                         <label
@@ -432,7 +445,9 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
             // Menú desplegable para puesto
             if (k === "puesto") {
                 const autoCompletado = esAutoCompletado(k);
-
+                console.log("Renderizando select de puestos, cantidad:", puestos.length);
+                console.log("Puestos recibidos:", puestos);
+                
                 return (
                     <div key={k} style={{ display: "flex", flexDirection: "column" }}>
                         <label
@@ -461,6 +476,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                             <select id={k} name={k} value={data[k]} onChange={onChange} style={input} {...commonProps}>
                                 <option value="">Seleccione un puesto...</option>
                                 {puestos.map(puesto => {
+                                    console.log("Mapeando puesto:", puesto);
                                     const puestoNombre = puesto.nombrepuesto ?? puesto.nombrePuesto ?? puesto.puesto ?? puesto.nombre ?? `ID ${puesto.idpuesto || puesto.id}`;
                                     return (
                                         <option key={puesto.idpuesto || puesto.id} value={puestoNombre}>
@@ -539,7 +555,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
             }
 
             const autoCompletado = esAutoCompletado(k);
-
+            
             return (
                 <div key={k} style={{ display: "flex", flexDirection: "column" }}>
                     <label
@@ -701,7 +717,96 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                         <div style={{ marginBottom: "30px" }}>
                             {/* Info de estado */}
                             <div style={{ fontSize: "12px", color: "#666", marginBottom: "15px", padding: "10px", backgroundColor: "#f8f9fa", borderRadius: "4px" }}>
-
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <div>
+                                        <strong>Estado de datos:</strong><br />
+                                        • Historial de Puestos: {historialPuestos.length} registros (total)<br />
+                                        • Empleados únicos: {(() => {
+                                            const empleadosUnicos = new Set();
+                                            historialPuestos.forEach(h => empleadosUnicos.add(h.idempleado || h.empleado_id || h.empleado));
+                                            return empleadosUnicos.size;
+                                        })()} empleados<br />
+                                        • Empleados: {empleados.length} registros<br />
+                                        • Puestos: {puestos.length} registros
+                                    </div>
+                                    {(data.idHistorialPuesto || data.empleadoSeleccionado) && (
+                                        <div style={{ display: "flex", gap: "5px" }}>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => {
+                                                    console.log("=== DEBUG FILTRADO DE HISTORIAL ===");
+                                                    const empleadosUnicos = new Map();
+                                                    
+                                                    console.log("Historial completo:", historialPuestos);
+                                                    
+                                                    historialPuestos.forEach(historial => {
+                                                        const empleadoId = historial.idempleado || historial.empleado_id || historial.empleado;
+                                                        const fechaCreacion = new Date(historial.createdat || historial.created_at || historial.fecha_creacion || '1900-01-01');
+                                                        const esActivo = historial.estado === true || historial.estado === 1 || historial.activo === true;
+                                                        
+                                                        console.log(`Empleado ${empleadoId}: Fecha ${fechaCreacion.toISOString()}, Activo: ${esActivo}`, historial);
+                                                        
+                                                        if (!empleadosUnicos.has(empleadoId)) {
+                                                            empleadosUnicos.set(empleadoId, historial);
+                                                        } else {
+                                                            const existente = empleadosUnicos.get(empleadoId);
+                                                            const fechaExistente = new Date(existente.createdat || existente.created_at || existente.fecha_creacion || '1900-01-01');
+                                                            const existenteActivo = existente.estado === true || existente.estado === 1 || existente.activo === true;
+                                                            
+                                                            if ((!existenteActivo && esActivo) || (esActivo === existenteActivo && fechaCreacion > fechaExistente)) {
+                                                                console.log(`Reemplazando empleado ${empleadoId}: nuevo más reciente/activo`);
+                                                                empleadosUnicos.set(empleadoId, historial);
+                                                            }
+                                                        }
+                                                    });
+                                                    
+                                                    console.log("Resultado filtrado:", Array.from(empleadosUnicos.values()));
+                                                }}
+                                                style={{
+                                                    padding: "4px 8px",
+                                                    fontSize: "10px",
+                                                    backgroundColor: "#28a745",
+                                                    color: "white",
+                                                    border: "none",
+                                                    borderRadius: "3px",
+                                                    cursor: "pointer"
+                                                }}
+                                            >
+                                                Debug Filtro
+                                            </button>
+                                            
+                                            {(data.idHistorialPuesto || data.empleadoSeleccionado) && (
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => {
+                                                        console.log("=== DEBUG EMPLEADO SELECCIONADO ===");
+                                                        if (data.idHistorialPuesto) {
+                                                            const historial = historialPuestos.find(h => (h.idhistorialpuesto || h.id) == data.idHistorialPuesto);
+                                                            const empleadoId = historial?.idempleado || historial?.empleado_id || historial?.empleado;
+                                                            const empleado = empleados.find(emp => emp.idempleado == empleadoId);
+                                                            console.log("Historial encontrado:", historial);
+                                                            console.log("Empleado del historial:", empleado);
+                                                        } else if (data.empleadoSeleccionado) {
+                                                            const empleado = empleados.find(emp => emp.idempleado == data.empleadoSeleccionado);
+                                                            console.log("Empleado directo:", empleado);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        padding: "4px 8px",
+                                                        fontSize: "10px",
+                                                        backgroundColor: "#007bff",
+                                                        color: "white",
+                                                        border: "none",
+                                                        borderRadius: "3px",
+                                                        cursor: "pointer"
+                                                    }}
+                                                >
+                                                    Debug Empleado
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {historialPuestos.length > 0 ? (
@@ -729,24 +834,24 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                         {(() => {
                                             // Filtrar para mostrar solo el puesto más reciente/actual de cada empleado
                                             const empleadosUnicos = new Map();
-
+                                            
                                             // Agrupar por empleado y encontrar el registro más reciente
                                             historialPuestos.forEach(historial => {
                                                 const empleadoId = historial.idempleado || historial.empleado_id || historial.empleado;
-
+                                                
                                                 // Determinar si este historial es más reciente
                                                 const fechaCreacion = new Date(historial.createdat || historial.created_at || historial.fecha_creacion || '1900-01-01');
                                                 const esActivo = historial.estado === true || historial.estado === 1 || historial.activo === true;
-
+                                                
                                                 if (!empleadosUnicos.has(empleadoId)) {
                                                     empleadosUnicos.set(empleadoId, historial);
                                                 } else {
                                                     const historialExistente = empleadosUnicos.get(empleadoId);
                                                     const fechaExistente = new Date(historialExistente.createdat || historialExistente.created_at || historialExistente.fecha_creacion || '1900-01-01');
-
+                                                    
                                                     // Priorizar: 1) Estado activo, 2) Fecha más reciente
                                                     const existenteActivo = historialExistente.estado === true || historialExistente.estado === 1 || historialExistente.activo === true;
-
+                                                    
                                                     if ((!existenteActivo && esActivo) || (esActivo === existenteActivo && fechaCreacion > fechaExistente)) {
                                                         empleadosUnicos.set(empleadoId, historial);
                                                     }
@@ -776,10 +881,14 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                                 const nombrePuesto = puesto?.nombrepuesto || puesto?.nombrePuesto || puesto?.nombre_puesto || puesto?.nombre || `Puesto ID: ${puestoId}`;
 
                                                 const historialId = historial.idhistorialpuesto || historial.id;
+                                                
+                                                // Indicador de estado para debugging
+                                                const esActivo = historial.estado === true || historial.estado === 1 || historial.activo === true;
+                                                const indicadorEstado = esActivo ? " [ACTIVO]" : " [INACTIVO]";
 
                                                 return (
                                                     <option key={historialId} value={historialId}>
-                                                        {nombreEmpleado} - {nombrePuesto}
+                                                        {nombreEmpleado} - {nombrePuesto}{process.env.NODE_ENV === 'development' ? indicadorEstado : ''}
                                                     </option>
                                                 );
                                             });
@@ -896,7 +1005,16 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
 
                 {pagina === 4 && (
                     <div className="pagina-4">
-
+                        <h3
+                            style={{
+                                fontSize: "20px",
+                                marginBottom: "10px",
+                                fontFamily: '"Inter", sans-serif',
+                                fontWeight: "600"
+                            }}
+                        >
+                            Funciones principales a realizar
+                        </h3>
                         <div style={{ display: "flex", flexDirection: "column", marginBottom: "20px" }}>
                             <label
                                 htmlFor="funciones"
@@ -937,7 +1055,21 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                 {generandoPDF ? "Generando Contrato..." : "Guardar e Imprimir"}
                             </button>
 
-
+                            {limpiarFormulario && (
+                                <button
+                                    type="button"
+                                    onClick={limpiarFormulario}
+                                    disabled={generandoPDF}
+                                    style={{
+                                        ...btnPrimary,
+                                        background: generandoPDF ? "#cccccc" : "#6c757d",
+                                        opacity: generandoPDF ? 0.6 : 1,
+                                        cursor: generandoPDF ? "not-allowed" : "pointer"
+                                    }}
+                                >
+                                    Limpiar Formulario
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
