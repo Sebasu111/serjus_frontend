@@ -39,8 +39,8 @@ const SidebarMenu = () => {
             icon: <FaClipboardList className="menu-icon" />,
             submenus: [
                 { path: "/Convocatorias", label: "Convocatorias", roles: [4, 5] },
-                { path: "/Postulaciones", label: "Postulaciones", roles: [1,5] },
-                { path: "/Seleccion", label: "Selección / Contratación", roles: [1,5] }
+                { path: "/Postulaciones", label: "Postulaciones", roles: [1, 5] },
+                { path: "/Seleccion", label: "Selección / Contratación", roles: [1, 5] }
             ]
         },
         {
@@ -49,6 +49,7 @@ const SidebarMenu = () => {
             icon: <FaBook className="menu-icon" />,
             submenus: [
                 { path: "/Induccion", label: "Inducción", roles: [1, 2, 4, 5] },
+                { path: "/InduccionDocumentos", label: "Inducción Documentos", roles: [1, 2, 4, 5] },
                 { path: "/Capacitacion", label: "Capacitación", roles: [1, 4, 5] }
             ]
         },

@@ -53,7 +53,8 @@ import PostulacionesContainer from "./containers/postulaciones/PostulacionesCont
 //   INTEGRACIÓN
 // =============================================================
 import CapacitacionContainer from "./containers/capacitacion/CapacitacionContainer";
-// import InduccionContainer from "./containers/induccion";
+import InduccionDocumentosContainer from "./containers/InduccionDocumentos";
+import InduccionContainer from "./containers/Induccion";
 
 // =============================================================
 //   DESEMPEÑO
@@ -136,11 +137,12 @@ const App = () => {
                     {/*RECLUTAMIENTO*/}
                     {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
                     {<Route exact path={`${base}/Postulaciones`} component={PostulacionesContainer} />}
-                    {<Route exact path={`${base}/Seleccion`} component={SeleccionContainer}/> }
+                    {<Route exact path={`${base}/Seleccion`} component={SeleccionContainer} />}
 
                     {/*INTEGRACIÓN*/}
                     {<Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />}
-                    {/* <Route exact path={`${base}/Induccion`} component={InduccionContainer} /> */}
+                    <Route exact path={`${base}/InduccionDocumentos`} component={InduccionDocumentosContainer} />
+                    <Route exact path={`${base}/Induccion`} component={InduccionContainer} />
 
                     {/*DESEMPEÑO*/}
                     <Route exact path={`${base}/CriterioEvaluacion`} component={CriterioEvaluacionContainer} />

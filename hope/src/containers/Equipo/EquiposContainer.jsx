@@ -786,9 +786,20 @@ const EquiposContainer = () => {
                             </div>
 
                             <div style={{ display: "grid", gap: 22 }}>
-                                <Section title="Coordinación">
+                                <Section title="Coordinador">
                                     <Grid>
-                                        <Item label="Coordinador" value={detalle.coordinadorNombre || "â€”"} />
+                                        <div
+                                            style={{
+                                                background: "#f9fafb",
+                                                border: "1px solid #eef2f7",
+                                                borderRadius: 12,
+                                                padding: 12
+                                            }}
+                                        >
+                                            <div style={{ fontSize: 16, fontWeight: 600, color: "#1f2937" }}>
+                                                {detalle.coordinadorNombre || "—"}
+                                            </div>
+                                        </div>
                                     </Grid>
                                 </Section>
 
