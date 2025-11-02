@@ -129,7 +129,7 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
     try {
       let idAspirante = localStorage.getItem("idaspirante");
 
-      //   Revisar si existe el aspirante por DPI solo si no hay ID guardado
+      // 1️⃣ Revisar si existe el aspirante por DPI
       if (!idAspirante) {
         const resAspi = await fetch(
           `http://127.0.0.1:8000/api/aspirantes/?dpi=${formData.dpi}`
@@ -137,11 +137,8 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
         const aspirantes = await resAspi.json();
 
         if (aspirantes.length > 0) {
-          // Aspirante ya existe, reutilizamos ID
           idAspirante = aspirantes[0].idaspirante;
-          showToast("Se reutiliza el ID de aspirante existente.", "info");
         } else {
-          // Crear nuevo aspirante
           const resCreate = await fetch("http://127.0.0.1:8000/api/aspirantes/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -163,44 +160,46 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
           });
 
           if (!resCreate.ok) throw new Error("Error al crear el aspirante");
-
           const creado = await resCreate.json();
           idAspirante = creado.idaspirante;
-
-          // Guardamos ID en localStorage
           localStorage.setItem("idaspirante", idAspirante);
         }
       } else {
-        showToast("Postulacion nueva procesada", "info");
+        showToast("Postulación nueva procesada", "info");
       }
 
-      //   Crear la postulación
+      // 2️⃣ Obtener el estado "Postulado"
+      const estadoRes = await fetch("http://127.0.0.1:8000/api/estados/");
+      const estadosData = await estadoRes.json();
+      const estadoPostulado = estadosData.results.find(e => e.nombreestado === "Postulado");
+
+      if (!estadoPostulado) throw new Error("No se encontró el estado 'Postulado'");
+
+      // 3️⃣ Crear la postulación con el idestado correcto
       const postRes = await fetch("http://127.0.0.1:8000/api/postulaciones/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fechapostulacion: new Date().toISOString().split("T")[0],
-          observacion: "Postulación desde formulario",
+          observacion: "Postulación de Bolsa de empleo",
           estado: true,
           idusuario: 1,
           idaspirante: Number(idAspirante),
           idconvocatoria: Number(convocatoria?.idconvocatoria),
+          idestado: estadoPostulado.idestado, // ✅ usamos el ID dinámico
         }),
       });
 
       if (!postRes.ok) {
         const errText = await postRes.text();
-        
-        //   Verificar si es porque ya existe la postulación
         if (errText.includes("ya está postulado")) {
           showToast("Ya te has postulado a esta convocatoria.", "warning");
-          return; // Salir sin lanzar error
+          return;
         }
-
         throw new Error("Error al crear la postulación: " + errText);
       }
 
-      //   Subir CV
+      // 4️⃣ Subir CV
       const fd = new FormData();
       fd.append("archivo", cvFile);
       fd.append("nombrearchivo", cvFile.name.replace(/\.[^/.]+$/, ""));
@@ -220,12 +219,12 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
 
       showToast("¡Postulación enviada exitosamente!", "success");
       onClose();
+
     } catch (err) {
       console.error(err);
       showToast(err.message || "Error al enviar la postulación.", "error");
     }
   };
-
 
   //   Estilos
   const fs = {

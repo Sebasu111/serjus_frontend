@@ -137,7 +137,18 @@ const ConvocatoriasPublicPage = () => {
                       <div className="convocatoria-info">
                         <h4>{conv.nombrepuesto}</h4>
                         <h6>{conv.nombreconvocatoria}</h6>
-                        <p>{conv.descripcion?.slice(0, 250)}...</p>
+                        <div
+                          style={{
+                            maxHeight: "150px",       // alto máximo visible
+                            overflowY: "auto",        // agrega scroll vertical
+                            paddingRight: "6px",
+                            textAlign: "justify"
+                          }}
+                        >
+                          <p style={{ whiteSpace: "pre-wrap" }}>
+                            {conv.descripcion || "Sin descripción disponible."}
+                          </p>
+                        </div>
                         <small>
                           <i className="icofont-calendar"></i> Inicia: {formatDate(conv.fechainicio)} — Finaliza: {formatDate(conv.fechafin)}
                         </small>
