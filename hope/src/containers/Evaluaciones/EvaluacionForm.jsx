@@ -1,74 +1,135 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { X } from "lucide-react";
 
-const displayName = emp => {
-    const candidates = [
-        emp?.nombreCompleto,
-        [emp?.nombres, emp?.apellidos].filter(Boolean).join(" "),
-        [emp?.nombre, emp?.apellido].filter(Boolean).join(" "),
-        [emp?.primerNombre, emp?.segundoNombre, emp?.apellidoPaterno, emp?.apellidoMaterno].filter(Boolean).join(" "),
-        [emp?.first_name, emp?.last_name].filter(Boolean).join(" "),
-        emp?.full_name,
-        emp?.displayName,
-        emp?.nombre_empleado,
-        emp?.name
-    ]
-        .map(s => (typeof s === "string" ? s.trim() : ""))
-        .filter(Boolean);
-    if (candidates[0]) return candidates[0];
-    const id = emp?.idEmpleado ?? emp?.idempleado ?? emp?.id ?? emp?.pk ?? emp?.uuid ?? emp?.codigo ?? "?";
-    return `Empleado #${id}`;
-};
-const empId = emp => emp.idEmpleado ?? emp.idempleado ?? emp.id ?? emp.pk ?? emp.uuid ?? emp.codigo;
-
-const toLocalDT = iso => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    const pad = n => String(n).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    const mm = pad(d.getMonth() + 1);
-    const dd = pad(d.getDate());
-    const hh = pad(d.getHours());
-    const mi = pad(d.getMinutes());
-    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+const pick = (obj, ...keys) => {
+    for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
 };
 
-const EvaluacionForm = ({ empleados = [], editingId, evaluacion, onCancel, onSubmit }) => {
-    const [idEmpleado, setIdEmpleado] = useState(evaluacion?.idEmpleado ?? "");
-    const [tipoEvaluacion, setTipoEvaluacion] = useState(evaluacion?.tipoEvaluacion ?? "");
-    const [fechaEvaluacion, setFechaEvaluacion] = useState(toLocalDT(evaluacion?.fechaEvaluacion) || "");
-    const [puntajeTotal, setPuntajeTotal] = useState(evaluacion?.puntajeTotal ?? "");
-    const [observacion, setObservacion] = useState(evaluacion?.observacion ?? "");
-    const [estado, setEstado] = useState(evaluacion?.estado ?? true);
+const getId = o => pick(o, "id", "idempleado", "idEmpleado", "idaspirante", "idAspirante", "idpostulacion", "idPostulacion");
+const getEmpleadoLabel = o => `${pick(o, "nombre") || ""} ${pick(o, "apellido") || ""}`.trim();
+const getPostulacionLabel = o => pick(o, "observacion", "descripcion", "nombre");
 
-    const [qEmpleado, setQEmpleado] = useState("");
-
-    const empleadosOrdenados = useMemo(
-        () =>
-            [...empleados].sort((a, b) => displayName(a).localeCompare(displayName(b), "es", { sensitivity: "base" })),
-        [empleados]
+const EvaluacionForm = ({
+    form,
+    errors,
+    onChange,
+    handleSubmit,
+    onClose,
+    editingId,
+    empleados = [],
+    postulaciones = []
+}) => {
+    const [tipoEvaluacion, setTipoEvaluacion] = useState(
+        form.idempleado ? "empleado" : form.idpostulacion ? "postulacion" : ""
     );
 
-    const opcionesEmpleado = useMemo(() => {
-        const t = qEmpleado.trim().toLowerCase();
-        return empleadosOrdenados.filter(e => displayName(e).toLowerCase().includes(t));
-    }, [empleadosOrdenados, qEmpleado]);
+    const Field = ({ label, name, type = "text", required = false, children, full = false }) => (
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                gridColumn: full ? "1 / -1" : "auto"
+            }}
+        >
+            <label
+                style={{
+                    fontWeight: 600,
+                    fontSize: 14,
+                    color: "#374151",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4
+                }}
+            >
+                {label}
+                {required && <span style={{ color: "#ef4444" }}>*</span>}
+            </label>
+            {children}
+            {errors[name] && (
+                <span style={{ color: "#ef4444", fontSize: 13, fontWeight: 500 }}>
+                    {typeof errors[name] === "string" ? errors[name] : "Este campo es obligatorio"}
+                </span>
+            )}
+        </div>
+    );
 
-    const handleSubmit = e => {
-        e.preventDefault();
-        if (!idEmpleado || !tipoEvaluacion || !fechaEvaluacion) return;
+    const Input = ({ name, type = "text", placeholder = "", step, min, max, ...props }) => (
+        <input
+            name={name}
+            type={type}
+            value={form[name] || ""}
+            onChange={onChange}
+            placeholder={placeholder}
+            step={step}
+            min={min}
+            max={max}
+            {...props}
+            style={{
+                padding: "12px 16px",
+                border: `1px solid ${errors[name] ? "#ef4444" : "#d1d5db"}`,
+                borderRadius: 8,
+                fontSize: 14,
+                outline: "none",
+                transition: "border-color 0.2s",
+                backgroundColor: "#fff",
+                fontFamily: "inherit"
+            }}
+        />
+    );
 
-        // Convertimos datetime-local a ISO (backend acepta datetime)
-        const iso = new Date(fechaEvaluacion).toISOString();
+    const Select = ({ name, children, ...props }) => (
+        <select
+            name={name}
+            value={form[name] || ""}
+            onChange={onChange}
+            {...props}
+            style={{
+                padding: "12px 16px",
+                border: `1px solid ${errors[name] ? "#ef4444" : "#d1d5db"}`,
+                borderRadius: 8,
+                fontSize: 14,
+                outline: "none",
+                transition: "border-color 0.2s",
+                backgroundColor: "#fff",
+                fontFamily: "inherit",
+                cursor: "pointer"
+            }}
+        >
+            {children}
+        </select>
+    );
 
-        onSubmit({
-            idEmpleado,
-            tipoEvaluacion,
-            fechaEvaluacion: iso,
-            puntajeTotal,
-            observacion,
-            estado
-        });
+    const TextArea = ({ name, placeholder = "", rows = 3 }) => (
+        <textarea
+            name={name}
+            value={form[name] || ""}
+            onChange={onChange}
+            placeholder={placeholder}
+            rows={rows}
+            style={{
+                padding: "12px 16px",
+                border: `1px solid ${errors[name] ? "#ef4444" : "#d1d5db"}`,
+                borderRadius: 8,
+                fontSize: 14,
+                outline: "none",
+                transition: "border-color 0.2s",
+                backgroundColor: "#fff",
+                fontFamily: "inherit",
+                resize: "vertical",
+                minHeight: "80px"
+            }}
+        />
+    );
+
+    const handleTipoChange = (tipo) => {
+        setTipoEvaluacion(tipo);
+        // Limpiar los campos contrarios
+        if (tipo === "empleado") {
+            onChange({ target: { name: "idpostulacion", value: "" } });
+        } else if (tipo === "postulacion") {
+            onChange({ target: { name: "idempleado", value: "" } });
+        }
     };
 
     return (
@@ -76,176 +137,229 @@ const EvaluacionForm = ({ empleados = [], editingId, evaluacion, onCancel, onSub
             style={{
                 position: "fixed",
                 inset: 0,
-                background: "rgba(0,0,0,0.45)",
+                background: "rgba(0, 0, 0, 0.5)",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                zIndex: 3000
+                zIndex: 1000,
+                padding: "20px"
             }}
         >
-            <div
+            <form
+                onSubmit={handleSubmit}
                 style={{
-                    width: "min(720px,96vw)",
-                    maxHeight: "92vh",
-                    overflow: "auto",
-                    background: "#fff",
-                    boxShadow: "0 0 30px rgba(0,0,0,0.25)",
-                    padding: 24,
-                    borderRadius: 14
+                    background: "#ffffff",
+                    borderRadius: 16,
+                    width: "100%",
+                    maxWidth: "700px",
+                    maxHeight: "90vh",
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
                 }}
             >
-                <h2 style={{ textAlign: "center", marginTop: 0, marginBottom: 18 }}>
-                    {editingId ? "Editar Evaluación" : "Nueva Evaluación"}
-                </h2>
+                {/* Header */}
+                <div
+                    style={{
+                        padding: "24px 32px",
+                        borderBottom: "1px solid #e5e7eb",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        background: "#f8fafc"
+                    }}
+                >
+                    <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1f2937" }}>
+                        {editingId ? "Editar Evaluación" : "Nueva Evaluación"}
+                    </h3>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: 8,
+                            borderRadius: 8,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#6b7280"
+                        }}
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-                        {/* Empleado */}
-                        <div style={{ gridColumn: "1 / -1" }}>
-                            <label style={{ display: "block", marginBottom: 6 }}>Empleado</label>
-                            <input
-                                type="text"
-                                placeholder="Buscar empleado..."
-                                value={qEmpleado}
-                                onChange={e => setQEmpleado(e.target.value)}
-                                style={{
-                                    width: "100%",
-                                    padding: 10,
-                                    borderRadius: 8,
-                                    border: "1px solid #d1d5db",
-                                    marginBottom: 8
-                                }}
-                            />
-                            <select
-                                value={idEmpleado ?? ""}
-                                onChange={e => setIdEmpleado(Number(e.target.value))}
-                                required
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
-                            >
-                                <option value="" disabled>
-                                    Selecciona un empleado...
-                                </option>
-                                {opcionesEmpleado.map(emp => (
-                                    <option key={empId(emp)} value={empId(emp)}>
-                                        {displayName(emp)}
-                                    </option>
-                                ))}
-                            </select>
+                {/* Content */}
+                <div
+                    style={{
+                        padding: "32px",
+                        overflowY: "auto",
+                        flex: 1
+                    }}
+                >
+                    <div
+                        style={{
+                            display: "grid",
+                            gap: 24
+                        }}
+                    >
+                        {/* Tipo de Evaluación */}
+                        <div style={{ marginBottom: 16 }}>
+                            <label style={{ fontWeight: 600, fontSize: 14, color: "#374151", marginBottom: 12, display: "block" }}>
+                                Tipo de Evaluación <span style={{ color: "#ef4444" }}>*</span>
+                            </label>
+                            <div style={{ display: "flex", gap: 16 }}>
+                                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                                    <input
+                                        type="radio"
+                                        name="tipoEvaluacion"
+                                        value="empleado"
+                                        checked={tipoEvaluacion === "empleado"}
+                                        onChange={(e) => handleTipoChange(e.target.value)}
+                                        style={{ marginRight: 4 }}
+                                    />
+                                    <span>Empleado</span>
+                                </label>
+                                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                                    <input
+                                        type="radio"
+                                        name="tipoEvaluacion"
+                                        value="postulacion"
+                                        checked={tipoEvaluacion === "postulacion"}
+                                        onChange={(e) => handleTipoChange(e.target.value)}
+                                        style={{ marginRight: 4 }}
+                                    />
+                                    <span>Postulación</span>
+                                </label>
+                            </div>
                         </div>
 
-                        {/* Tipo */}
-                        <div>
-                            <label style={{ display: "block", marginBottom: 6 }}>Tipo de evaluación</label>
-                            <input
-                                type="text"
-                                value={tipoEvaluacion}
-                                onChange={e => setTipoEvaluacion(e.target.value)}
-                                placeholder="p. ej. Desempeño trimestral"
-                                required
-                                maxLength={100}
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
-                            />
-                        </div>
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                                gap: 20
+                            }}
+                        >
+                            {/* Empleado o Postulación */}
+                            {tipoEvaluacion === "empleado" && (
+                                <Field label="Empleado" name="idempleado" required>
+                                    <Select name="idempleado">
+                                        <option value="">Seleccionar empleado...</option>
+                                        {empleados.map(emp => (
+                                            <option key={getId(emp)} value={getId(emp)}>
+                                                {getEmpleadoLabel(emp)}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </Field>
+                            )}
 
-                        {/* Fecha */}
-                        <div>
-                            <label style={{ display: "block", marginBottom: 6 }}>Fecha de evaluación</label>
-                            <input
-                                type="datetime-local"
-                                value={fechaEvaluacion}
-                                onChange={e => setFechaEvaluacion(e.target.value)}
-                                required
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
-                            />
-                        </div>
+                            {tipoEvaluacion === "postulacion" && (
+                                <Field label="Postulación" name="idpostulacion" required>
+                                    <Select name="idpostulacion">
+                                        <option value="">Seleccionar postulación...</option>
+                                        {postulaciones.map(post => (
+                                            <option key={getId(post)} value={getId(post)}>
+                                                {getPostulacionLabel(post) || `Postulación #${getId(post)}`}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </Field>
+                            )}
 
-                        {/* Puntaje */}
-                        <div>
-                            <label style={{ display: "block", marginBottom: 6 }}>Puntaje total</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={puntajeTotal}
-                                onChange={e => setPuntajeTotal(e.target.value)}
-                                required
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
-                            />
-                        </div>
+                            {/* Modalidad */}
+                            <Field label="Modalidad" name="modalidad" required>
+                                <Select name="modalidad">
+                                    <option value="">Seleccionar modalidad...</option>
+                                    <option value="Presencial">Presencial</option>
+                                    <option value="Virtual">Virtual</option>
+                                    <option value="Híbrida">Híbrida</option>
+                                </Select>
+                            </Field>
 
-                        {/* Estado */}
-                        <div>
-                            <label style={{ display: "block", marginBottom: 6 }}>Estado</label>
-                            <select
-                                value={String(estado)}
-                                onChange={e => setEstado(e.target.value === "true")}
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
-                            >
-                                <option value="true">Activo</option>
-                                <option value="false">Inactivo</option>
-                            </select>
+                            {/* Fecha de Evaluación */}
+                            <Field label="Fecha de Evaluación" name="fechaevaluacion" required>
+                                <Input
+                                    name="fechaevaluacion"
+                                    type="date"
+                                    max={new Date().toISOString().slice(0, 10)}
+                                />
+                            </Field>
+
+                            {/* Puntaje Total */}
+                            <Field label="Puntaje Total (0-100)" name="puntajetotal" required>
+                                <Input
+                                    name="puntajetotal"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    placeholder="Ej: 85.5"
+                                />
+                            </Field>
                         </div>
 
                         {/* Observación */}
-                        <div style={{ gridColumn: "1 / -1" }}>
-                            <label style={{ display: "block", marginBottom: 6 }}>Observación</label>
-                            <input
-                                type="text"
-                                maxLength={150}
-                                value={observacion}
-                                onChange={e => setObservacion(e.target.value)}
-                                placeholder="Comentario breve (máx. 150)"
-                                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db" }}
+                        <Field label="Observación" name="observacion" required full>
+                            <TextArea
+                                name="observacion"
+                                placeholder="Describe los aspectos relevantes de la evaluación..."
+                                rows={4}
                             />
-                        </div>
+                        </Field>
                     </div>
+                </div>
 
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
-                        <button
-                            type="button"
-                            onClick={onCancel}
-                            style={{
-                                background: "#6c757d",
-                                color: "#fff",
-                                padding: "10px 18px",
-                                border: "none",
-                                borderRadius: 8,
-                                cursor: "pointer"
-                            }}
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            style={{
-                                background: "#219ebc",
-                                color: "#fff",
-                                padding: "10px 18px",
-                                border: "none",
-                                borderRadius: 8,
-                                cursor: "pointer",
-                                fontWeight: 600
-                            }}
-                        >
-                            {editingId ? "Actualizar" : "Crear"}
-                        </button>
-                    </div>
-                </form>
-
-                <button
-                    onClick={onCancel}
+                {/* Footer */}
+                <div
                     style={{
-                        position: "absolute",
-                        top: 14,
-                        right: 18,
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer"
+                        padding: "24px 32px",
+                        borderTop: "1px solid #e5e7eb",
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: 12,
+                        background: "#f8fafc"
                     }}
-                    title="Cerrar"
                 >
-                    <X size={22} color="#555" />
-                </button>
-            </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        style={{
+                            padding: "10px 20px",
+                            border: "1px solid #d1d5db",
+                            borderRadius: 8,
+                            background: "#ffffff",
+                            color: "#374151",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            transition: "all 0.2s"
+                        }}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        style={{
+                            padding: "10px 20px",
+                            border: "none",
+                            borderRadius: 8,
+                            background: "#3b82f6",
+                            color: "#ffffff",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            transition: "all 0.2s"
+                        }}
+                    >
+                        {editingId ? "Actualizar" : "Registrar"}
+                    </button>
+                </div>
+            </form>
         </div>
     );
 };

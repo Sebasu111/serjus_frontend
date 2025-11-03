@@ -60,7 +60,7 @@ import InduccionContainer from "./containers/Induccion";
 // =============================================================
 import CriterioEvaluacionContainer from "./containers/CriterioEvaluacion/CriterioEvaluacionContainer";
 import EvaluacionCriterioContainer from "./containers/EvaluacionCriterio/EvaluacionCriterioContainer";
-import EvaluacionesContainer from "./containers/Evaluaciones/EvaluacionesContainer";
+import EvaluacionContainer from "./containers/Evaluaciones/EvaluacionContainer";
 
 // =============================================================
 //   CONTROL DISCIPLINARIO
@@ -145,7 +145,7 @@ const App = () => {
                     {/*DESEMPEÑO*/}
                     <Route exact path={`${base}/CriterioEvaluacion`} component={CriterioEvaluacionContainer} />
                     <Route exact path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} />
-                    <Route exact path={`${base}/Evaluaciones`} component={EvaluacionesContainer} />
+                    <Route exact path={`${base}/Evaluaciones`} component={EvaluacionContainer} />
 
                     {/*CONTROL DISCIPLINARIO*/}
                     <Route exact path={`${base}/Ausencias`} component={AusenciaContainer} />

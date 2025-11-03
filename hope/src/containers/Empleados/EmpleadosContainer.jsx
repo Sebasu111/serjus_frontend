@@ -877,7 +877,7 @@ const EmpleadosContainer = () => {
                         const tiposDocRes = await axios.get("http://127.0.0.1:8000/api/tipodocumento/");
                         console.log("Respuesta tipos documentos (editar):", tiposDocRes.data); // Debug
                         const tiposArray = Array.isArray(tiposDocRes.data) ? tiposDocRes.data : tiposDocRes.data.results || [];
-                        const tipoCV = tiposArray.find(tipo => 
+                        const tipoCV = tiposArray.find(tipo =>
                             tipo.nombretipo === "CURRICULUM ACREDITADO"
                         );
 
@@ -942,7 +942,7 @@ const EmpleadosContainer = () => {
                         const tiposDocRes = await axios.get("http://127.0.0.1:8000/api/tipodocumento/");
                         console.log("Respuesta tipos documentos (crear):", tiposDocRes.data); // Debug
                         const tiposArray = Array.isArray(tiposDocRes.data) ? tiposDocRes.data : tiposDocRes.data.results || [];
-                        const tipoCV = tiposArray.find(tipo => 
+                        const tipoCV = tiposArray.find(tipo =>
                             tipo.nombretipo === "CURRICULUM ACREDITADO"
                         );
 
@@ -1172,22 +1172,22 @@ const EmpleadosContainer = () => {
 
             // Buscar el CV del empleado por ID de empleado y tipo de documento
             const empleadoId = empleado.idempleado || empleado.idEmpleado || empleado.id;
-            
+
             // Obtener tipos de documento para encontrar el ID del CV
             const tiposDocRes = await axios.get("http://127.0.0.1:8000/api/tipodocumento/");
             const tiposArray = Array.isArray(tiposDocRes.data) ? tiposDocRes.data : tiposDocRes.data.results || [];
             const tipoCV = tiposArray.find(tipo => tipo.nombretipo === "CURRICULUM ACREDITADO");
-            
+
             console.log("Documentos encontrados:", documentos); // Debug
             console.log("Buscando CV para empleado ID:", empleadoId); // Debug
             console.log("Tipo CV ID:", tipoCV?.idtipodocumento); // Debug
-            
+
             // Buscar por empleado ID y tipo de documento CV
             let cvDocumento = documentos.find(doc =>
-                doc.idempleado === empleadoId && 
+                doc.idempleado === empleadoId &&
                 doc.idtipodocumento === tipoCV?.idtipodocumento
             );
-            
+
             // Si no se encontró por ID, buscar por nombre de archivo como fallback
             if (!cvDocumento) {
                 cvDocumento = documentos.find(doc =>
@@ -1209,7 +1209,7 @@ const EmpleadosContainer = () => {
             if (cvDocumento.archivo || cvDocumento.archivo_url) {
                 const archivoUrl = cvDocumento.archivo_url || cvDocumento.archivo;
                 console.log("URL del archivo:", archivoUrl); // Debug
-                
+
                 // Descargar directamente desde la URL
                 const link = document.createElement('a');
                 link.href = archivoUrl;
