@@ -53,7 +53,6 @@ import PostulacionesContainer from "./containers/postulaciones/PostulacionesCont
 //   INTEGRACIÓN
 // =============================================================
 import CapacitacionContainer from "./containers/capacitacion/CapacitacionContainer";
-import InduccionDocumentosContainer from "./containers/InduccionDocumentos";
 import InduccionContainer from "./containers/Induccion";
 
 // =============================================================
@@ -141,7 +140,6 @@ const App = () => {
 
                     {/*INTEGRACIÓN*/}
                     {<Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />}
-                    <Route exact path={`${base}/InduccionDocumentos`} component={InduccionDocumentosContainer} />
                     <Route exact path={`${base}/Induccion`} component={InduccionContainer} />
 
                     {/*DESEMPEÑO*/}

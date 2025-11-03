@@ -870,6 +870,56 @@ const EmpleadosContainer = () => {
                     }
                 }
 
+                // Subir CV si se proporcionó al editar empleado
+                if (form.cvFile) {
+                    try {
+                        // Primero obtener el ID del tipo de documento "CURRICULUM ACREDITADO"
+                        const tiposDocRes = await axios.get("http://127.0.0.1:8000/api/tipodocumento/");
+                        console.log("Respuesta tipos documentos (editar):", tiposDocRes.data); // Debug
+                        const tiposArray = Array.isArray(tiposDocRes.data) ? tiposDocRes.data : tiposDocRes.data.results || [];
+                        const tipoCV = tiposArray.find(tipo => 
+                            tipo.nombretipo === "CURRICULUM ACREDITADO"
+                        );
+
+                        if (!tipoCV) {
+                            throw new Error("No se encontró el tipo de documento CURRICULUM ACREDITADO");
+                        }
+
+                        console.log("Tipo CV encontrado:", tipoCV); // Debug
+
+                        const formDataCV = new FormData();
+                        formDataCV.append('archivo', form.cvFile);
+                        formDataCV.append('nombrearchivo', `CV_${form.dpi}_${editingId}`);
+                        formDataCV.append('mimearchivo', 'pdf');
+                        formDataCV.append('fechasubida', new Date().toISOString().split('T')[0]);
+                        formDataCV.append('estado', 'true');
+                        formDataCV.append('idusuario', sessionStorage.getItem("idUsuario") || "1");
+                        formDataCV.append('idempleado', editingId);
+                        formDataCV.append('idtipodocumento', tipoCV.idtipodocumento);
+
+                        console.log("Datos CV a enviar:", {
+                            nombrearchivo: `CV_${form.dpi}_${editingId}`,
+                            mimearchivo: 'pdf',
+                            fechasubida: new Date().toISOString().split('T')[0],
+                            estado: 'true',
+                            idusuario: sessionStorage.getItem("idUsuario") || "1",
+                            idempleado: editingId,
+                            idtipodocumento: tipoCV.idtipodocumento
+                        }); // Debug
+
+                        const cvResponse = await axios.post("http://127.0.0.1:8000/api/documentos/", formDataCV, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data',
+                            },
+                        });
+                        console.log("Respuesta guardar CV:", cvResponse.data); // Debug
+                        showToast("CV actualizado correctamente", "success");
+                    } catch (cvError) {
+                        console.error("Error al subir CV:", cvError);
+                        showToast("Empleado actualizado, pero hubo un error al subir el CV", "warning");
+                    }
+                }
+
                 showToast("Empleado actualizado correctamente");
             }
             else {
@@ -888,17 +938,46 @@ const EmpleadosContainer = () => {
                 // Subir CV si se proporcionó
                 if (form.cvFile) {
                     try {
+                        // Primero obtener el ID del tipo de documento "CURRICULUM ACREDITADO"
+                        const tiposDocRes = await axios.get("http://127.0.0.1:8000/api/tipodocumento/");
+                        console.log("Respuesta tipos documentos (crear):", tiposDocRes.data); // Debug
+                        const tiposArray = Array.isArray(tiposDocRes.data) ? tiposDocRes.data : tiposDocRes.data.results || [];
+                        const tipoCV = tiposArray.find(tipo => 
+                            tipo.nombretipo === "CURRICULUM ACREDITADO"
+                        );
+
+                        if (!tipoCV) {
+                            throw new Error("No se encontró el tipo de documento CURRICULUM ACREDITADO");
+                        }
+
+                        console.log("Tipo CV encontrado:", tipoCV); // Debug
+
                         const formDataCV = new FormData();
                         formDataCV.append('archivo', form.cvFile);
-                        formDataCV.append('nombredocumento', `CV_${form.dpi}_${empleadoId}`);
-                        formDataCV.append('estado', true);
-                        formDataCV.append('idusuario', 1); // TODO: Usuario logueado
+                        formDataCV.append('nombrearchivo', `CV_${form.dpi}_${empleadoId}`);
+                        formDataCV.append('mimearchivo', 'pdf');
+                        formDataCV.append('fechasubida', new Date().toISOString().split('T')[0]);
+                        formDataCV.append('estado', 'true');
+                        formDataCV.append('idusuario', sessionStorage.getItem("idUsuario") || "1");
+                        formDataCV.append('idempleado', empleadoId);
+                        formDataCV.append('idtipodocumento', tipoCV.idtipodocumento);
 
-                        await axios.post(`${API}/documentos/`, formDataCV, {
+                        console.log("Datos CV a enviar:", {
+                            nombrearchivo: `CV_${form.dpi}_${empleadoId}`,
+                            mimearchivo: 'pdf',
+                            fechasubida: new Date().toISOString().split('T')[0],
+                            estado: 'true',
+                            idusuario: sessionStorage.getItem("idUsuario") || "1",
+                            idempleado: empleadoId,
+                            idtipodocumento: tipoCV.idtipodocumento
+                        }); // Debug
+
+                        const cvResponse = await axios.post("http://127.0.0.1:8000/api/documentos/", formDataCV, {
                             headers: {
                                 'Content-Type': 'multipart/form-data',
                             },
                         });
+                        console.log("Respuesta guardar CV:", cvResponse.data); // Debug
                         showToast("CV subido correctamente", "success");
                     } catch (cvError) {
                         console.error("Error al subir CV:", cvError);
@@ -1091,34 +1170,57 @@ const EmpleadosContainer = () => {
             const response = await axios.get(`${API}/documentos/`);
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
 
-            // Buscar el CV por nombre de documento que contenga el DPI y la palabra CV
-            const cvDocumento = documentos.find(doc =>
-                doc.nombredocumento &&
-                (doc.nombredocumento.includes(`CV_${empleado.dpi}`) ||
-                    doc.nombredocumento.toLowerCase().includes('cv') &&
-                    doc.nombredocumento.includes(empleado.dpi))
+            // Buscar el CV del empleado por ID de empleado y tipo de documento
+            const empleadoId = empleado.idempleado || empleado.idEmpleado || empleado.id;
+            
+            // Obtener tipos de documento para encontrar el ID del CV
+            const tiposDocRes = await axios.get("http://127.0.0.1:8000/api/tipodocumento/");
+            const tiposArray = Array.isArray(tiposDocRes.data) ? tiposDocRes.data : tiposDocRes.data.results || [];
+            const tipoCV = tiposArray.find(tipo => tipo.nombretipo === "CURRICULUM ACREDITADO");
+            
+            console.log("Documentos encontrados:", documentos); // Debug
+            console.log("Buscando CV para empleado ID:", empleadoId); // Debug
+            console.log("Tipo CV ID:", tipoCV?.idtipodocumento); // Debug
+            
+            // Buscar por empleado ID y tipo de documento CV
+            let cvDocumento = documentos.find(doc =>
+                doc.idempleado === empleadoId && 
+                doc.idtipodocumento === tipoCV?.idtipodocumento
             );
+            
+            // Si no se encontró por ID, buscar por nombre de archivo como fallback
+            if (!cvDocumento) {
+                cvDocumento = documentos.find(doc =>
+                    doc.nombrearchivo &&
+                    (doc.nombrearchivo.includes(`CV_${empleado.dpi}`) ||
+                        doc.nombrearchivo.toLowerCase().includes('cv') &&
+                        doc.nombrearchivo.includes(empleado.dpi))
+                );
+            }
+
+            console.log("CV encontrado:", cvDocumento); // Debug
 
             if (!cvDocumento) {
                 showToast("No se encontró el CV para este empleado", "warning");
                 return;
             }
 
-            // Descargar el archivo
-            const fileResponse = await axios.get(`${API}/documentos/${cvDocumento.iddocumento}/archivo/`, {
-                responseType: 'blob'
-            });
-
-            // Crear URL del blob y descargar
-            const blob = new Blob([fileResponse.data], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `CV_${empleado.nombre}_${empleado.apellido}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            // Usar la URL directa del archivo para descarga
+            if (cvDocumento.archivo || cvDocumento.archivo_url) {
+                const archivoUrl = cvDocumento.archivo_url || cvDocumento.archivo;
+                console.log("URL del archivo:", archivoUrl); // Debug
+                
+                // Descargar directamente desde la URL
+                const link = document.createElement('a');
+                link.href = archivoUrl;
+                link.download = `CV_${empleado.nombre}_${empleado.apellido}.pdf`;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                throw new Error("No se encontró la URL del archivo");
+            }
 
             showToast("CV descargado correctamente", "success");
 
