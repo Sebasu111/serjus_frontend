@@ -10,52 +10,6 @@ import EvaluacionSeleccion from "./EvaluacionSeleccion.jsx";
 
 const SeleccionContainer = () => {
   const printRef = useRef();
-  const [evaluaciones, setEvaluaciones] = useState([]);
-
-  // Cargar datos almacenados localmente (si existen)
-  useEffect(() => {
-    const dataGuardada = localStorage.getItem("evaluacionesSeleccion");
-    if (dataGuardada) {
-      try {
-        setEvaluaciones(JSON.parse(dataGuardada));
-      } catch (error) {
-        console.error("Error al cargar evaluaciones:", error);
-      }
-    }
-  }, []);
-
-  // Guardar automáticamente cada vez que cambien los datos
-  useEffect(() => {
-    if (evaluaciones.length > 0) {
-      localStorage.setItem("evaluacionesSeleccion", JSON.stringify(evaluaciones));
-    }
-  }, [evaluaciones]);
-
-  const handleGuardar = () => {
-    try {
-      localStorage.setItem("evaluacionesSeleccion", JSON.stringify(evaluaciones));
-      showToast("   Evaluación guardada correctamente (localmente).");
-    } catch (error) {
-      console.error("Error al guardar evaluación:", error);
-      showToast("  Ocurrió un error al guardar la evaluación.");
-    }
-  };
-
-  const handleImprimir = () => {
-    window.print();
-  };
-
-  // Si deseas enviar los datos al servidor más adelante
-  const handleEnviar = async () => {
-    try {
-      const API = process.env.REACT_APP_API_URL;
-      await axios.post(`${API}/evaluaciones`, { evaluaciones });
-      showToast("   Evaluación enviada correctamente al servidor.");
-    } catch (error) {
-      console.error("Error al enviar evaluación:", error);
-      showToast("  No se pudo enviar la evaluación al servidor.");
-    }
-  };
 
   return (
     <Layout>
@@ -95,19 +49,6 @@ const SeleccionContainer = () => {
               marginTop: "10px",
             }}
           >
-            <button
-              onClick={handleGuardar}
-              style={{
-                background: "#FFD700",
-                border: "none",
-                padding: "8px 14px",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
-              Guardar
-            </button>
           </div>
         </div>
 

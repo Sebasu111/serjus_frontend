@@ -194,6 +194,43 @@ const EmpleadosContainer = () => {
     const [mostrarTerminacionLaboral, setMostrarTerminacionLaboral] = useState(false);
     const [empleadoParaTerminacion, setEmpleadoParaTerminacion] = useState(null);
 
+    const [mostrarForm, setMostrarForm] = useState(false);
+    const [formData, setFormData] = useState({});
+
+    useEffect(() => {
+        const handler = (e) => {
+        const ganador = e.detail;
+        // Rellenamos los campos del formulario con los datos del ganador
+        setFormData({
+            nombre: ganador.nombre || "",
+            apellido: ganador.apellido || "",
+            genero: ganador.genero || "",
+            fechanacimiento: ganador.fechanacimiento || "",
+            lugarnacimiento: ganador.lugarnacimiento || "",
+            estadocivil: ganador.estadocivil || "",
+            dpi: ganador.dpi || "",
+            nit: ganador.nit || "",
+            email: ganador.email || "",
+            direccion: ganador.direccion || "",
+            telefonocelular: ganador.telefonocelular || "",
+            telefonoemergencia: ganador.telefonoemergencia || "",
+            idpuesto: ganador.idpuesto || "",
+            ididioma: ganador.ididioma || "",
+            idpueblocultura: ganador.idpueblocultura || "",
+            idequipo: ganador.idequipo || "",
+            numerohijos: "",
+            titulonivelmedio: "",
+            estudiosuniversitarios: "",
+            iniciolaboral: "",
+            cvFile: null,
+        });
+        setMostrarForm(true);
+        };
+
+        window.addEventListener("evaluacion:crearEmpleado", handler);
+        return () => window.removeEventListener("evaluacion:crearEmpleado", handler);
+    }, []);
+
     useEffect(() => {
         fetchList();
         fetchIdiomas();
@@ -1535,6 +1572,21 @@ const EmpleadosContainer = () => {
                     onClose={() => setMostrarTerminacionLaboral(false)}
                     onSuccess={handleTerminacionSuccess}
                 />
+
+                {mostrarForm && (
+                    <EmpleadoForm
+                    form={formData}
+                    errors={errors}
+                    onChange={(e) =>
+                        setFormData({ ...formData, [e.target.name]: e.target.value })
+                    }
+                    handleSubmit={(e) => {
+                        e.preventDefault();
+                        console.log("Empleado a guardar:", formData);
+                    }}
+                    onClose={() => setMostrarForm(false)}
+                    />
+                )}
             </div>
         </Layout>
     );

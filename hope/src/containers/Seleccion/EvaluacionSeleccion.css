@@ -1,0 +1,171 @@
+/* EvaluacionSeleccion.css */
+@page { margin: 2cm; }
+
+#printable, #printable p, #printable table, #printable td, #printable th { 
+  font-family: 'Arial Narrow', Arial, sans-serif !important; 
+  font-size: 11pt !important; 
+  line-height: 1.2; 
+  color: #000; 
+}
+
+#printable h1 { 
+  font-family: NimbusRomanNo9L-Regu, 'Times New Roman', serif; 
+  font-size: 14pt; 
+  text-align: center; 
+  margin: 16px 0; 
+}
+
+#printable table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  table-layout: fixed; 
+  margin-bottom: 12px; 
+}
+
+#printable th, #printable td { 
+  border: 1px solid #000; 
+  padding: 4px 6px; 
+  vertical-align: top; 
+  word-wrap: break-word; 
+}
+
+#printable th { 
+  background-color: #f2f2f2; 
+  text-align: center; 
+}
+
+#printable th:nth-child(1) { width: 20%; } 
+#printable th:nth-child(2) { width: 28%; }
+#printable th:nth-child(3), #printable th:nth-child(4), #printable th:nth-child(5) { width: 10%; }
+#printable th:nth-child(6) { width: 20%; } 
+#printable th:nth-child(7) { width: 12%; }
+
+#printable input, #printable textarea, #printable select { 
+  width: 100%; 
+  font-family: 'Arial Narrow'; 
+  font-size: 10.5pt; 
+  border: none; 
+  background-color: rgba(243, 255, 105, 0.315); 
+  outline: none; 
+}
+
+#printable textarea {      
+  min-height: 65px;    
+  max-height: 120px;   
+  overflow-y: auto;    
+}
+
+@media print { 
+  #printable input, #printable textarea, #printable select { 
+    background: none !important; 
+    border: none !important; 
+  } 
+}
+
+#printable .header-image { 
+  text-align: center; 
+  margin-bottom: 8px; 
+}
+
+#printable .header-image img { 
+  width: 100%; 
+  max-width: 600px; 
+  height: auto; 
+}
+
+#printable .top-bar { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 16px; 
+}
+
+#printable select { 
+  padding: 6px; 
+  border-radius: 4px; 
+}
+
+#printable .aspirantes-seleccionados { 
+  text-align: center; 
+  margin-bottom: 10px; 
+}
+
+#printable .aspirantes-seleccionados span { 
+  margin: 0 8px; 
+}
+
+#printable .btn-agregar { 
+  margin-bottom: 12px; 
+  padding: 8px 16px; 
+  background-color: #219ebc;  
+  color: white; 
+  border: none; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-weight: bold; 
+  transition: background-color 0.2s; 
+}
+
+#printable .btn-agregar:hover { 
+  background-color: #219ebc; 
+}
+
+#printable .btn-eliminar { 
+  background-color: #FCA5A5; 
+  color: black; 
+  border: none; 
+  border-radius: 4px; 
+  padding: 4px 8px; 
+  cursor: pointer; 
+  font-size: 10pt; 
+  transition: background-color 0.2s; 
+}
+
+#printable .btn-eliminar:hover { 
+  background-color: #FCA5A5; 
+}
+
+#printable .center { 
+  text-align: center; 
+}
+
+#printable .right { 
+  text-align: right; 
+}
+
+#printable .total-row { 
+  background: #f2f2f2; 
+  font-weight: bold; 
+}
+
+#printable .botones-final { 
+  text-align: center; 
+  margin-top: 20px; 
+}
+
+#printable .botones-final button { 
+  margin: 0 10px; 
+  padding: 8px 16px; 
+  border: none; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  background-color: #ccc; 
+  color: #000; 
+  font-weight: bold; 
+  transition: all 0.2s; 
+}
+
+#printable .botones-final button.habilitado { 
+  background-color: #28a745; 
+  color: white; 
+}
+
+#printable .botones-final button:disabled { 
+  cursor: not-allowed; 
+  opacity: 0.5; 
+}
+
+#printable ul { 
+  margin: 4px 0 0 20px; 
+  line-height: 1.1; 
+}
