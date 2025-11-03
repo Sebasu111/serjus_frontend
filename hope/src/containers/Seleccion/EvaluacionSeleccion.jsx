@@ -17,41 +17,70 @@ const criterios = [
 ];
 
 const EvaluacionSeleccion = forwardRef((props, ref) => {
-  const [evaluaciones, setEvaluaciones] = useState(
-    criterios.map((c) => ({
-      criterio: c.nombre,
-      puntajes: { p1: "", p2: "", p3: "" },
-      observaciones: "",
-    }))
-  );
-
-  const [nombresEvaluados, setNombresEvaluados] = useState([
-    "Entrevistado/a Nº 1",
-    "Entrevistado/a Nº 2",
-    "Entrevistado/a Nº 3",
-  ]);
-
+  const [convocatorias, setConvocatorias] = useState([]);
+  const [convocatoriaSeleccionada, setConvocatoriaSeleccionada] = useState("");
+  const [nombresEvaluados, setNombresEvaluados] = useState(["", "", ""]);
+  const [evaluaciones, setEvaluaciones] = useState([]);
   const [ganador, setGanador] = useState(null);
 
-  // Leer nombres guardados en localStorage
+  // === Cargar convocatorias ===
   useEffect(() => {
-    try {
-      const seleccionados = JSON.parse(localStorage.getItem("aspirantesSeleccionados") || "[]");
-      if (Array.isArray(seleccionados) && seleccionados.length >= 2) {
-        const nombres = seleccionados.map((a) => a.nombre);
-        const nombresFinales = [...nombres, ...Array(3 - nombres.length).fill("")].slice(0, 3);
-        setNombresEvaluados(nombresFinales);
-      }
-    } catch (err) {
-      console.error("Error leyendo aspirantes seleccionados:", err);
-    }
+    fetch("http://127.0.0.1:8000/api/convocatorias/")
+      .then((res) => res.json())
+      .then((data) => setConvocatorias(data.results || data))
+      .catch((err) => console.error("Error cargando convocatorias:", err));
   }, []);
 
-  // Calcular totales
+  // === Cuando se selecciona convocatoria ===
+  useEffect(() => {
+    if (!convocatoriaSeleccionada) return;
+
+    const cargarAspirantes = async () => {
+      try {
+        const postRes = await fetch("http://127.0.0.1:8000/api/postulaciones/");
+        const aspRes = await fetch("http://127.0.0.1:8000/api/aspirantes/");
+
+        const postulaciones = (await postRes.json()).results || [];
+        const aspirantes = (await aspRes.json()).results || [];
+
+        const postulacionesFiltradas = postulaciones.filter(
+          (p) =>
+            p.idconvocatoria === Number(convocatoriaSeleccionada) &&
+            p.idestado === 2
+        );
+
+        const seleccionados = postulacionesFiltradas
+          .map((p) => aspirantes.find((a) => a.idaspirante === p.idaspirante))
+          .filter(Boolean)
+          .map((a) => `${a.nombreaspirante} ${a.apellidoaspirante}`)
+          .slice(0, 3);
+
+        // Ajustar si hay menos de 3
+        const final = [...seleccionados, ...Array(3 - seleccionados.length).fill("")];
+        setNombresEvaluados(final);
+      } catch (err) {
+        console.error("Error cargando aspirantes:", err);
+      }
+    };
+
+    cargarAspirantes();
+  }, [convocatoriaSeleccionada]);
+
+  // === Inicializar evaluaciones ===
+  useEffect(() => {
+    setEvaluaciones(
+      criterios.map((c) => ({
+        criterio: c.nombre,
+        puntajes: { p1: "", p2: "", p3: "" },
+        observaciones: "",
+      }))
+    );
+  }, [nombresEvaluados]);
+
+  // === Totales ===
   const totalPorPersona = (persona) =>
     evaluaciones.reduce((acc, e) => acc + (Number(e.puntajes[persona]) || 0), 0);
 
-  // Detectar el ganador automáticamente
   useEffect(() => {
     const totales = {
       p1: totalPorPersona("p1"),
@@ -60,7 +89,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
     };
     const max = Math.max(totales.p1, totales.p2, totales.p3);
     const keys = Object.keys(totales).filter((k) => totales[k] === max);
-    setGanador(keys.length === 1 ? keys[0] : null); // Solo si hay un ganador claro
+    setGanador(keys.length === 1 ? keys[0] : null);
   }, [evaluaciones]);
 
   const handleChange = (index, field, value, persona) => {
@@ -70,7 +99,11 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
     setEvaluaciones(newEval);
   };
 
-  const personaKeyToIndex = { p1: 0, p2: 1, p3: 2 };
+  const handleGuardarEvaluacion = () => {
+    // Lógica para guardar la evaluación (puedes implementar aquí el envío a la API)
+    console.log("Guardando evaluación:", { convocatoriaSeleccionada, evaluaciones, ganador });
+    alert("Evaluación guardada exitosamente.");
+  };
 
   return (
     <>
@@ -128,6 +161,16 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
             border: none !important;
           }
         }
+        .top-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+        select {
+          padding: 6px;
+          border-radius: 4px;
+        }
         .botones-final {
           text-align: center;
           margin-top: 20px;
@@ -147,11 +190,32 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
           background-color: #28a745;
           color: white;
         }
+        .botones-final button:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
       `}</style>
 
       <div id="printable" ref={ref}>
         <div style={{ textAlign: "center", marginBottom: "8px" }}>
           <img src={serjusHeader} alt="SERJUS Header" style={{ width: "100%", maxWidth: "600px", height: "auto" }} />
+        </div>
+
+        <div className="top-bar">
+          <div>
+            <strong>Convocatoria:</strong>{" "}
+            <select
+              value={convocatoriaSeleccionada}
+              onChange={(e) => setConvocatoriaSeleccionada(e.target.value)}
+            >
+              <option value="">Seleccione una convocatoria</option>
+              {convocatorias.map((c) => (
+                <option key={c.idconvocatoria} value={c.idconvocatoria}>
+                  {c.nombreconvocatoria}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <h1>Evaluación de Candidatos - Selección de 3 Personas</h1>
@@ -191,10 +255,11 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
                 <td><strong>{c.nombre}</strong></td>
                 <td>{c.descripcion}</td>
 
-                {["p1", "p2", "p3"].map((persona) => (
+                {["p1", "p2", "p3"].map((persona, i) => (
                   <td key={persona} style={{ textAlign: "center" }}>
                     <select
-                      value={evaluaciones[index].puntajes[persona]}
+                      disabled={!nombresEvaluados[i]}
+                      value={evaluaciones[index]?.puntajes[persona] || ""}
                       onChange={(e) =>
                         handleChange(index, "puntaje", e.target.value, persona)
                       }
@@ -209,7 +274,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
 
                 <td>
                   <textarea
-                    value={evaluaciones[index].observaciones}
+                    value={evaluaciones[index]?.observaciones || ""}
                     onChange={(e) =>
                       handleChange(index, "observaciones", e.target.value)
                     }
@@ -244,10 +309,10 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
           {["p1", "p2", "p3"].map((p, i) => (
             <button
               key={p}
-              disabled={ganador !== p}
+              disabled={ganador !== p || !nombresEvaluados[i]}
               className={ganador === p ? "habilitado" : ""}
             >
-              {ganador === p ? `  Contratar a ${nombresEvaluados[i]}` : `Contratar a ${nombresEvaluados[i]}`}
+              {ganador === p ? `  Contratar a ${nombresEvaluados[i]}` : `Contratar a ${nombresEvaluados[i] || `Entrevistado ${i + 1}`}`}
             </button>
           ))}
         </div>
