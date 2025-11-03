@@ -49,7 +49,6 @@ const SidebarMenu = () => {
             icon: <FaBook className="menu-icon" />,
             submenus: [
                 { path: "/Induccion", label: "Inducción", roles: [1, 2, 4, 5] },
-                { path: "/InduccionDocumentos", label: "Inducción Documentos", roles: [1, 2, 4, 5] },
                 { path: "/Capacitacion", label: "Capacitación", roles: [1, 4, 5] }
             ]
         },

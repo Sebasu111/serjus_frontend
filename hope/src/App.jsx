@@ -53,7 +53,6 @@ import PostulacionesContainer from "./containers/postulaciones/PostulacionesCont
 //   INTEGRACIÓN
 // =============================================================
 import CapacitacionContainer from "./containers/capacitacion/CapacitacionContainer";
-import InduccionDocumentosContainer from "./containers/InduccionDocumentos";
 import InduccionContainer from "./containers/Induccion";
 
 // =============================================================
@@ -61,7 +60,7 @@ import InduccionContainer from "./containers/Induccion";
 // =============================================================
 import CriterioEvaluacionContainer from "./containers/CriterioEvaluacion/CriterioEvaluacionContainer";
 import EvaluacionCriterioContainer from "./containers/EvaluacionCriterio/EvaluacionCriterioContainer";
-import EvaluacionesContainer from "./containers/Evaluaciones/EvaluacionesContainer";
+import EvaluacionContainer from "./containers/Evaluaciones/EvaluacionContainer";
 
 // =============================================================
 //   CONTROL DISCIPLINARIO
@@ -141,13 +140,12 @@ const App = () => {
 
                     {/*INTEGRACIÓN*/}
                     {<Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />}
-                    <Route exact path={`${base}/InduccionDocumentos`} component={InduccionDocumentosContainer} />
                     <Route exact path={`${base}/Induccion`} component={InduccionContainer} />
 
                     {/*DESEMPEÑO*/}
                     <Route exact path={`${base}/CriterioEvaluacion`} component={CriterioEvaluacionContainer} />
                     <Route exact path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} />
-                    <Route exact path={`${base}/Evaluaciones`} component={EvaluacionesContainer} />
+                    <Route exact path={`${base}/Evaluaciones`} component={EvaluacionContainer} />
 
                     {/*CONTROL DISCIPLINARIO*/}
                     <Route exact path={`${base}/Ausencias`} component={AusenciaContainer} />

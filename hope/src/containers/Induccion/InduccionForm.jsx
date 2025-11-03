@@ -1,7 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 
-const InduccionForm = ({ nombre, setNombre, fechainicio, setFechaInicio, fechafin, setFechaFin, activoEditando, editingId, handleSubmit, onClose }) => {
+const InduccionForm = ({ nombre, setNombre, fechainicio, setFechaInicio, activoEditando, editingId, handleSubmit, onClose }) => {
 
     const handleNombreChange = e => {
         // Letras, números, espacios, acentos y algunos símbolos (máximo 200 chars)
@@ -68,12 +68,15 @@ const InduccionForm = ({ nombre, setNombre, fechainicio, setFechaInicio, fechafi
                             value={fechainicio}
                             onChange={e => setFechaInicio(e.target.value)}
                             required
-                            disabled={!activoEditando}
+                            disabled={true}  // Siempre deshabilitado en edición
                             style={{
                                 width: "100%",
                                 padding: "10px",
-                                border: "1px solid #ccc",
-                                borderRadius: "6px"
+                                border: "1px solid #219ebc",
+                                borderRadius: "6px",
+                                backgroundColor: "#e3f2fd",
+                                color: "#1976d2",
+                                cursor: "not-allowed"
                             }}
                         />
                     </div>
@@ -94,26 +97,6 @@ const InduccionForm = ({ nombre, setNombre, fechainicio, setFechaInicio, fechafi
                         </div>
                     </div>
                 )}
-
-                <div style={{ marginBottom: "18px" }}>
-                    <label htmlFor="fechafin" style={{ display: "block", marginBottom: "8px" }}>
-                        Fecha de Fin (Opcional)
-                    </label>
-                    <input
-                        id="fechafin"
-                        type="date"
-                        value={fechafin}
-                        onChange={e => setFechaFin(e.target.value)}
-                        disabled={!activoEditando}
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            border: "1px solid #ccc",
-                            borderRadius: "6px"
-                        }}
-                        placeholder="Opcional - Dejar vacío si no se conoce"
-                    />
-                </div>
 
                 <button
                     type="submit"

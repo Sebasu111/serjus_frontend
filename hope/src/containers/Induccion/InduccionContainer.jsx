@@ -10,13 +10,14 @@ import { showToast } from "../../utils/toast.js";
 import InduccionForm from "./InduccionForm";
 import ConfirmModal from "./ConfirmModal";
 import InduccionTable from "./InduccionTable";
+import GestionarDocumentosModal from "./GestionarDocumentosModal";
+import DocumentosAsignadosModal from "./DocumentosAsignadosModal";
 
 const API = "http://127.0.0.1:8000/api/inducciones/";
 
 const InduccionContainer = () => {
     const [nombre, setNombre] = useState("");
     const [fechainicio, setFechaInicio] = useState("");
-    const [fechafin, setFechaFin] = useState("");
     const [items, setItems] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [activoEditando, setActivoEditando] = useState(true);
@@ -26,6 +27,14 @@ const InduccionContainer = () => {
     const [busqueda, setBusqueda] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
+    
+    // Nuevo estado para el modal de gestionar documentos
+    const [mostrarGestionarDocumentos, setMostrarGestionarDocumentos] = useState(false);
+    const [induccionSeleccionada, setInduccionSeleccionada] = useState(null);
+    
+    // Nuevo estado para el modal de documentos asignados
+    const [mostrarDocumentosAsignados, setMostrarDocumentosAsignados] = useState(false);
+    const [induccionParaDocumentos, setInduccionParaDocumentos] = useState(null);
 
     useEffect(() => {
         fetchAll();
@@ -43,7 +52,6 @@ const InduccionContainer = () => {
                 idinduccion: r.idinduccion ?? r.idinduccion ?? r.id,
                 nombre: r.nombre,
                 fechainicio: r.fechainicio ?? r.fechaInicio,
-                fechafin: r.fechafin ?? r.fechaFin,
                 estado: r.estado
             }));
             setItems(data);
@@ -70,18 +78,11 @@ const InduccionContainer = () => {
             // Obtener fecha actual para fecha de inicio
             const fechaActual = new Date().toISOString().split('T')[0];
 
-            // Validar fechas solo si hay fecha fin
-            if (fechafin && new Date(fechaActual) >= new Date(fechafin)) {
-                showToast("La fecha de fin debe ser posterior a la fecha de inicio (hoy)", "warning");
-                return;
-            }
-
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
             const payload = {
                 // payload en snake_case para DRF
                 nombre: nombre,
                 fechainicio: editingId ? fechainicio : fechaActual, // Si está editando, mantener la fecha original
-                fechafin: fechafin || null, // Opcional (puede ser null)
                 estado: Boolean(activoEditando),
                 idusuario: idUsuario
             };
@@ -95,7 +96,6 @@ const InduccionContainer = () => {
             showToast(editingId ? "Actualizado correctamente" : "Registrado correctamente");
             setNombre("");
             // fechainicio se maneja automáticamente
-            setFechaFin("");
             setEditingId(null);
             setActivoEditando(true);
             setMostrarFormulario(false);
@@ -103,7 +103,7 @@ const InduccionContainer = () => {
         } catch (error) {
             const apiErr = error.response?.data;
             const detalle =
-                (apiErr && (apiErr.fechainicio?.[0] || apiErr.fechafin?.[0] || apiErr.detail || JSON.stringify(apiErr))) || "desconocido";
+                (apiErr && (apiErr.fechainicio?.[0] || apiErr.detail || JSON.stringify(apiErr))) || "desconocido";
             console.error("POST/PUT induccion error:", apiErr || error);
             showToast(`Error al guardar: ${detalle}`, "error");
         }
@@ -114,9 +114,8 @@ const InduccionContainer = () => {
             showToast("No se puede editar un registro inactivo");
             return;
         }
-        setNombre(row.nombre);
-        setFechaInicio(row.fechainicio);
-        setFechaFin(row.fechafin);
+        setNombre(row.nombre || "");
+        setFechaInicio(row.fechainicio || "");
         setEditingId(row.idinduccion);
         setActivoEditando(row.estado);
         setMostrarFormulario(true);
@@ -134,7 +133,6 @@ const InduccionContainer = () => {
             await axios.put(`${API}${seleccionado.idinduccion}/`, {
                 nombre: seleccionado.nombre,
                 fechainicio: seleccionado.fechainicio,
-                fechafin: seleccionado.fechafin,
                 estado: false,
                 idusuario: idUsuario
             });
@@ -157,7 +155,6 @@ const InduccionContainer = () => {
             await axios.put(`${API}${id}/`, {
                 nombre: row.nombre,
                 fechainicio: row.fechainicio,
-                fechafin: row.fechafin,
                 estado: true,
                 idusuario: idUsuario
             });
@@ -167,6 +164,16 @@ const InduccionContainer = () => {
             console.error(e);
             showToast("Error al activar", "error");
         }
+    };
+
+    const handleGestionarDocumentos = (induccion) => {
+        setInduccionSeleccionada(induccion);
+        setMostrarGestionarDocumentos(true);
+    };
+
+    const handleDocumentosAsignados = (induccion) => {
+        setInduccionParaDocumentos(induccion);
+        setMostrarDocumentosAsignados(true);
     };
 
     const formatDateForDisplay = (dateString) => {
@@ -186,9 +193,8 @@ const InduccionContainer = () => {
             const t = busqueda.toLowerCase().trim();
             const n = i.nombre?.toLowerCase() || "";
             const fechaInicioStr = formatDateForDisplay(i.fechainicio).toLowerCase();
-            const fechaFinStr = formatDateForDisplay(i.fechafin).toLowerCase();
             const e = i.estado ? "activo" : "inactivo";
-            return n.includes(t) || fechaInicioStr.includes(t) || fechaFinStr.includes(t) || e.startsWith(t);
+            return n.includes(t) || fechaInicioStr.includes(t) || e.startsWith(t);
         });
 
     const indexLast = paginaActual * elementosPorPagina;
@@ -227,7 +233,7 @@ const InduccionContainer = () => {
                             >
                                 <input
                                     type="text"
-                                    placeholder="Buscar nombre / fecha inicio / fecha fin / estado..."
+                                    placeholder="Buscar nombre / fecha inicio / estado..."
                                     value={busqueda}
                                     onChange={e => {
                                         setBusqueda(e.target.value);
@@ -245,7 +251,6 @@ const InduccionContainer = () => {
                                     onClick={() => {
                                         // Resetear formulario para nuevo registro
                                         setNombre("");
-                                        setFechaFin("");
                                         const fechaActual = new Date().toISOString().split('T')[0];
                                         setFechaInicio(fechaActual);
                                         setEditingId(null);
@@ -272,6 +277,8 @@ const InduccionContainer = () => {
                                 handleEdit={handleEdit}
                                 handleDelete={handleDelete}
                                 handleActivate={handleActivate}
+                                handleGestionarDocumentos={handleGestionarDocumentos}
+                                handleDocumentosAsignados={handleDocumentosAsignados}
                                 paginaActual={paginaActual}
                                 totalPaginas={totalPaginas}
                                 setPaginaActual={setPaginaActual}
@@ -311,8 +318,6 @@ const InduccionContainer = () => {
                         setNombre={setNombre}
                         fechainicio={fechainicio}
                         setFechaInicio={setFechaInicio}
-                        fechafin={fechafin}
-                        setFechaFin={setFechaFin}
                         activoEditando={activoEditando}
                         editingId={editingId}
                         handleSubmit={handleSubmit}
@@ -320,7 +325,6 @@ const InduccionContainer = () => {
                             setMostrarFormulario(false);
                             // Resetear al cerrar
                             setNombre("");
-                            setFechaFin("");
                             setEditingId(null);
                             setActivoEditando(true);
                         }}
@@ -333,6 +337,21 @@ const InduccionContainer = () => {
                         onConfirm={confirmarDesactivacion}
                         onCancel={() => setMostrarConfirmacion(false)}
                         tipo="inducción"
+                    />
+                )}
+
+                {mostrarGestionarDocumentos && (
+                    <GestionarDocumentosModal
+                        visible={mostrarGestionarDocumentos}
+                        onClose={() => setMostrarGestionarDocumentos(false)}
+                        induccion={induccionSeleccionada}
+                    />
+                )}
+
+                {mostrarDocumentosAsignados && (
+                    <DocumentosAsignadosModal
+                        induccion={induccionParaDocumentos}
+                        onClose={() => setMostrarDocumentosAsignados(false)}
                     />
                 )}
 

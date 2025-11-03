@@ -47,6 +47,8 @@ const DocumentosContainer = () => {
         try {
             const r = await axios.get(`${API}/documentos/`);
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
+            console.log("Documentos obtenidos para tabla:", data); // Debug
+            console.log("CVs encontrados:", data.filter(doc => doc.nombrearchivo && doc.nombrearchivo.includes('CV_'))); // Debug
             setDocumentos(data);
         } catch (error) {
             console.error("Error al cargar documentos:", "error");
@@ -238,11 +240,6 @@ const DocumentosContainer = () => {
     // Ordenar por ID descendente (último agregado primero)
     .sort((a, b) => (b.iddocumento || 0) - (a.iddocumento || 0))
     .filter(d => {
-        // 🚫 Excluir los documentos con idtipodocumento = 1
-        if (Number(d.idtipodocumento) === 1) {
-            return false;
-        }
-
         const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
 
         // Buscar el empleado correspondiente

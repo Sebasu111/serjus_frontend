@@ -7,6 +7,8 @@ const InduccionTable = ({
     handleEdit,
     handleDelete,
     handleActivate,
+    handleGestionarDocumentos, // Nueva función
+    handleDocumentosAsignados, // Nueva función para ver documentos asignados
     paginaActual,
     totalPaginas,
     setPaginaActual,
@@ -27,15 +29,7 @@ const InduccionTable = ({
         setModalOpen(true);
     };
 
-    const calcularDuracion = (fechaInicio, fechaFin) => {
-        if (!fechaInicio) return "-";
-        if (!fechaFin) return "En progreso";
-        const inicio = new Date(fechaInicio);
-        const fin = new Date(fechaFin);
-        const diffTime = Math.abs(fin - inicio);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return `${diffDays} día${diffDays !== 1 ? 's' : ''}`;
-    };
+
 
     return (
         <div
@@ -51,8 +45,6 @@ const InduccionTable = ({
                     <tr>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Nombre</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Fecha Inicio</th>
-                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Fecha Fin</th>
-                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Duración</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Estado</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>
                             Acciones
@@ -68,23 +60,6 @@ const InduccionTable = ({
                                 </td>
                                 <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
                                     {formatDateForDisplay(row.fechainicio)}
-                                </td>
-                                <td style={{
-                                    padding: "10px",
-                                    borderBottom: "1px solid #f0f0f0",
-                                    color: row.fechafin ? "inherit" : "#999",
-                                    fontStyle: row.fechafin ? "normal" : "italic"
-                                }}>
-                                    {row.fechafin ? formatDateForDisplay(row.fechafin) : "Sin definir"}
-                                </td>
-                                <td style={{
-                                    padding: "10px",
-                                    textAlign: "center",
-                                    borderBottom: "1px solid #f0f0f0",
-                                    color: "#666",
-                                    fontSize: "14px"
-                                }}>
-                                    {calcularDuracion(row.fechainicio, row.fechafin)}
                                 </td>
                                 <td
                                     style={{
@@ -116,6 +91,21 @@ const InduccionTable = ({
                                                 >
                                                     Editar
                                                 </div>
+                                                <div
+                                                    style={{
+                                                        ...comboBoxStyles.menu.item.editar.base,
+                                                        ...(row.estado ? {} : comboBoxStyles.menu.item.editar.disabled)
+                                                    }}
+                                                    onClick={() => row.estado && handleGestionarDocumentos && handleGestionarDocumentos(row)}
+                                                >
+                                                    Gestionar Documentos
+                                                </div>
+                                                <div
+                                                    style={comboBoxStyles.menu.item.editar.base}
+                                                    onClick={() => handleDocumentosAsignados && handleDocumentosAsignados(row)}
+                                                >
+                                                    Documentos Asignados
+                                                </div>
                                                 {row.estado ? (
                                                     <div
                                                         style={comboBoxStyles.menu.item.desactivar.base}
@@ -139,7 +129,7 @@ const InduccionTable = ({
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
+                            <td colSpan="4" style={{ textAlign: "center", padding: "20px" }}>
                                 No hay registros
                             </td>
                         </tr>
