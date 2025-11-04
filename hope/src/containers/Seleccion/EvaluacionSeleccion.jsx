@@ -19,10 +19,9 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
     eliminarCriterio,
     handleCriterioChange,
     handleGuardarEvaluacion,
-    handleCrearEmpleadoDesdeGanador,
   } = useEvaluacionSeleccion();
 
-  // ✅ Verifica si toda la tabla está completa
+  // Verifica si toda la tabla está completa
   const tablaCompleta =
     criterios.length > 0 &&
     criterios.every((c, idx) => {

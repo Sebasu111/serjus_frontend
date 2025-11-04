@@ -1,6 +1,7 @@
 // useEvaluacionSeleccion.js
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { showToast, showPDFToasts } from "../../utils/toast";
 
 const useEvaluacionSeleccion = () => {
   const [convocatorias, setConvocatorias] = useState([]);
@@ -43,7 +44,7 @@ const useEvaluacionSeleccion = () => {
 
         setCriterios(listaCriterios);
       } catch (err) {
-        console.error("Error cargando criterios:", err);
+        showToast("Error cargando criterios:", "error");
       }
     };
 
@@ -89,7 +90,7 @@ const useEvaluacionSeleccion = () => {
         ];
         setNombresEvaluados(final);
       } catch (err) {
-        console.error("Error cargando aspirantes:", err);
+        showToast("Error cargando aspirantes:", "error");
       }
     };
 
@@ -167,7 +168,7 @@ const useEvaluacionSeleccion = () => {
 
       const ganadorObj = nombresEvaluados[indiceGanador];
       if (!ganadorObj || !ganadorObj.idpostulacion) {
-        alert("No se encontró la postulación del ganador.");
+        showToast("No se encontró la postulación del ganador.", "error");
         console.error("Postulación no encontrada:", ganadorObj);
         return;
       }
@@ -178,7 +179,7 @@ const useEvaluacionSeleccion = () => {
       // ✅ Calcular total
       const total = totalPorPersona(`p${indiceGanador + 1}`);
       if (isNaN(total)) {
-        alert("Error: alguno de los puntajes es inválido.");
+        showToast("Error: alguno de los puntajes es inválido.", "error");
         return;
       }
       console.log("Puntaje total:", total);
@@ -357,23 +358,15 @@ const useEvaluacionSeleccion = () => {
       setEvaluaciones([]);
       setGanador(null);
 
-      alert(`✅ Evaluación y contratación de ${nombreGanador} guardadas correctamente. Proceso finalizado.`);
+      showToast(`Evaluación y contratación de ${nombreGanador} guardadas correctamente. Proceso finalizado.`);
       console.log("=== Evaluación completada exitosamente ===");
+      if (ganadorObj?.idaspirante && convocatoriaSeleccionada) {
+        showToast("Redirigiendo al registro de empleado...", "success");
+        window.location.href = `/empleados?aspirante=${ganadorObj.idaspirante}&convocatoria=${convocatoriaSeleccionada}`;
+      }
     } catch (err) {
-      console.error("🔥 Error guardando evaluación:", err);
-      alert("Ocurrió un error al guardar la evaluación. Revisa la consola para más detalles.");
+      console.error("Error guardando evaluación:", err);
     }
-  };
-
-  const handleCrearEmpleadoDesdeGanador = () => {
-    if (!ganador) {
-      alert("No hay ganador seleccionado.");
-      return;
-    }
-
-    // Disparamos un evento global con los datos del ganador
-    const evento = new CustomEvent("evaluacion:crearEmpleado", { detail: ganador });
-    window.dispatchEvent(evento);
   };
 
   return {
@@ -390,7 +383,6 @@ const useEvaluacionSeleccion = () => {
     eliminarCriterio,
     handleCriterioChange,
     handleGuardarEvaluacion,
-    handleCrearEmpleadoDesdeGanador,
   };
 };
 
