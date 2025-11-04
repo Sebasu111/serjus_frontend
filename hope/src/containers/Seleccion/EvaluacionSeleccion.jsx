@@ -1,323 +1,207 @@
-import React, { useState, useEffect, forwardRef } from "react";
+// EvaluacionSeleccion.jsx
+import React, { forwardRef } from "react";
 import serjusHeader from "../../assets/header-contrato/header-contrato.png";
-
-const criterios = [
-  { id: 1, nombre: "Experiencia laboral en el ámbito del puesto", descripcion: "Años y tipo de experiencia en funciones similares; vinculación con organizaciones sociales o comunitarias." },
-  { id: 2, nombre: "Formación académica y técnica", descripcion: "Nivel de estudios, especialización o formación complementaria relacionada con el cargo y los enfoques institucionales." },
-  { id: 3, nombre: "Conocimiento y práctica en enfoque de género", descripcion: "Manejo de conceptos, metodologías y estrategias de equidad de género; capacidad para aplicarlos en contextos rurales o comunitarios." },
-  { id: 4, nombre: "Discurso incluyente y compromiso con la igualdad", descripcion: "Su discurso y actitudes reflejan respeto, apertura, lenguaje inclusivo y promoción de la equidad." },
-  { id: 5, nombre: "Experiencia en promover alianzas o trabajo coordinado con otras instituciones", descripcion: "Participación o promoción en redes, espacios interinstitucionales o alianzas estratégicas." },
-  { id: 6, nombre: "Habilidad para trabajar en equipos diversos", descripcion: "Capacidad para integrarse, cooperar, respetar diferencias culturales, generacionales, de género y resolución pacífica de conflictos." },
-  { id: 7, nombre: "Competencias técnicas específicas", descripcion: "Dominio de herramientas, metodologías o áreas propias del cargo (planificación, incidencia, educación popular, etc.)." },
-  { id: 8, nombre: "Conocimiento del contexto social y político", descripcion: "Comprensión de las realidades rurales, indígenas, de mujeres y juventudes, así como de los procesos de desarrollo local." },
-  { id: 9, nombre: "Coherencia con los valores institucionales", descripcion: "Expresa compromiso con los principios de solidaridad, justicia social, respeto y servicio." },
-  { id: 10, nombre: "Comunicación efectiva", descripcion: "Capacidad de expresión oral y escrita clara, empática y coherente con el enfoque institucional." },
-  { id: 11, nombre: "Disponibilidad y compromiso", descripcion: "Disposición para desplazarse al territorio, cumplimiento de horarios y acompañamiento a procesos comunitarios." },
-  { id: 12, nombre: "Adecuación al salario propuesto", descripcion: "Acepta las condiciones salariales y demuestra motivación no solo económica." },
-];
+import useEvaluacionSeleccion from "./useEvaluacionSeleccion";
+import "./EvaluacionSeleccion.css";
 
 const EvaluacionSeleccion = forwardRef((props, ref) => {
-  const [convocatorias, setConvocatorias] = useState([]);
-  const [convocatoriaSeleccionada, setConvocatoriaSeleccionada] = useState("");
-  const [nombresEvaluados, setNombresEvaluados] = useState(["", "", ""]);
-  const [evaluaciones, setEvaluaciones] = useState([]);
-  const [ganador, setGanador] = useState(null);
+  const {
+    convocatorias,
+    setConvocatoriaSeleccionada,
+    convocatoriaSeleccionada,
+    nombresEvaluados,
+    criterios,
+    evaluaciones,
+    ganador,
+    totalPorPersona,
+    handleChange,
+    agregarCriterio,
+    eliminarCriterio,
+    handleCriterioChange,
+    handleGuardarEvaluacion,
+  } = useEvaluacionSeleccion();
 
-  // === Cargar convocatorias ===
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/convocatorias/")
-      .then((res) => res.json())
-      .then((data) => setConvocatorias(data.results || data))
-      .catch((err) => console.error("Error cargando convocatorias:", err));
-  }, []);
-
-  // === Cuando se selecciona convocatoria ===
-  useEffect(() => {
-    if (!convocatoriaSeleccionada) return;
-
-    const cargarAspirantes = async () => {
-      try {
-        const postRes = await fetch("http://127.0.0.1:8000/api/postulaciones/");
-        const aspRes = await fetch("http://127.0.0.1:8000/api/aspirantes/");
-
-        const postulaciones = (await postRes.json()).results || [];
-        const aspirantes = (await aspRes.json()).results || [];
-
-        const postulacionesFiltradas = postulaciones.filter(
-          (p) =>
-            p.idconvocatoria === Number(convocatoriaSeleccionada) &&
-            p.idestado === 2
-        );
-
-        const seleccionados = postulacionesFiltradas
-          .map((p) => aspirantes.find((a) => a.idaspirante === p.idaspirante))
-          .filter(Boolean)
-          .map((a) => `${a.nombreaspirante} ${a.apellidoaspirante}`)
-          .slice(0, 3);
-
-        // Ajustar si hay menos de 3
-        const final = [...seleccionados, ...Array(3 - seleccionados.length).fill("")];
-        setNombresEvaluados(final);
-      } catch (err) {
-        console.error("Error cargando aspirantes:", err);
-      }
-    };
-
-    cargarAspirantes();
-  }, [convocatoriaSeleccionada]);
-
-  // === Inicializar evaluaciones ===
-  useEffect(() => {
-    setEvaluaciones(
-      criterios.map((c) => ({
-        criterio: c.nombre,
-        puntajes: { p1: "", p2: "", p3: "" },
-        observaciones: "",
-      }))
-    );
-  }, [nombresEvaluados]);
-
-  // === Totales ===
-  const totalPorPersona = (persona) =>
-    evaluaciones.reduce((acc, e) => acc + (Number(e.puntajes[persona]) || 0), 0);
-
-  useEffect(() => {
-    const totales = {
-      p1: totalPorPersona("p1"),
-      p2: totalPorPersona("p2"),
-      p3: totalPorPersona("p3"),
-    };
-    const max = Math.max(totales.p1, totales.p2, totales.p3);
-    const keys = Object.keys(totales).filter((k) => totales[k] === max);
-    setGanador(keys.length === 1 ? keys[0] : null);
-  }, [evaluaciones]);
-
-  const handleChange = (index, field, value, persona) => {
-    const newEval = [...evaluaciones];
-    if (field === "observaciones") newEval[index].observaciones = value;
-    else newEval[index].puntajes[persona] = Number(value);
-    setEvaluaciones(newEval);
-  };
-
-  const handleGuardarEvaluacion = () => {
-    // Lógica para guardar la evaluación (puedes implementar aquí el envío a la API)
-    console.log("Guardando evaluación:", { convocatoriaSeleccionada, evaluaciones, ganador });
-    alert("Evaluación guardada exitosamente.");
-  };
+  // Verifica si toda la tabla está completa
+  const tablaCompleta =
+    criterios.length > 0 &&
+    criterios.every((c, idx) => {
+      const ev = evaluaciones[idx];
+      return (
+        c.nombre.trim() !== "" &&
+        c.descripcion.trim() !== "" &&
+        ev &&
+        ["p1", "p2", "p3"].every((p) => ev.puntajes[p] && ev.puntajes[p] !== "")
+      );
+    });
 
   return (
-    <>
-      <style>{`
-        @page { margin: 2cm; }
-        body, p, table, td, th {
-          font-family: 'Arial Narrow', Arial, sans-serif !important;
-          font-size: 11pt !important;
-          line-height: 1.2;
-          color: #000;
-        }
-        #printable h1 {
-          font-family: NimbusRomanNo9L-Regu, 'Times New Roman', serif;
-          font-size: 14pt;
-          text-align: center;
-          margin: 16px 0;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          table-layout: fixed; /* 👈 columnas fijas */
-          margin-bottom: 12px;
-        }
-        th, td {
-          border: 1px solid #000;
-          padding: 4px 6px;
-          vertical-align: top;
-          word-wrap: break-word;
-        }
-        th {
-          background-color: #f2f2f2;
-          text-align: center;
-        }
-        th:nth-child(1) { width: 22%; }
-        th:nth-child(2) { width: 30%; }
-        th:nth-child(3),
-        th:nth-child(4),
-        th:nth-child(5) { width: 12%; }
-        th:nth-child(6) { width: 22%; }
-        input, textarea, select {
-          width: 100%;
-          font-family: 'Arial Narrow';
-          font-size: 10.5pt;
-          border: none;
-          background-color: rgba(255, 215, 0, 0.3);
-          outline: none;
-        }
-        textarea {
-          resize: vertical;
-          min-height: 40px;
-        }
-        @media print {
-          input, textarea, select {
-            background: none !important;
-            border: none !important;
-          }
-        }
-        .top-bar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-        }
-        select {
-          padding: 6px;
-          border-radius: 4px;
-        }
-        .botones-final {
-          text-align: center;
-          margin-top: 20px;
-        }
-        .botones-final button {
-          margin: 0 10px;
-          padding: 8px 16px;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          background-color: #ccc;
-          color: #000;
-          font-weight: bold;
-          transition: all 0.2s;
-        }
-        .botones-final button.habilitado {
-          background-color: #28a745;
-          color: white;
-        }
-        .botones-final button:disabled {
-          cursor: not-allowed;
-          opacity: 0.5;
-        }
-      `}</style>
+    <div id="printable" ref={ref}>
+      <div className="header-image">
+        <img src={serjusHeader} alt="SERJUS Header" />
+      </div>
 
-      <div id="printable" ref={ref}>
-        <div style={{ textAlign: "center", marginBottom: "8px" }}>
-          <img src={serjusHeader} alt="SERJUS Header" style={{ width: "100%", maxWidth: "600px", height: "auto" }} />
-        </div>
-
-        <div className="top-bar">
-          <div>
-            <strong>Convocatoria:</strong>{" "}
-            <select
-              value={convocatoriaSeleccionada}
-              onChange={(e) => setConvocatoriaSeleccionada(e.target.value)}
-            >
-              <option value="">Seleccione una convocatoria</option>
-              {convocatorias.map((c) => (
-                <option key={c.idconvocatoria} value={c.idconvocatoria}>
-                  {c.nombreconvocatoria}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <h1>Evaluación de Candidatos - Selección de 3 Personas</h1>
-
-        <div style={{ textAlign: "center", marginBottom: "10px" }}>
-          <strong>Aspirantes seleccionados:</strong>
-          <div style={{ marginTop: "4px" }}>
-            {nombresEvaluados.filter((n) => n && n.trim() !== "").length >= 2
-              ? nombresEvaluados
-                  .filter((n) => n && n.trim() !== "")
-                  .map((n, i) => (
-                    <span key={i} style={{ margin: "0 8px" }}>
-                      👤 {n}
-                    </span>
-                  ))
-              : "Debe seleccionar al menos 2 aspirantes."}
-          </div>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Criterio</th>
-              <th>Indicadores de Evaluación</th>
-              {nombresEvaluados.map((nombre, i) => (
-                <th key={i}>
-                  {nombre && nombre.trim() !== "" ? nombre : `Entrevistado/a Nº ${i + 1}`}
-                </th>
-              ))}
-              <th>Observaciones / Comentarios</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {criterios.map((c, index) => (
-              <tr key={c.id}>
-                <td><strong>{c.nombre}</strong></td>
-                <td>{c.descripcion}</td>
-
-                {["p1", "p2", "p3"].map((persona, i) => (
-                  <td key={persona} style={{ textAlign: "center" }}>
-                    <select
-                      disabled={!nombresEvaluados[i]}
-                      value={evaluaciones[index]?.puntajes[persona] || ""}
-                      onChange={(e) =>
-                        handleChange(index, "puntaje", e.target.value, persona)
-                      }
-                    >
-                      <option value="">–</option>
-                      {[1, 2, 3, 4, 5].map((p) => (
-                        <option key={p} value={p}>{p}</option>
-                      ))}
-                    </select>
-                  </td>
-                ))}
-
-                <td>
-                  <textarea
-                    value={evaluaciones[index]?.observaciones || ""}
-                    onChange={(e) =>
-                      handleChange(index, "observaciones", e.target.value)
-                    }
-                  />
-                </td>
-              </tr>
+      <div className="top-bar">
+        <div>
+          <strong>Convocatoria:</strong>{" "}
+          <select
+            value={convocatoriaSeleccionada}
+            onChange={(e) => setConvocatoriaSeleccionada(e.target.value)}
+          >
+            <option value="">Seleccione una convocatoria</option>
+            {convocatorias.map((c) => (
+              <option key={c.idconvocatoria} value={c.idconvocatoria}>
+                {c.nombreconvocatoria}
+              </option>
             ))}
+          </select>
+        </div>
+      </div>
 
-            <tr style={{ background: "#f2f2f2", fontWeight: "bold" }}>
-              <td colSpan="2" style={{ textAlign: "right" }}>
-                PUNTEO TOTAL:
+      <h1>Evaluación de Candidatos - Selección de 3 Personas</h1>
+
+      <div className="aspirantes-seleccionados">
+        <strong>Aspirantes seleccionados:</strong>
+        <div>
+          {nombresEvaluados.filter((n) => n && n.nombre && n.nombre.trim() !== "").length >= 2
+            ? nombresEvaluados
+                .filter((n) => n && n.nombre && n.nombre.trim() !== "")
+                .map((n, i) => (
+                  <span key={i}>-{n.nombre}</span>
+                ))
+            : "Debe seleccionar al menos 2 aspirantes."}
+        </div>
+      </div>
+
+      <button className="btn-agregar" onClick={agregarCriterio}>
+        Agregar Criterio
+      </button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Criterio</th>
+            <th>Indicadores de Evaluación</th>
+            {nombresEvaluados.map((nombre, i) => (
+              <th key={i}>
+                {nombre && nombre.nombre && nombre.nombre.trim() !== ""
+                  ? nombre.nombre
+                  : `Entrevistado/a Nº ${i + 1}`}
+              </th>
+            ))}
+            <th>Observaciones / Comentarios</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {criterios.map((c, index) => (
+            <tr key={c.id}>
+              <td>
+                <input
+                  type="text"
+                  value={c.nombre}
+                  placeholder="Nombre del criterio"
+                  onChange={(e) =>
+                    handleCriterioChange(index, "nombre", e.target.value)
+                  }
+                />
               </td>
-              <td style={{ textAlign: "center" }}>{totalPorPersona("p1")}</td>
-              <td style={{ textAlign: "center" }}>{totalPorPersona("p2")}</td>
-              <td style={{ textAlign: "center" }}>{totalPorPersona("p3")}</td>
-              <td></td>
+              <td>
+                <textarea
+                  value={c.descripcion}
+                  placeholder="Descripción del criterio"
+                  onChange={(e) => {
+                    handleCriterioChange(index, "descripcion", e.target.value);
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
+                  }}
+                  style={{ overflow: "hidden" }}
+                />
+              </td>
+
+              {["p1", "p2", "p3"].map((persona, i) => (
+                <td key={persona} className="center">
+                  <select
+                    disabled={!nombresEvaluados[i]}
+                    value={evaluaciones[index]?.puntajes[persona] || ""}
+                    onChange={(e) =>
+                      handleChange(index, "puntajes", e.target.value, persona)
+                    }
+                  >
+                    <option value="">–</option>
+                    {[1, 2, 3, 4, 5].map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+              ))}
+
+              <td>
+                <textarea
+                  value={evaluaciones[index]?.observaciones || ""}
+                  onChange={(e) =>
+                    handleChange(index, "observaciones", e.target.value)
+                  }
+                />
+              </td>
+
+              <td className="center">
+                <button
+                  className="btn-eliminar"
+                  onClick={() => eliminarCriterio(index)}
+                >
+                  Eliminar
+                </button>
+              </td>
             </tr>
-          </tbody>
-        </table>
+          ))}
 
-        <p><strong>Escala de Evaluación:</strong></p>
-        <ul style={{ margin: "4px 0 0 20px", lineHeight: 1.1 }}>
-          <li>1 = No cumple el criterio.</li>
-          <li>2 = Cumple parcialmente, requiere fortalecimiento.</li>
-          <li>3 = Cumple adecuadamente lo básico.</li>
-          <li>4 = Cumple satisfactoriamente y con evidencia.</li>
-          <li>5 = Cumple plenamente y demuestra compromiso.</li>
-        </ul>
+          <tr className="total-row">
+            <td colSpan="2" className="right">
+              PUNTEO TOTAL:
+            </td>
+            <td className="center">{totalPorPersona("p1")}</td>
+            <td className="center">{totalPorPersona("p2")}</td>
+            <td className="center">{totalPorPersona("p3")}</td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
 
-        {/* 👇 Botones finales */}
+      <p>
+        <strong>Escala de Evaluación:</strong>
+      </p>
+      <ul>
+        <li>1 = No cumple el criterio.</li>
+        <li>2 = Cumple parcialmente, requiere fortalecimiento.</li>
+        <li>3 = Cumple adecuadamente lo básico.</li>
+        <li>4 = Cumple satisfactoriamente y con evidencia.</li>
+        <li>5 = Cumple plenamente y demuestra compromiso.</li>
+      </ul>
+
+      {/* ✅ Mostrar los botones solo cuando la tabla esté completa */}
+      {tablaCompleta && (
         <div className="botones-final">
           {["p1", "p2", "p3"].map((p, i) => (
             <button
               key={p}
               disabled={ganador !== p || !nombresEvaluados[i]}
               className={ganador === p ? "habilitado" : ""}
+              onClick={() => handleGuardarEvaluacion(i)}
             >
-              {ganador === p ? `  Contratar a ${nombresEvaluados[i]}` : `Contratar a ${nombresEvaluados[i] || `Entrevistado ${i + 1}`}`}
+              {ganador === p
+                ? `Contratar a ${nombresEvaluados[i]?.nombre}`
+                : `Contratar a ${
+                    nombresEvaluados[i]?.nombre || `Entrevistado ${i + 1}`
+                  }`}
             </button>
           ))}
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 });
 
