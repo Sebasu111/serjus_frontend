@@ -5,7 +5,7 @@ const ModalEliminarArchivo = ({
     mostrarModalEliminar,
     setMostrarModalEliminar,
     documentoAEliminar,
-    handleDeleteArchivo
+    handleDelete
 }) => {
     if (!mostrarModalEliminar) return null;
 
@@ -14,14 +14,14 @@ const ModalEliminarArchivo = ({
             <div style={ModalConfirmacionStyles.modal}>
                 <h3 style={ModalConfirmacionStyles.titulo}>Confirmar eliminación</h3>
                 <p style={ModalConfirmacionStyles.mensaje}>
-                    ¿Está seguro que desea eliminar el archivo actual?
+                    ¿Está seguro que desea eliminar este documento?
                     <br />
-                    <small>Esta acción eliminará el archivo asociado al documento, pero conservará el registro.</small>
+                    <small>Esta acción marcará el documento como eliminado y no se podrá deshacer.</small>
                 </p>
                 <div style={ModalConfirmacionStyles.botonesContainer}>
                     <button
                         onClick={async () => {
-                            await handleDeleteArchivo(documentoAEliminar);
+                            await handleDelete(documentoAEliminar);
                             setMostrarModalEliminar(false);
                         }}
                         style={{

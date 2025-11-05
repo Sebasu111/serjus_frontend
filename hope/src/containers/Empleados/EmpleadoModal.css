@@ -1,0 +1,95 @@
+/* Estilos para el modal de empleados */
+.empleado-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+    transition: opacity 0.2s ease;
+}
+
+.empleado-modal {
+    position: fixed;
+    top: 50%;
+    z-index: 1000;
+    background: #fff;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+    border-radius: 14px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+/* Centrado para pantallas grandes (con sidebar) */
+.empleado-modal.desktop {
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Centrado para pantallas pequeñas (sin sidebar) */
+.empleado-modal.mobile {
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    max-width: 600px;
+}
+
+/* Ajustes para el contenedor del formulario */
+.empleado-form-container {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .empleado-modal {
+        width: 95% !important;
+        max-width: 600px !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+    }
+
+    .empleado-form-container {
+        padding: 20px;
+    }
+}
+
+/* Mejoras visuales adicionales */
+.empleado-modal::-webkit-scrollbar {
+    width: 8px;
+}
+
+.empleado-modal::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.empleado-modal::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.empleado-modal::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Animación suave de entrada */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.empleado-modal {
+    animation: modalFadeIn 0.3s ease-out;
+}

@@ -47,9 +47,13 @@ const DocumentosContainer = () => {
         try {
             const r = await axios.get(`${API}/documentos/`);
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
-            console.log("Documentos obtenidos para tabla:", data); // Debug
-            console.log("CVs encontrados:", data.filter(doc => doc.nombrearchivo && doc.nombrearchivo.includes('CV_'))); // Debug
-            setDocumentos(data);
+
+            // Filtrar solo documentos activos (estado != false)
+            const documentosActivos = data.filter(doc => doc.estado !== false);
+
+            console.log("Documentos obtenidos para tabla:", documentosActivos); // Debug
+            console.log("CVs encontrados:", documentosActivos.filter(doc => doc.nombrearchivo && doc.nombrearchivo.includes('CV_'))); // Debug
+            setDocumentos(documentosActivos);
         } catch (error) {
             console.error("Error al cargar documentos:", "error");
             showToast("Error al cargar los documentos", "error");
@@ -218,6 +222,34 @@ const DocumentosContainer = () => {
         }
     };
 
+    // Nueva función para eliminar documento completamente (marcar como inactivo)
+    const handleDelete = async id => {
+        try {
+            // Obtener primero el documento para mantener sus datos
+            const response = await axios.get(`${API}/documentos/${id}/`);
+            const documento = response.data;
+
+            const formData = new FormData();
+            formData.append("nombrearchivo", documento.nombrearchivo || "");
+            formData.append("mimearchivo", documento.mimearchivo || "");
+            formData.append("fechasubida", documento.fechasubida || "");
+            formData.append("estado", false); // Marcar como inactivo
+            formData.append("idusuario", documento.idusuario || "");
+            formData.append("idtipodocumento", documento.idtipodocumento || "");
+            formData.append("idempleado", documento.idempleado || "");
+
+            await axios.put(`${API}/documentos/${id}/`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            showToast("Documento eliminado correctamente");
+            fetchDocumentos();
+        } catch (error) {
+            console.error("Error al eliminar documento:", error.response?.data || error);
+            showToast("No se pudo eliminar el documento", "error");
+        }
+    };
+
     const downloadFile = async (archivo_url, nombre) => {
         try {
             const response = await axios.get(archivo_url, { responseType: "blob" });
@@ -237,36 +269,36 @@ const DocumentosContainer = () => {
     };
 
     const documentosFiltrados = documentos
-    // Ordenar por ID descendente (último agregado primero)
-    .sort((a, b) => (b.iddocumento || 0) - (a.iddocumento || 0))
-    .filter(d => {
-        const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
+        // Ordenar por ID descendente (último agregado primero)
+        .sort((a, b) => (b.iddocumento || 0) - (a.iddocumento || 0))
+        .filter(d => {
+            const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
 
-        // Buscar el empleado correspondiente
-        const empleado = empleados.find(emp => emp.idempleado === d.idempleado);
-        const nombreEmpleado = empleado ? empleado.nombre.toLowerCase() : "";
-        const apellidoEmpleado = empleado ? empleado.apellido.toLowerCase() : "";
-        const nombreCompletoEmpleado = `${nombreEmpleado} ${apellidoEmpleado}`;
+            // Buscar el empleado correspondiente
+            const empleado = empleados.find(emp => emp.idempleado === d.idempleado);
+            const nombreEmpleado = empleado ? empleado.nombre.toLowerCase() : "";
+            const apellidoEmpleado = empleado ? empleado.apellido.toLowerCase() : "";
+            const nombreCompletoEmpleado = `${nombreEmpleado} ${apellidoEmpleado}`;
 
-        const terminoBusqueda = busqueda.toLowerCase();
+            const terminoBusqueda = busqueda.toLowerCase();
 
-        // Filtro por texto de búsqueda
-        const coincideTexto = (
-            nombreDocumento.includes(terminoBusqueda) ||
-            nombreEmpleado.includes(terminoBusqueda) ||
-            apellidoEmpleado.includes(terminoBusqueda) ||
-            nombreCompletoEmpleado.includes(terminoBusqueda)
-        );
+            // Filtro por texto de búsqueda
+            const coincideTexto = (
+                nombreDocumento.includes(terminoBusqueda) ||
+                nombreEmpleado.includes(terminoBusqueda) ||
+                apellidoEmpleado.includes(terminoBusqueda) ||
+                nombreCompletoEmpleado.includes(terminoBusqueda)
+            );
 
-        // Filtro por estado de archivo
-        if (mostrarSinArchivo) {
-            // Solo mostrar los que NO tienen archivo
-            return coincideTexto && !d.archivo_url;
-        } else {
-            // Solo mostrar los que SÍ tienen archivo
-            return coincideTexto && d.archivo_url;
-        }
-    });
+            // Filtro por estado de archivo
+            if (mostrarSinArchivo) {
+                // Solo mostrar los que NO tienen archivo
+                return coincideTexto && !d.archivo_url;
+            } else {
+                // Solo mostrar los que SÍ tienen archivo
+                return coincideTexto && d.archivo_url;
+            }
+        });
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
@@ -336,7 +368,8 @@ const DocumentosContainer = () => {
                                 empleados={empleados}
                                 tiposDocumento={tiposDocumento}
                                 downloadFile={downloadFile}
-                                handleEdit={handleEdit}
+                                setDocumentoAEliminar={setDocumentoAEliminar}
+                                setMostrarModalEliminar={setMostrarModalEliminar}
                                 paginaActual={paginaActual}
                                 setPaginaActual={setPaginaActual}
                                 totalPaginas={totalPaginas}
@@ -435,7 +468,7 @@ const DocumentosContainer = () => {
                     mostrarModalEliminar={mostrarModalEliminar}
                     setMostrarModalEliminar={setMostrarModalEliminar}
                     documentoAEliminar={documentoAEliminar}
-                    handleDeleteArchivo={handleDeleteArchivo}
+                    handleDelete={handleDelete}
                 />
 
             </div>

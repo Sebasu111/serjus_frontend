@@ -156,7 +156,7 @@ const EmpleadosContainer = () => {
         cvFile: null
     });
     const [cvExistente, setCvExistente] = useState(null);
-    
+
     // Estados para el modal de contrato
     const [mostrarModalContrato, setMostrarModalContrato] = useState(false);
     const [empleadoParaContrato, setEmpleadoParaContrato] = useState(null);
@@ -342,60 +342,60 @@ const EmpleadosContainer = () => {
     };
 
     useEffect(() => {
-  const aspiranteParam = new URLSearchParams(window.location.search).get("aspirante");
-  const convocatoriaParam = new URLSearchParams(window.location.search).get("convocatoria");
-  if (!aspiranteParam) return;
+        const aspiranteParam = new URLSearchParams(window.location.search).get("aspirante");
+        const convocatoriaParam = new URLSearchParams(window.location.search).get("convocatoria");
+        if (!aspiranteParam) return;
 
-  const cargarDesdeAspirante = async () => {
-    try {
-      // 🔹 Cargar datos del aspirante
-      const aspRes = await axios.get(`http://127.0.0.1:8000/api/aspirantes/${aspiranteParam}/`);
-      const aspirante = aspRes.data;
+        const cargarDesdeAspirante = async () => {
+            try {
+                // 🔹 Cargar datos del aspirante
+                const aspRes = await axios.get(`http://127.0.0.1:8000/api/aspirantes/${aspiranteParam}/`);
+                const aspirante = aspRes.data;
 
-      // 🔹 Cargar convocatoria asociada
-      const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`);
-      const convocatoria = convRes.data;
+                // 🔹 Cargar convocatoria asociada
+                const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`);
+                const convocatoria = convRes.data;
 
-      // 🔹 Asegurar catálogos cargados
-      if (!idiomas.length) await fetchIdiomas();
-      if (!pueblos.length) await fetchPueblos();
-      if (!equipos.length) await fetchEquipos();
-      if (!puestos.length) await fetchPuestos();
+                // 🔹 Asegurar catálogos cargados
+                if (!idiomas.length) await fetchIdiomas();
+                if (!pueblos.length) await fetchPueblos();
+                if (!equipos.length) await fetchEquipos();
+                if (!puestos.length) await fetchPuestos();
 
-      // 🔹 Precargar formulario
-      setForm({
-        dpi: aspirante.dpi || "",
-        nit: aspirante.nit || "",
-        nombre: aspirante.nombreaspirante || "",
-        apellido: aspirante.apellidoaspirante || "",
-        genero: aspirante.genero || "",
-        lugarnacimiento: aspirante.lugarnacimiento || "",
-        fechanacimiento: aspirante.fechanacimiento || "",
-        telefonocelular: aspirante.telefono || "",
-        email: aspirante.email || "",
-        direccion: aspirante.direccion || "",
-        estadocivil: aspirante.estadocivil || "",
-        ididioma: aspirante.ididioma || "",
-        idpueblocultura: aspirante.idpueblocultura || "",
-        idpuesto: convocatoria?.idpuesto || "",
-        idequipo: convocatoria?.idequipo || "",
-        iniciolaboral: new Date().toISOString().slice(0, 10),
-        estado: true,
-        numerohijos: "",
-        isCF: aspirante.nit?.toUpperCase() === "C/F",
-        cvFile: null,
-      });
+                // 🔹 Precargar formulario
+                setForm({
+                    dpi: aspirante.dpi || "",
+                    nit: aspirante.nit || "",
+                    nombre: aspirante.nombreaspirante || "",
+                    apellido: aspirante.apellidoaspirante || "",
+                    genero: aspirante.genero || "",
+                    lugarnacimiento: aspirante.lugarnacimiento || "",
+                    fechanacimiento: aspirante.fechanacimiento || "",
+                    telefonocelular: aspirante.telefono || "",
+                    email: aspirante.email || "",
+                    direccion: aspirante.direccion || "",
+                    estadocivil: aspirante.estadocivil || "",
+                    ididioma: aspirante.ididioma || "",
+                    idpueblocultura: aspirante.idpueblocultura || "",
+                    idpuesto: convocatoria?.idpuesto || "",
+                    idequipo: convocatoria?.idequipo || "",
+                    iniciolaboral: new Date().toISOString().slice(0, 10),
+                    estado: true,
+                    numerohijos: "",
+                    isCF: aspirante.nit?.toUpperCase() === "C/F",
+                    cvFile: null,
+                });
 
-      setShowForm(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      showToast(`Datos del aspirante ${aspirante.nombreaspirante} listos para registro.`, "success");
-    } catch (error) {
-      console.error("Error al cargar datos del aspirante:", error);
-    }
-  };
+                setShowForm(true);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                showToast(`Datos del aspirante ${aspirante.nombreaspirante} listos para registro.`, "success");
+            } catch (error) {
+                console.error("Error al cargar datos del aspirante:", error);
+            }
+        };
 
-  cargarDesdeAspirante();
-}, []);
+        cargarDesdeAspirante();
+    }, []);
 
     const fetchList = async () => {
         try {
@@ -597,11 +597,11 @@ const EmpleadosContainer = () => {
         try {
             const response = await axios.get(`${API}/documentos/`);
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
-            
+
             const cvDocumento = documentos.find(doc => {
                 return doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 1;
             });
-            
+
             if (cvDocumento) {
                 console.log("CV existente encontrado:", cvDocumento);
                 setCvExistente(cvDocumento);
@@ -617,7 +617,7 @@ const EmpleadosContainer = () => {
     // Función para eliminar CV existente
     const eliminarCvExistente = async () => {
         if (!cvExistente) return;
-        
+
         try {
             await axios.delete(`${API}/documentos/${cvExistente.iddocumento}/`);
             setCvExistente(null);
@@ -633,11 +633,11 @@ const EmpleadosContainer = () => {
         try {
             const response = await axios.get(`${API}/documentos/`);
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
-            
+
             const contratoDocumento = documentos.find(doc => {
                 return doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 2; // Asumimos tipo 2 para contratos
             });
-            
+
             if (contratoDocumento) {
                 console.log("Contrato existente encontrado:", contratoDocumento);
                 setContratoExistente(contratoDocumento);
@@ -653,7 +653,7 @@ const EmpleadosContainer = () => {
     // Función para eliminar contrato existente
     const eliminarContratoExistente = async () => {
         if (!contratoExistente) return;
-        
+
         try {
             await axios.delete(`${API}/documentos/${contratoExistente.iddocumento}/`);
             setContratoExistente(null);
@@ -690,7 +690,7 @@ const EmpleadosContainer = () => {
         try {
             const empleadoId = empId(empleadoParaContrato);
             console.log("Subiendo contrato para empleado:", empleadoId);
-            
+
             const formDataContrato = new FormData();
             formDataContrato.append('archivo', contratoFile);
             formDataContrato.append('nombrearchivo', `CONTRATO_${empleadoParaContrato.dpi}_${empleadoId}`);
@@ -700,7 +700,7 @@ const EmpleadosContainer = () => {
             formDataContrato.append('idusuario', getIdUsuario().toString());
             formDataContrato.append('idtipodocumento', '2'); // Tipo 2 para contratos
             formDataContrato.append('idempleado', empleadoId.toString());
-            
+
             if (contratoExistente) {
                 // Actualizar contrato existente
                 await axios.put(`${API}/documentos/${contratoExistente.iddocumento}/`, formDataContrato, {
@@ -720,7 +720,7 @@ const EmpleadosContainer = () => {
             }
 
             cerrarModalContrato();
-            
+
         } catch (error) {
             console.error("Error al subir contrato:", error);
             showToast("Error al subir el contrato", "error");
@@ -730,14 +730,14 @@ const EmpleadosContainer = () => {
     const handleCvUpload = (e) => {
         const file = e.target.files[0];
         console.log("Archivo seleccionado para CV:", file);
-        
+
         if (file) {
             console.log("Validando archivo CV:", {
                 name: file.name,
                 size: file.size,
                 type: file.type
             });
-            
+
             // Validar que sea PDF
             if (file.type !== 'application/pdf') {
                 console.log("Error: Archivo no es PDF");
@@ -752,7 +752,7 @@ const EmpleadosContainer = () => {
                 e.target.value = '';
                 return;
             }
-            
+
             console.log("Archivo CV válido, guardando en el form");
             setForm(f => ({ ...f, cvFile: file }));
             setErrors(er => ({ ...er, cvFile: false }));
@@ -765,14 +765,14 @@ const EmpleadosContainer = () => {
     const handleContratoUpload = (e) => {
         const file = e.target.files[0];
         console.log("Archivo seleccionado para Contrato:", file);
-        
+
         if (file) {
             console.log("Validando archivo Contrato:", {
                 name: file.name,
                 size: file.size,
                 type: file.type
             });
-            
+
             // Validar que sea PDF
             if (file.type !== 'application/pdf') {
                 console.log("Error: Archivo no es PDF");
@@ -787,7 +787,7 @@ const EmpleadosContainer = () => {
                 e.target.value = '';
                 return;
             }
-            
+
             console.log("Archivo contrato válido, guardando");
             setContratoFile(file);
         } else {
@@ -888,7 +888,7 @@ const EmpleadosContainer = () => {
             cvFile: form.cvFile,
             isRequired: !editingId
         });
-        
+
         if (!editingId && !form.cvFile) {
             console.log("Error: CV es obligatorio para empleados nuevos");
             newErrors.cvFile = true;
@@ -1129,11 +1129,11 @@ const EmpleadosContainer = () => {
                 if (form.cvFile) {
                     try {
                         console.log("Actualizando CV para empleado:", editingId);
-                        
+
                         // Verificar si ya existe un CV para este empleado
                         if (cvExistente) {
                             console.log("Actualizando CV existente:", cvExistente.iddocumento);
-                            
+
                             const formDataCV = new FormData();
                             formDataCV.append('archivo', form.cvFile);
                             formDataCV.append('nombrearchivo', `CV_${form.dpi}_${editingId}`);
@@ -1143,7 +1143,7 @@ const EmpleadosContainer = () => {
                             formDataCV.append('idusuario', getIdUsuario().toString());
                             formDataCV.append('idtipodocumento', '1');
                             formDataCV.append('idempleado', editingId.toString());
-                            
+
                             // Actualizar el documento existente (PUT)
                             const cvResponse = await axios.put(`${API}/documentos/${cvExistente.iddocumento}/`, formDataCV, {
                                 headers: {
@@ -1154,7 +1154,7 @@ const EmpleadosContainer = () => {
                             showToast("CV actualizado correctamente", "success");
                         } else {
                             console.log("Creando nuevo CV para empleado");
-                            
+
                             const formDataCV = new FormData();
                             formDataCV.append('archivo', form.cvFile);
                             formDataCV.append('nombrearchivo', `CV_${form.dpi}_${editingId}`);
@@ -1164,7 +1164,7 @@ const EmpleadosContainer = () => {
                             formDataCV.append('idusuario', getIdUsuario().toString());
                             formDataCV.append('idtipodocumento', '1');
                             formDataCV.append('idempleado', editingId.toString());
-                            
+
                             // Crear nuevo documento (POST)
                             const cvResponse = await axios.post(`${API}/documentos/`, formDataCV, {
                                 headers: {
@@ -1212,7 +1212,7 @@ const EmpleadosContainer = () => {
                         formDataCV.append('idusuario', getIdUsuario().toString());
                         formDataCV.append('idtipodocumento', '1'); // Asumimos tipo 1 para CV
                         formDataCV.append('idempleado', empleadoId.toString());
-                        
+
                         // Log para ver qué estamos enviando
                         console.log("Datos que se envían al servidor:");
                         for (let [key, value] of formDataCV.entries()) {
@@ -1265,7 +1265,7 @@ const EmpleadosContainer = () => {
             return;
         }
         const empleadoId = empId(row);
-        
+
         setForm({
             dpi: row.dpi ?? "",
             nit: row.nit ?? "",
@@ -1298,10 +1298,10 @@ const EmpleadosContainer = () => {
         });
         setErrors({});
         setEditingId(empleadoId);
-        
+
         // Cargar CV existente si está editando
         cargarCvExistente(empleadoId);
-        
+
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
@@ -1430,21 +1430,21 @@ const EmpleadosContainer = () => {
             // Buscar el contrato del empleado específico
             console.log("Buscando contrato para empleado:", empleado);
             console.log("Documentos disponibles:", documentos);
-            
+
             const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
-            
+
             const contratoDocumento = documentos.find(doc => {
                 // Priorizar búsqueda por idempleado y tipo de documento 2 (contrato)
                 if (doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 2) {
                     return true;
                 }
-                
+
                 // Fallback: buscar por nombre de archivo que contenga CONTRATO y el DPI
                 if ((doc.nombrearchivo && doc.nombrearchivo.includes(`CONTRATO_${empleado.dpi}`)) ||
                     (doc.nombredocumento && doc.nombredocumento.includes(`CONTRATO_${empleado.dpi}`))) {
                     return true;
                 }
-                
+
                 return false;
             });
 
@@ -1459,7 +1459,7 @@ const EmpleadosContainer = () => {
             if (contratoDocumento.archivo_url || contratoDocumento.archivo) {
                 const fileUrl = contratoDocumento.archivo_url || contratoDocumento.archivo;
                 console.log("Abriendo contrato desde URL:", fileUrl);
-                
+
                 window.open(fileUrl, '_blank');
                 showToast("Contrato abierto en nueva pestaña", "success");
             } else {
@@ -1486,21 +1486,21 @@ const EmpleadosContainer = () => {
             // Buscar el CV del empleado específico
             console.log("Buscando CV para empleado:", empleado);
             console.log("Documentos disponibles:", documentos);
-            
+
             const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
-            
+
             const cvDocumento = documentos.find(doc => {
                 // Priorizar búsqueda por idempleado y tipo de documento
                 if (doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 1) {
                     return true;
                 }
-                
+
                 // Fallback: buscar por nombre de archivo que contenga el DPI
                 if ((doc.nombrearchivo && doc.nombrearchivo.includes(`CV_${empleado.dpi}`)) ||
                     (doc.nombredocumento && doc.nombredocumento.includes(`CV_${empleado.dpi}`))) {
                     return true;
                 }
-                
+
                 return false;
             });
 
@@ -1515,26 +1515,26 @@ const EmpleadosContainer = () => {
             if (cvDocumento.archivo_url || cvDocumento.archivo) {
                 const fileUrl = cvDocumento.archivo_url || cvDocumento.archivo;
                 console.log("Descargando desde URL directa:", fileUrl);
-                
+
                 try {
                     // Obtener el archivo como blob para forzar descarga
                     const response = await fetch(fileUrl);
                     if (!response.ok) throw new Error('Error al obtener el archivo');
-                    
+
                     const blob = await response.blob();
-                    
+
                     // Crear URL del blob y descargar
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
                     link.download = `CV_${empleado.nombre}_${empleado.apellido}.pdf`;
                     link.style.display = 'none';
-                    
+
                     // Agregar al DOM, hacer click y remover
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    
+
                     // Limpiar la URL del blob
                     setTimeout(() => {
                         window.URL.revokeObjectURL(url);
@@ -1558,11 +1558,11 @@ const EmpleadosContainer = () => {
                 link.href = url;
                 link.download = `CV_${empleado.nombre}_${empleado.apellido}.pdf`;
                 link.style.display = 'none';
-                
+
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
+
                 setTimeout(() => {
                     window.URL.revokeObjectURL(url);
                 }, 100);
@@ -1882,11 +1882,11 @@ const EmpleadosContainer = () => {
                                         onMouseLeave={e => e.target.style.background = "#dc2626"}
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                            <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                            <polyline points="10,9 9,9 8,9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                            <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                            <polyline points="10,9 9,9 8,9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                         Ver Contrato
                                     </button>

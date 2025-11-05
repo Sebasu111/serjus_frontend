@@ -6,7 +6,8 @@ const DocumentosTable = ({
     empleados,
     tiposDocumento,
     downloadFile,
-    handleEdit,
+    setDocumentoAEliminar,
+    setMostrarModalEliminar,
     paginaActual,
     setPaginaActual,
     totalPaginas
@@ -64,19 +65,18 @@ const DocumentosTable = ({
                                 <td style={tdStyle}>{formatDate(d.fechasubida)}</td>
                                 <td style={tdStyle}>
                                     {empleados.find(e => e.idempleado === d.idempleado)
-                                        ? `${empleados.find(e => e.idempleado === d.idempleado).nombre} ${
-                                              empleados.find(e => e.idempleado === d.idempleado).apellido
-                                          }`
+                                        ? `${empleados.find(e => e.idempleado === d.idempleado).nombre} ${empleados.find(e => e.idempleado === d.idempleado).apellido
+                                        }`
                                         : "-"}
                                 </td>
                                 <td style={tdStyle}>
                                     {(() => {
                                         const tipoDoc = tiposDocumento.find(t => t.idtipodocumento === d.idtipodocumento);
                                         if (!tipoDoc) return "-";
-                                        
+
                                         // Mapeo especial para contratos (tipo 2)
                                         if (d.idtipodocumento === 2) return "CONTRATO";
-                                        
+
                                         return tipoDoc.nombretipo;
                                     })()}
                                 </td>
@@ -104,15 +104,6 @@ const DocumentosTable = ({
                                                 {openComboId === d.iddocumento && (
                                                     <div style={comboBoxStyles.menu.container}>
                                                         <div
-                                                            style={comboBoxStyles.menu.item.editar.base}
-                                                            onClick={() => {
-                                                                handleEdit(d);
-                                                                setOpenComboId(null);
-                                                            }}
-                                                        >
-                                                            Eliminar
-                                                        </div>
-                                                        <div
                                                             style={comboBoxStyles.menu.item.activar.base}
                                                             onClick={() => {
                                                                 downloadFile(d.archivo_url, d.nombrearchivo);
@@ -120,6 +111,16 @@ const DocumentosTable = ({
                                                             }}
                                                         >
                                                             Descargar
+                                                        </div>
+                                                        <div
+                                                            style={comboBoxStyles.menu.item.desactivar.base}
+                                                            onClick={() => {
+                                                                setDocumentoAEliminar(d.iddocumento);
+                                                                setMostrarModalEliminar(true);
+                                                                setOpenComboId(null);
+                                                            }}
+                                                        >
+                                                            Eliminar
                                                         </div>
                                                     </div>
                                                 )}
