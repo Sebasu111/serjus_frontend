@@ -10,7 +10,7 @@ const API_CONFIG = {
         // Puestos
         PUESTOS: "/puestos/",
 
-        // Empleados
+        // Colaboradores
         EMPLEADOS: "/empleados/",
 
         // Usuarios

@@ -396,8 +396,8 @@ const EmpleadosContainer = () => {
             const rows = Array.isArray(res.data) ? res.data : res.data?.results || [];
             setData(rows);
         } catch (e) {
-            console.error("Error al cargar empleados:", e);
-            showToast("Error al cargar los empleados", "error");
+            console.error("Error al cargar colaboradores:", e);
+            showToast("Error al cargar los colaboradores", "error");
             setData([]);
         }
     };
@@ -925,7 +925,7 @@ const EmpleadosContainer = () => {
                     }
                 }
 
-                showToast("Empleado actualizado correctamente");
+                showToast("Colaborador actualizado correctamente");
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
             else {
@@ -958,11 +958,11 @@ const EmpleadosContainer = () => {
                         showToast("CV subido correctamente", "success");
                     } catch (cvError) {
                         console.error("Error al subir CV:", cvError);
-                        showToast("Empleado creado, pero hubo un error al subir el CV", "warning");
+                        showToast("Colaborador creado, pero hubo un error al subir el CV", "warning");
                     }
                 }
 
-                showToast("Empleado registrado correctamente");
+                showToast("Colaborador registrado correctamente");
 
                 // Crear usuario automáticamente solo si es un nuevo empleado
                 try {
@@ -971,7 +971,7 @@ const EmpleadosContainer = () => {
                     setMostrarUsuarioCreado(true);
                 } catch (userError) {
                     console.error("Error al crear usuario automático:", userError);
-                    showToast("Empleado creado, pero hubo un error al generar el usuario automáticamente", "warning");
+                    showToast("Colaborador creado, pero hubo un error al generar el usuario automáticamente", "warning");
                 }
             }
 
@@ -982,13 +982,13 @@ const EmpleadosContainer = () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
         } catch (err) {
             console.error("Error al guardar:", err.response?.data || err);
-            showToast("Error al registrar/actualizar el empleado", "error");
+            showToast("Error al registrar/actualizar el colaborador", "error");
         }
     };
 
     const handleEdit = row => {
         if (row?.estado === false) {
-            showToast("No se puede editar un empleado inactivo", "warning");
+            showToast("No se puede editar un colaborador inactivo", "warning");
             return;
         }
         setForm({
@@ -1045,7 +1045,7 @@ const EmpleadosContainer = () => {
                 estado: nuevoEstado,
                 idusuario: getIdUsuario()
             });
-            showToast(nuevoEstado ? "Empleado activado correctamente" : "Empleado desactivado correctamente");
+            showToast(nuevoEstado ? "Colaborador activado correctamente" : "Colaborador desactivado correctamente");
             fetchList();
         } catch {
             showToast("Error al cambiar el estado", "error");
@@ -1156,7 +1156,7 @@ const EmpleadosContainer = () => {
             );
 
             if (!cvDocumento) {
-                showToast("No se encontró el CV para este empleado", "warning");
+                showToast("No se encontró el CV para este colaborador", "warning");
                 return;
             }
 
@@ -1181,7 +1181,7 @@ const EmpleadosContainer = () => {
         } catch (error) {
             console.error("Error al descargar CV:", error);
             if (error.response?.status === 404) {
-                showToast("No se encontró el CV para este empleado", "warning");
+                showToast("No se encontró el CV para este colaborador", "warning");
             } else {
                 showToast("Error al descargar el CV", "error");
             }
@@ -1235,7 +1235,7 @@ const EmpleadosContainer = () => {
                                         }}
                                         style={buttonStyles.nuevo}
                                     >
-                                        Nuevo Empleado
+                                        Nuevo Colaborador
                                     </button>
                                     <button
                                         onClick={() => !generandoPDF && setShowDownload(true)}

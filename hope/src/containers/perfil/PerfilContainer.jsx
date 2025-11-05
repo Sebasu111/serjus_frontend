@@ -35,7 +35,7 @@ const PerfilContainer = () => {
         const empleadoActual = resEmpleados.data.results.find(e => e.idempleado === usuarioActual.idempleado);
         setEmpleado(empleadoActual);
         if (!empleadoActual) {
-          showToast("No se encontró el empleado asociado al usuario", "error");
+          showToast("No se encontró el colaborador asociado al usuario", "error");
           return;
         }
 

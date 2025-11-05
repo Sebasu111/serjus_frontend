@@ -55,7 +55,7 @@ const TerminacionLaboralContainer = () => {
             const empleadosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
             setEmpleados(empleadosData);
         } catch (error) {
-            console.error("Error al cargar empleados:", error);
+            console.error("Error al cargar colaboradores:", error);
             setEmpleados([]);
         }
     };
@@ -78,7 +78,7 @@ const TerminacionLaboralContainer = () => {
         
         // Validar campos obligatorios
         if (!empleadoSeleccionado) {
-            showToast("Debe seleccionar un empleado", "error");
+            showToast("Debe seleccionar un colaborador", "error");
             return;
         }
         if (!causa.trim()) {
@@ -96,7 +96,7 @@ const TerminacionLaboralContainer = () => {
             });
 
             if (!contratoEmpleado && !editingId) {
-                showToast("No se encontró un contrato activo para este empleado", "error");
+                showToast("No se encontró un contrato activo para este colaborador", "error");
                 return;
             }
 
@@ -169,7 +169,7 @@ const TerminacionLaboralContainer = () => {
     };
 
     const handleDelete = async id => {
-        if (!window.confirm("¿Estás seguro de desactivar esta terminación?")) return;
+        if (!window.confirm("¿Está seguro de desactivar esta terminación?")) return;
         try {
             const terminacion = terminaciones.find(t => t.idterminacionlaboral === id);
             if (!terminacion) return;
@@ -230,7 +230,7 @@ const TerminacionLaboralContainer = () => {
                             </h2>
                             
                             <form onSubmit={handleSubmit}>
-                                {/* Selección de Empleado */}
+                                {/* Selección de Colaborador */}
                                 <div style={{ marginBottom: "20px" }}>
                                     <label style={{ 
                                         display: "block", 
@@ -238,7 +238,7 @@ const TerminacionLaboralContainer = () => {
                                         fontWeight: "bold",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
-                                        Empleado <span style={{ color: "red" }}>*</span>
+                                        Colaborador <span style={{ color: "red" }}>*</span>
                                     </label>
                                     <select
                                         value={empleadoSeleccionado}
@@ -253,7 +253,7 @@ const TerminacionLaboralContainer = () => {
                                             fontFamily: '"Inter", sans-serif'
                                         }}
                                     >
-                                        <option value="">Seleccionar empleado...</option>
+                                        <option value="">Seleccionar colaborador...</option>
                                         {empleados.map(empleado => {
                                             const nombreCompleto = `${empleado.nombre || empleado.primernombre || ''} ${empleado.apellido || empleado.primerapellido || ''}`.trim();
                                             return (
@@ -443,7 +443,7 @@ const TerminacionLaboralContainer = () => {
                                         textAlign: "center",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
-                                        Al registrar la terminación, el contrato del empleado se finalizará automáticamente
+                                        Al registrar la terminación, el contrato del colaborador se finalizará automáticamente
                                     </p>
                                 )}
                             </form>
@@ -479,7 +479,7 @@ const TerminacionLaboralContainer = () => {
                                                 color: "white",
                                                 textAlign: "left",
                                                 fontWeight: "600"
-                                            }}>Empleado</th>
+                                            }}>Colaborador</th>
                                             <th style={{ 
                                                 borderBottom: "2px solid #023047", 
                                                 padding: "12px 8px", 

@@ -68,7 +68,7 @@ const EstadosContainer = () => {
 
     // Borrado lógico (desactivar)
     const handleDelete = async id => {
-        if (!window.confirm("¿Estás seguro de desactivar este estado?")) return;
+        if (!window.confirm("¿Está seguro de desactivar este estado?")) return;
         try {
             const estado = estados.find(e => e.idestado === id);
             if (!estado) return;

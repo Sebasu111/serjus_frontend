@@ -15,7 +15,7 @@ import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 const API = "http://127.0.0.1:8000/api/usuarios/";
 const API_ROLES = "http://127.0.0.1:8000/api/roles/";
-const API_EMPLEADOS = "http://127.0.0.1:8000/api/empleados/";
+const API_COLABORADORES = "http://127.0.0.1:8000/api/empleados/";
 
 const UsuariosContainer = () => {
     const [form, setForm] = useState({
@@ -47,7 +47,7 @@ const UsuariosContainer = () => {
     useEffect(() => {
         fetchUsuarios();
         fetchRoles();
-        fetchEmpleados();
+        fetchColaboradores();
     }, []);
 
     const fetchUsuarios = async () => {
@@ -70,13 +70,13 @@ const UsuariosContainer = () => {
         }
     };
 
-    const fetchEmpleados = async () => {
+    const fetchColaboradores = async () => {
         try {
-            const res = await axios.get(API_EMPLEADOS);
+            const res = await axios.get(API_COLABORADORES);
             setEmpleados(Array.isArray(res.data.results) ? res.data.results : []);
         } catch (error) {
-            console.error("Error al cargar empleados:", error);
-            showToast("Error al cargar empleados", "error");
+            console.error("Error al cargar colaboradores:", error);
+            showToast("Error al cargar colaboradores", "error");
         }
     };
 
@@ -148,7 +148,7 @@ const UsuariosContainer = () => {
     // --- Desactivar usuario ---
     const handleDelete = id => {
         if (id === idUsuarioLogueado) {
-            showToast("No puedes desactivar tu propio usuario", "error");
+            showToast("No puede desactivar su propio usuario", "error");
             return;
         }
         const usuario = usuarios.find(u => u.idusuario === id);
@@ -178,7 +178,7 @@ const UsuariosContainer = () => {
     // --- Activar usuario ---
     const handleActivate = async id => {
         if (id === idUsuarioLogueado) {
-            showToast("No puedes activar/desactivar tu propio usuario", "error");
+            showToast("No puede activar/desactivar su propio usuario", "error");
             return;
         }
         try {

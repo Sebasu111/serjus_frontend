@@ -50,7 +50,7 @@ const AmonestacionTable = ({
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
-            <th style={{ padding: "10px", textAlign: "left" }}>Empleado</th>
+            <th style={{ padding: "10px", textAlign: "left" }}>Colaborador</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Tipo</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Fecha</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Motivo</th>

@@ -1,14 +1,14 @@
 # SERJUS Frontend - Sistema de Gestión de Recursos Humanos
 
-Sistema frontend desarrollado en React para la gestión integral de recursos humanos de SERJUS, incluyendo módulos de empleados, capacitaciones, evaluaciones, contratos y más.
+Sistema frontend desarrollado en React para la gestión integral de recursos humanos de SERJUS, incluyendo módulos de colaboradores, capacitaciones, evaluaciones, contratos y más.
 
 ## 🚀 Características Principales
 
--   **Gestión de Empleados**: Registro, edición y seguimiento completo de empleados
+-   **Gestión de Colaboradores**: Registro, edición y seguimiento completo de colaboradores
 -   **Sistema de Capacitaciones**: Asignación y seguimiento de capacitaciones del personal
 -   **Evaluaciones**: Módulo completo de evaluaciones de desempeño
 -   **Gestión Documental**: Manejo de documentos y contratos laborales
--   **Módulo de Inducciones**: Sistema de inducción para nuevos empleados
+-   **Módulo de Inducciones**: Sistema de inducción para nuevos colaboradores
 -   **Dashboard Interactivo**: Visualización de métricas y estadísticas
 -   **Sistema de Notificaciones**: Alertas y recordatorios automatizados
 
@@ -101,7 +101,7 @@ src/
 │   ├── sidebar/       # Componentes de barra lateral
 │   └── social-icon/   # Iconos sociales
 ├── containers/         # Contenedores principales de funcionalidad
-│   ├── Empleados/     # Módulo de empleados
+│   ├── Empleados/     # Módulo de colaboradores
 │   ├── capacitacion/  # Módulo de capacitaciones
 │   ├── Evaluaciones/  # Módulo de evaluaciones
 │   ├── contratos/     # Módulo de contratos

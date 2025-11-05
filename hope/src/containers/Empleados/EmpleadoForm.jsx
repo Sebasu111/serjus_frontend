@@ -258,7 +258,7 @@ const EmpleadoForm = ({
             }}
         >
             <h3 style={{ marginBottom: 4, textAlign: "center", letterSpacing: 0.2 }}>
-                {editingId ? "Editar empleado" : "Registrar empleado"}
+                {editingId ? "Editar colaborador" : "Registrar colaborador"}
             </h3>
             <div style={{ textAlign: "center", marginBottom: 18, color: "#374151", fontWeight: 700 }}>
                 Paso {step} de 3
@@ -575,7 +575,7 @@ const EmpleadoForm = ({
                                         title={
                                             lockEquipo
                                                 ? "El equipo se determina desde la pestaña de equipos"
-                                                : "Selecciona un equipo"
+                                                : "Seleccione un equipo"
                                         }
                                     >
                                         <option value="">Seleccione equipo</option>
@@ -654,7 +654,7 @@ const EmpleadoForm = ({
                                     {errors.iniciolaboral && <span style={warn}>Este campo es obligatorio</span>}
                                 </div>
                                 <div style={{ ...field, gridColumn: "1 / -1" }}>
-                                    <label style={labelStyle}>CV del Empleado <span style={{ color: '#dc3545' }}>*</span></label>
+                                    <label style={labelStyle}>CV del Colaborador <span style={{ color: '#dc3545' }}>*</span></label>
                                     <input
                                         type="file"
                                         name="cvFile"
@@ -672,7 +672,7 @@ const EmpleadoForm = ({
                                         display: "block",
                                         marginTop: "4px"
                                     }}>
-                                        Sube el CV del empleado (Solo PDF, máx. 5MB)
+                                        Sube el CV del colaborador (Solo PDF, máx. 5MB)
                                     </small>
                                     {form.cvFile && (
                                         <div style={{
@@ -710,7 +710,7 @@ const EmpleadoForm = ({
                         </button>
                     ) : (
                         <button type="submit" style={btnPrimary}>
-                            {editingId ? "Actualizar Empleado" : "Guardar Empleado"}
+                            {editingId ? "Actualizar Colaborador" : "Guardar Colaborador"}
                         </button>
                     )}
                 </div>

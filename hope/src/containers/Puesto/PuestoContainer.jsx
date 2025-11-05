@@ -54,7 +54,7 @@ const PuestosContainer = () => {
             // Actualizar el puesto
             await axios.put(`http://127.0.0.1:8000/api/puestos/${idpuesto}/`, payload);
 
-            // Si el salario cambió, crear registros de historial para empleados con este puesto
+            // Si el salario cambió, crear registros de historial para colaboradores con este puesto
             if (salarioAnterior !== salarioNuevo && salarioNuevo > 0) {
                 console.log("   Creando historial por cambio de salario");
                 await crearHistorialCambioSalario(idpuesto, salarioNuevo);
@@ -78,29 +78,29 @@ const PuestosContainer = () => {
         try {
             console.log("🔄 Iniciando crearHistorialCambioSalario para puesto:", idPuesto, "con salario:", nuevoSalario);
 
-            // Obtener todos los empleados
+            // Obtener todos los colaboradores
             const resEmpleados = await axios.get("http://127.0.0.1:8000/api/empleados/");
             const empleados = Array.isArray(resEmpleados.data) ? resEmpleados.data : resEmpleados.data?.results || [];
-            console.log("👥 Empleados encontrados:", empleados.length);
+            console.log("👥 Colaboradores encontrados:", empleados.length);
 
             // Obtener historial actual
             const resHistorial = await axios.get("http://127.0.0.1:8000/api/historialpuestos/");
             const historiales = Array.isArray(resHistorial.data) ? resHistorial.data : resHistorial.data?.results || [];
             console.log("📋 Registros de historial encontrados:", historiales.length);
 
-            // Filtrar empleados que actualmente tienen este puesto
+            // Filtrar colaboradores que actualmente tienen este puesto
             const empleadosConEsePuesto = empleados.filter(emp => {
                 const idPuestoEmp = emp.idpuesto || emp.idPuesto;
                 const tieneEsePuesto = Number(idPuestoEmp) === Number(idPuesto);
                 const estaActivo = emp.estado === true;
-                console.log(`👤 Empleado ${emp.nombre} ${emp.apellido}: puesto=${idPuestoEmp}, coincide=${tieneEsePuesto}, activo=${estaActivo}`);
+                console.log(`👤 Colaborador ${emp.nombre} ${emp.apellido}: puesto=${idPuestoEmp}, coincide=${tieneEsePuesto}, activo=${estaActivo}`);
                 return tieneEsePuesto && estaActivo;
             });
 
-            console.log("   Empleados con el puesto modificado:", empleadosConEsePuesto.length);
+            console.log("   Colaboradores con el puesto modificado:", empleadosConEsePuesto.length);
 
             if (empleadosConEsePuesto.length === 0) {
-                console.log("ℹ️ No hay empleados activos con este puesto");
+                console.log("ℹ️ No hay colaboradores activos con este puesto");
                 return;
             }
 
@@ -109,9 +109,9 @@ const PuestosContainer = () => {
 
             for (const empleado of empleadosConEsePuesto) {
                 const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
-                console.log(`🔄 Procesando empleado ${empleado.nombre} ${empleado.apellido} (ID: ${empleadoId})`);
+                console.log(`🔄 Procesando colaborador ${empleado.nombre} ${empleado.apellido} (ID: ${empleadoId})`);
 
-                // Buscar el historial activo más reciente (sin fecha fin) de este empleado para este puesto
+                // Buscar el historial activo más reciente (sin fecha fin) de este colaborador para este puesto
                 const historialesActivos = historiales
                     .filter(h =>
                         h.idempleado === empleadoId &&
@@ -158,10 +158,10 @@ const PuestosContainer = () => {
 
                 console.log("➕ Creando nuevo historial:", nuevoHistorial);
                 await axios.post("http://127.0.0.1:8000/api/historialpuestos/", nuevoHistorial);
-                console.log("   Historial creado exitosamente para empleado:", empleadoId);
+                console.log("   Historial creado exitosamente para colaborador:", empleadoId);
             }
 
-            console.log(`🎉 Historial actualizado para ${empleadosConEsePuesto.length} empleado(s) con el nuevo salario`);
+            console.log(`🎉 Historial actualizado para ${empleadosConEsePuesto.length} colaborador(es) con el nuevo salario`);
         } catch (error) {
             console.error("  Error al actualizar historial por cambio de salario:", error);
             // No mostramos error al usuario para no interrumpir el flujo principal

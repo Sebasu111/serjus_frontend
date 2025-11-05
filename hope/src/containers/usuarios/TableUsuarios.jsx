@@ -50,12 +50,12 @@ const TableUsuarios = ({
         setMostrarConfirmacion(false);
     };
 
-    // Función para obtener nombre del empleado
+    // Función para obtener nombre del colaborador
     const obtenerNombreEmpleado = (idEmpleado) => {
         const empleado = empleados?.find(emp =>
             (emp.id || emp.idempleado || emp.idEmpleado) === idEmpleado
         );
-        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Empleado no encontrado";
+        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Colaborador no encontrado";
     };
 
     // Función para obtener nombre del rol
@@ -78,7 +78,7 @@ const TableUsuarios = ({
                 <thead>
                     <tr>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Usuario</th>
-                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Empleado</th>
+                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Colaborador</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Rol</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Estado</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Acciones</th>

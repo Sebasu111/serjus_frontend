@@ -74,7 +74,7 @@ export default MyContainer;
 
 -   ContratosContainer
 -   CapacitacionContainer
--   EmpleadosContainer
+-   ColaboradoresContainer
 -   UsuariosContainer
 -   PuestoContainer
 -   ConvocatoriasContainer

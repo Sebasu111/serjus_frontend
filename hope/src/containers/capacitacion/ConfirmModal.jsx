@@ -3,7 +3,7 @@ import ModalConfirmacionStyles from "../../stylesGenerales/ConfirmModalStyles";
 
 const ConfirmModal = ({
     title = "Confirmar acción",
-    message = "¿Estás seguro de realizar esta acción?",
+    message = "¿Está seguro de realizar esta acción?",
     onConfirm,
     onCancel,
     actionType = "desactivar" // puede ser "activar" o "desactivar"

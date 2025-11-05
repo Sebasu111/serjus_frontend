@@ -1,6 +1,6 @@
 import React from "react";
 
-const ModalEmpleadosAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170 }) => {
+const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170 }) => {
   if (!visible || !evento) return null;
 
   // Formateo de fecha
@@ -159,7 +159,7 @@ const ModalEmpleadosAsignados = ({ visible, onClose, empleados, evento, loading,
           </div>
         </Section>
 
-        {/* Empleados asignados */}
+        {/* Colaboradores asignados */}
         <Section title="Colaboradores Asignados">
           {loading ? (
             <div style={{ textAlign: "center", color: "#666" }}>Cargando...</div>
@@ -249,4 +249,4 @@ const ModalEmpleadosAsignados = ({ visible, onClose, empleados, evento, loading,
   );
 };
 
-export default ModalEmpleadosAsignados;
+export default ModalColaboradoresAsignados;

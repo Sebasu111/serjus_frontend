@@ -119,7 +119,7 @@ const HistorialPuestoForm = ({
 
                 <form onSubmit={handleSubmit}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                        {/* Empleado */}
+                        {/* Colaborador */}
                         <div style={{ position: "relative" }}>
                             <label style={{
                                 display: "flex",
@@ -130,11 +130,11 @@ const HistorialPuestoForm = ({
                                 color: "#374151"
                             }}>
                                 <User size={16} />
-                                Empleado *
+                                Colaborador *
                             </label>
                             <input
                                 type="text"
-                                placeholder="Buscar empleado..."
+                                placeholder="Buscar colaborador..."
                                 value={busquedaEmpleado}
                                 onChange={e => {
                                     setBusquedaEmpleado(e.target.value);

@@ -67,7 +67,7 @@ const RolesContainer = () => {
     };
 
     const handleDelete = async id => {
-        if (!window.confirm("¿Estás seguro de desactivar este rol?")) return;
+        if (!window.confirm("¿Está seguro de desactivar este rol?")) return;
         try {
             const rol = roles.find(r => r.idrol === id);
             if (!rol) return;

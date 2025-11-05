@@ -73,7 +73,7 @@ const TiposDocumentoContainer = () => {
     };
 
     const handleDelete = async id => {
-        if (!window.confirm("¿Estás seguro de desactivar este tipo de documento?")) return;
+        if (!window.confirm("¿Está seguro de desactivar este tipo de documento?")) return;
         try {
             const tipo = tipos.find(t => t.idtipodocumento === id);
             if (!tipo) return;

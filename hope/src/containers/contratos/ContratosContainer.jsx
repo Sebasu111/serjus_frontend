@@ -216,7 +216,7 @@ const ContratosContainer = () => {
 
             // Validar que se haya seleccionado un empleado (por historial o directo)
             if (!data.idHistorialPuesto && !data.empleadoSeleccionado) {
-                throw new Error("Debe seleccionar un empleado");
+                throw new Error("Debe seleccionar un colaborador");
             }
 
             // Validar otros campos obligatorios

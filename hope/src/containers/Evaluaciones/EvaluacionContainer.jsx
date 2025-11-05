@@ -190,10 +190,10 @@ const EvaluacionContainer = () => {
             newErrors.fechaevaluacion = "No puede ser fecha futura";
         }
 
-        // Validar que se seleccione empleado O postulación (no ambos)
+        // Validar que se seleccione colaborador O postulación (no ambos)
         if (!form.idempleado && !form.idpostulacion) {
-            newErrors.idempleado = "Debe seleccionar empleado o postulación";
-            newErrors.idpostulacion = "Debe seleccionar empleado o postulación";
+            newErrors.idempleado = "Debe seleccionar colaborador o postulación";
+            newErrors.idpostulacion = "Debe seleccionar colaborador o postulación";
         }
 
         setErrors(newErrors);

@@ -75,7 +75,7 @@ const EvaluacionCriterioContainer = () => {
     };
 
     const handleDelete = async id => {
-        if (!window.confirm("¿Estás seguro de desactivar esta evaluación?")) return;
+        if (!window.confirm("¿Está seguro de desactivar esta evaluación?")) return;
         try {
             const evaluacion = evaluaciones.find(e => e.idevaluacioncriterio === id);
             if (!evaluacion) return;

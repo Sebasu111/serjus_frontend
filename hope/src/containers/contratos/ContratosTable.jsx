@@ -231,7 +231,7 @@ const ContratosTable = () => {
             <div>
                 <input
                     type="text"
-                    placeholder="Buscar por nombre del empleado, puesto o tipo de contrato..."
+                    placeholder="Buscar por nombre del colaborador, puesto o tipo de contrato..."
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}
                     style={inputStyle}
@@ -248,7 +248,7 @@ const ContratosTable = () => {
                         <thead>
                             <tr>
                                 <th style={thStyle}>ID</th>
-                                <th style={thStyle}>Empleado</th>
+                                <th style={thStyle}>Colaborador</th>
                                 <th style={thStyle}>Puesto</th>
                                 <th style={thStyle}>Fecha Inicio</th>
                                 <th style={thStyle}>Fecha Fin</th>

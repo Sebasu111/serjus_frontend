@@ -31,7 +31,7 @@ const CapacitacionesToast = () => {
 
                 // Mostrar toast
                 showToast(
-                    `${nombreEmpleado}, tienes ${asignacionesActivas.length} capacitaciones activas. Revisa tu perfil.`,
+                    `${nombreEmpleado}, tiene ${asignacionesActivas.length} capacitaciones activas. Revise su perfil.`,
                     "info"
                 );
             } catch (error) {

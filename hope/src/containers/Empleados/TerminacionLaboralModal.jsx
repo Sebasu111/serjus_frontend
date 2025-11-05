@@ -220,7 +220,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                             fontWeight: "bold",
                             color: "#1976d2"
                         }}>
-                            Empleado Seleccionado:
+                            Colaborador Seleccionado:
                         </label>
                         <div style={{
                             padding: "12px",

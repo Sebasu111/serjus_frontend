@@ -26,8 +26,8 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
       const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
       setEmpleados(res.data.results || res.data);
     } catch (error) {
-      console.error("Error al cargar empleados:", error);
-      showToast("Error al cargar empleados", "error");
+      console.error("Error al cargar colaboradores:", error);
+      showToast("Error al cargar colaboradores", "error");
     }
   };
 
@@ -51,7 +51,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         .map(a => Number(a.idempleado));
       setEmpleadosSeleccionados(empleadosIdsAsignados);
     } catch (error) {
-      console.error("Error al cargar empleados asignados:", error);
+      console.error("Error al cargar colaboradores asignados:", error);
     }
   };
 
@@ -107,7 +107,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         showToast("No se realizó ninguna asignación nueva", "info");
       }
 
-      // Refrescar empleados asignados
+      // Refrescar colaboradores asignados
       fetchEmpleadosAsignados(capacitacionSeleccionada);
     } catch (error) {
       console.error(error);
@@ -180,7 +180,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
           </div>
         )}
 
-        {/* Empleados */}
+        {/* Colaboradores */}
         <div>
           <label style={{ display: "block", marginBottom: "6px" }}>
             Seleccione colaboradores <span style={{ color: "red" }}>*</span>
@@ -239,7 +239,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 ))
               ) : (
                 <div style={{ padding: "20px", textAlign: "center", color: "#777", fontSize: "14px" }}>
-                  {busqueda ? "No se encontraron empleados con ese nombre" : "No hay empleados disponibles"}
+                  {busqueda ? "No se encontraron colaboradores con ese nombre" : "No hay colaboradores disponibles"}
                 </div>
               )}
             </div>
@@ -254,13 +254,13 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
               fontSize: "12px",
               color: "#2e7d32"
             }}>
-              {empleadosSeleccionados.length} empleado{empleadosSeleccionados.length > 1 ? "s" : ""} seleccionado{empleadosSeleccionados.length > 1 ? "s" : ""}
+              {empleadosSeleccionados.length} colaborador{empleadosSeleccionados.length > 1 ? "es" : ""} seleccionado{empleadosSeleccionados.length > 1 ? "s" : ""}
             </div>
           )}
 
           {empleadosSeleccionados.length === 0 && showError && (
             <span style={{ color: "red", fontSize: "12px", marginTop: "4px", display: "block" }}>
-              Debe seleccionar al menos un empleado
+              Debe seleccionar al menos un colaborador
             </span>
           )}
         </div>

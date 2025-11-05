@@ -156,7 +156,7 @@ const EquiposContainer = () => {
             setEmpleados(activos);
         } catch (error) {
             console.error(error);
-            showToast("Error al cargar los empleados", "error");
+            showToast("Error al cargar los colaboradores", "error");
         }
     };
 
@@ -370,7 +370,7 @@ const EquiposContainer = () => {
             console.log("🎉 Sincronización de empleados completada");
         } catch (error) {
             console.error("  Error al actualizar empleados del equipo:", error);
-            showToast("Equipo actualizado, pero hubo problemas al sincronizar algunos empleados", "warning");
+            showToast("Equipo actualizado, pero hubo problemas al sincronizar algunos colaboradores", "warning");
         }
     };
 
@@ -379,7 +379,7 @@ const EquiposContainer = () => {
         if (!idEquipo || !idCoordinador) return;
 
         if (coordinadoresOcupados.has(toNum(idCoordinador))) {
-            showToast("Este empleado ya es coordinador en otro equipo.", "error");
+            showToast("Este colaborador ya es coordinador en otro equipo.", "error");
             return;
         }
 

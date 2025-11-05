@@ -211,7 +211,7 @@ export async function generarFichasPDF(empleados, cat, logoSrc) {
     return new Promise(async (resolve, reject) => {
         try {
             if (!Array.isArray(empleados) || empleados.length === 0) {
-                reject(new Error("No hay empleados para generar el PDF"));
+                reject(new Error("No hay colaboradores para generar el PDF"));
                 return;
             }
 

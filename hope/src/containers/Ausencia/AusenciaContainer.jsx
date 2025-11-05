@@ -70,7 +70,7 @@ const AusenciaContainer = () => {
       setEmpleados(data);
     } catch (error) {
       console.error(error);
-      showToast("Error al cargar empleados", "error");
+      showToast("Error al cargar colaboradores", "error");
     }
   };
 

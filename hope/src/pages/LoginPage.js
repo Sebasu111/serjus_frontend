@@ -215,7 +215,7 @@ const LoginPage = () => {
                             fontSize: "1rem",
                             fontWeight: "400"
                         }}>
-                            Inicia sesión para acceder a tu cuenta
+                            Inicie sesión para acceder a su cuenta
                         </p>
                     </div>
 
@@ -240,7 +240,7 @@ const LoginPage = () => {
                                 value={username}
                                 onChange={e => setUsername(e.target.value)}
                                 required
-                                placeholder="Ingresa tu usuario"
+                                placeholder="Ingrese su usuario"
                                 style={{
                                     width: "100%",
                                     padding: "16px 20px",
@@ -286,7 +286,7 @@ const LoginPage = () => {
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 required
-                                placeholder="Ingresa tu contraseña"
+                                placeholder="Ingrese su contraseña"
                                 style={{
                                     width: "100%",
                                     padding: "16px 55px 16px 20px",

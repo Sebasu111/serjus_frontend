@@ -126,7 +126,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     });
 
     if (conflicto) {
-      showToast("Ya existe una ausencia registrada para este empleado en esas fechas.", "error");
+      showToast("Ya existe una ausencia registrada para este colaborador en esas fechas.", "error");
       setSubiendo(false);
       return;
     }

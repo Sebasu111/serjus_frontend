@@ -361,7 +361,7 @@ const CapacitacionContainer = () => {
                 {modalAccion && (
                     <ConfirmModal
                         title={modalAccion.tipo === "activar" ? "Activar Capacitación" : "Desactivar Capacitación"}
-                        message={`¿Estás seguro de ${modalAccion.tipo === "activar" ? "activar" : "desactivar"
+                        message={`¿Está seguro de ${modalAccion.tipo === "activar" ? "activar" : "desactivar"
                             } la capacitación "${modalAccion.data?.nombreevento}"?`}
                         onConfirm={confirmarAccion}
                         onCancel={() => setModalAccion(null)}

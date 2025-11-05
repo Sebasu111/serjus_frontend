@@ -243,7 +243,7 @@ const useEvaluacionSeleccion = () => {
           if (!res.ok) {
             const errorText = await res.text();
             console.error("❌ Error creando criterio:", errorText);
-            alert("Error al crear un criterio. Revisa la consola para más detalles.");
+            alert("Error al crear un criterio. Revise la consola para más detalles.");
             continue;
           }
 
@@ -361,7 +361,7 @@ const useEvaluacionSeleccion = () => {
       console.log("=== Evaluación completada exitosamente ===");
     } catch (err) {
       console.error("🔥 Error guardando evaluación:", err);
-      alert("Ocurrió un error al guardar la evaluación. Revisa la consola para más detalles.");
+      alert("Ocurrió un error al guardar la evaluación. Revise la consola para más detalles.");
     }
   };
 

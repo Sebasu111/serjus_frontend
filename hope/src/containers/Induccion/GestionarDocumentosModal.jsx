@@ -29,7 +29,7 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
             const data = Array.isArray(res.data) ? res.data : res.data.results || [];
             setEmpleados(data.filter(item => item.estado));
         } catch (e) {
-            console.error("Error al cargar empleados:", e);
+            console.error("Error al cargar colaboradores:", e);
         }
     };
 
@@ -38,7 +38,7 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
         try {
             // Validaciones
             if (!documentoPDF || empleadosSeleccionados.length === 0) {
-                showToast("Debe subir un documento PDF y seleccionar al menos un empleado", "warning");
+                showToast("Debe subir un documento PDF y seleccionar al menos un colaborador", "warning");
                 return;
             }
 

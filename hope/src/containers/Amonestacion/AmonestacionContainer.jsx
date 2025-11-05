@@ -48,8 +48,8 @@ const AmonestacionContainer = () => {
         : [];
       setEmpleados(data);
     } catch (error) {
-      console.error("Error al cargar empleados:", error);
-      setMensaje("Error al cargar los empleados");
+      console.error("Error al cargar colaboradores:", error);
+      setMensaje("Error al cargar los colaboradores");
     }
   };
 

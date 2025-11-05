@@ -221,7 +221,7 @@ const EvaluacionForm = ({
                                         onChange={(e) => handleTipoChange(e.target.value)}
                                         style={{ marginRight: 4 }}
                                     />
-                                    <span>Empleado</span>
+                                    <span>Colaborador</span>
                                 </label>
                                 <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
                                     <input
@@ -244,11 +244,11 @@ const EvaluacionForm = ({
                                 gap: 20
                             }}
                         >
-                            {/* Empleado o Postulación */}
+                            {/* Colaborador o Postulación */}
                             {tipoEvaluacion === "empleado" && (
-                                <Field label="Empleado" name="idempleado" required>
+                                <Field label="Colaborador" name="idempleado" required>
                                     <Select name="idempleado">
-                                        <option value="">Seleccionar empleado...</option>
+                                        <option value="">Seleccionar colaborador...</option>
                                         {empleados.map(emp => (
                                             <option key={getId(emp)} value={getId(emp)}>
                                                 {getEmpleadoLabel(emp)}

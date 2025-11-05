@@ -89,9 +89,9 @@ const AmonestacionForm = ({
       </h3>
 
       <form onSubmit={handleSubmit} style={{ flex: 1 }}>
-        {/* Empleado con búsqueda */}
+        {/* Colaborador con búsqueda */}
         <div style={{ marginBottom: "15px", position: "relative" }}>
-          <label>Empleado</label>
+          <label>Colaborador</label>
           <input
             type="text"
             value={busquedaEmpleado}

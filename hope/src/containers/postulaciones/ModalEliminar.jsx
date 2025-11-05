@@ -37,7 +37,7 @@ const ModalEliminarAspirante = ({
       <div style={ModalConfirmacionStyles.modal}>
         <h3 style={ModalConfirmacionStyles.titulo}>Confirmar eliminación</h3>
         <p style={ModalConfirmacionStyles.mensaje}>
-          ¿Seguro que deseas eliminar al aspirante{" "}
+          ¿Seguro que desea eliminar al aspirante{" "}
           <strong>
             {aspiranteSeleccionado.nombreaspirante} {aspiranteSeleccionado.apellidoaspirante}
           </strong>

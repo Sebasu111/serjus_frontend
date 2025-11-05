@@ -69,7 +69,7 @@ const CriterioEvaluacionContainer = () => {
     };
 
     const handleDelete = async id => {
-        if (!window.confirm("¿Estás seguro de desactivar este criterio?")) return;
+        if (!window.confirm("¿Está seguro de desactivar este criterio?")) return;
         try {
             const crit = criterios.find(c => c.idcriterioevaluacion === id);
             if (!crit) return;

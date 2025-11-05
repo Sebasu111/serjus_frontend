@@ -244,7 +244,7 @@ const useEvaluacionSeleccion = () => {
           if (!res.ok) {
             const errorText = await res.text();
             console.error("❌ Error creando criterio:", errorText);
-            alert("Error al crear un criterio. Revisa la consola para más detalles.");
+            alert("Error al crear un criterio. Revise la consola para más detalles.");
             continue;
           }
 
@@ -361,7 +361,7 @@ const useEvaluacionSeleccion = () => {
       showToast(`Evaluación y contratación de ${nombreGanador} guardadas correctamente. Proceso finalizado.`);
       console.log("=== Evaluación completada exitosamente ===");
       if (ganadorObj?.idaspirante && convocatoriaSeleccionada) {
-        showToast("Redirigiendo al registro de empleado...", "success");
+        showToast("Redirigiendo al registro de colaborador...", "success");
         window.location.href = `/empleados?aspirante=${ganadorObj.idaspirante}&convocatoria=${convocatoriaSeleccionada}`;
       }
     } catch (err) {

@@ -96,8 +96,8 @@ const ConfirmModal = ({ historial, modo, onConfirm, onCancel }) => {
                         fontSize: "14px"
                     }}>
                         {esDesactivar
-                            ? "¿Estás seguro de que deseas desactivar este historial de puesto?"
-                            : "¿Estás seguro de que deseas activar este historial de puesto?"
+                            ? "¿Está seguro de que desea desactivar este historial de puesto?"
+                            : "¿Está seguro de que desea activar este historial de puesto?"
                         }
                     </p>
 

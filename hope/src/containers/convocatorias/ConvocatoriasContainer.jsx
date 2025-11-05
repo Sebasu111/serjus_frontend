@@ -100,7 +100,7 @@ const ConvocatoriasContainer = () => {
         return;
     }
     if (!form.idpuesto || Number(form.idpuesto) <= 0) {
-        setMensaje("Debes seleccionar un puesto válido");
+        setMensaje("Debe seleccionar un puesto válido");
         return;
     }
 
@@ -153,7 +153,7 @@ const ConvocatoriasContainer = () => {
                 .join(" | ");
             showToast(`Error al registrar/actualizar: ${errores}`, "error");
         } else {
-            showToast("Error al registrar/actualizar. Revisa la información enviada.", "error");
+            showToast("Error al registrar/actualizar. Revise la información enviada.", "error");
         }
     }
 };

@@ -36,7 +36,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose }) => {
             const data = Array.isArray(res.data) ? res.data : res.data.results || [];
             setEmpleados(data.filter(item => item.estado));
         } catch (e) {
-            console.error("Error al cargar empleados:", e);
+            console.error("Error al cargar colaboradores:", e);
         }
     };
 

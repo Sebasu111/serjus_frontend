@@ -715,7 +715,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                             fontFamily: '"Inter", sans-serif'
                                         }}
                                     >
-                                        Seleccionar Empleado (Historial de Puesto):
+                                        Seleccionar Colaborador (Historial de Puesto):
                                     </label>
                                     <select
                                         id="empleadoHistorial"
@@ -725,7 +725,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                         style={input}
                                         required
                                     >
-                                        <option value="">Seleccione un empleado...</option>
+                                        <option value="">Seleccione un colaborador...</option>
                                         {(() => {
                                             // Filtrar para mostrar solo el puesto más reciente/actual de cada empleado
                                             const empleadosUnicos = new Map();
@@ -797,7 +797,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                             fontFamily: '"Inter", sans-serif'
                                         }}
                                     >
-                                        Seleccionar Empleado (Modo Temporal):
+                                        Seleccionar Colaborador (Modo Temporal):
                                     </label>
                                     <div style={{ fontSize: "12px", color: "#ff6b35", marginBottom: "5px" }}>
                                         ⚠️ Historial de puestos no disponible - usando selección directa
@@ -810,7 +810,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                         style={input}
                                         required
                                     >
-                                        <option value="">Seleccione un empleado...</option>
+                                        <option value="">Seleccione un colaborador...</option>
                                         {empleados.map(empleado => {
                                             const nombreCompleto = `${empleado.nombre || ''} ${empleado.apellido || ''}`.trim();
                                             return (
