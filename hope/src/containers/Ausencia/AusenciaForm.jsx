@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import { X } from "lucide-react";
+import { showToast } from "../../utils/toast.js"; 
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -27,14 +28,14 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   const wrapperRef = useRef(null);
   const [openMenu, setOpenMenu] = useState(false);
 
-  // Inicializar formulario
+  
   useEffect(() => {
     if (editingAusencia) {
     setTipo(editingAusencia.tipo || "");
     setDiagnostico(editingAusencia.diagnostico || "");
     setEsIGSS(editingAusencia.es_iggs || false);
     setOtro(editingAusencia.otro || "");
-    setPrevOtro(editingAusencia.otro || ""); // 🔹 Guardamos para recuperación
+    setPrevOtro(editingAusencia.otro || ""); 
     setFechaInicio(editingAusencia.fechainicio || "");
     setFechaFin(editingAusencia.fechafin || "");
     setCantidadDias(editingAusencia.cantidad_dias || 0);
@@ -52,7 +53,6 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     }
   }, [editingAusencia, empleados, usuario]);
 
-  // Calcular cantidad de días automáticamente
   useEffect(() => {
     if (fechaInicio && fechaFin) {
       const inicio = new Date(fechaInicio);
@@ -68,7 +68,6 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     }
   }, [fechaInicio, fechaFin]);
 
-  // Cerrar menú al hacer click afuera
   useEffect(() => {
     const onClick = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpenMenu(false);
@@ -93,68 +92,101 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!idEmpleado || !tipo || !fechaInicio || !fechaFin) {
-      alert("Complete todos los campos obligatorios");
-      return;
-    }
-    if (tipo !== "Personal" && !esIGSS && !otro.trim()) {
-      alert("Si no es IGSS, especifique la clínica u otro lugar.");
-      return;
-    }
+  e.preventDefault();
 
-    setSubiendo(true);
-    try {
-      let idDocumento = editingAusencia?.iddocumento || null;
+  if (!idEmpleado || !tipo || !fechaInicio || !fechaFin) {
+    showToast("Complete todos los campos obligatorios", "warning");
+    return;
+  }
 
-      if (archivo) {
-        const formData = new FormData();
-        formData.append("archivo", archivo);
-        formData.append("nombrearchivo", archivo.name);
-        formData.append("mimearchivo", archivo.name.split(".").pop().toLowerCase());
-        formData.append("fechasubida", new Date().toISOString().slice(0, 10));
-        formData.append("idusuario", usuario.idusuario);
-        formData.append("idtipodocumento", 3);
-        formData.append("idempleado", idEmpleado);
+  if (tipo !== "Personal" && !esIGSS && !otro.trim()) {
+    showToast("Si no es IGSS, especifique la clínica u otro lugar", "warning");
+    return;
+  }
 
-        if (editingAusencia?.iddocumento) {
-          const resp = await axios.put(`${API}/documentos/${editingAusencia.iddocumento}/`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-          idDocumento = resp.data.iddocumento;
-        } else {
-          const resp = await axios.post(`${API}/documentos/`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-          idDocumento = resp.data.iddocumento;
-        }
-      }
+  setSubiendo(true);
 
-      const dataAusencia = {
-        idempleado: Number(idEmpleado),
-        tipo,
-        diagnostico,
-        es_iggs: esIGSS,
-        otro: !esIGSS && tipo !== "Personal" ? otro || null : null,
-        cantidad_dias: cantidadDias,
-        fechainicio: fechaInicio,
-        fechafin: fechaFin,
-        iddocumento: idDocumento,
-        estado: true,
-        idusuario: usuario.idusuario,
-      };
+  try {
+    
+    const resp = await axios.get(`${API}/ausencias/?idempleado=${idEmpleado}`);
+    const ausenciasEmpleado = Array.isArray(resp.data)
+      ? resp.data
+      : resp.data.results || [];
 
-      await onSubmit(dataAusencia, editingAusencia?.idausencia);
-      resetForm();
-    } catch (error) {
-      console.error("Error al guardar ausencia:", error.response?.data || error);
-      alert("Error al registrar o actualizar la ausencia");
-    } finally {
+    const inicioNueva = new Date(fechaInicio);
+    const finNueva = new Date(fechaFin);
+
+    const conflicto = ausenciasEmpleado.some((a) => {
+      if (editingAusencia && a.idausencia === editingAusencia.idausencia) return false;
+
+      const inicioExistente = new Date(a.fechainicio);
+      const finExistente = new Date(a.fechafin);
+
+      return inicioNueva <= finExistente && finNueva >= inicioExistente;
+    });
+
+    if (conflicto) {
+      showToast("Ya existe una ausencia registrada para este empleado en esas fechas.", "error");
       setSubiendo(false);
+      return;
     }
-  };
 
-  // Filtrar empleados según búsqueda
+    let idDocumento = editingAusencia?.iddocumento || null;
+
+    if (archivo) {
+      const formData = new FormData();
+      formData.append("archivo", archivo);
+      formData.append("nombrearchivo", archivo.name);
+      formData.append("mimearchivo", archivo.name.split(".").pop().toLowerCase());
+      formData.append("fechasubida", new Date().toISOString().slice(0, 10));
+      formData.append("idusuario", usuario.idusuario);
+      formData.append("idtipodocumento", 3);
+      formData.append("idempleado", idEmpleado);
+
+      if (editingAusencia?.iddocumento) {
+        const respDoc = await axios.put(`${API}/documentos/${editingAusencia.iddocumento}/`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        idDocumento = respDoc.data.iddocumento;
+      } else {
+        const respDoc = await axios.post(`${API}/documentos/`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        idDocumento = respDoc.data.iddocumento;
+      }
+    }
+
+    const dataAusencia = {
+      idempleado: Number(idEmpleado),
+      tipo,
+      diagnostico,
+      es_iggs: esIGSS,
+      otro: !esIGSS && tipo !== "Personal" ? otro || null : null,
+      cantidad_dias: cantidadDias,
+      fechainicio: fechaInicio,
+      fechafin: fechaFin,
+      iddocumento: idDocumento,
+      estado: true,
+      idusuario: usuario.idusuario,
+    };
+
+    await onSubmit(dataAusencia, editingAusencia?.idausencia);
+    resetForm();
+
+    if (editingAusencia) {
+      showToast("Ausencia actualizada correctamente", "success");
+    } else {
+      showToast("Ausencia registrada correctamente", "success");
+    }
+
+  } catch (error) {
+    console.error("Error al verificar ausencias existentes:", error);
+    showToast("Error al registrar o actualizar la ausencia", "error");
+  } finally {
+    setSubiendo(false);
+  }
+};
+
   const empleadosFiltrados = useMemo(() => {
     const t = qEmpleado.toLowerCase().trim();
     return empleados.filter(
@@ -191,7 +223,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
       </h3>
 
       <form onSubmit={handleSubmit}>
-        {/* Colaborador/a con búsqueda tipo autocomplete */}
+        
         <div style={{ marginBottom: "15px", position: "relative" }}>
   <label>Colaborador/a</label>
   <input
@@ -209,9 +241,9 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
       padding: "10px",
       borderRadius: "6px",
       border: "1px solid #ccc",
-      background: editingAusencia ? "#f3f3f3" : "#fff", // opcional: mostrar como bloqueado si es edición
+      background: editingAusencia ? "#f3f3f3" : "#fff", 
     }}
-    disabled={!!editingAusencia} // 🚫 no permitir cambiar empleado al editar
+    disabled={!!editingAusencia} 
   />
   {openMenu && !editingAusencia && ( 
     <div
@@ -255,7 +287,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   )}
 </div>
 
-        {/* Resto del formulario: tipo, IGSS, fechas, diagnóstico y documento */}
+        
         <div style={{ marginBottom: "15px" }}>
           <label>Tipo</label>
           <select
@@ -287,10 +319,10 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     const checked = e.target.checked;
     setEsIGSS(checked);
     if (checked) {
-      setPrevOtro(otro); // Guardamos lo que estaba
-      setOtro(""); // Limpiamos solo visualmente
+      setPrevOtro(otro);
+      setOtro("");
     } else {
-      setOtro(prevOtro); // Restauramos lo previo
+      setOtro(prevOtro);
     }
   }}
 />
@@ -353,7 +385,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   <input
     type="number"
     value={cantidadDias}
-    readOnly // 🔒 bloqueado
+    readOnly 
     style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", background: "#f3f3f3" }}
   />
 </div>
@@ -367,7 +399,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   )}
   <input
     type="file"
-    accept="application/pdf" //   solo PDFs
+    accept="application/pdf" 
     onChange={(e) => setArchivo(e.target.files[0])}
     required={!editingAusencia || !archivoActual}
     style={{ width: "100%", padding: "5px", borderRadius: "6px", border: "1px solid #ccc" }}
