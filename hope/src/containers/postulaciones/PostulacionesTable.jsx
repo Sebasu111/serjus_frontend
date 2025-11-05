@@ -37,13 +37,82 @@ const PostulacionesTable = ({
     }
   }, [convocatorias, convocatoriaSeleccionada]);
 
+  // 🔹 useEffect: Validar automáticamente si hay 3 seleccionados por convocatoria
+  useEffect(() => {
+    const validarConvocatorias = async () => {
+      try {
+        // Agrupar postulaciones por convocatoria
+        const agrupadas = postulaciones.reduce((acc, p) => {
+          if (!acc[p.idconvocatoria]) acc[p.idconvocatoria] = [];
+          acc[p.idconvocatoria].push(p);
+          return acc;
+        }, {});
+
+        // Recorrer cada convocatoria
+        for (const idConv in agrupadas) {
+          const postulacionesConv = agrupadas[idConv];
+          const seleccionadas = postulacionesConv.filter((p) => p.idestado === 2);
+
+          // Si ya hay 3 seleccionadas, rechazar todas las demás
+          if (seleccionadas.length >= 3) {
+            const restantes = postulacionesConv.filter((p) => p.idestado !== 2);
+
+            if (restantes.some((p) => p.idestado !== 3)) {
+              await Promise.all(
+                restantes.map((p) =>
+                  axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
+                    ...p,
+                    idestado: 3,
+                  })
+                )
+              );
+
+              showToast(
+                `⚠️ Convocatoria #${idConv}: Se alcanzaron 3 seleccionadas. Las demás fueron rechazadas.`,
+                "warning"
+              );
+
+              // Actualizar estado local
+              setPostulaciones((prev) =>
+                prev.map((p) => {
+                  if (p.idconvocatoria === Number(idConv) && p.idestado !== 2)
+                    return { ...p, idestado: 3 };
+                  return p;
+                })
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error validando postulaciones:", error);
+      }
+    };
+
+    if (postulaciones.length > 0) {
+      validarConvocatorias();
+    }
+  }, [postulaciones]);
+
+
   // 🔹 Filtrar postulaciones según convocatoria seleccionada
   const postulacionesFiltradas = useMemo(() => {
-    if (!convocatoriaSeleccionada) return postulaciones;
-    return postulaciones.filter(
-      (p) => String(p.idconvocatoria) === String(convocatoriaSeleccionada)
-    );
+    let filtradas = postulaciones;
+
+    // 🔹 Filtrar por convocatoria seleccionada
+    if (convocatoriaSeleccionada) {
+      filtradas = filtradas.filter(
+        (p) => String(p.idconvocatoria) === String(convocatoriaSeleccionada)
+      );
+    }
+
+    // 🔹 Ordenar por fecha de creación (más reciente primero)
+    return [...filtradas].sort((a, b) => {
+      const fechaA = new Date(a.createdat);
+      const fechaB = new Date(b.createdat);
+      return fechaB - fechaA; // descendente
+    });
   }, [postulaciones, convocatoriaSeleccionada]);
+
 
   const handleSeleccionarClick = (postulacion) => {
     const seleccionadasMismaConv = postulaciones.filter(
@@ -67,44 +136,58 @@ const PostulacionesTable = ({
 
     try {
       const idSel = postulacionParaSeleccionar.idpostulacion;
-      const idAspirante = postulacionParaSeleccionar.idaspirante;
+      const idConv = postulacionParaSeleccionar.idconvocatoria;
 
-      // Preparar PUT para la postulación seleccionada
+      // 🔹 1. Seleccionar esta postulación
       await axios.put(`${API}/postulaciones/${idSel}/`, {
         ...postulacionParaSeleccionar,
         idestado: 2, // Seleccionada
       });
 
-      // Preparar PUT para las demás postulaciones del mismo aspirante
-      const otras = postulaciones.filter(
-        (p) => p.idaspirante === idAspirante && p.idpostulacion !== idSel
+      // 🔹 2. Obtener todas las postulaciones de la misma convocatoria
+      const mismasConvocatorias = postulaciones.filter(
+        (p) => p.idconvocatoria === idConv
       );
 
-      await Promise.all(
-        otras.map((p) =>
-          axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
-            ...p,
-            idestado: 3, // Rechazadas
-          })
-        )
-      );
+      // Contar cuántas quedan seleccionadas
+      const seleccionadas = mismasConvocatorias.filter((p) => p.idestado === 2 || p.idpostulacion === idSel);
 
-      // Actualizar estado local
+      // 🔹 3. Si ya hay 3 seleccionadas → rechazar todas las demás
+      if (seleccionadas.length >= 3) {
+        const restantes = mismasConvocatorias.filter(
+          (p) => p.idestado !== 2 && p.idpostulacion !== idSel
+        );
+
+        await Promise.all(
+          restantes.map((p) =>
+            axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
+              ...p,
+              idestado: 3, // Rechazadas
+            })
+          )
+        );
+
+        showToast("Se alcanzaron las 3 postulaciones seleccionadas. Las demás fueron rechazadas.", "warning");
+      } else {
+        showToast("Postulación seleccionada correctamente.", "success");
+      }
+
+      // 🔹 4. Actualizar estado local
       const updated = postulaciones.map((p) => {
         if (p.idpostulacion === idSel) return { ...p, idestado: 2 };
-        if (p.idaspirante === idAspirante && p.idpostulacion !== idSel)
+        if (p.idconvocatoria === idConv && seleccionadas.length >= 3 && p.idpostulacion !== idSel)
           return { ...p, idestado: 3 };
         return p;
       });
 
       setPostulaciones(updated);
-      showToast("Postulación seleccionada correctamente", "success");
       setPostulacionParaSeleccionar(null);
     } catch (err) {
       console.error(err);
       showToast("Error al seleccionar la postulación", "error");
     }
   };
+
 
   // 🔹 Paginación
   const totalPaginas = Math.max(1, Math.ceil(postulacionesFiltradas.length / elementosPorPagina));
@@ -148,35 +231,67 @@ const PostulacionesTable = ({
           boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         }}
       >
-        {/* 🔹 Filtro por convocatoria */}
-        <div style={{ marginBottom: 20, display: "flex", gap: 10, alignItems: "center" }}>
-          <label style={{ fontWeight: 600 }}>Filtrar por convocatoria:</label>
-          <select
-            value={convocatoriaSeleccionada}
-            onChange={(e) => {
-              setConvocatoriaSeleccionada(e.target.value);
-              setPaginaActual(1); // Resetear a la primera página al cambiar convocatoria
-            }}
+        {/* 🔹 Filtro por convocatoria con label del puesto */}
+          <div
             style={{
-              padding: "6px 12px",
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              minWidth: 250,
+              marginBottom: 20,
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              flexWrap: "wrap",
             }}
           >
-            {convocatorias.map((c) => (
-              <option key={c.idconvocatoria} value={c.idconvocatoria}>
-                {c.nombreconvocatoria}
-              </option>
-            ))}
-          </select>
-        </div>
+            <label style={{ fontWeight: 600 }}>Filtrar por convocatoria:</label>
+            <select
+              value={convocatoriaSeleccionada}
+              onChange={(e) => {
+                setConvocatoriaSeleccionada(e.target.value);
+                setPaginaActual(1); // Resetear a la primera página al cambiar convocatoria
+              }}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 6,
+                border: "1px solid #ccc",
+                minWidth: 250,
+              }}
+            >
+              {convocatorias.map((c) => (
+                <option key={c.idconvocatoria} value={c.idconvocatoria}>
+                  {c.nombreconvocatoria}
+                </option>
+              ))}
+            </select>
+
+            {/* 🔹 Label gris con nombre del puesto */}
+            {(() => {
+              const convocatoria = convocatorias.find(
+                (c) => String(c.idconvocatoria) === String(convocatoriaSeleccionada)
+              );
+              return (
+                convocatoria?.nombrepuesto && (
+                  <span
+                    style={{
+                      background: "#e5e5e5",
+                      color: "#000",
+                      padding: "4px 10px",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {convocatoria.nombrepuesto}
+                  </span>
+                )
+              );
+            })()}
+          </div>
+
 
         <div style={{ width: "100%" }}>
           <table style={{ width: "100%", minWidth: "900px", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {["Fecha", "Aspirante", "Convocatoria", "Puesto", "Estado", "Observación", "Acciones"].map(
+                {["Fecha", "Aspirante", "Estado", "Observación", "Acciones"].map(
                   (h) => (
                     <th key={h} style={thStyle}>
                       {h}
@@ -191,7 +306,7 @@ const PostulacionesTable = ({
                   const aspirante = aspirantes.find((a) => a.idaspirante === p.idaspirante);
                   const convocatoria = convocatorias.find((c) => c.idconvocatoria === p.idconvocatoria);
                   const estadoColor =
-                    p.idestado === 2 ? "green" : p.idestado === 3 ? "red" : "#2563eb";
+                    p.idestado === 2 ? "green" : p.idestado === 3 ? "red" : "#bbbb00ff";
 
                   return (
                     <tr key={p.idpostulacion}>
@@ -207,14 +322,12 @@ const PostulacionesTable = ({
                       >
                         {aspirante ? `${aspirante.nombreaspirante} ${aspirante.apellidoaspirante}` : "-"}
                       </td>
-                      <td style={tdStyle}>{convocatoria?.nombreconvocatoria || "-"}</td>
-                      <td style={tdStyle}>{convocatoria?.nombrepuesto || "-"}</td>
                       <td
                         style={{
                           ...tdStyle,
                           fontWeight: 600,
                           color: estadoColor,
-                          textAlign: "center",
+                          textAlign: "left",
                         }}
                       >
                         {p.idestado === 2
@@ -243,15 +356,18 @@ const PostulacionesTable = ({
                               >
                                 Ver CV
                               </div>
-                              <div
-                                style={comboBoxStyles.menu.item.activar.base}
-                                onClick={() => {
-                                  handleSeleccionarClick(p);
-                                  setOpenCombo(null);
-                                }}
-                              >
-                                Seleccionar
-                              </div>
+                              {/* Mostrar "Seleccionar" solo si no está ya seleccionada */}
+                              {p.idestado !== 2 && (
+                                <div
+                                  style={comboBoxStyles.menu.item.activar.base}
+                                  onClick={() => {
+                                    handleSeleccionarClick(p);
+                                    setOpenCombo(null);
+                                  }}
+                                >
+                                  Seleccionar
+                                </div>
+                              )}
                               <div
                                 style={comboBoxStyles.menu.item.desactivar.base}
                                 onClick={() => {
