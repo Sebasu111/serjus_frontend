@@ -164,8 +164,6 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
           idAspirante = creado.idaspirante;
           localStorage.setItem("idaspirante", idAspirante);
         }
-      } else {
-        showToast("Postulación nueva procesada", "info");
       }
 
       // 2️⃣ Obtener el estado "Postulado"
