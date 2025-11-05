@@ -27,7 +27,8 @@ const EmpleadosTable = ({
     setPaginaActual,
     equipos = [],
     onVerDetalle, // abrir modal detalle con el DPI
-    onTerminacionLaboral // nueva prop para manejar terminación laboral
+    onTerminacionLaboral, // nueva prop para manejar terminación laboral
+    onSubirContrato // nueva prop para subir contrato
 }) => {
     const [menuAbierto, setMenuAbierto] = useState(null);
     const containerRef = useRef(null);
@@ -150,6 +151,24 @@ const EmpleadosTable = ({
                                                     >
                                                         Editar
                                                     </button>
+
+                                                    {/* Subir Contrato - solo para empleados activos */}
+                                                    {estado && (
+                                                        <button
+                                                            onClick={() => onSubirContrato && onSubirContrato(r)}
+                                                            style={comboBoxStyles.menu.item.editar.base}
+                                                            onMouseEnter={e =>
+                                                            (e.currentTarget.style.background =
+                                                                comboBoxStyles.menu.item.editar.hover.background)
+                                                            }
+                                                            onMouseLeave={e =>
+                                                            (e.currentTarget.style.background =
+                                                                comboBoxStyles.menu.item.editar.base.background)
+                                                            }
+                                                        >
+                                                            Subir Contrato
+                                                        </button>
+                                                    )}
 
                                                     {/* Terminación Laboral - solo para empleados activos */}
                                                     {estado && (

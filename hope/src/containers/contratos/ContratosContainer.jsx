@@ -333,16 +333,19 @@ const ContratosContainer = () => {
                             padding: "0",
                             minHeight: "calc(100vh - 80px)",
                             marginLeft: isMobile ? "0" : (sidebarCollapsed ? "90px" : "300px"),
-                            transition: "margin-left 0.3s ease"
+                            transition: "margin-left 0.3s ease",
+                            width: "calc(100vw - " + (isMobile ? "0px" : (sidebarCollapsed ? "90px" : "300px")) + ")",
+                            maxWidth: "none",
+                            overflow: "hidden"
                         }}
                     >
                         {/* Pestañas de navegación */}
                         <div style={{
                             borderBottom: "2px solid #e0e0e0",
                             backgroundColor: "#f8f9fa",
-                            padding: "0 20px"
+                            padding: vistaActual === 'crear' ? "0 20px" : "0"
                         }}>
-                            <div style={{ display: "flex", gap: "0" }}>
+                            <div style={{ display: "flex", gap: "0", marginLeft: vistaActual === 'listar' ? "20px" : "0" }}>
                                 <button
                                     onClick={() => setVistaActual('crear')}
                                     style={{
@@ -431,7 +434,11 @@ const ContratosContainer = () => {
                             <div style={{
                                 height: "calc(100vh - 130px)", // Ajustado por la altura de las pestañas
                                 overflow: "auto",
-                                backgroundColor: "#fff"
+                                backgroundColor: "#fff",
+                                margin: "0",
+                                padding: "0",
+                                width: "100%",
+                                maxWidth: "none"
                             }}>
                                 <ContratosTable />
                             </div>

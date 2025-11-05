@@ -70,9 +70,15 @@ const DocumentosTable = ({
                                         : "-"}
                                 </td>
                                 <td style={tdStyle}>
-                                    {tiposDocumento.find(t => t.idtipodocumento === d.idtipodocumento)
-                                        ? tiposDocumento.find(t => t.idtipodocumento === d.idtipodocumento).nombretipo
-                                        : "-"}
+                                    {(() => {
+                                        const tipoDoc = tiposDocumento.find(t => t.idtipodocumento === d.idtipodocumento);
+                                        if (!tipoDoc) return "-";
+                                        
+                                        // Mapeo especial para contratos (tipo 2)
+                                        if (d.idtipodocumento === 2) return "CONTRATO";
+                                        
+                                        return tipoDoc.nombretipo;
+                                    })()}
                                 </td>
                                 <td style={{ ...tdStyle, textAlign: "center" }}>
                                     {d.archivo_url && (

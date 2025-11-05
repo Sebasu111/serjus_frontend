@@ -79,20 +79,76 @@ const ContratosTable = () => {
         }
     };
 
-    const cambiarEstadoContrato = async (id, estadoActual) => {
-        const accion = estadoActual ? 'inactivar' : 'activar';
-        if (!window.confirm(`¿Está seguro que desea ${accion} este contrato?`)) {
-            return;
-        }
-
+    const descargarContrato = async (contrato) => {
         try {
-            const apiUrl = buildApiUrlWithId(API_CONFIG.ENDPOINTS.CONTRATOS, id);
-            await axios.patch(apiUrl, { estado: !estadoActual });
-            showToast(`Contrato ${estadoActual ? 'inactivado' : 'activado'} exitosamente`, "success");
-            fetchAllData(); // Recargar todos los datos
+            console.log("🔄 Iniciando descarga de contrato:", contrato);
+            
+            // Obtener todos los documentos
+            const documentosResponse = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.DOCUMENTOS));
+            const documentos = Array.isArray(documentosResponse.data) ? documentosResponse.data : documentosResponse.data?.results || [];
+            
+            console.log("📄 Documentos disponibles:", documentos);
+            
+            // Buscar el empleado relacionado con este contrato
+            let empleadoId = null;
+            
+            if (contrato.idhistorialpuesto) {
+                // Si tiene historial de puesto, buscar el empleado a través del historial
+                const historial = historialPuestos.find(h => h.idhistorialpuesto === contrato.idhistorialpuesto);
+                empleadoId = historial?.idempleado;
+                console.log("👤 Empleado encontrado via historial:", empleadoId);
+            }
+            
+            if (!empleadoId) {
+                showToast("No se pudo identificar al empleado para este contrato", "warning");
+                return;
+            }
+            
+            // Buscar el documento del contrato (tipo 2) para este empleado
+            const documentoContrato = documentos.find(doc => 
+                doc.idempleado == empleadoId && doc.idtipodocumento == 2
+            );
+            
+            console.log("📋 Documento contrato encontrado:", documentoContrato);
+            
+            if (!documentoContrato) {
+                showToast("No se encontró documento PDF para este contrato. Puede subir uno desde la gestión de empleados.", "info");
+                return;
+            }
+            
+            if (!documentoContrato.archivo_url && !documentoContrato.archivo) {
+                showToast("El documento no tiene archivo asociado", "warning");
+                return;
+            }
+            
+            // Usar la URL del archivo
+            const fileUrl = documentoContrato.archivo_url || documentoContrato.archivo;
+            console.log("🔗 Descargando desde URL:", fileUrl);
+            
+            // Usar fetch para forzar descarga como blob (igual que funciona con CVs)
+            const response = await fetch(fileUrl);
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            
+            const blob = await response.blob();
+            console.log("📦 Blob creado:", blob);
+            
+            // Crear URL del blob y descargar
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = documentoContrato.nombrearchivo || `Contrato_${empleadoId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            showToast("Descarga de contrato iniciada exitosamente", "success");
+            
         } catch (error) {
-            console.error(`❌ Error al ${accion} contrato:`, error);
-            showToast(`Error al ${accion} el contrato`, "error");
+            console.error("❌ Error al descargar contrato:", error);
+            showToast(`Error al descargar el contrato: ${error.message}`, "error");
         }
     };
 
@@ -160,14 +216,14 @@ const ContratosTable = () => {
     const thStyle = {
         backgroundColor: '#023047',
         color: 'white',
-        padding: '12px 8px',
+        padding: '12px 20px',
         textAlign: 'left',
         borderBottom: '2px solid #ddd',
         fontWeight: '600'
     };
 
     const tdStyle = {
-        padding: '10px 8px',
+        padding: '10px 20px',
         borderBottom: '1px solid #eee',
         verticalAlign: 'top'
     };
@@ -182,17 +238,7 @@ const ContratosTable = () => {
         margin: '0 2px'
     };
 
-    const inactiveButtonStyle = {
-        ...buttonStyle,
-        backgroundColor: '#6c757d',
-        color: 'white'
-    };
 
-    const activeButtonStyle = {
-        ...buttonStyle,
-        backgroundColor: '#28a745',
-        color: 'white'
-    };
 
     const inputStyle = {
         padding: '8px 12px',
@@ -213,28 +259,18 @@ const ContratosTable = () => {
     }
 
     return (
-        <div style={{ padding: '20px', fontFamily: '"Inter", sans-serif' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ fontFamily: '"Inter", sans-serif' }}>
+            <div style={{ marginBottom: '20px', padding: '20px 20px 0px 20px' }}>
                 <h2 style={{ margin: 0, color: '#023047' }}>Contratos Registrados</h2>
-                <button
-                    onClick={fetchAllData}
-                    style={{
-                        ...buttonStyle,
-                        backgroundColor: '#28a745',
-                        color: 'white'
-                    }}
-                >
-                    Actualizar
-                </button>
             </div>
 
-            <div>
+            <div style={{ padding: '0px 20px', marginBottom: '20px' }}>
                 <input
                     type="text"
                     placeholder="Buscar por nombre del colaborador, puesto o tipo de contrato..."
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}
-                    style={inputStyle}
+                    style={{...inputStyle, width: 'calc(100% - 24px)'}}
                 />
             </div>
 
@@ -247,17 +283,12 @@ const ContratosTable = () => {
                     <table style={tableStyle}>
                         <thead>
                             <tr>
-                                <th style={thStyle}>ID</th>
                                 <th style={thStyle}>Colaborador</th>
                                 <th style={thStyle}>Puesto</th>
-                                <th style={thStyle}>Fecha Inicio</th>
-                                <th style={thStyle}>Fecha Fin</th>
-                                <th style={thStyle}>Fecha Firma</th>
                                 <th style={thStyle}>Tipo Contrato</th>
                                 <th style={thStyle}>Salario</th>
                                 <th style={thStyle}>Estado</th>
-                                <th style={thStyle}>Creado</th>
-                                <th style={thStyle}>Acciones</th>
+                                <th style={thStyle}>Descargar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -265,12 +296,8 @@ const ContratosTable = () => {
                                 const { nombre, puesto, salario } = getEmpleadoData(contrato);
                                 return (
                                     <tr key={contrato.idcontrato} style={{ backgroundColor: contrato.estado ? 'white' : '#f8f9fa' }}>
-                                        <td style={tdStyle}>{contrato.idcontrato}</td>
                                         <td style={tdStyle}>{nombre}</td>
                                         <td style={tdStyle}>{puesto}</td>
-                                        <td style={tdStyle}>{formatearFecha(contrato.fechainicio)}</td>
-                                        <td style={tdStyle}>{formatearFecha(contrato.fechafin) || 'Indefinido'}</td>
-                                        <td style={tdStyle}>{formatearFecha(contrato.fechafirma)}</td>
                                         <td style={tdStyle}>
                                             <span style={{
                                                 padding: '4px 8px',
@@ -294,14 +321,22 @@ const ContratosTable = () => {
                                                 {contrato.estado ? 'Activo' : 'Inactivo'}
                                             </span>
                                         </td>
-                                        <td style={tdStyle}>{formatearFecha(contrato.createdat)}</td>
                                         <td style={tdStyle}>
                                             <button
-                                                onClick={() => cambiarEstadoContrato(contrato.idcontrato, contrato.estado)}
-                                                style={contrato.estado ? inactiveButtonStyle : activeButtonStyle}
-                                                title={contrato.estado ? "Inactivar contrato" : "Activar contrato"}
+                                                onClick={() => descargarContrato(contrato)}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: '#007bff',
+                                                    color: 'white',
+                                                    cursor: 'pointer',
+                                                    fontSize: '12px',
+                                                    fontWeight: '500'
+                                                }}
+                                                title="Descargar contrato PDF"
                                             >
-                                                {contrato.estado ? 'Inactivar' : 'Activar'}
+                                                Descargar Contrato
                                             </button>
                                         </td>
                                     </tr>
@@ -312,7 +347,7 @@ const ContratosTable = () => {
                 </div>
             )}
 
-            <div style={{ marginTop: '20px', color: '#666', fontSize: '13px' }}>
+            <div style={{ marginTop: '20px', padding: '20px', color: '#666', fontSize: '13px' }}>
                 <p>Total de contratos: {contratosFiltrados.length} {filtro && `(filtrados de ${contratos.length})`}</p>
                 {historialPuestos.length === 0 && (
                     <div style={{

@@ -155,6 +155,13 @@ const EmpleadosContainer = () => {
         iniciolaboral: "",
         cvFile: null
     });
+    const [cvExistente, setCvExistente] = useState(null);
+    
+    // Estados para el modal de contrato
+    const [mostrarModalContrato, setMostrarModalContrato] = useState(false);
+    const [empleadoParaContrato, setEmpleadoParaContrato] = useState(null);
+    const [contratoFile, setContratoFile] = useState(null);
+    const [contratoExistente, setContratoExistente] = useState(null);
     const [errors, setErrors] = useState({});
     const [data, setData] = useState([]);
     const [editingId, setEditingId] = useState(null);
@@ -585,23 +592,206 @@ const EmpleadosContainer = () => {
     };
 
     // Función para manejar la carga del CV
+    // Función para cargar CV existente del empleado
+    const cargarCvExistente = async (empleadoId) => {
+        try {
+            const response = await axios.get(`${API}/documentos/`);
+            const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
+            
+            const cvDocumento = documentos.find(doc => {
+                return doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 1;
+            });
+            
+            if (cvDocumento) {
+                console.log("CV existente encontrado:", cvDocumento);
+                setCvExistente(cvDocumento);
+            } else {
+                setCvExistente(null);
+            }
+        } catch (error) {
+            console.error("Error al cargar CV existente:", error);
+            setCvExistente(null);
+        }
+    };
+
+    // Función para eliminar CV existente
+    const eliminarCvExistente = async () => {
+        if (!cvExistente) return;
+        
+        try {
+            await axios.delete(`${API}/documentos/${cvExistente.iddocumento}/`);
+            setCvExistente(null);
+            showToast("CV eliminado correctamente", "success");
+        } catch (error) {
+            console.error("Error al eliminar CV:", error);
+            showToast("Error al eliminar el CV", "error");
+        }
+    };
+
+    // Función para cargar contrato existente del empleado
+    const cargarContratoExistente = async (empleadoId) => {
+        try {
+            const response = await axios.get(`${API}/documentos/`);
+            const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
+            
+            const contratoDocumento = documentos.find(doc => {
+                return doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 2; // Asumimos tipo 2 para contratos
+            });
+            
+            if (contratoDocumento) {
+                console.log("Contrato existente encontrado:", contratoDocumento);
+                setContratoExistente(contratoDocumento);
+            } else {
+                setContratoExistente(null);
+            }
+        } catch (error) {
+            console.error("Error al cargar contrato existente:", error);
+            setContratoExistente(null);
+        }
+    };
+
+    // Función para eliminar contrato existente
+    const eliminarContratoExistente = async () => {
+        if (!contratoExistente) return;
+        
+        try {
+            await axios.delete(`${API}/documentos/${contratoExistente.iddocumento}/`);
+            setContratoExistente(null);
+            showToast("Contrato eliminado correctamente", "success");
+        } catch (error) {
+            console.error("Error al eliminar contrato:", error);
+            showToast("Error al eliminar el contrato", "error");
+        }
+    };
+
+    // Función para abrir el modal de subir contrato
+    const abrirModalContrato = (empleado) => {
+        setEmpleadoParaContrato(empleado);
+        setContratoFile(null);
+        cargarContratoExistente(empId(empleado));
+        setMostrarModalContrato(true);
+    };
+
+    // Función para cerrar el modal de contrato
+    const cerrarModalContrato = () => {
+        setMostrarModalContrato(false);
+        setEmpleadoParaContrato(null);
+        setContratoFile(null);
+        setContratoExistente(null);
+    };
+
+    // Función para subir el contrato desde el modal
+    const subirContrato = async () => {
+        if (!contratoFile || !empleadoParaContrato) {
+            showToast("Por favor selecciona un archivo PDF", "warning");
+            return;
+        }
+
+        try {
+            const empleadoId = empId(empleadoParaContrato);
+            console.log("Subiendo contrato para empleado:", empleadoId);
+            
+            const formDataContrato = new FormData();
+            formDataContrato.append('archivo', contratoFile);
+            formDataContrato.append('nombrearchivo', `CONTRATO_${empleadoParaContrato.dpi}_${empleadoId}`);
+            formDataContrato.append('mimearchivo', contratoFile.name.split('.').pop());
+            formDataContrato.append('fechasubida', new Date().toISOString().split('T')[0]);
+            formDataContrato.append('estado', 'true');
+            formDataContrato.append('idusuario', getIdUsuario().toString());
+            formDataContrato.append('idtipodocumento', '2'); // Tipo 2 para contratos
+            formDataContrato.append('idempleado', empleadoId.toString());
+            
+            if (contratoExistente) {
+                // Actualizar contrato existente
+                await axios.put(`${API}/documentos/${contratoExistente.iddocumento}/`, formDataContrato, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                showToast("Contrato actualizado correctamente", "success");
+            } else {
+                // Crear nuevo contrato
+                await axios.post(`${API}/documentos/`, formDataContrato, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                showToast("Contrato subido correctamente", "success");
+            }
+
+            cerrarModalContrato();
+            
+        } catch (error) {
+            console.error("Error al subir contrato:", error);
+            showToast("Error al subir el contrato", "error");
+        }
+    };
+
     const handleCvUpload = (e) => {
         const file = e.target.files[0];
+        console.log("Archivo seleccionado para CV:", file);
+        
         if (file) {
+            console.log("Validando archivo CV:", {
+                name: file.name,
+                size: file.size,
+                type: file.type
+            });
+            
             // Validar que sea PDF
             if (file.type !== 'application/pdf') {
+                console.log("Error: Archivo no es PDF");
                 showToast("Solo se permiten archivos PDF para el CV", "error");
                 e.target.value = '';
                 return;
             }
             // Validar tamaño (5MB máximo)
             if (file.size > 5 * 1024 * 1024) {
+                console.log("Error: Archivo muy grande:", file.size);
                 showToast("El CV no puede ser mayor a 5MB", "error");
                 e.target.value = '';
                 return;
             }
+            
+            console.log("Archivo CV válido, guardando en el form");
             setForm(f => ({ ...f, cvFile: file }));
             setErrors(er => ({ ...er, cvFile: false }));
+        } else {
+            console.log("No se seleccionó ningún archivo");
+        }
+    };
+
+    // Función para manejar la carga del contrato
+    const handleContratoUpload = (e) => {
+        const file = e.target.files[0];
+        console.log("Archivo seleccionado para Contrato:", file);
+        
+        if (file) {
+            console.log("Validando archivo Contrato:", {
+                name: file.name,
+                size: file.size,
+                type: file.type
+            });
+            
+            // Validar que sea PDF
+            if (file.type !== 'application/pdf') {
+                console.log("Error: Archivo no es PDF");
+                showToast("Solo se permiten archivos PDF para el contrato", "error");
+                e.target.value = '';
+                return;
+            }
+            // Validar tamaño (5MB máximo)
+            if (file.size > 5 * 1024 * 1024) {
+                console.log("Error: Archivo muy grande:", file.size);
+                showToast("El contrato no puede ser mayor a 5MB", "error");
+                e.target.value = '';
+                return;
+            }
+            
+            console.log("Archivo contrato válido, guardando");
+            setContratoFile(file);
+        } else {
+            console.log("No se seleccionó ningún archivo");
         }
     };
 
@@ -693,8 +883,17 @@ const EmpleadosContainer = () => {
         if (form.genero && !generos.includes(String(form.genero))) newErrors.genero = true;
 
         // Validación del CV (obligatorio para empleados nuevos)
+        console.log("Validando CV:", {
+            editingId: editingId,
+            cvFile: form.cvFile,
+            isRequired: !editingId
+        });
+        
         if (!editingId && !form.cvFile) {
+            console.log("Error: CV es obligatorio para empleados nuevos");
             newErrors.cvFile = true;
+        } else {
+            console.log("CV válido o no requerido");
         }
 
         setErrors(newErrors);
@@ -777,6 +976,7 @@ const EmpleadosContainer = () => {
         });
         setErrors({});
         setEditingId(null);
+        setCvExistente(null);
     };
 
     const handleGeneratePDF = async seleccion => {
@@ -925,6 +1125,64 @@ const EmpleadosContainer = () => {
                     }
                 }
 
+                // Subir CV si se proporcionó (para actualizaciones)
+                if (form.cvFile) {
+                    try {
+                        console.log("Actualizando CV para empleado:", editingId);
+                        
+                        // Verificar si ya existe un CV para este empleado
+                        if (cvExistente) {
+                            console.log("Actualizando CV existente:", cvExistente.iddocumento);
+                            
+                            const formDataCV = new FormData();
+                            formDataCV.append('archivo', form.cvFile);
+                            formDataCV.append('nombrearchivo', `CV_${form.dpi}_${editingId}`);
+                            formDataCV.append('mimearchivo', form.cvFile.name.split('.').pop());
+                            formDataCV.append('fechasubida', new Date().toISOString().split('T')[0]);
+                            formDataCV.append('estado', 'true');
+                            formDataCV.append('idusuario', getIdUsuario().toString());
+                            formDataCV.append('idtipodocumento', '1');
+                            formDataCV.append('idempleado', editingId.toString());
+                            
+                            // Actualizar el documento existente (PUT)
+                            const cvResponse = await axios.put(`${API}/documentos/${cvExistente.iddocumento}/`, formDataCV, {
+                                headers: {
+                                    'Content-Type': 'multipart/form-data',
+                                },
+                            });
+                            console.log("CV actualizado exitosamente:", cvResponse.data);
+                            showToast("CV actualizado correctamente", "success");
+                        } else {
+                            console.log("Creando nuevo CV para empleado");
+                            
+                            const formDataCV = new FormData();
+                            formDataCV.append('archivo', form.cvFile);
+                            formDataCV.append('nombrearchivo', `CV_${form.dpi}_${editingId}`);
+                            formDataCV.append('mimearchivo', form.cvFile.name.split('.').pop());
+                            formDataCV.append('fechasubida', new Date().toISOString().split('T')[0]);
+                            formDataCV.append('estado', 'true');
+                            formDataCV.append('idusuario', getIdUsuario().toString());
+                            formDataCV.append('idtipodocumento', '1');
+                            formDataCV.append('idempleado', editingId.toString());
+                            
+                            // Crear nuevo documento (POST)
+                            const cvResponse = await axios.post(`${API}/documentos/`, formDataCV, {
+                                headers: {
+                                    'Content-Type': 'multipart/form-data',
+                                },
+                            });
+                            console.log("CV creado exitosamente:", cvResponse.data);
+                            showToast("CV subido correctamente", "success");
+                        }
+                    } catch (cvError) {
+                        console.error("Error al actualizar CV:", cvError);
+                        console.error("Respuesta del servidor:", cvError.response?.data);
+                        console.error("Status del error:", cvError.response?.status);
+                        console.error("Headers de respuesta:", cvError.response?.headers);
+                        showToast("Colaborador actualizado, pero hubo un error al subir el nuevo CV", "warning");
+                    }
+                }
+
                 showToast("Colaborador actualizado correctamente");
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
@@ -944,20 +1202,35 @@ const EmpleadosContainer = () => {
                 // Subir CV si se proporcionó
                 if (form.cvFile) {
                     try {
+                        console.log("Iniciando subida de CV para empleado:", empleadoId);
                         const formDataCV = new FormData();
                         formDataCV.append('archivo', form.cvFile);
-                        formDataCV.append('nombredocumento', `CV_${form.dpi}_${empleadoId}`);
-                        formDataCV.append('estado', true);
-                        formDataCV.append('idusuario', 1); // TODO: Usuario logueado
+                        formDataCV.append('nombrearchivo', `CV_${form.dpi}_${empleadoId}`);
+                        formDataCV.append('mimearchivo', form.cvFile.name.split('.').pop());
+                        formDataCV.append('fechasubida', new Date().toISOString().split('T')[0]);
+                        formDataCV.append('estado', 'true');
+                        formDataCV.append('idusuario', getIdUsuario().toString());
+                        formDataCV.append('idtipodocumento', '1'); // Asumimos tipo 1 para CV
+                        formDataCV.append('idempleado', empleadoId.toString());
+                        
+                        // Log para ver qué estamos enviando
+                        console.log("Datos que se envían al servidor:");
+                        for (let [key, value] of formDataCV.entries()) {
+                            console.log(`${key}:`, value);
+                        }
 
-                        await axios.post(`${API}/documentos/`, formDataCV, {
+                        const cvResponse = await axios.post(`${API}/documentos/`, formDataCV, {
                             headers: {
                                 'Content-Type': 'multipart/form-data',
                             },
                         });
+                        console.log("CV subido exitosamente:", cvResponse.data);
                         showToast("CV subido correctamente", "success");
                     } catch (cvError) {
                         console.error("Error al subir CV:", cvError);
+                        console.error("Respuesta del servidor:", cvError.response?.data);
+                        console.error("Status del error:", cvError.response?.status);
+                        console.error("Headers de respuesta:", cvError.response?.headers);
                         showToast("Colaborador creado, pero hubo un error al subir el CV", "warning");
                     }
                 }
@@ -991,6 +1264,8 @@ const EmpleadosContainer = () => {
             showToast("No se puede editar un colaborador inactivo", "warning");
             return;
         }
+        const empleadoId = empId(row);
+        
         setForm({
             dpi: row.dpi ?? "",
             nit: row.nit ?? "",
@@ -1018,10 +1293,15 @@ const EmpleadosContainer = () => {
                 String(row.nit || "")
                     .toUpperCase()
                     .replace(/\s+/g, "") === "C/F",
-            iniciolaboral: (row.inicioLaboral || "").slice(0, 10)
+            iniciolaboral: (row.inicioLaboral || "").slice(0, 10),
+            cvFile: null
         });
         setErrors({});
-        setEditingId(empId(row));
+        setEditingId(empleadoId);
+        
+        // Cargar CV existente si está editando
+        cargarCvExistente(empleadoId);
+        
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
@@ -1140,6 +1420,62 @@ const EmpleadosContainer = () => {
 
     const equipoBloqueado = !!new URLSearchParams(window.location.search).get("equipo") || !!editingId;
 
+    // Función para ver el contrato del empleado (abrir en nueva pestaña)
+    const verContrato = async (empleado) => {
+        try {
+            // Buscar el documento contrato del empleado
+            const response = await axios.get(`${API}/documentos/`);
+            const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
+
+            // Buscar el contrato del empleado específico
+            console.log("Buscando contrato para empleado:", empleado);
+            console.log("Documentos disponibles:", documentos);
+            
+            const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
+            
+            const contratoDocumento = documentos.find(doc => {
+                // Priorizar búsqueda por idempleado y tipo de documento 2 (contrato)
+                if (doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 2) {
+                    return true;
+                }
+                
+                // Fallback: buscar por nombre de archivo que contenga CONTRATO y el DPI
+                if ((doc.nombrearchivo && doc.nombrearchivo.includes(`CONTRATO_${empleado.dpi}`)) ||
+                    (doc.nombredocumento && doc.nombredocumento.includes(`CONTRATO_${empleado.dpi}`))) {
+                    return true;
+                }
+                
+                return false;
+            });
+
+            if (!contratoDocumento) {
+                showToast("No se encontró el contrato para este colaborador", "warning");
+                return;
+            }
+
+            console.log("Contrato encontrado:", contratoDocumento);
+
+            // Abrir el contrato en nueva pestaña
+            if (contratoDocumento.archivo_url || contratoDocumento.archivo) {
+                const fileUrl = contratoDocumento.archivo_url || contratoDocumento.archivo;
+                console.log("Abriendo contrato desde URL:", fileUrl);
+                
+                window.open(fileUrl, '_blank');
+                showToast("Contrato abierto en nueva pestaña", "success");
+            } else {
+                showToast("No se pudo obtener la URL del contrato", "error");
+            }
+
+        } catch (error) {
+            console.error("Error al ver contrato:", error);
+            if (error.response?.status === 404) {
+                showToast("No se encontró el contrato para este colaborador", "warning");
+            } else {
+                showToast("Error al abrir el contrato", "error");
+            }
+        }
+    };
+
     // Función para descargar el CV del empleado
     const descargarCV = async (empleado) => {
         try {
@@ -1147,34 +1483,90 @@ const EmpleadosContainer = () => {
             const response = await axios.get(`${API}/documentos/`);
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
 
-            // Buscar el CV por nombre de documento que contenga el DPI y la palabra CV
-            const cvDocumento = documentos.find(doc =>
-                doc.nombredocumento &&
-                (doc.nombredocumento.includes(`CV_${empleado.dpi}`) ||
-                    doc.nombredocumento.toLowerCase().includes('cv') &&
-                    doc.nombredocumento.includes(empleado.dpi))
-            );
+            // Buscar el CV del empleado específico
+            console.log("Buscando CV para empleado:", empleado);
+            console.log("Documentos disponibles:", documentos);
+            
+            const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
+            
+            const cvDocumento = documentos.find(doc => {
+                // Priorizar búsqueda por idempleado y tipo de documento
+                if (doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 1) {
+                    return true;
+                }
+                
+                // Fallback: buscar por nombre de archivo que contenga el DPI
+                if ((doc.nombrearchivo && doc.nombrearchivo.includes(`CV_${empleado.dpi}`)) ||
+                    (doc.nombredocumento && doc.nombredocumento.includes(`CV_${empleado.dpi}`))) {
+                    return true;
+                }
+                
+                return false;
+            });
 
             if (!cvDocumento) {
                 showToast("No se encontró el CV para este colaborador", "warning");
                 return;
             }
 
-            // Descargar el archivo
-            const fileResponse = await axios.get(`${API}/documentos/${cvDocumento.iddocumento}/archivo/`, {
-                responseType: 'blob'
-            });
+            console.log("CV encontrado:", cvDocumento);
 
-            // Crear URL del blob y descargar
-            const blob = new Blob([fileResponse.data], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `CV_${empleado.nombre}_${empleado.apellido}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            // Forzar descarga usando fetch para obtener el blob
+            if (cvDocumento.archivo_url || cvDocumento.archivo) {
+                const fileUrl = cvDocumento.archivo_url || cvDocumento.archivo;
+                console.log("Descargando desde URL directa:", fileUrl);
+                
+                try {
+                    // Obtener el archivo como blob para forzar descarga
+                    const response = await fetch(fileUrl);
+                    if (!response.ok) throw new Error('Error al obtener el archivo');
+                    
+                    const blob = await response.blob();
+                    
+                    // Crear URL del blob y descargar
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `CV_${empleado.nombre}_${empleado.apellido}.pdf`;
+                    link.style.display = 'none';
+                    
+                    // Agregar al DOM, hacer click y remover
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Limpiar la URL del blob
+                    setTimeout(() => {
+                        window.URL.revokeObjectURL(url);
+                    }, 100);
+                } catch (fetchError) {
+                    console.error("Error al descargar con fetch:", fetchError);
+                    // Fallback: abrir en nueva pestaña
+                    window.open(fileUrl, '_blank');
+                    showToast("Se abrió el CV en una nueva pestaña", "info");
+                }
+            } else {
+                // Fallback: intentar con el endpoint de archivo
+                const fileResponse = await axios.get(`${API}/documentos/${cvDocumento.iddocumento}/archivo/`, {
+                    responseType: 'blob'
+                });
+
+                // Crear URL del blob y descargar
+                const blob = new Blob([fileResponse.data], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `CV_${empleado.nombre}_${empleado.apellido}.pdf`;
+                link.style.display = 'none';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+            }
 
             showToast("CV descargado correctamente", "success");
 
@@ -1298,6 +1690,7 @@ const EmpleadosContainer = () => {
                                 equipos={equipos}
                                 onVerDetalle={onVerDetalle}
                                 onTerminacionLaboral={handleTerminacionLaboral}
+                                onSubirContrato={abrirModalContrato}
                             />
 
                             <div style={{ marginTop: "20px", textAlign: "center" }}>
@@ -1342,6 +1735,8 @@ const EmpleadosContainer = () => {
                         puestos={puestos}
                         lockEquipo={true}
                         onCvUpload={handleCvUpload}
+                        cvExistente={cvExistente}
+                        onEliminarCv={eliminarCvExistente}
                     />
                 )}
 
@@ -1440,7 +1835,7 @@ const EmpleadosContainer = () => {
 
                             <div style={{ marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                 <h3 style={{ margin: 0, fontSize: 28, letterSpacing: 0.2 }}>Detalle del Colaborador</h3>
-                                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                                <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
                                     <button
                                         onClick={() => descargarCV(detalle)}
                                         style={{
@@ -1466,6 +1861,34 @@ const EmpleadosContainer = () => {
                                             <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                         </svg>
                                         Descargar CV
+                                    </button>
+                                    <button
+                                        onClick={() => verContrato(detalle)}
+                                        style={{
+                                            background: "#dc2626",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: 8,
+                                            padding: "10px 16px",
+                                            fontSize: 14,
+                                            fontWeight: 600,
+                                            cursor: "pointer",
+                                            transition: "background 0.2s",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8
+                                        }}
+                                        onMouseEnter={e => e.target.style.background = "#b91c1c"}
+                                        onMouseLeave={e => e.target.style.background = "#dc2626"}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            <polyline points="10,9 9,9 8,9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                        Ver Contrato
                                     </button>
                                     <button
                                         onClick={() => setMostrarHistorialPuestos(true)}
@@ -1591,6 +2014,175 @@ const EmpleadosContainer = () => {
                     onClose={() => setMostrarTerminacionLaboral(false)}
                     onSuccess={handleTerminacionSuccess}
                 />
+
+                {/* MODAL SUBIR CONTRATO */}
+                {mostrarModalContrato && empleadoParaContrato && (
+                    <div
+                        style={{
+                            position: "fixed",
+                            inset: 0,
+                            background: "rgba(0,0,0,.45)",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            zIndex: 4000
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: "min(500px, 90vw)",
+                                background: "#fff",
+                                boxShadow: "0 10px 40px rgba(0,0,0,.25)",
+                                padding: 28,
+                                borderRadius: 16,
+                                position: "relative"
+                            }}
+                        >
+                            <button
+                                onClick={cerrarModalContrato}
+                                style={{
+                                    position: "absolute",
+                                    top: 15,
+                                    right: 20,
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: 20,
+                                    color: "#666"
+                                }}
+                            >
+                                ✕
+                            </button>
+
+                            <h3 style={{ marginBottom: 20, fontSize: 22, fontWeight: 700 }}>
+                                Subir Contrato - {empleadoParaContrato.nombre} {empleadoParaContrato.apellido}
+                            </h3>
+
+                            {/* Mostrar contrato existente si lo hay */}
+                            {contratoExistente && (
+                                <div style={{
+                                    marginBottom: 20,
+                                    padding: 16,
+                                    backgroundColor: "#f8f9fa",
+                                    border: "1px solid #dee2e6",
+                                    borderRadius: 8,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between"
+                                }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                        <div style={{
+                                            width: 24,
+                                            height: 24,
+                                            backgroundColor: "#198754",
+                                            borderRadius: 4,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            color: "white",
+                                            fontSize: 12,
+                                            fontWeight: "bold"
+                                        }}>
+                                            PDF
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 600, fontSize: 15 }}>
+                                                {contratoExistente.nombrearchivo || 'Contrato Actual'}
+                                            </div>
+                                            <div style={{ fontSize: 13, color: "#6b7280" }}>
+                                                Subido el {new Date(contratoExistente.fechasubida).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={eliminarContratoExistente}
+                                        style={{
+                                            background: "#dc3545",
+                                            color: "white",
+                                            border: "none",
+                                            borderRadius: 4,
+                                            padding: "8px 12px",
+                                            fontSize: 13,
+                                            fontWeight: 600,
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
+                            )}
+
+                            <div style={{ marginBottom: 20 }}>
+                                <label style={{ display: "block", fontWeight: 600, marginBottom: 8 }}>
+                                    {contratoExistente ? "Nuevo Contrato (reemplazará el actual)" : "Contrato del Colaborador"}
+                                </label>
+                                <input
+                                    type="file"
+                                    accept=".pdf"
+                                    onChange={handleContratoUpload}
+                                    style={{
+                                        width: "100%",
+                                        padding: "12px",
+                                        border: "1px solid #d1d5db",
+                                        borderRadius: 8,
+                                        fontSize: 14
+                                    }}
+                                />
+                                <small style={{ color: "#666", fontSize: 13, marginTop: 4, display: "block" }}>
+                                    Solo archivos PDF, máximo 5MB
+                                </small>
+                            </div>
+
+                            {contratoFile && (
+                                <div style={{
+                                    marginBottom: 20,
+                                    padding: 12,
+                                    backgroundColor: "#d4edda",
+                                    border: "1px solid #c3e6cb",
+                                    borderRadius: 6,
+                                    color: "#155724",
+                                    fontSize: 14,
+                                    fontWeight: 600
+                                }}>
+                                    ✓ Archivo seleccionado: {contratoFile.name}
+                                </div>
+                            )}
+
+                            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                                <button
+                                    onClick={cerrarModalContrato}
+                                    style={{
+                                        padding: "12px 20px",
+                                        border: "1px solid #d1d5db",
+                                        background: "#fff",
+                                        borderRadius: 8,
+                                        cursor: "pointer",
+                                        fontSize: 14,
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={subirContrato}
+                                    disabled={!contratoFile}
+                                    style={{
+                                        padding: "12px 20px",
+                                        border: "none",
+                                        background: contratoFile ? "#dc2626" : "#ccc",
+                                        color: "#fff",
+                                        borderRadius: 8,
+                                        cursor: contratoFile ? "pointer" : "not-allowed",
+                                        fontSize: 14,
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    {contratoExistente ? "Actualizar Contrato" : "Subir Contrato"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </Layout>
     );
