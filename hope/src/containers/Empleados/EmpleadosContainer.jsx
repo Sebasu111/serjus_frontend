@@ -170,6 +170,7 @@ const EmpleadosContainer = () => {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
+    const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
     // modales
     const [showForm, setShowForm] = useState(false);
@@ -526,8 +527,14 @@ const EmpleadosContainer = () => {
                 if (found) {
                     const idOf = empId(found);
                     if (!editingId || String(editingId) !== String(idOf)) {
-                        setErrors(er => ({ ...er, dpi: "DPI ya registrado" }));
-                        showToast("El DPI ya existe.", "warning");
+                        // Verificar si el empleado encontrado está activo o inactivo
+                        if (found.estado === false) {
+                            setErrors(er => ({ ...er, dpi: "Ya existe un colaborador inactivo con este DPI" }));
+                            showToast("Ya existe un colaborador inactivo con este DPI. Puede reactivarlo desde la lista de colaboradores inactivos.", "warning");
+                        } else {
+                            setErrors(er => ({ ...er, dpi: "DPI ya registrado" }));
+                            showToast("El DPI ya existe en un colaborador activo.", "warning");
+                        }
                     } else {
                         setErrors(er => ({ ...er, dpi: false }));
                     }
@@ -1019,9 +1026,16 @@ const EmpleadosContainer = () => {
                 if (found) {
                     const idOf = empId(found);
                     if (!isEditing || String(editingId) !== String(idOf)) {
-                        setErrors(p => ({ ...p, dpi: "DPI ya registrado" }));
-                        window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
-                        showToast("El DPI ya existe.", "warning");
+                        // Verificar si el empleado encontrado está activo o inactivo
+                        if (found.estado === false) {
+                            setErrors(p => ({ ...p, dpi: "Ya existe un colaborador inactivo con este DPI" }));
+                            window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
+                            showToast("Ya existe un colaborador inactivo con este DPI. Puede reactivarlo desde la lista de colaboradores inactivos.", "warning");
+                        } else {
+                            setErrors(p => ({ ...p, dpi: "DPI ya registrado" }));
+                            window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
+                            showToast("El DPI ya existe en un colaborador activo.", "warning");
+                        }
                         return;
                     }
                 }
@@ -1320,12 +1334,41 @@ const EmpleadosContainer = () => {
         const id = empId(empleadoSeleccionado);
         const nuevoEstado = accionEstado === "activar";
         try {
+            // 1. Actualizar el estado del empleado
             await axios.put(`${API}/empleados/${id}/`, {
                 ...empleadoSeleccionado,
                 estado: nuevoEstado,
                 idusuario: getIdUsuario()
             });
-            showToast(nuevoEstado ? "Colaborador activado correctamente" : "Colaborador desactivado correctamente");
+
+            // 2. Buscar y actualizar el usuario correspondiente
+            try {
+                const usuariosResponse = await axios.get(`${API}/usuarios/`);
+                const usuarios = Array.isArray(usuariosResponse.data) ?
+                    usuariosResponse.data :
+                    usuariosResponse.data?.results || [];
+
+                const usuarioEncontrado = usuarios.find(u => u.idempleado === id);
+
+                if (usuarioEncontrado) {
+                    // Actualizar el estado del usuario para que coincida con el empleado
+                    await axios.put(`${API}/usuarios/${usuarioEncontrado.idusuario}/`, {
+                        nombreusuario: usuarioEncontrado.nombreusuario,
+                        contrasena: usuarioEncontrado.contrasena,
+                        estado: nuevoEstado, // Mismo estado que el empleado
+                        createdat: usuarioEncontrado.createdat,
+                        updatedat: new Date().toISOString(),
+                        idrol: usuarioEncontrado.idrol,
+                        idempleado: usuarioEncontrado.idempleado
+                    });
+                    console.log(`Usuario ${usuarioEncontrado.nombreusuario} ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`);
+                }
+            } catch (userError) {
+                console.error("Error al actualizar usuario:", userError);
+                showToast(`Colaborador ${nuevoEstado ? 'activado' : 'desactivado'}, pero hubo un error al actualizar el usuario`, "warning");
+            }
+
+            showToast(nuevoEstado ? "Colaborador y usuario activados correctamente" : "Colaborador y usuario desactivados correctamente");
             fetchList();
         } catch {
             showToast("Error al cambiar el estado", "error");
@@ -1399,11 +1442,23 @@ const EmpleadosContainer = () => {
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
-        if (!q) return indexable;
+
+        // Filtrar primero por estado (activos/inactivos)
+        let estadoFiltered;
+        if (mostrarInactivos) {
+            // Solo mostrar colaboradores inactivos
+            estadoFiltered = indexable.filter(({ raw }) => !raw.estado);
+        } else {
+            // Solo mostrar colaboradores activos (comportamiento por defecto)
+            estadoFiltered = indexable.filter(({ raw }) => !!raw.estado);
+        }
+
+        // Luego filtrar por texto de búsqueda
+        if (!q) return estadoFiltered;
         if (q === "activo") return indexable.filter(({ raw }) => !!raw.estado);
         if (q === "inactivo") return indexable.filter(({ raw }) => !raw.estado);
-        return indexable.filter(({ haystack }) => haystack.includes(q));
-    }, [indexable, search]);
+        return estadoFiltered.filter(({ haystack }) => haystack.includes(q));
+    }, [indexable, search, mostrarInactivos]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / elementosPorPagina));
     const start = (page - 1) * elementosPorPagina;
@@ -1693,26 +1748,54 @@ const EmpleadosContainer = () => {
                                 onSubirContrato={abrirModalContrato}
                             />
 
-                            <div style={{ marginTop: "20px", textAlign: "center" }}>
-                                <label style={{ marginRight: "10px", fontWeight: 600 }}>Mostrar:</label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={elementosPorPagina}
-                                    onChange={e => {
-                                        const n = Number(e.target.value.replace(/\D/g, "")) || 1;
-                                        setElementosPorPagina(n);
-                                        setPage(1);
-                                    }}
-                                    onFocus={e => e.target.select()}
-                                    style={{
-                                        width: 80,
-                                        padding: "10px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #ccc",
-                                        textAlign: "center"
-                                    }}
-                                />
+                            <div style={{ marginTop: "20px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "30px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <label style={{ fontWeight: 600 }}>Mostrar:</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={elementosPorPagina}
+                                        onChange={e => {
+                                            const n = Number(e.target.value.replace(/\D/g, "")) || 1;
+                                            setElementosPorPagina(n);
+                                            setPage(1);
+                                        }}
+                                        onFocus={e => e.target.select()}
+                                        style={{
+                                            width: 80,
+                                            padding: "10px",
+                                            borderRadius: "6px",
+                                            border: "1px solid #ccc",
+                                            textAlign: "center"
+                                        }}
+                                    />
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <input
+                                        type="checkbox"
+                                        id="mostrarInactivos"
+                                        checked={mostrarInactivos}
+                                        onChange={e => {
+                                            setMostrarInactivos(e.target.checked);
+                                            setPage(1);
+                                        }}
+                                        style={{
+                                            width: "18px",
+                                            height: "18px",
+                                            cursor: "pointer"
+                                        }}
+                                    />
+                                    <label
+                                        htmlFor="mostrarInactivos"
+                                        style={{
+                                            fontWeight: "600",
+                                            cursor: "pointer",
+                                            color: mostrarInactivos ? "#1a73e8" : "#333"
+                                        }}
+                                    >
+                                        Mostrar colaboradores inactivos
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </main>
