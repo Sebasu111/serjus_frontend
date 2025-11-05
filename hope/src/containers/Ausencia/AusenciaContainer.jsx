@@ -28,9 +28,8 @@ const AusenciaContainer = () => {
   const [modalAusenciaVisible, setModalAusenciaVisible] = useState(false);
   const [modalAusenciaData, setModalAusenciaData] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
+  const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
-
-  // 🔹 Cargar datos iniciales
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("usuarioLogueado"));
     if (!storedUser) {
@@ -43,7 +42,7 @@ const AusenciaContainer = () => {
     fetchEmpleados();
   }, []);
 
-  // 🔹 Obtener ausencias
+  //  Obtener ausencias
   const fetchAusencias = async () => {
     try {
       const res = await axios.get(`${API}/ausencias/`);
@@ -59,7 +58,7 @@ const AusenciaContainer = () => {
     }
   };
 
-  // 🔹 Obtener empleados
+  //Obtener empleados
   const fetchEmpleados = async () => {
     try {
       const res = await axios.get(`${API}/empleados/`);
@@ -75,10 +74,9 @@ const AusenciaContainer = () => {
     }
   };
 
-  // 🔹 Guardar o actualizar ausencia
+  //Guardar o actualizar ausencia
   const handleSubmit = async (dataAusencia, idAusencia) => {
     try {
-      // 🧮 Si no tiene cantidad_dias y tiene fechas, calcular automáticamente
       if (
         (!dataAusencia.cantidad_dias || dataAusencia.cantidad_dias <= 0) &&
         dataAusencia.fechainicio &&
@@ -107,7 +105,7 @@ const AusenciaContainer = () => {
     }
   };
 
-  // 🔹 Editar
+  // Editar
   const handleEdit = (ausencia) => {
     if (!ausencia.estado) {
       showToast("No se puede editar una ausencia inactiva", "warning");
@@ -117,7 +115,7 @@ const AusenciaContainer = () => {
     setMostrarFormulario(true);
   };
 
-  // 🔹 Activar / desactivar
+  //Activar / desactivar
   const handleActivate = async (id) => {
     try {
       const aus = ausencias.find((a) => a.idausencia === id);
@@ -137,38 +135,36 @@ const AusenciaContainer = () => {
   };
 
   const handleOpenModal = async (ausencia) => {
-  setModalLoading(true);
-  setModalAusenciaVisible(true);
+    setModalLoading(true);
+    setModalAusenciaVisible(true);
 
-  try {
-    // Obtener información del empleado
-    const empleado = empleados.find(e => e.idempleado === ausencia.idempleado) || {};
-
-    // Obtener documento relacionado (si existe)
-    let documento = null;
-    if (ausencia.iddocumento) {
-      const res = await axios.get(`${API}/documentos/${ausencia.iddocumento}/`);
-      documento = res.data;
+    try {
+      const empleado = empleados.find((e) => e.idempleado === ausencia.idempleado) || {};
+      let documento = null;
+      if (ausencia.iddocumento) {
+        const res = await axios.get(`${API}/documentos/${ausencia.iddocumento}/`);
+        documento = res.data;
+      }
+      setModalAusenciaData({ ...ausencia, empleado, documento });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setModalLoading(false);
     }
+  };
 
-    // Guardar toda la info en el estado del modal
-    setModalAusenciaData({ ...ausencia, empleado, documento });
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setModalLoading(false);
-  }
-};
-
-  // 🔍 Filtrado de ausencias por columnas visibles
+  // Filtrado de ausencias
   const ausenciasFiltradas = ausencias.filter((a) => {
+    if (mostrarInactivos && a.estado) return false;
+    if (!mostrarInactivos && !a.estado) return false;
+
     const t = busqueda.toLowerCase().trim();
     const empleado = empleados.find((e) => e.idempleado === a.idempleado) || {};
-    const nombreEmpleado = displayName(empleado).toLowerCase(); // Colaborador/a
-    const tipoStr = a.tipo ? a.tipo.toLowerCase() : ""; // Tipo
-    const diasStr = a.cantidad_dias ? a.cantidad_dias.toString() : ""; // Cantidad de días
-    const diagnosticoStr = a.diagnostico ? a.diagnostico.toLowerCase() : ""; // Diagnóstico
-    const estadoStr = a.estado ? "activo" : "inactivo"; // Estado
+    const nombreEmpleado = displayName(empleado).toLowerCase();
+    const tipoStr = a.tipo ? a.tipo.toLowerCase() : "";
+    const diasStr = a.cantidad_dias ? a.cantidad_dias.toString() : "";
+    const diagnosticoStr = a.diagnostico ? a.diagnostico.toLowerCase() : "";
+    const estadoStr = a.estado ? "activo" : "inactivo";
 
     return (
       nombreEmpleado.includes(t) ||
@@ -179,12 +175,11 @@ const AusenciaContainer = () => {
     );
   });
 
-  // 🔽 Ordenar del más reciente al más antiguo
   const ausenciasOrdenadas = [...ausenciasFiltradas].sort(
     (a, b) => new Date(b.createdat) - new Date(a.createdat)
   );
 
-  // 📄 Paginación
+  // Paginación
   const indexLast = paginaActual * elementosPorPagina;
   const indexFirst = indexLast - elementosPorPagina;
   const paginados = ausenciasOrdenadas.slice(indexFirst, indexLast);
@@ -211,7 +206,7 @@ const AusenciaContainer = () => {
                 Registro de Ausencias
               </h2>
 
-              {/* 🔎 Búsqueda + Botón nueva ausencia */}
+              {/* Búsqueda  */}
               <div
                 style={{
                   display: "flex",
@@ -267,30 +262,52 @@ const AusenciaContainer = () => {
                 setPaginaActual={setPaginaActual}
               />
 
-              {/* Control de paginación */}
-              <div style={{ marginTop: "20px", textAlign: "center" }}>
-                <label style={{ marginRight: "10px", fontWeight: "600" }}>
-                  Mostrar:
+            
+              <div
+                style={{
+                  marginTop: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "20px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <label style={{ marginRight: "10px", fontWeight: "600" }}>
+                    Mostrar:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={elementosPorPagina}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      const n = val === "" ? "" : Number(val);
+                      setElementosPorPagina(n > 0 ? n : 1);
+                      setPaginaActual(1);
+                    }}
+                    onFocus={(e) => e.target.select()}
+                    style={{
+                      width: "80px",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
+                      textAlign: "center",
+                    }}
+                  />
+                </div>
+
+                
+                <label style={{ fontWeight: "600", display: "flex", alignItems: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={mostrarInactivos}
+                    onChange={(e) => setMostrarInactivos(e.target.checked)}
+                    style={{ marginRight: "8px", transform: "scale(1.2)" }}
+                  />
+                  Mostrar ausencias inactivas
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={elementosPorPagina}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "");
-                    const n = val === "" ? "" : Number(val);
-                    setElementosPorPagina(n > 0 ? n : 1);
-                    setPaginaActual(1);
-                  }}
-                  onFocus={(e) => e.target.select()}
-                  style={{
-                    width: "80px",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    border: "1px solid #ccc",
-                    textAlign: "center",
-                  }}
-                />
               </div>
             </div>
           </main>
@@ -313,15 +330,15 @@ const AusenciaContainer = () => {
         )}
 
         {/* Modal detalle de ausencia */}
-{modalAusenciaVisible && (
-  <ModalAusencia
-    visible={modalAusenciaVisible}
-    onClose={() => setModalAusenciaVisible(false)}
-    ausencia={modalAusenciaData}
-    loading={modalLoading}
-  />
-)}
-        
+        {modalAusenciaVisible && (
+          <ModalAusencia
+            visible={modalAusenciaVisible}
+            onClose={() => setModalAusenciaVisible(false)}
+            ausencia={modalAusenciaData}
+            loading={modalLoading}
+          />
+        )}
+
         <ScrollToTop />
       </div>
     </Layout>
