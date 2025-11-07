@@ -8,6 +8,8 @@ import CartaLlamadaAtencion from "./CartaLlamadaAtencion.jsx";
 import AmonestacionForm from "./AmonestacionForm.jsx";
 import html2pdf from "html2pdf.js";
 import { showPDFToasts } from "../../utils/toast.js";
+import { crearAmonestacion } from "../Amonestacion/AmonestaciónService.js";
+
 
 const AmonestacionesContainer = () => {
   const [generandoPDF, setGenerandoPDF] = useState(false);
@@ -83,67 +85,62 @@ const AmonestacionesContainer = () => {
   };
 
   const handlePrint = async () => {
-    try {
-      setGenerandoPDF(true);
-      showPDFToasts.generando();
+  try {
+    setGenerandoPDF(true);
+    showPDFToasts.generando();
 
-      // ⚡ Eliminada la validación con toast
+    //Preparar datos para guardar
+    const nuevaAmonestacion = {
+      idEmpleado: data.idEmpleado,
+      tipo: data.tipoFalta, // leve, grave, gravísima
+      motivo: data.descripcionHecho,
+      fechaAmonestacion: new Date().toISOString().split("T")[0],
+      idDocumento: 0,
+      idUsuario: localStorage.getItem("idUsuario") || 1, // fallback 1 si no hay usuario logueado
+    };
 
-      const content = document.getElementById("printable");
-      if (!content) throw new Error("No se encontró el contenido a imprimir");
+    // Guardar en la BD
+    await crearAmonestacion(nuevaAmonestacion);
 
-      const inputs = content.querySelectorAll(".input-field");
-      const originalStyles = [];
-      inputs.forEach((el, i) => {
-        originalStyles[i] = {
-          background: el.style.background,
-          border: el.style.border,
-          boxShadow: el.style.boxShadow,
-          padding: el.style.padding,
-        };
-        el.style.background = "transparent";
-        el.style.border = "none";
-        el.style.boxShadow = "none";
-        el.style.padding = "0";
-      });
+    // Luego generar PDF
+    const content = document.getElementById("printable");
+    if (!content) throw new Error("No se encontró el contenido a imprimir");
 
-      const opt = {
-        margin: [20, 20, 20, 20],
-        filename: `Carta_Llamada_Atencion_${data.nombreTrabajador || "empleado"}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+    const inputs = content.querySelectorAll(".input-field");
+    const originalStyles = [];
+    inputs.forEach((el, i) => {
+      originalStyles[i] = {
+        background: el.style.background,
+        border: el.style.border,
+        boxShadow: el.style.boxShadow,
+        padding: el.style.padding,
       };
+      el.style.background = "transparent";
+      el.style.border = "none";
+      el.style.boxShadow = "none";
+      el.style.padding = "0";
+    });
 
-      await new Promise((resolve, reject) => {
-        html2pdf()
-          .set(opt)
-          .from(content)
-          .save()
-          .then(() => {
-            inputs.forEach((el, i) => {
-              el.style.background = originalStyles[i].background;
-              el.style.border = originalStyles[i].border;
-              el.style.boxShadow = originalStyles[i].boxShadow;
-              el.style.padding = originalStyles[i].padding;
-            });
-            resolve();
-          })
-          .catch(reject);
-      });
+    const opt = {
+      margin: [20, 20, 20, 20],
+      filename: `Carta_Llamada_Atencion_${data.nombreTrabajador || "empleado"}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+    };
 
-      setGenerandoPDF(false);
-      showPDFToasts.descargado();
+    await html2pdf().set(opt).from(content).save();
 
-      // ⚡ Limpiar automáticamente después de imprimir
-      limpiarFormulario();
-    } catch (error) {
-      setGenerandoPDF(false);
-      // ⚡ Mostrar solo errores críticos
-      showPDFToasts.error(error.message || "Error al generar la carta");
-    }
-  };
+    showPDFToasts.descargado();
+    limpiarFormulario();
+  } catch (error) {
+    console.error(error);
+    showPDFToasts.error(error.message || "Error al generar la carta");
+  } finally {
+    setGenerandoPDF(false);
+  }
+};
 
   return (
     <Layout>

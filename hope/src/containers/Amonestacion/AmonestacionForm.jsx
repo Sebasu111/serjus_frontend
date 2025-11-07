@@ -92,27 +92,30 @@ const AmonestacionForm = ({
 
   // 🔹 Al seleccionar un empleado
   const seleccionarEmpleado = (emp) => {
-    const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${
-      emp.apellido || emp.primerapellido || ""
-    }`.trim();
+  const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${
+    emp.apellido || emp.primerapellido || ""
+  }`.trim();
 
-    const puestoEncontrado = puestos.find(
-      (p) =>
-        p.idpuesto === emp.idpuesto ||
-        p.id === emp.idpuesto ||
-        p.id_puesto === emp.idpuesto
-    );
+  const puestoEncontrado = puestos.find(
+    (p) =>
+      p.idpuesto === emp.idpuesto ||
+      p.id === emp.idpuesto ||
+      p.id_puesto === emp.idpuesto
+  );
 
-    const nombrePuesto =
-      puestoEncontrado?.nombre ||
-      puestoEncontrado?.nombrepuesto ||
-      "Sin puesto";
+  const nombrePuesto =
+    puestoEncontrado?.nombre ||
+    puestoEncontrado?.nombrepuesto ||
+    "Sin puesto";
 
-    onChange({ target: { name: "nombreTrabajador", value: nombreCompleto } });
-    onChange({ target: { name: "puesto", value: nombrePuesto } });
-    setQEmpleado(nombreCompleto);
-    setOpenMenu(false);
-  };
+  // 🔹 Agregamos esto:
+  onChange({ target: { name: "idEmpleado", value: emp.idempleado || emp.id } });
+
+  onChange({ target: { name: "nombreTrabajador", value: nombreCompleto } });
+  onChange({ target: { name: "puesto", value: nombrePuesto } });
+  setQEmpleado(nombreCompleto);
+  setOpenMenu(false);
+};
 
   return (
     <form
@@ -125,9 +128,9 @@ const AmonestacionForm = ({
         borderLeft: "1px solid #e0e0e0",
       }}
     >
-      <h3 style={{ marginBottom: "10px", color: "#023047" }}>
+      <h2 style={{ marginBottom: "10px", color: "#000000ff" }}>
         Datos de la Amonestación
-      </h3>
+      </h2>
 
       {/* Tipo de carta */}
       <div style={{ marginBottom: "12px" }}>
@@ -243,18 +246,20 @@ const AmonestacionForm = ({
       {/* Campos dinámicos */}
       {Object.keys(data)
         .filter(
-          (campo) =>
-            ![
-              "tipoCarta",
-              "tipoFalta",
-              "nombreTrabajador",
-              "puesto",
-              "dia",
-              "mes",
-              "anio",
-              "descripcionHecho",
-            ].includes(campo)
-        )
+  (campo) =>
+    ![
+      "idEmpleado",
+      "tipoCarta",
+      "tipoFalta",
+      "nombreTrabajador",
+      "puesto",
+      "dia",
+      "mes",
+      "anio",
+      "descripcionHecho",
+    ].includes(campo)
+)
+
         .map((campo) => (
           <div key={campo} style={{ marginBottom: "8px" }}>
             <label style={labelStyle}>
@@ -279,7 +284,7 @@ const AmonestacionForm = ({
                   </option>
                 ))}
               </select>
-            ) : ["descripcionArticuloReglamento", "descripcionArticuloCodigoTrabajo"].includes(
+            ) : ["DescripcionArticuloReglamento", "descripcionArticuloCodigoTrabajo"].includes(
                 campo
               ) ? (
               <textarea

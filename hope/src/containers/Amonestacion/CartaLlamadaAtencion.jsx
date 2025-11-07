@@ -105,14 +105,14 @@ const CartaLlamadaAtencion = forwardRef(({ data }, ref) => {
 
           <p style={{ textAlign: "right" }}>
             {data.lugar || "Quetzaltenango"},{" "}
-            <span className="input-field">{data.dia || "____"}</span> de{" "}
-            <span className="input-field">{data.mes || "_________"}</span> de{" "}
-            <span className="input-field">{data.anio || "_____"}</span>
+            <span className="input-field">{data.dia || "...."}</span> de{" "}
+            <span className="input-field">{data.mes || "...."}</span> de{" "}
+            <span className="input-field">{data.anio || "...."}</span>
           </p>
 
           <p>
-            Señor(a): <span className="input-field">{data.nombreTrabajador || "________________________"}</span><br />
-            Cargo o puesto: <span className="input-field">{data.puesto || "____________________"}</span><br />
+            Señor(a): <span className="input-field">{data.nombreTrabajador || "..............."}</span><br />
+            Cargo o puesto: <span className="input-field">{data.puesto || "............."}</span><br />
             <strong>Presente.</strong>
           </p>
 
@@ -121,27 +121,27 @@ const CartaLlamadaAtencion = forwardRef(({ data }, ref) => {
           <p>
             Por este medio, se le comunica que, tras la revisión y verificación de sus
             responsabilidades laborales, se ha identificado la siguiente situación:{" "}
-            <span className="input-field">{data.descripcionHecho || "_________________________________________"}</span>.
+            <span className="input-field">{data.descripcionHecho || "..................."}</span>.
           </p>
 
           <p>
             Esta situación constituye una falta{" "}
-            <span className="input-field">{data.tipoFalta || "__________"}</span>, conforme lo establecido en el
+            <span className="input-field">{data.tipoFalta || "......"}</span>, conforme lo establecido en el
             Reglamento Interior de Trabajo, específicamente en el Artículo número{" "}
-            <span className="input-field">{data.articuloReglamento || "___"}</span>, que señala{" "}
-            <span className="input-field">{data.descripcionArticuloReglamento || "________________________________"}</span>.
+            <span className="input-field">{data.articuloReglamento || "..."}</span>, que señala{" "}
+            <span className="input-field">{data.descripcionArticuloReglamento || ".................."}</span>.
           </p>
 
           <p>
             Asimismo, el Artículo número{" "}
-            <span className="input-field">{data.articuloCodigoTrabajo || "___"}</span> del Código de Trabajo
+            <span className="input-field">{data.articuloCodigoTrabajo || "..."}</span> del Código de Trabajo
             establece{" "}
-            <span className="input-field">{data.descripcionArticuloCodigoTrabajo || "________________________________"}</span>.
+            <span className="input-field">{data.descripcionArticuloCodigoTrabajo || ".................."}</span>.
           </p>
 
           <p>
             Ante ello, se le otorga un plazo de{" "}
-            <span className="input-field">{data.plazoDias || "___"}</span> días hábiles a partir de la
+            <span className="input-field">{data.plazoDias || "..."}</span> días hábiles a partir de la
             recepción de esta carta, para enmendar la situación descrita, tomando las acciones
             correctivas necesarias. De no observarse mejoras o reincidencias, la institución podrá
             aplicar medidas disciplinarias conforme a la normativa vigente.
@@ -161,13 +161,14 @@ const CartaLlamadaAtencion = forwardRef(({ data }, ref) => {
 
           {/* Firma del responsable */}
           <div style={{ marginTop: "50px", textAlign: "center" }}>
-            <div style={{ borderTop: "1px solid black", width: "220px", margin: "0 auto" }}></div>
             <p>
-              <span className="input-field">{data.nombreResponsable || "____________________"}</span>
+              <span className="input-field">{data.nombreResponsable || ".............."}</span>
               <br />
-              Cargo: <span className="input-field">{data.cargoResponsable || "____________________"}</span>
+              Cargo: <span className="input-field">{data.cargoResponsable || ".............."}</span>
               <br />
-              Firma:
+              <span style={{ display: "inline-block", marginTop: "30px" }}>
+      Firma: _______________
+    </span>
             </p>
           </div>
 
@@ -176,10 +177,12 @@ const CartaLlamadaAtencion = forwardRef(({ data }, ref) => {
             <p><strong>Recibí copia</strong></p>
             <p>
               Nombre del trabajador(a):{" "}
-              <span className="input-field">{data.nombreTrabajador || "____________________"}</span>
+              <span className="input-field">{data.nombreTrabajador || ".................."}</span>
               <br />
-              Firma: _______________________<br />
-              Fecha de recepción: _______________________
+              <span style={{ display: "inline-block", marginTop: "20px" }}>
+      Firma: _______________
+    </span><br />
+              Fecha de recepción: _______________
             </p>
           </div>
         </div>
