@@ -1,258 +1,397 @@
-import React from "react";
-import { X } from "lucide-react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import axios from "axios";
+import { showToast } from "../../utils/toast.js";
+
+const API = "http://127.0.0.1:8000/api";
 
 const AmonestacionForm = ({
-  editingAmonestacion,
-  onSubmit,
-  onClose,
-  empleados = [],
+  data,
+  onChange,
+  onPrint,
+  generandoPDF,
+  limpiarFormulario,
 }) => {
-  const [idEmpleado, setIdEmpleado] = React.useState(editingAmonestacion?.idempleado || "");
-  const [nombreEmpleado, setNombreEmpleado] = React.useState("");
-  const [busquedaEmpleado, setBusquedaEmpleado] = React.useState("");
-  const [mostrarLista, setMostrarLista] = React.useState(false);
+  const [empleados, setEmpleados] = useState([]);
+  const [puestos, setPuestos] = useState([]);
+  const [qEmpleado, setQEmpleado] = useState("");
+  const [openMenu, setOpenMenu] = useState(false);
+  const wrapperRef = useRef(null);
 
-  const [tipo, setTipo] = React.useState(editingAmonestacion?.tipo || "");
-  const [fechaAmonestacion, setFechaAmonestacion] = React.useState(editingAmonestacion?.fechaamonestacion || "");
-  const [motivo, setMotivo] = React.useState(editingAmonestacion?.motivo || "");
-  const [idDocumento, setIdDocumento] = React.useState(editingAmonestacion?.iddocumento || "");
-  const [subiendo, setSubiendo] = React.useState(false);
-
-  // Mostrar nombre del empleado al editar
-  React.useEffect(() => {
-    if (idEmpleado && empleados.length > 0) {
-      const emp = empleados.find((e) => e.idempleado === idEmpleado);
-      if (emp) {
-        setNombreEmpleado(`${emp.nombre} ${emp.apellido}`);
-        setBusquedaEmpleado(`${emp.nombre} ${emp.apellido}`);
-      }
-    }
-  }, [idEmpleado, empleados]);
-
-  const handleSelectEmpleado = (empleado) => {
-    setIdEmpleado(empleado.idempleado);
-    setNombreEmpleado(`${empleado.nombre} ${empleado.apellido}`);
-    setBusquedaEmpleado(`${empleado.nombre} ${empleado.apellido}`);
-    setMostrarLista(false);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubiendo(true);
+  // 🔹 Obtener empleados desde la API
+  const fetchEmpleados = async () => {
     try {
-      const data = {
-        idempleado: idEmpleado,
-        tipo,
-        fechaamonestacion: fechaAmonestacion,
-        motivo,
-        iddocumento: idDocumento,
-        estado: true, // Siempre activo
-        idusuario: 1,
-      };
-      await onSubmit(data, editingAmonestacion?.idamonestacion);
+      const res = await axios.get(`${API}/empleados/`);
+      const empleadosData = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.results)
+        ? res.data.results
+        : [];
+      setEmpleados(empleadosData);
     } catch (error) {
       console.error(error);
-    } finally {
-      setSubiendo(false);
+      showToast("Error al cargar colaboradores", "error");
     }
   };
 
-  // Filtrado de empleados por nombre o apellido
-  const empleadosFiltrados = empleados.filter((e) => {
-    const texto = busquedaEmpleado.toLowerCase();
-    return (
-      e.nombre.toLowerCase().includes(texto) ||
-      e.apellido.toLowerCase().includes(texto)
-    );
-  });
+  // 🔹 Obtener puestos desde la API
+  const fetchPuestos = async () => {
+    try {
+      const res = await axios.get(`${API}/puestos/`);
+      const puestosData = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.results)
+        ? res.data.results
+        : [];
+      setPuestos(puestosData);
+    } catch (error) {
+      console.error(error);
+      showToast("Error al cargar puestos", "error");
+    }
+  };
+
+  // 🔹 Establecer fecha actual automáticamente
+  const setFechaActual = () => {
+    const fecha = new Date();
+    const meses = [
+      "enero", "febrero", "marzo", "abril", "mayo", "junio",
+      "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+    ];
+
+    onChange({ target: { name: "dia", value: fecha.getDate() } });
+    onChange({ target: { name: "mes", value: meses[fecha.getMonth()] } });
+    onChange({ target: { name: "anio", value: fecha.getFullYear() } });
+  };
+
+  useEffect(() => {
+    fetchEmpleados();
+    fetchPuestos();
+    setFechaActual();
+  }, []);
+
+  // 🔹 Cerrar menú si se hace clic fuera
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setOpenMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // 🔹 Filtrar empleados según búsqueda
+  const empleadosFiltrados = useMemo(() => {
+    const term = qEmpleado.toLowerCase().trim();
+    return empleados.filter((emp) => {
+      const nombre = `${emp.nombre || emp.primernombre || ""} ${
+        emp.apellido || emp.primerapellido || ""
+      }`.toLowerCase();
+      return nombre.includes(term);
+    });
+  }, [qEmpleado, empleados]);
+
+  // 🔹 Al seleccionar un empleado
+  const seleccionarEmpleado = (emp) => {
+  const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${
+    emp.apellido || emp.primerapellido || ""
+  }`.trim();
+
+  const puestoEncontrado = puestos.find(
+    (p) =>
+      p.idpuesto === emp.idpuesto ||
+      p.id === emp.idpuesto ||
+      p.id_puesto === emp.idpuesto
+  );
+
+  const nombrePuesto =
+    puestoEncontrado?.nombre ||
+    puestoEncontrado?.nombrepuesto ||
+    "Sin puesto";
+
+  // 🔹 Agregamos esto:
+  onChange({ target: { name: "idEmpleado", value: emp.idempleado || emp.id } });
+
+  onChange({ target: { name: "nombreTrabajador", value: nombreCompleto } });
+  onChange({ target: { name: "puesto", value: nombrePuesto } });
+  setQEmpleado(nombreCompleto);
+  setOpenMenu(false);
+};
 
   return (
-    <div
+    <form
+      ref={wrapperRef}
       style={{
-        position: "fixed",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "500px",
-        maxWidth: "90%",
-        background: "#fff",
-        boxShadow: "0 0 25px rgba(0,0,0,0.2)",
-        padding: "30px",
-        zIndex: 1000,
-        display: "flex",
-        flexDirection: "column",
-        borderRadius: "12px",
+        flex: "0 0 30%",
+        backgroundColor: "#f8f9fa",
+        padding: "15px",
+        overflow: "auto",
+        borderLeft: "1px solid #e0e0e0",
       }}
     >
-      <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
-        {editingAmonestacion ? "Editar Amonestación" : "Registrar Amonestación"}
-      </h3>
+      <h2 style={{ marginBottom: "10px", color: "#000000ff" }}>
+        Datos de la Amonestación
+      </h2>
 
-      <form onSubmit={handleSubmit} style={{ flex: 1 }}>
-        {/* Colaborador con búsqueda */}
-        <div style={{ marginBottom: "15px", position: "relative" }}>
-          <label>Colaborador</label>
-          <input
-            type="text"
-            value={busquedaEmpleado}
-            onChange={(e) => {
-              setBusquedaEmpleado(e.target.value);
-              setMostrarLista(true);
-            }}
-            onFocus={() => setMostrarLista(true)}
-            placeholder="Buscar por nombre o apellido..."
-            required
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          />
-
-          {mostrarLista && empleadosFiltrados.length > 0 && (
-            <ul
-              style={{
-                listStyle: "none",
-                padding: "0",
-                margin: "5px 0 0",
-                maxHeight: "150px",
-                overflowY: "auto",
-                border: "1px solid #ccc",
-                borderRadius: "6px",
-                background: "#fff",
-                position: "absolute",
-                width: "100%",
-                zIndex: 10,
-              }}
-            >
-              {empleadosFiltrados.map((emp) => (
-                <li
-                  key={emp.idempleado}
-                  onClick={() => handleSelectEmpleado(emp)}
-                  style={{
-                    padding: "8px 10px",
-                    cursor: "pointer",
-                    borderBottom: "1px solid #eee",
-                    background:
-                      emp.idempleado === idEmpleado ? "#e3f2fd" : "white",
-                  }}
-                >
-                  {emp.nombre} {emp.apellido}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Tipo de Amonestación como select */}
-        <div style={{ marginBottom: "15px" }}>
-          <label>Tipo de Amonestación</label>
-          <select
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          >
-            <option value="">-- Seleccionar tipo --</option>
-            <option value="Leve">Leve</option>
-            <option value="Moderada">Moderada</option>
-            <option value="Grave">Grave</option>
-          </select>
-        </div>
-
-        {/* Fecha */}
-        <div style={{ marginBottom: "15px" }}>
-          <label>Fecha de Amonestación</label>
-          <input
-            type="date"
-            value={fechaAmonestacion}
-            onChange={(e) => setFechaAmonestacion(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          />
-        </div>
-
-        {/* Motivo */}
-        <div style={{ marginBottom: "15px" }}>
-          <label>Motivo</label>
-          <textarea
-            rows={3}
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-              resize: "none",
-            }}
-          />
-        </div>
-
-        {/* Documento */}
-        <div style={{ marginBottom: "20px" }}>
-          <label>ID del Documento</label>
-          <input
-            type="text"
-            value={idDocumento}
-            onChange={(e) => setIdDocumento(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          />
-        </div>
-
-        {/* Botón guardar */}
-        <button
-          type="submit"
-          disabled={subiendo}
-          style={{
-            width: "100%",
-            padding: "12px",
-            background: "#219ebc",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
+      {/* Tipo de carta */}
+      <div style={{ marginBottom: "12px" }}>
+        <label style={labelStyle}>Tipo de Carta</label>
+        <select
+          name="tipoCarta"
+          value={data.tipoCarta || ""}
+          onChange={onChange}
+          style={selectStyle}
+          required
         >
-          {subiendo ? "Guardando..." : editingAmonestacion ? "Actualizar" : "Guardar"}
-        </button>
-      </form>
+          <option value="">Seleccione...</option>
+          <option value="escrita">Llamada de Atención Escrita</option>
+          <option value="verbal_escrita">
+            Llamada de Atención Verbal y Escrita
+          </option>
+        </select>
+      </div>
 
-      {/* Cerrar */}
+      {/* Buscador de empleado */}
+      <div style={{ marginBottom: "12px", position: "relative" }}>
+        <label style={labelStyle}>Nombre del Colaborador</label>
+        <input
+          type="text"
+          name="nombreTrabajador"
+          placeholder="Buscar colaborador..."
+          value={qEmpleado || data.nombreTrabajador || ""}
+          onChange={(e) => {
+            setQEmpleado(e.target.value);
+            onChange(e);
+            setOpenMenu(true);
+          }}
+          onFocus={() => setOpenMenu(true)}
+          autoComplete="off"
+          required
+          style={inputStyle}
+        />
+
+        {openMenu && empleadosFiltrados.length > 0 && (
+          <div style={menuStyle}>
+            {empleadosFiltrados.map((emp) => {
+              const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${
+                emp.apellido || emp.primerapellido || ""
+              }`.trim();
+              return (
+                <div
+                  key={emp.idempleado || emp.id}
+                  onClick={() => seleccionarEmpleado(emp)}
+                  style={menuItemStyle}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f3f4f6")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  {nombreCompleto}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Puesto del colaborador */}
+      <div style={{ marginBottom: "12px" }}>
+        <label style={labelStyle}>Puesto</label>
+        <input
+          type="text"
+          name="puesto"
+          value={data.puesto || ""}
+          readOnly
+          required
+          style={{
+            ...inputStyle,
+            backgroundColor: "#e9ecef",
+            cursor: "not-allowed",
+          }}
+        />
+      </div>
+
+      {/* Descripción del hecho */}
+      <div style={{ marginBottom: "12px" }}>
+        <label style={labelStyle}>Descripción del Hecho</label>
+        <textarea
+          name="descripcionHecho"
+          value={data.descripcionHecho || ""}
+          onChange={onChange}
+          rows={4}
+          placeholder="Describa el hecho ocurrido..."
+          required
+          style={textareaStyle}
+        />
+      </div>
+
+      {/* Tipo de falta */}
+      <div style={{ marginBottom: "12px" }}>
+        <label style={labelStyle}>Tipo de Falta</label>
+        <select
+          name="tipoFalta"
+          value={data.tipoFalta || ""}
+          onChange={onChange}
+          required
+          style={selectStyle}
+        >
+          <option value="">Seleccione tipo...</option>
+          <option value="leve">Leve</option>
+          <option value="grave">Grave</option>
+          <option value="gravísima">Gravísima</option>
+        </select>
+      </div>
+
+      {/* Campos dinámicos */}
+      {Object.keys(data)
+        .filter(
+  (campo) =>
+    ![
+      "idEmpleado",
+      "tipoCarta",
+      "tipoFalta",
+      "nombreTrabajador",
+      "puesto",
+      "dia",
+      "mes",
+      "anio",
+      "descripcionHecho",
+    ].includes(campo)
+)
+
+        .map((campo) => (
+          <div key={campo} style={{ marginBottom: "8px" }}>
+            <label style={labelStyle}>
+              {campo.replace(/([A-Z])/g, " $1")}
+            </label>
+
+            {campo === "cargoResponsable" ? (
+              <select
+                name={campo}
+                value={data[campo] || ""}
+                onChange={onChange}
+                required
+                style={selectStyle}
+              >
+                <option value="">Seleccione un cargo...</option>
+                {puestos.map((p) => (
+                  <option
+                    key={p.idpuesto || p.id}
+                    value={p.nombre || p.nombrepuesto}
+                  >
+                    {p.nombre || p.nombrepuesto}
+                  </option>
+                ))}
+              </select>
+            ) : ["DescripcionArticuloReglamento", "descripcionArticuloCodigoTrabajo"].includes(
+                campo
+              ) ? (
+              <textarea
+                name={campo}
+                value={data[campo]}
+                onChange={onChange}
+                rows={4}
+                required
+                style={textareaStyle}
+              />
+            ) : (
+              <input
+                type="text"
+                name={campo}
+                value={data[campo]}
+                onChange={onChange}
+                required
+                style={inputStyle}
+              />
+            )}
+          </div>
+        ))}
+
+      {/* Botones */}
       <button
-        onClick={onClose}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "15px",
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-        }}
-        title="Cerrar"
+        onClick={onPrint}
+        disabled={generandoPDF}
+        style={buttonPrimary}
       >
-        <X size={24} color="#555" />
+        {generandoPDF ? "Generando PDF..." : "Imprimir Carta"}
       </button>
-    </div>
+
+      <button onClick={limpiarFormulario} style={buttonSecondary}>
+        Limpiar Formulario
+      </button>
+    </form>
   );
+};
+
+// 🔹 Estilos reutilizables
+const labelStyle = {
+  fontSize: "13px",
+  fontWeight: "600",
+  color: "#555",
+  display: "block",
+  marginBottom: "4px",
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "6px",
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  fontSize: "13px",
+  backgroundColor: "#fff",
+};
+
+const selectStyle = { ...inputStyle, backgroundColor: "#fff" };
+
+const textareaStyle = {
+  ...inputStyle,
+  resize: "none",
+};
+
+const menuStyle = {
+  position: "absolute",
+  top: "100%",
+  left: 0,
+  width: "100%",
+  background: "#fff",
+  border: "1px solid #ddd",
+  borderRadius: "6px",
+  marginTop: "4px",
+  maxHeight: "180px",
+  overflowY: "auto",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+  zIndex: 20,
+};
+
+const menuItemStyle = {
+  padding: "8px",
+  cursor: "pointer",
+  fontSize: "13px",
+};
+
+const buttonPrimary = {
+  backgroundColor: "#023047",
+  color: "#fff",
+  width: "100%",
+  padding: "10px",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  fontWeight: "600",
+  marginTop: "10px",
+};
+
+const buttonSecondary = {
+  backgroundColor: "#adb5bd",
+  color: "#fff",
+  width: "100%",
+  padding: "10px",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  fontWeight: "600",
+  marginTop: "8px",
 };
 
 export default AmonestacionForm;

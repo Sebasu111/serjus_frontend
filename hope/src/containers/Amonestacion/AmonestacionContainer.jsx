@@ -1,120 +1,146 @@
-﻿import React, { useState, useEffect } from "react";
-import axios from "axios";
-import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header/index.jsx";
-import Footer from "../../layouts/footer/index.jsx";
-import ScrollToTop from "../../components/scroll-to-top/index.jsx";
-import SEO from "../../components/seo/index.jsx";
+﻿import React, { useEffect, useState, useRef } from "react";
+import Layout from "../../layouts";
+import Header from "../../layouts/header";
+import Footer from "../../layouts/footer";
+import ScrollToTop from "../../components/scroll-to-top";
+import SEO from "../../components/seo";
+import CartaLlamadaAtencion from "./CartaLlamadaAtencion.jsx";
 import AmonestacionForm from "./AmonestacionForm.jsx";
-import AmonestacionTable from "./AmonestacionTable.jsx";
+import html2pdf from "html2pdf.js";
+import { showPDFToasts } from "../../utils/toast.js";
+import { crearAmonestacion } from "../Amonestacion/AmonestaciónService.js";
 
-const AmonestacionContainer = () => {
-  const [amonestaciones, setAmonestaciones] = useState([]);
-  const [empleados, setEmpleados] = useState([]); 
-  const [editingAmonestacion, setEditingAmonestacion] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [busqueda, setBusqueda] = useState("");
-  const [mensaje, setMensaje] = useState("");
+
+const AmonestacionesContainer = () => {
+  const [generandoPDF, setGenerandoPDF] = useState(false);
+  const [vistaActual, setVistaActual] = useState("crear");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    document.body.classList.contains("sidebar-collapsed")
+  );
+
+  const [data, setData] = useState({
+    dia: "",
+    mes: "",
+    anio: "",
+    nombreTrabajador: "",
+    puesto: "",
+    descripcionHecho: "",
+    tipoFalta: "",
+    articuloReglamento: "",
+    descripcionArticuloReglamento: "",
+    articuloCodigoTrabajo: "",
+    descripcionArticuloCodigoTrabajo: "",
+    plazoDias: "",
+    nombreResponsable: "",
+    cargoResponsable: "",
+  });
+
+  const editorRef = useRef();
 
   useEffect(() => {
-    fetchAmonestaciones();
-    fetchEmpleados(); 
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "class") {
+          setSidebarCollapsed(document.body.classList.contains("sidebar-collapsed"));
+        }
+      });
+    });
+
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
+    };
   }, []);
 
-  //   Fetch de amonestaciones
-  const fetchAmonestaciones = async () => {
-    try {
-      const res = await axios.get("http://127.0.0.1:8000/api/amonestaciones/");
-      const data = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
-      setAmonestaciones(data);
-    } catch (error) {
-      console.error("Error al cargar amonestaciones:", error);
-      setMensaje("Error al cargar las amonestaciones");
-    }
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  //   Fetch de empleados
-  const fetchEmpleados = async () => {
-    try {
-      const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
-      const data = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
-      setEmpleados(data);
-    } catch (error) {
-      console.error("Error al cargar colaboradores:", error);
-      setMensaje("Error al cargar los colaboradores");
-    }
+  const limpiarFormulario = () => {
+    setData({
+      dia: "",
+      mes: "",
+      anio: "",
+      nombreTrabajador: "",
+      puesto: "",
+      descripcionHecho: "",
+      tipoFalta: "",
+      articuloReglamento: "",
+      descripcionArticuloReglamento: "",
+      articuloCodigoTrabajo: "",
+      descripcionArticuloCodigoTrabajo: "",
+      plazoDias: "",
+      nombreResponsable: "",
+      cargoResponsable: "",
+    });
   };
 
-  //   Editar
-  const handleEdit = (amon) => {
-    setEditingAmonestacion(amon);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const handlePrint = async () => {
+  try {
+    setGenerandoPDF(true);
+    showPDFToasts.generando();
 
-  //   Activar/Desactivar
-  const handleActivate = async (id, activar = true) => {
-    try {
-      const amon = amonestaciones.find((a) => a.idamonestacion === id);
-      if (!amon) return;
-      await axios.put(`http://127.0.0.1:8000/api/amonestaciones/${id}/`, {
-        ...amon,
-        estado: activar,
-      });
-      setMensaje(
-        activar
-          ? "Amonestación activada correctamente"
-          : "Amonestación desactivada correctamente"
-      );
-      fetchAmonestaciones();
-    } catch (error) {
-      console.error("Error al cambiar el estado de amonestación:", error);
-      setMensaje("Error al actualizar la amonestación");
-    }
-  };
+    //Preparar datos para guardar
+    const nuevaAmonestacion = {
+      idEmpleado: data.idEmpleado,
+      tipo: data.tipoFalta, // leve, grave, gravísima
+      motivo: data.descripcionHecho,
+      fechaAmonestacion: new Date().toISOString().split("T")[0],
+      idDocumento: 0,
+      idUsuario: localStorage.getItem("idUsuario") || 1, // fallback 1 si no hay usuario logueado
+    };
 
-  //   Guardar o actualizar
-  const handleSubmit = async (dataAmonestacion, editingId) => {
-    try {
-      if (editingId) {
-        await axios.put(
-          `http://127.0.0.1:8000/api/amonestaciones/${editingId}/`,
-          dataAmonestacion
-        );
-        setMensaje("Amonestación actualizada correctamente");
-      } else {
-        await axios.post(
-          "http://127.0.0.1:8000/api/amonestaciones/",
-          dataAmonestacion
-        );
-        setMensaje("Amonestación registrada correctamente");
-      }
-      setEditingAmonestacion(null);
-      setShowForm(false);
-      fetchAmonestaciones();
-    } catch (error) {
-      console.error("Error al guardar amonestación:", error);
-      setMensaje("Error al registrar la amonestación");
-    }
-  };
+    // Guardar en la BD
+    await crearAmonestacion(nuevaAmonestacion);
 
-  //   Filtrado de amonestaciones por búsqueda
-  const amonestacionesFiltradas = amonestaciones.filter((a) => {
-    const texto = busqueda.toLowerCase().trim();
-    return (
-      a.motivo?.toLowerCase().includes(texto) ||
-      a.tipo?.toLowerCase().includes(texto) ||
-      (a.estado ? "activo" : "inactivo").startsWith(texto)
-    );
-  });
+    // Luego generar PDF
+    const content = document.getElementById("printable");
+    if (!content) throw new Error("No se encontró el contenido a imprimir");
+
+    const inputs = content.querySelectorAll(".input-field");
+    const originalStyles = [];
+    inputs.forEach((el, i) => {
+      originalStyles[i] = {
+        background: el.style.background,
+        border: el.style.border,
+        boxShadow: el.style.boxShadow,
+        padding: el.style.padding,
+      };
+      el.style.background = "transparent";
+      el.style.border = "none";
+      el.style.boxShadow = "none";
+      el.style.padding = "0";
+    });
+
+    const opt = {
+      margin: [20, 20, 20, 20],
+      filename: `Carta_Llamada_Atencion_${data.nombreTrabajador || "empleado"}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+    };
+
+    await html2pdf().set(opt).from(content).save();
+
+    showPDFToasts.descargado();
+    limpiarFormulario();
+  } catch (error) {
+    console.error(error);
+    showPDFToasts.error(error.message || "Error al generar la carta");
+  } finally {
+    setGenerandoPDF(false);
+  }
+};
 
   return (
     <Layout>
@@ -126,80 +152,112 @@ const AmonestacionContainer = () => {
             className="main-content site-wrapper-reveal"
             style={{
               flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#EEF2F7",
-              padding: "48px 20px 8rem",
+              backgroundColor: "#fff",
+              padding: 0,
+              minHeight: "calc(100vh - 80px)",
+              marginLeft: isMobile ? "0" : sidebarCollapsed ? "90px" : "300px",
+              transition: "margin-left 0.3s ease",
+              width: `calc(100vw - ${isMobile ? "0px" : sidebarCollapsed ? "90px" : "300px"})`,
+              overflow: "hidden",
             }}
           >
-            <div style={{ width: "min(1100px, 96vw)" }}>
-              <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
-                Registro de Amonestaciones
-              </h2>
+            <div
+              style={{
+                borderBottom: "2px solid #e0e0e0",
+                backgroundColor: "#f8f9fa",
+                padding: vistaActual === "crear" ? "0 20px" : "0",
+              }}
+            >
+              <div style={{ display: "flex", marginLeft: vistaActual === "listar" ? "20px" : "0" }}>
+                <button
+                  onClick={() => setVistaActual("crear")}
+                  style={{
+                    padding: "12px 24px",
+                    border: "none",
+                    backgroundColor: vistaActual === "crear" ? "#023047" : "transparent",
+                    color: vistaActual === "crear" ? "white" : "#023047",
+                    cursor: "pointer",
+                    borderBottom:
+                      vistaActual === "crear" ? "2px solid #023047" : "2px solid transparent",
+                    fontWeight: "600",
+                  }}
+                >
+                  Crear Amonestación
+                </button>
+                <button
+                  onClick={() => setVistaActual("listar")}
+                  style={{
+                    padding: "12px 24px",
+                    border: "none",
+                    backgroundColor: vistaActual === "listar" ? "#023047" : "transparent",
+                    color: vistaActual === "listar" ? "white" : "#023047",
+                    cursor: "pointer",
+                    borderBottom:
+                      vistaActual === "listar" ? "2px solid #023047" : "2px solid transparent",
+                    fontWeight: "600",
+                  }}
+                >
+                  Ver Amonestaciones
+                </button>
+              </div>
+            </div>
 
-              {/* Buscador y botón nuevo */}
+            {vistaActual === "crear" ? (
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "15px",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: "10px",
+                  height: "calc(100vh - 130px)",
+                  gap: "2px",
+                  maxWidth: sidebarCollapsed ? "calc(100vw - 90px)" : "calc(100vw - 300px)",
+                  width: "100%",
+                  flexDirection: isMobile ? "column" : "row",
                 }}
               >
-                <input
-                  type="text"
-                  placeholder="Buscar amonestación..."
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
+                <div
                   style={{
-                    flex: 1,
-                    minWidth: "200px",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    border: "1px solid #ccc",
-                  }}
-                />
-                <button
-                  onClick={() => setShowForm(true)}
-                  style={{
-                    padding: "10px 20px",
-                    background: "#219ebc",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    whiteSpace: "nowrap",
+                    flex: isMobile ? "1" : "0 0 70%",
+                    backgroundColor: "#fff",
+                    overflow: "auto",
+                    padding: "8px",
                   }}
                 >
-                  Nueva Amonestación
-                </button>
-              </div>
+                  <div
+                    style={{
+                      transform: isMobile
+                        ? "scale(0.88)"
+                        : sidebarCollapsed
+                        ? "scale(1.05)"
+                        : "scale(1)",
+                      transformOrigin: "top left",
+                      width: isMobile ? "114%" : sidebarCollapsed ? "95%" : "100%",
+                    }}
+                  >
+                    <CartaLlamadaAtencion ref={editorRef} data={data} />
+                  </div>
+                </div>
 
-              {/* Formulario */}
-              {showForm && (
                 <AmonestacionForm
-                  empleados={empleados} 
-                  editingAmonestacion={editingAmonestacion}
-                  onSubmit={handleSubmit}
-                  onClose={() => {
-                    setShowForm(false);
-                    setEditingAmonestacion(null);
-                  }}
+                  data={data}
+                  onChange={onChange}
+                  onPrint={handlePrint}
+                  generandoPDF={generandoPDF}
+                  limpiarFormulario={limpiarFormulario}
                 />
-              )}
-
-              {/* Tabla */}
-              <AmonestacionTable
-                amonestaciones={amonestacionesFiltradas}
-                empleados={empleados} 
-                handleEdit={handleEdit}
-                handleActivate={handleActivate}
-              />
-            </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  height: "calc(100vh - 130px)",
+                  overflow: "auto",
+                  backgroundColor: "#fff",
+                  padding: "20px",
+                }}
+              >
+                <p style={{ color: "#555" }}>
+                  📋 Aquí puedes listar las amonestaciones registradas (pendiente de implementación).
+                </p>
+              </div>
+            )}
           </main>
           <Footer />
           <ScrollToTop />
@@ -209,4 +267,4 @@ const AmonestacionContainer = () => {
   );
 };
 
-export default AmonestacionContainer;
+export default AmonestacionesContainer;
