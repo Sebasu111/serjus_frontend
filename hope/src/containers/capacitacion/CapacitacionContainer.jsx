@@ -57,15 +57,6 @@ const CapacitacionContainer = () => {
         if (new Date(formData.fechaInicio) > new Date(formData.fechaFin))
             return showToast("La fecha de fin no puede ser menor a la fecha de inicio", "warning");
         
-        // Validar fechas pasadas para nuevas capacitaciones y al editar
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
-        const fechaInicio = new Date(formData.fechaInicio);
-        
-        if (fechaInicio < hoy) {
-            return showToast("No se pueden programar capacitaciones en fechas pasadas", "warning");
-        }
-        
         if (!formData.institucion.trim()) return showToast("La institución facilitadora es obligatoria", "warning");
         if (isNaN(formData.monto) || Number(formData.monto) <= 0)
             return showToast("El monto debe ser mayor a 0", "warning");

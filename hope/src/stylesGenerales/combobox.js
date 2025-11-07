@@ -97,6 +97,28 @@ export const comboBoxStyles = {
                 hover: {
                     background: "#f0f0f0"
                 }
+            },
+            eliminar: {
+                base: {
+                    ...buttonStyles.base,
+                    width: "100%",
+                    textAlign: "center",
+                    borderRadius: 0,
+                    borderBottom: "1px solid #f0f0f0",
+                    fontWeight: 500,
+                    padding: "8px 0",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    background: buttonStyles.activar
+                        ? buttonStyles.activar.background
+                        : "#ef4444", // fallback si no existe en buttonStyles
+                    color: buttonStyles.activar
+                        ? buttonStyles.activar.color
+                        : "#fff"
+                },
+                hover: {
+                    background: "#dc2626"
+                }
             }
         }
     }

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import { showToast } from "../../utils/toast";
 import ConfirmModal from "./ConfirmModal";
-import { buttonStyles } from "../../stylesGenerales/buttons.js";
+import axios from "axios";
 
 const ConvocatoriasTable = ({
   mensaje,
@@ -114,75 +114,134 @@ const ConvocatoriasTable = ({
             </tr>
           </thead>
           <tbody>
-            {paginadas.length ? (
-              paginadas.map((r) => (
-                <tr key={r.idconvocatoria}>
-                  <td style={{ ...tdCenter, whiteSpace: "normal", wordBreak: "break-word" }}>{r.nombreconvocatoria}</td>
-                  <td style={{ ...tdCenter, whiteSpace: "normal", wordBreak: "break-word" }}>{r.nombrepuesto || "-"}</td>
-                  <td
-                    style={{ ...tdCenterLongText, whiteSpace: "normal", wordBreak: "break-word", maxWidth: "100px" }}
-                    onClick={() => openModal(r.descripcion)}
-                  >
-                    {r.descripcion.length > 50 ? r.descripcion.substring(0, 50) + "..." : r.descripcion}
-                  </td>
-                  <td style={tdCenter}>
-                    {formatDate(r.fechainicio) || "-"}
-                  </td>
-                  <td style={tdCenter}>
-                    {formatDate(r.fechafin) || "-"}
-                  </td>
-                  <td style={{ ...tdCenter, color: r.estado ? "green" : "red" }}>{r.estado ? "Activo" : "Inactivo"}</td>
-                  <td style={tdCenter}>
-                    <div style={comboBoxStyles.container}>
-                      <button onClick={() => toggleMenu(r.idconvocatoria)} style={comboBoxStyles.button.base}>
-                        Opciones ▾
-                      </button>
-                      {openMenuId === r.idconvocatoria && (
-                        <div style={comboBoxStyles.menu.container}>
-                          <div
-                            onClick={() => r.estado && handleEdit(r)}
-                            disabled={!r.estado}
-                            style={{
-                              ...comboBoxStyles.menu.item.editar.base,
-                              ...(r.estado ? {} : comboBoxStyles.menu.item.editar.disabled)
-                            }}
-                            onMouseEnter={e => { if (r.estado) e.currentTarget.style.background = comboBoxStyles.menu.item.editar.hover.background; }}
-                            onMouseLeave={e => { if (r.estado) e.currentTarget.style.background = comboBoxStyles.menu.item.editar.base.background; }}
-                            title={r.estado ? "Editar convocatoria" : "No se puede editar una convocatoria inactiva"}
+              {paginadas.length ? (
+                paginadas.map((r) => {
+                  const nombreEstado =
+                    r.idestado?.nombreestado || // si el backend envía el objeto relacionado
+                    r.nombreestado ||           // si solo viene el nombre
+                    "Sin estado";
+
+                  const colorEstado =
+                    nombreEstado === "Abierta"
+                      ? "green"
+                      : nombreEstado === "Cerrada"
+                      ? "#f59e0b"
+                      : nombreEstado === "Finalizada"
+                      ? "#ef4444"
+                      : r.estado
+                      ? "green"
+                      : "red";
+
+                  return (
+                    <tr key={r.idconvocatoria}>
+                      <td style={{ ...tdCenter, whiteSpace: "normal", wordBreak: "break-word" }}>
+                        {r.nombreconvocatoria}
+                      </td>
+                      <td style={{ ...tdCenter, whiteSpace: "normal", wordBreak: "break-word" }}>
+                        {r.nombrepuesto || "-"}
+                      </td>
+                      <td
+                        style={{
+                          ...tdCenterLongText,
+                          whiteSpace: "normal",
+                          wordBreak: "break-word",
+                          maxWidth: "100px",
+                        }}
+                        onClick={() => openModal(r.descripcion)}
+                      >
+                        {r.descripcion.length > 50
+                          ? r.descripcion.substring(0, 50) + "..."
+                          : r.descripcion}
+                      </td>
+                      <td style={tdCenter}>{formatDate(r.fechainicio) || "-"}</td>
+                      <td style={tdCenter}>{formatDate(r.fechafin) || "-"}</td>
+
+                      {/* 🔹 Estado: muestra nombre del estado relacionado */}
+                      <td style={{ ...tdCenter, color: colorEstado, fontWeight: "600" }}>
+                        {nombreEstado}
+                      </td>
+
+                      {/* 🔹 Acciones */}
+                      <td style={tdCenter}>
+                        <div style={comboBoxStyles.container}>
+                          <button
+                            onClick={() => toggleMenu(r.idconvocatoria)}
+                            style={comboBoxStyles.button.base}
                           >
-                            Editar
-                          </div>
-                          <div
-                            onClick={() => {
-                              if (r.estado) {
-                                setConfirmModal({ open: true, row: r, modo: "finalizar" });
-                              } else {
-                                showToast("La convocatoria ya fue finalizada y no puede reactivarse.", "error");
-                              }
-                              setOpenMenuId(null);
-                            }}
-                            style={{
-                              ...(r.estado
-                                ? comboBoxStyles.menu.item.desactivar.base
-                                : { ...comboBoxStyles.menu.item.activar.base, cursor: "not-allowed" }),
-                            }}
-                          >
-                            {r.estado ? "Finalizar" : "Finalizada"}
-                          </div>
+                            Opciones ▾
+                          </button>
+                          {openMenuId === r.idconvocatoria && (
+                            <div style={comboBoxStyles.menu.container}>
+                              {/* Editar */}
+                              <div
+                                onClick={() => r.estado && handleEdit(r)}
+                                disabled={!r.estado}
+                                style={{
+                                  ...comboBoxStyles.menu.item.editar.base,
+                                  ...(r.estado
+                                    ? {}
+                                    : comboBoxStyles.menu.item.editar.disabled),
+                                }}
+                                title={
+                                  r.estado
+                                    ? "Editar convocatoria"
+                                    : "No se puede editar una convocatoria inactiva"
+                                }
+                              >
+                                Editar
+                              </div>
+
+                              {/* Cerrar convocatoria */}
+                              {r.estado && (
+                                <div
+                                  onClick={() => {
+                                    setConfirmModal({ open: true, row: r, modo: "cerrar" });
+                                    setOpenMenuId(null);
+                                  }}
+                                  style={comboBoxStyles.menu.item.desactivar.base}
+                                >
+                                  Cerrar convocatoria
+                                </div>
+                              )}
+
+                              {/* 🔓 Reabrir convocatoria (solo si está cerrada) */}
+                              {!r.estado && (
+                                <div
+                                  onClick={() => {
+                                    setConfirmModal({ open: true, row: r, modo: "reabrir" });
+                                    setOpenMenuId(null);
+                                  }}
+                                  style={comboBoxStyles.menu.item.activar.base}
+                                >
+                                  Reabrir convocatoria
+                                </div>
+                              )}
+
+                              {/* 🧹 Limpiar postulaciones */}
+                              <div
+                                onClick={() => {
+                                  setConfirmModal({ open: true, row: r, modo: "limpiar" });
+                                  setOpenMenuId(null);
+                                }}
+                                style={comboBoxStyles.menu.item.eliminar.base}
+                              >
+                                Borrar postulaciones
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: "center", padding: 20 }}>
+                    Sin registros
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" style={{ textAlign: "center", padding: 20 }}>
-                  Sin registros
-                </td>
-              </tr>
-            )}
-          </tbody>
+              )}
+            </tbody>
         </table>
 
         {/* Paginación centrada */}
@@ -274,17 +333,30 @@ const ConvocatoriasTable = ({
         <ConfirmModal
           convocatoria={confirmModal.row}
           modo={confirmModal.modo}
-          onConfirm={() => {
-            const nuevoEstado = !confirmModal.row.estado;
-            toggleEstado(confirmModal.row, nuevoEstado);
+          onConfirm={async () => {
+              try {
+                const { row, modo } = confirmModal;
 
-            showToast(
-              nuevoEstado ? "Convocatoria activada" : "Convocatoria desactivada",
-              "success"
-            );
+                if (modo === "cerrar") {
+                  // Cerrar convocatoria
+                  await toggleEstado(row, false);
+                  showToast("Convocatoria cerrada correctamente", "success");
+                } else if (modo === "reabrir") {
+                  // Reabrir convocatoria
+                  await toggleEstado(row, true);
+                  showToast("Convocatoria reabierta correctamente", "success");
+                } else if (modo === "limpiar") {
+                  // Limpiar postulaciones
+                  await axios.delete(`http://127.0.0.1:8000/api/postulaciones/limpiar/${row.idconvocatoria}/`);
+                  showToast("Postulaciones eliminadas correctamente", "success");
+                }
 
-            setConfirmModal({ open: false, row: null, modo: "" });
-          }}
+                setConfirmModal({ open: false, row: null, modo: "" });
+              } catch (error) {
+                console.error(error);
+                showToast("Error al procesar la acción", "error");
+              }
+            }}
           onCancel={() => setConfirmModal({ open: false, row: null, modo: "" })}
         />
       )}
