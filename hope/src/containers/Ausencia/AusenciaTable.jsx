@@ -7,7 +7,7 @@ const AusenciaTable = ({
   empleados = [],
   onEdit,
   onActivate,
-   onClickColaborador,
+  onClickColaborador,
   paginaActual,
   totalPaginas,
   setPaginaActual,
@@ -15,7 +15,7 @@ const AusenciaTable = ({
   const [openMenuId, setOpenMenuId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
-  const [modoModal, setModoModal] = useState("desactivar");
+  const [modoModal, setModoModal] = useState("eliminar");
 
   const toggleMenu = (id) => setOpenMenuId(openMenuId === id ? null : id);
 
@@ -26,7 +26,6 @@ const AusenciaTable = ({
     setOpenMenuId(null);
   };
 
-  
   const calcularDias = (inicio, fin) => {
     if (!inicio || !fin) return "-";
     const diff = Math.ceil(
@@ -35,7 +34,9 @@ const AusenciaTable = ({
     return diff >= 0 ? diff + 1 : "-";
   };
 
-  // Ordenar del más reciente al más antiguo
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
   const ausenciasOrdenadas = [...ausencias].sort(
     (a, b) => new Date(b.createdat) - new Date(a.createdat)
   );
@@ -54,40 +55,68 @@ const AusenciaTable = ({
           <tr>
             <th style={{ padding: "10px", textAlign: "left" }}>Colaborador/a</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Tipo</th>
-            <th style={{ padding: "10px", textAlign: "center" }}>Cantidad de días</th>
+            <th style={{ padding: "10px", textAlign: "center" }}>
+              Cantidad de días
+            </th>
             <th style={{ padding: "10px", textAlign: "left" }}>Diagnóstico</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Estado</th>
-            <th style={{ padding: "10px", textAlign: "center" }}>Acciones</th>
+
+            {ausenciasOrdenadas.some(
+              (a) => a.idestado !== 6 && a.idestado?.idestado !== 6
+            ) && (
+              <th style={{ padding: "10px", textAlign: "center" }}>Acciones</th>
+            )}
           </tr>
         </thead>
 
         <tbody>
           {ausenciasOrdenadas.length > 0 ? (
             ausenciasOrdenadas.map((row) => {
-              const empleado = empleados.find(
-                (e) => e.idempleado === row.idempleado
-              ) || {};
+              const empleado =
+                empleados.find((e) => e.idempleado === row.idempleado) || {};
+
+              const estadoTexto = row.idestado
+                ? row.idestado.nombre || "Finalizada"
+                : row.estado
+                ? "Activo"
+                : "Inactivo";
+
+              const colorEstado = row.idestado
+                ? "#2563eb"
+                : row.estado
+                ? "green"
+                : "red";
+
+              const fechaInicio = row.fechainicio
+                ? new Date(row.fechainicio)
+                : null;
+              const puedeEliminar =
+                fechaInicio && fechaInicio > hoy; 
+
+              const esFinalizada =
+                row.idestado === 6 || row.idestado?.idestado === 6;
 
               return (
                 <tr key={row.idausencia}>
                   <td
-  style={{
-    padding: "10px",
-    borderBottom: "1px solid #f0f0f0",
-    cursor: "pointer",
-    color: "#2563eb",
-    fontWeight: 700, // 🔹 negrita
-    textDecoration: "none"
-  }}
-  onClick={() => onClickColaborador && onClickColaborador(row)}
->
-  {empleado.nombre
-    ? `${empleado.nombre} ${empleado.apellido || ""}`
-    : "-"}
-</td>
+                    style={{
+                      padding: "10px",
+                      borderBottom: "1px solid #f0f0f0",
+                      cursor: "pointer",
+                      color: "#2563eb",
+                      fontWeight: 700,
+                    }}
+                    onClick={() => onClickColaborador && onClickColaborador(row)}
+                  >
+                    {empleado.nombre
+                      ? `${empleado.nombre} ${empleado.apellido || ""}`
+                      : "-"}
+                  </td>
+
                   <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
                     {row.tipo || "-"}
                   </td>
+
                   <td
                     style={{
                       padding: "10px",
@@ -95,8 +124,10 @@ const AusenciaTable = ({
                       borderBottom: "1px solid #f0f0f0",
                     }}
                   >
-                    {row.cantidaddias || calcularDias(row.fechainicio, row.fechafin)}
+                    {row.cantidaddias ||
+                      calcularDias(row.fechainicio, row.fechafin)}
                   </td>
+
                   <td
                     style={{
                       padding: "10px",
@@ -109,72 +140,79 @@ const AusenciaTable = ({
                   >
                     {row.diagnostico || "-"}
                   </td>
+
                   <td
                     style={{
                       padding: "10px",
                       textAlign: "center",
-                      color: row.estado ? "green" : "red",
+                      color: colorEstado,
                       fontWeight: 600,
                     }}
                   >
-                    {row.estado ? "Activo" : "Inactivo"}
+                    {estadoTexto}
                   </td>
 
-                  <td style={{ padding: "10px", textAlign: "center" }}>
-                    <div style={comboBoxStyles.container}>
-                      <button
-                        style={comboBoxStyles.button.base}
-                        onClick={() => toggleMenu(row.idausencia)}
-                      >
-                        Opciones ▾
-                      </button>
+                  {!esFinalizada && (
+                    <td style={{ padding: "10px", textAlign: "center" }}>
+                      <div style={comboBoxStyles.container}>
+                        <button
+                          style={comboBoxStyles.button.base}
+                          onClick={() => toggleMenu(row.idausencia)}
+                        >
+                          Opciones ▾
+                        </button>
 
-                      {openMenuId === row.idausencia && (
-  <div
-    style={{
-      ...comboBoxStyles.menu.container,
-      zIndex: 1000, // 🔹 menor que el modal (modal zIndex 4000)
-      position: "absolute", // aseguramos que se posicione sobre la tabla
-    }}
-  >
-    <div
-      style={{
-        ...comboBoxStyles.menu.item.editar.base,
-        ...(row.estado ? {} : comboBoxStyles.menu.item.editar.disabled),
-      }}
-      onClick={() => {
-        if (row.estado) {
-          onEdit && onEdit(row);
-          setOpenMenuId(null); // cerrar menú al hacer clic
-        }
-      }}
-    >
-      Editar
-    </div>
+                        {openMenuId === row.idausencia && (
+                          <div
+                            style={{
+                              ...comboBoxStyles.menu.container,
+                              zIndex: 1000,
+                              position: "absolute",
+                            }}
+                          >
+                            <div
+                              style={{
+                                ...comboBoxStyles.menu.item.editar.base,
+                                ...(row.estado
+                                  ? {}
+                                  : comboBoxStyles.menu.item.editar.disabled),
+                              }}
+                              onClick={() => {
+                                if (row.estado) {
+                                  onEdit && onEdit(row);
+                                  setOpenMenuId(null);
+                                }
+                              }}
+                            >
+                              Editar
+                            </div>
 
-    {row.estado ? (
-      <div
-        style={{
-          ...comboBoxStyles.menu.item.desactivar.base,
-        }}
-        onClick={() => abrirModal(row, "desactivar")}
-      >
-        Desactivar
-      </div>
-    ) : (
-      <div
-        style={{
-          ...comboBoxStyles.menu.item.activar.base,
-        }}
-        onClick={() => abrirModal(row, "activar")}
-      >
-        Activar
-      </div>
-    )}
-  </div>
-)}
-                    </div>
-                  </td>
+                            {row.estado && puedeEliminar && (
+                              <div
+                                style={{
+                                  ...comboBoxStyles.menu.item.desactivar.base,
+                                }}
+                                onClick={() => abrirModal(row, "eliminar")}
+                              >
+                                Eliminar
+                              </div>
+                            )}
+
+                            {!row.estado && (
+                              <div
+                                style={{
+                                  ...comboBoxStyles.menu.item.activar.base,
+                                }}
+                                onClick={() => abrirModal(row, "activar")}
+                              >
+                                Activar
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })
@@ -188,7 +226,6 @@ const AusenciaTable = ({
         </tbody>
       </table>
 
-      {/* 🔢 Paginación */}
       {totalPaginas > 1 && (
         <div style={{ marginTop: "20px", textAlign: "center" }}>
           {Array.from({ length: totalPaginas }, (_, i) => (
