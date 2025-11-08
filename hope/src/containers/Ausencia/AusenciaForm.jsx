@@ -117,13 +117,17 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     const finNueva = new Date(fechaFin);
 
     const conflicto = ausenciasEmpleado.some((a) => {
-      if (editingAusencia && a.idausencia === editingAusencia.idausencia) return false;
+  
+  if (editingAusencia && a.idausencia === editingAusencia.idausencia) return false;
 
-      const inicioExistente = new Date(a.fechainicio);
-      const finExistente = new Date(a.fechafin);
+  const activa = a.estado === true || a.estado === 1 || a.estado === "true";
+  if (!activa) return false;
 
-      return inicioNueva <= finExistente && finNueva >= inicioExistente;
-    });
+  const inicioExistente = new Date(a.fechainicio);
+  const finExistente = new Date(a.fechafin);
+
+  return inicioNueva <= finExistente && finNueva >= inicioExistente;
+});
 
     if (conflicto) {
       showToast("Ya existe una ausencia registrada para este colaborador en esas fechas.", "error");
