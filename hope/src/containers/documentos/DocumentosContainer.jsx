@@ -50,9 +50,7 @@ const DocumentosContainer = () => {
 
             // Filtrar solo documentos activos (estado != false)
             const documentosActivos = data.filter(doc => doc.estado !== false);
-
-            console.log("Documentos obtenidos para tabla:", documentosActivos); // Debug
-            console.log("CVs encontrados:", documentosActivos.filter(doc => doc.nombrearchivo && doc.nombrearchivo.includes('CV_'))); // Debug
+            
             setDocumentos(documentosActivos);
         } catch (error) {
             console.error("Error al cargar documentos:", "error");

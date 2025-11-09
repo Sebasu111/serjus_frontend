@@ -306,7 +306,6 @@ const EquiposContainer = () => {
     //    NUEVA FUNCIÓN: Actualizar empleados para sincronizar con el equipo
     const actualizarEmpleadosDelEquipo = async (equipoId, coordinadorId, nuevosMiembros) => {
         try {
-            console.log("🔄 Actualizando empleados del equipo:", { equipoId, coordinadorId, nuevosMiembros });
 
             // Obtener equipo anterior para saber qué empleados remover
             const equipoAnterior = equiposConMiembros.find(e => e.idEquipo === equipoId);

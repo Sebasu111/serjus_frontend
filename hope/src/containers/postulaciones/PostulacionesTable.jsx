@@ -68,7 +68,7 @@ const PostulacionesTable = ({
               );
 
               showToast(
-                `Convocatoria #${idConv}: Se alcanzaron 3 seleccionadas. Las demás fueron rechazadas.`,
+                `Se alcanzaron 3 postulaciones seleccionadas. Las demás fueron rechazadas.`,
                 "warning"
               );
 
@@ -196,14 +196,22 @@ const PostulacionesTable = ({
         )
       );
 
+      const convocatoria = convocatorias.find((c) => c.idconvocatoria === idConv);
+
       // 🔥 Cerrar convocatoria
       await axios.put(`${API}/convocatorias/${idConv}/`, {
+        fechainicio: convocatoria.fechainicio,
+        fechafin: convocatoria.fechafin,
+        idestado_id: 5, // cambia a 5 para "Cerrada"
+        nombreconvocatoria: convocatoria.nombreconvocatoria,
+        descripcion: convocatoria.descripcion,
         estado: false,
-        idestado_id: 5, // ⚠️ cambia este ID al de "Cerrada" en tu tabla Estado
+        idusuario: convocatoria.idusuario,
+        idpuesto: convocatoria.idpuesto,
       });
 
       showToast(
-        `Se alcanzaron las 3 postulaciones seleccionadas. Convocatoria #${idConv} fue cerrada automáticamente.`,
+        `Se alcanzaron las 3 postulaciones seleccionadas. La convocatoria sera cerrada automáticamente.`,
         "warning"
       );
     } else {

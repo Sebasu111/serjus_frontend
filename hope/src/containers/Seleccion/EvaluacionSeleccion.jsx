@@ -7,24 +7,31 @@ import { showToast } from "../../utils/toast";
 
 const EvaluacionSeleccion = forwardRef((props, ref) => {
   const {
-    convocatorias,
-    setConvocatoriaSeleccionada,
-    convocatoriaSeleccionada,
-    nombresEvaluados,
-    criterios,
-    evaluaciones,
-    ganador,
-    totalPorPersona,
-    handleChange,
-    agregarCriterio,
-    eliminarCriterio,
-    handleCriterioChange,
-    handleGuardarEvaluacion,
-    handleGuardarCriterios,
-  } = useEvaluacionSeleccion();
+  convocatorias,
+  setConvocatoriaSeleccionada,
+  convocatoriaSeleccionada,
+  nombresEvaluados,
+  setNombresEvaluados,
+  criterios,
+  setCriterios,
+  evaluaciones,
+  setEvaluaciones,
+  setGanador,
+  totalPorPersona,
+  handleChange,
+  agregarCriterio,
+  eliminarCriterio,
+  handleCriterioChange,
+  handleGuardarEvaluacion,
+  handleGuardarCriterios,
+  evaluacionesGuardadas,
+  evaluacionSeleccionada,
+  setEvaluacionSeleccionada,
+  cargarEvaluacionExistente,
+} = useEvaluacionSeleccion();
 
   const tresSeleccionados = nombresEvaluados.filter((n) => n && n.nombre && n.nombre.trim() !== "").length >= 3;
-
+  const esEvaluacionCargada = Boolean(evaluacionSeleccionada);
 
   // Verifica si toda la tabla está completa
   const tablaCompleta =
@@ -50,7 +57,32 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
           <strong>Convocatoria:</strong>{" "}
           <select
             value={convocatoriaSeleccionada}
-            onChange={(e) => setConvocatoriaSeleccionada(e.target.value)}
+            onChange={(e) => {
+              const nuevaConvocatoria = e.target.value;
+
+              // 1️⃣ Cambiamos la convocatoria
+              setConvocatoriaSeleccionada(nuevaConvocatoria);
+
+              // 2️⃣ Al cambiar convocatoria, ninguna evaluación guardada aplica
+              setEvaluacionSeleccionada("");
+
+              // 3️⃣ Limpiamos aspirantes y ganador
+              setNombresEvaluados([null, null, null]);
+              setGanador(null);
+
+              // 4️⃣ Reiniciamos las evaluaciones usando los criterios institucionales ya cargados
+              setEvaluaciones(
+                criterios.map((c) => ({
+                  criterio: c.nombre,
+                  puntajes: { p1: "", p2: "", p3: "" },
+                  observaciones: "",
+                }))
+              );
+
+              if (nuevaConvocatoria) {
+                showToast("Convocatoria cambiada. Tabla reiniciada.", "info");
+              }
+            }}
           >
             <option value="">Seleccione una convocatoria</option>
             {convocatorias.map((c) => (
@@ -58,6 +90,62 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
                 {c.nombreconvocatoria}
               </option>
             ))}
+          </select>
+        </div>
+        {/* 🔽 Nuevo Combo de Evaluaciones Guardadas */}
+        <div style={{ marginTop: "10px" }}>
+          <strong>Evaluaciones Guardadas:</strong>{" "}
+         <select
+            value={evaluacionSeleccionada}
+            onChange={(e) => {
+              const nueva = e.target.value;
+
+              // 1️⃣ Siempre actualiza el id de la evaluación
+              setEvaluacionSeleccionada(nueva);
+
+              // 2️⃣ Si no seleccionó nada, limpia todo y salimos
+              if (!nueva) {
+                setCriterios([]);
+                setEvaluaciones([]);
+                setNombresEvaluados([null, null, null]);
+                setGanador(null);
+                return;
+              }
+
+              // 3️⃣ Limpieza visual momentánea mientras carga
+              setCriterios([]);
+              setEvaluaciones([]);
+              setNombresEvaluados([null, null, null]);
+              setGanador(null);
+
+              // 4️⃣ Espera un instante y carga la nueva evaluación
+              showToast("Cargando evaluación seleccionada...", "info");
+              setTimeout(() => {
+                cargarEvaluacionExistente(nueva);
+              }, 150); // 🔥 un pequeño delay evita el “salto” visual
+            }}
+          >
+            <option value="">Seleccione una evaluación guardada</option>
+            {evaluacionesGuardadas.map((ev) => {
+              const fecha = new Date(ev.fechaevaluacion).toLocaleDateString("es-GT", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              });
+
+              // 🧩 Determinar el nombre que se mostrará
+              const nombreConvocatoria =
+                ev.nombreconvocatoria ||
+                ev.idpostulacion?.idconvocatoria?.nombreconvocatoria ||
+                ev.convocatoria?.nombreconvocatoria ||
+                "Sin nombre";
+
+              return (
+                <option key={ev.idevaluacion} value={ev.idevaluacion}>
+                  {`Evaluación ${nombreConvocatoria} — Fecha: ${fecha}`}
+                </option>
+              );
+            })}
           </select>
         </div>
       </div>
@@ -78,46 +166,71 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
       </div>
 
       <button
-        className="btn-agregar"
-        onClick={() => {
-          if (!tresSeleccionados) {
-            showToast("Selecciona 3 aspirantes antes de agregar criterios.", "warning");
-            return;
-          }
-          agregarCriterio();
-        }}
-        disabled={!tresSeleccionados}
-        title={!tresSeleccionados ? "Desactivado: faltan aspirantes seleccionados" : ""}
-        style={{
-          backgroundColor: tresSeleccionados ? "#219ebc" : "#ccc",
-          color: tresSeleccionados ? "#fff" : "#666",
-          cursor: tresSeleccionados ? "pointer" : "not-allowed",
-          border: "none",
-          borderRadius: 6,
-          padding: "8px 16px",
-          fontWeight: 600,
-          transition: "background 0.3s ease",
-        }}
-      >
-        Agregar Criterio
-      </button>
+  className="btn-agregar"
+  onClick={() => {
+    if (esEvaluacionCargada) return; // 🔒 no permite acción si es cargada
+    if (!tresSeleccionados) {
+      showToast("Selecciona 3 aspirantes antes de agregar criterios.", "warning");
+      return;
+    }
+    agregarCriterio();
+  }}
+  disabled={!tresSeleccionados || esEvaluacionCargada}
+  title={
+    esEvaluacionCargada
+      ? "Deshabilitado: evaluación cargada"
+      : !tresSeleccionados
+      ? "Desactivado: faltan aspirantes seleccionados"
+      : "Agregar un nuevo criterio"
+  }
+  style={{
+    backgroundColor:
+      !tresSeleccionados || esEvaluacionCargada ? "#ccc" : "#219ebc",
+    color:
+      !tresSeleccionados || esEvaluacionCargada ? "#666" : "#fff",
+    cursor:
+      !tresSeleccionados || esEvaluacionCargada
+        ? "not-allowed"
+        : "pointer",
+    border: "none",
+    borderRadius: 6,
+    padding: "8px 16px",
+    fontWeight: 600,
+    transition: "background 0.3s ease",
+  }}
+>
+  Agregar Criterio
+</button>
+
 
       {/* 🔘 Botón para guardar criterios */}
       <button
         className="btn-guardar"
         onClick={() => {
-          if (criterios.length === 0) {
-            showToast("No hay criterios para guardar.", "warning");
+          if (esEvaluacionCargada) return; // 🔒 no guarda si es evaluación cargada
+          if (!tablaCompleta) {
+            showToast("Debes completar todos los puntajes antes de guardar.", "warning");
             return;
           }
-          handleGuardarCriterios(); // ✅ ahora sí se ejecuta la función del hook
+          handleGuardarCriterios();
         }}
-        disabled={criterios.length === 0}
-        title={criterios.length === 0 ? "No hay criterios para guardar" : "Guardar los criterios actuales"}
+        disabled={!tablaCompleta || esEvaluacionCargada}
+        title={
+          esEvaluacionCargada
+            ? "Deshabilitado: evaluación cargada"
+            : !tablaCompleta
+            ? "Completa todos los puntajes antes de guardar"
+            : "Guardar los criterios y evaluaciones"
+        }
         style={{
-          backgroundColor: criterios.length === 0 ? "#ccc" : "#219ebc",
-          color: criterios.length === 0 ? "#666" : "#fff",
-          cursor: criterios.length === 0 ? "not-allowed" : "pointer",
+          backgroundColor:
+            !tablaCompleta || esEvaluacionCargada ? "#ccc" : "#219ebc",
+          color:
+            !tablaCompleta || esEvaluacionCargada ? "#666" : "#fff",
+          cursor:
+            !tablaCompleta || esEvaluacionCargada
+              ? "not-allowed"
+              : "pointer",
           border: "none",
           borderRadius: 6,
           padding: "8px 16px",
@@ -207,24 +320,38 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
                   />
                 </td>
 
-                {["p1", "p2", "p3"].map((persona, i) => (
-                  <td key={persona} className="center">
-                    <select
-                      disabled={!nombresEvaluados[i]}
-                      value={evaluaciones[index]?.puntajes[persona] || ""}
-                      onChange={(e) =>
-                        handleChange(index, "puntajes", e.target.value, persona)
-                      }
-                    >
-                      <option value="">–</option>
-                      {[1, 2, 3, 4, 5].map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                ))}
+                {["p1", "p2", "p3"].map((persona, i) => {
+                  const esEvaluacionCargada = Boolean(evaluacionSeleccionada); 
+                  return (
+                    <td key={persona} className="center">
+                      <select
+                        disabled={!nombresEvaluados[i] || esEvaluacionCargada} 
+                        value={evaluaciones[index]?.puntajes[persona] || ""}
+                        onChange={(e) =>
+                          handleChange(index, "puntajes", e.target.value, persona)
+                        }
+                        style={{
+                          backgroundColor: esEvaluacionCargada
+                            ? "rgba(243, 255, 105, 0.315)"
+                            : "rgba(243, 255, 105, 0.315)",
+                          cursor: esEvaluacionCargada ? "not-allowed" : "pointer",
+                        }}
+                        title={
+                          esEvaluacionCargada
+                            ? "Punteo bloqueado (evaluación guardada)"
+                            : "Asignar puntaje"
+                        }
+                      >
+                        <option value="">–</option>
+                        {[1, 2, 3, 4, 5].map((p) => (
+                          <option key={p} value={p.toString()}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  );
+                })}
 
                 <td>
                   <textarea
@@ -304,25 +431,70 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
         <li>5 = Cumple plenamente y demuestra compromiso.</li>
       </ul>
 
-      {/* ✅ Mostrar los botones solo cuando la tabla esté completa */}
-      {tablaCompleta && (
-        <div className="botones-final">
-          {["p1", "p2", "p3"].map((p, i) => (
-            <button
-              key={p}
-              disabled={ganador !== p || !nombresEvaluados[i]}
-              className={ganador === p ? "habilitado" : ""}
-              onClick={() => handleGuardarEvaluacion(i)}
-            >
-              {ganador === p
-                ? `Contratar a ${nombresEvaluados[i]?.nombre}`
-                : `Contratar a ${
-                    nombresEvaluados[i]?.nombre || `Entrevistado ${i + 1}`
-                  }`}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Mostrar los botones solo cuando la tabla esté completa */}
+{tablaCompleta && (
+  <div className="botones-final">
+    {(() => {
+      // Calcular totales
+      const totales = [
+        { key: "p1", total: totalPorPersona("p1"), nombre: nombresEvaluados[0]?.nombre || "Entrevistado 1" },
+        { key: "p2", total: totalPorPersona("p2"), nombre: nombresEvaluados[1]?.nombre || "Entrevistado 2" },
+        { key: "p3", total: totalPorPersona("p3"), nombre: nombresEvaluados[2]?.nombre || "Entrevistado 3" },
+      ];
+
+      // Ordenar de mayor a menor puntaje
+      const ordenados = [...totales].sort((a, b) => b.total - a.total);
+
+      // Paleta semáforo (colores suaves y bonitos)
+      const colores = {
+        [ordenados[0]?.key]: "#bdfaa5ff", // 🟢 Verde (ganador)
+        [ordenados[1]?.key]: "#f9d683ff", // 🟡 Amarillo (2do)
+        [ordenados[2]?.key]: "#f98ba5ff", // 🔴 Rojo (3ro)
+      };
+
+      // Etiquetas según posición
+      const textos = {
+        [ordenados[0]?.key]: "1er Lugar - Ganador",
+        [ordenados[1]?.key]: "2do Lugar",
+        [ordenados[2]?.key]: "3er Lugar",
+      };
+
+      return ["p1", "p2", "p3"].map((p, i) => {
+        const color = colores[p] || "#ccc";
+        const aspirante = nombresEvaluados[i]?.nombre || `Entrevistado ${i + 1}`;
+        const total = totalPorPersona(p);
+
+        return (
+          <button
+            key={p}
+            disabled={!nombresEvaluados[i]}
+            onClick={() => handleGuardarEvaluacion(i)}
+            style={{
+              backgroundColor: color,
+              color: "#000000ff",
+              border: "none",
+              borderRadius: 10,
+              padding: "12px 20px",
+              margin: "8px",
+              fontWeight: 600,
+              cursor: "pointer",
+              minWidth: "230px",
+              boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.2s ease",
+              transform: "scale(1)",
+            }}
+            onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
+            onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+            title={`Puntaje total: ${total}`}
+          >
+            {textos[p] ? `${textos[p]} — ${aspirante}` : aspirante}
+          </button>
+        );
+      });
+    })()}
+  </div>
+)}
+
     </div>
   );
 });

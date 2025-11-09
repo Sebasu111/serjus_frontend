@@ -17,7 +17,7 @@ const ModalEliminarAspirante = ({
   try {
     await axios.delete(`${API}/aspirantes/${aspiranteSeleccionado.idaspirante}/`);
 
-    showToast(`Aspirante ${aspiranteSeleccionado.nombreaspirante} eliminado correctamente.`, "success");
+    showToast(`Aspirante eliminado correctamente.`, "success");
 
     // 🔹 Actualización inmediata del frontend
     if (setAspirantes) {

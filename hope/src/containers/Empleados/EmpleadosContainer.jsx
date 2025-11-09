@@ -253,7 +253,7 @@ const EmpleadosContainer = () => {
             };
 
             await axios.post(API_HISTORIAL, payload);
-            console.log("Historial de puesto creado exitosamente");
+
         } catch (error) {
             console.error("Error al crear historial de puesto:", error);
             // No mostramos toast de error aquí para no interrumpir el flujo principal
@@ -284,7 +284,6 @@ const EmpleadosContainer = () => {
                     fechafin: fechaFin,
                     idusuario: getIdUsuario()
                 });
-                console.log(`Historial anterior finalizado: ID ${historialActivo.idhistorialpuesto}`);
             }
         } catch (error) {
             console.error("Error al finalizar historial anterior:", error);
@@ -328,8 +327,6 @@ const EmpleadosContainer = () => {
             };
 
             await axios.post(`${API}/usuarios/`, payloadUsuario);
-
-            console.log(`  Usuario creado: ${nombreUsuario} → Rol ID ${idRolAsignado}`);
 
             return {
                 usuario: nombreUsuario,
@@ -610,7 +607,6 @@ const EmpleadosContainer = () => {
             });
 
             if (cvDocumento) {
-                console.log("CV existente encontrado:", cvDocumento);
                 setCvExistente(cvDocumento);
             } else {
                 setCvExistente(null);
@@ -646,7 +642,6 @@ const EmpleadosContainer = () => {
             });
 
             if (contratoDocumento) {
-                console.log("Contrato existente encontrado:", contratoDocumento);
                 setContratoExistente(contratoDocumento);
             } else {
                 setContratoExistente(null);
