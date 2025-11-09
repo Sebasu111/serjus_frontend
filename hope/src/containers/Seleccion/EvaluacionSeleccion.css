@@ -45,7 +45,7 @@
   font-family: 'Arial Narrow'; 
   font-size: 10.5pt; 
   border: none; 
-  background-color: rgba(243, 255, 105, 0.315); 
+  background-color: #f3ff6950; 
   outline: none; 
 }
 
@@ -169,3 +169,15 @@
   margin: 4px 0 0 20px; 
   line-height: 1.1; 
 }
+
+.btn-eliminar[disabled] {
+  background-color: #ccc !important;
+  color: #666 !important;
+  cursor: not-allowed !important;
+  opacity: 0.8;
+}
+
+.btn-eliminar[disabled]:hover {
+  background-color: #ccc !important;
+}
+
