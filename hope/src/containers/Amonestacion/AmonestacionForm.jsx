@@ -9,15 +9,26 @@ const AmonestacionForm = ({
   onChange,
   onPrint,
   generandoPDF,
-  limpiarFormulario,
+  responsables = [], // lista de empleados que pueden ser responsables
 }) => {
   const [empleados, setEmpleados] = useState([]);
   const [puestos, setPuestos] = useState([]);
   const [qEmpleado, setQEmpleado] = useState("");
+  const [qResponsable, setQResponsable] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
+  const [openMenuResp, setOpenMenuResp] = useState(false);
   const wrapperRef = useRef(null);
 
-  // 🔹 Obtener empleados desde la API
+  const nombreCamposPersonalizados = {
+    articuloReglamento: "Artículo del Reglamento Interno",
+    descripcionArticuloReglamento: "Descripción del Artículo del Reglamento",
+    articuloCodigoTrabajo: "Artículo del Código de Trabajo",
+    descripcionArticuloCodigoTrabajo: "Descripción del Artículo del Código de Trabajo",
+    plazoDias: "Plazo en Días",
+    nombreResponsable: "Nombre del Responsable",
+    cargoResponsable: "Cargo del Responsable",
+  };
+
   const fetchEmpleados = async () => {
     try {
       const res = await axios.get(`${API}/empleados/`);
@@ -28,12 +39,10 @@ const AmonestacionForm = ({
         : [];
       setEmpleados(empleadosData);
     } catch (error) {
-      console.error(error);
       showToast("Error al cargar colaboradores", "error");
     }
   };
 
-  // 🔹 Obtener puestos desde la API
   const fetchPuestos = async () => {
     try {
       const res = await axios.get(`${API}/puestos/`);
@@ -44,19 +53,16 @@ const AmonestacionForm = ({
         : [];
       setPuestos(puestosData);
     } catch (error) {
-      console.error(error);
       showToast("Error al cargar puestos", "error");
     }
   };
 
-  // 🔹 Establecer fecha actual automáticamente
   const setFechaActual = () => {
     const fecha = new Date();
     const meses = [
-      "enero", "febrero", "marzo", "abril", "mayo", "junio",
-      "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+      "enero","febrero","marzo","abril","mayo","junio",
+      "julio","agosto","septiembre","octubre","noviembre","diciembre"
     ];
-
     onChange({ target: { name: "dia", value: fecha.getDate() } });
     onChange({ target: { name: "mes", value: meses[fecha.getMonth()] } });
     onChange({ target: { name: "anio", value: fecha.getFullYear() } });
@@ -68,54 +74,61 @@ const AmonestacionForm = ({
     setFechaActual();
   }, []);
 
-  // 🔹 Cerrar menú si se hace clic fuera
   useEffect(() => {
     const handleClick = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
         setOpenMenu(false);
+        setOpenMenuResp(false);
       }
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // 🔹 Filtrar empleados según búsqueda
+  // Filtrado de empleados
   const empleadosFiltrados = useMemo(() => {
     const term = qEmpleado.toLowerCase().trim();
     return empleados.filter((emp) => {
-      const nombre = `${emp.nombre || emp.primernombre || ""} ${
-        emp.apellido || emp.primerapellido || ""
-      }`.toLowerCase();
+      const nombre = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.toLowerCase();
       return nombre.includes(term);
     });
   }, [qEmpleado, empleados]);
 
-  // 🔹 Al seleccionar un empleado
+  // Filtrado de responsables
+  const responsablesFiltrados = useMemo(() => {
+    const term = qResponsable.toLowerCase().trim();
+    return responsables.filter((emp) => {
+      const nombre = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.toLowerCase();
+      return nombre.includes(term);
+    });
+  }, [qResponsable, responsables]);
+
   const seleccionarEmpleado = (emp) => {
-  const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${
-    emp.apellido || emp.primerapellido || ""
-  }`.trim();
+    const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.trim();
+    const puestoEncontrado = puestos.find(
+      (p) => p.idpuesto === emp.idpuesto || p.id === emp.idpuesto || p.id_puesto === emp.idpuesto
+    );
+    const nombrePuesto = puestoEncontrado?.nombre || puestoEncontrado?.nombrepuesto || "Sin puesto";
 
-  const puestoEncontrado = puestos.find(
-    (p) =>
-      p.idpuesto === emp.idpuesto ||
-      p.id === emp.idpuesto ||
-      p.id_puesto === emp.idpuesto
-  );
+    onChange({ target: { name: "idEmpleado", value: emp.idempleado || emp.id } });
+    onChange({ target: { name: "nombreTrabajador", value: nombreCompleto } });
+    onChange({ target: { name: "puesto", value: nombrePuesto } });
+    setQEmpleado(nombreCompleto);
+    setOpenMenu(false);
+  };
 
-  const nombrePuesto =
-    puestoEncontrado?.nombre ||
-    puestoEncontrado?.nombrepuesto ||
-    "Sin puesto";
+  const seleccionarResponsable = (emp) => {
+    const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.trim();
+    const puestoEncontrado = puestos.find(
+      (p) => p.idpuesto === emp.idpuesto || p.id === emp.idpuesto || p.id_puesto === emp.idpuesto
+    );
+    const nombrePuesto = puestoEncontrado?.nombre || puestoEncontrado?.nombrepuesto || "Sin puesto";
 
-  // 🔹 Agregamos esto:
-  onChange({ target: { name: "idEmpleado", value: emp.idempleado || emp.id } });
-
-  onChange({ target: { name: "nombreTrabajador", value: nombreCompleto } });
-  onChange({ target: { name: "puesto", value: nombrePuesto } });
-  setQEmpleado(nombreCompleto);
-  setOpenMenu(false);
-};
+    onChange({ target: { name: "nombreResponsable", value: nombreCompleto } });
+    onChange({ target: { name: "cargoResponsable", value: nombrePuesto } });
+    setQResponsable(nombreCompleto);
+    setOpenMenuResp(false);
+  };
 
   return (
     <form
@@ -128,9 +141,7 @@ const AmonestacionForm = ({
         borderLeft: "1px solid #e0e0e0",
       }}
     >
-      <h2 style={{ marginBottom: "10px", color: "#000000ff" }}>
-        Datos de la Amonestación
-      </h2>
+      <h2 style={{ marginBottom: "10px", color: "#000000ff" }}>Datos de la Amonestación</h2>
 
       {/* Tipo de carta */}
       <div style={{ marginBottom: "12px" }}>
@@ -144,9 +155,7 @@ const AmonestacionForm = ({
         >
           <option value="">Seleccione...</option>
           <option value="escrita">Llamada de Atención Escrita</option>
-          <option value="verbal_escrita">
-            Llamada de Atención Verbal y Escrita
-          </option>
+          <option value="verbal_escrita">Llamada de Atención Verbal y Escrita</option>
         </select>
       </div>
 
@@ -168,24 +177,17 @@ const AmonestacionForm = ({
           required
           style={inputStyle}
         />
-
         {openMenu && empleadosFiltrados.length > 0 && (
           <div style={menuStyle}>
             {empleadosFiltrados.map((emp) => {
-              const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${
-                emp.apellido || emp.primerapellido || ""
-              }`.trim();
+              const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.trim();
               return (
                 <div
                   key={emp.idempleado || emp.id}
                   onClick={() => seleccionarEmpleado(emp)}
                   style={menuItemStyle}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#f3f4f6")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   {nombreCompleto}
                 </div>
@@ -204,11 +206,7 @@ const AmonestacionForm = ({
           value={data.puesto || ""}
           readOnly
           required
-          style={{
-            ...inputStyle,
-            backgroundColor: "#e9ecef",
-            cursor: "not-allowed",
-          }}
+          style={{ ...inputStyle, backgroundColor: "#e9ecef", cursor: "not-allowed" }}
         />
       </div>
 
@@ -246,47 +244,28 @@ const AmonestacionForm = ({
       {/* Campos dinámicos */}
       {Object.keys(data)
         .filter(
-  (campo) =>
-    ![
-      "idEmpleado",
-      "tipoCarta",
-      "tipoFalta",
-      "nombreTrabajador",
-      "puesto",
-      "dia",
-      "mes",
-      "anio",
-      "descripcionHecho",
-    ].includes(campo)
-)
-
+          (campo) =>
+            ![
+              "idEmpleado",
+              "tipoCarta",
+              "tipoFalta",
+              "nombreTrabajador",
+              "puesto",
+              "nombreResponsable",
+              "cargoResponsable",
+              "dia",
+              "mes",
+              "anio",
+              "descripcionHecho",
+            ].includes(campo)
+        )
         .map((campo) => (
           <div key={campo} style={{ marginBottom: "8px" }}>
             <label style={labelStyle}>
-              {campo.replace(/([A-Z])/g, " $1")}
+              {nombreCamposPersonalizados[campo] || campo.replace(/([A-Z])/g, " $1")}
             </label>
 
-            {campo === "cargoResponsable" ? (
-              <select
-                name={campo}
-                value={data[campo] || ""}
-                onChange={onChange}
-                required
-                style={selectStyle}
-              >
-                <option value="">Seleccione un cargo...</option>
-                {puestos.map((p) => (
-                  <option
-                    key={p.idpuesto || p.id}
-                    value={p.nombre || p.nombrepuesto}
-                  >
-                    {p.nombre || p.nombrepuesto}
-                  </option>
-                ))}
-              </select>
-            ) : ["DescripcionArticuloReglamento", "descripcionArticuloCodigoTrabajo"].includes(
-                campo
-              ) ? (
+            {["descripcionArticuloReglamento", "descripcionArticuloCodigoTrabajo"].includes(campo) ? (
               <textarea
                 name={campo}
                 value={data[campo]}
@@ -308,90 +287,83 @@ const AmonestacionForm = ({
           </div>
         ))}
 
-      {/* Botones */}
+      {/* RESPONSABLES AL FINAL */}
+      <div style={{ marginBottom: "12px", position: "relative" }}>
+        <label style={labelStyle}>Responsable</label>
+        <input
+          type="text"
+          placeholder="Buscar responsable..."
+          value={qResponsable || data.nombreResponsable || ""}
+          onChange={(e) => {
+            setQResponsable(e.target.value);
+            onChange({ target: { name: "nombreResponsable", value: e.target.value } });
+            setOpenMenuResp(true);
+          }}
+          onFocus={() => setOpenMenuResp(true)}
+          autoComplete="off"
+          required
+          style={inputStyle}
+        />
+        {openMenuResp && responsablesFiltrados.length > 0 && (
+          <div style={menuStyle}>
+            {responsablesFiltrados.map((emp) => {
+              const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.trim();
+              return (
+                <div
+                  key={emp.idempleado || emp.id}
+                  onClick={() => seleccionarResponsable(emp)}
+                  style={menuItemStyle}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  {nombreCompleto}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginBottom: "12px" }}>
+        <label style={labelStyle}>Puesto Responsable</label>
+        <input
+          type="text"
+          name="cargoResponsable"
+          value={data.cargoResponsable || ""}
+          readOnly
+          style={{ ...inputStyle, backgroundColor: "#e9ecef", cursor: "not-allowed" }}
+        />
+      </div>
+
+      {/* Botón imprimir */}
       <button
-        onClick={onPrint}
+        type="button"
         disabled={generandoPDF}
+        onClick={(e) => {
+          e.preventDefault();
+          const form = e.target.closest("form");
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            showToast("Por favor, complete todos los campos requeridos antes de continuar.", "warning");
+            return;
+          }
+          onPrint();
+        }}
         style={buttonPrimary}
       >
         {generandoPDF ? "Generando PDF..." : "Imprimir Carta"}
-      </button>
-
-      <button onClick={limpiarFormulario} style={buttonSecondary}>
-        Limpiar Formulario
       </button>
     </form>
   );
 };
 
-// 🔹 Estilos reutilizables
-const labelStyle = {
-  fontSize: "13px",
-  fontWeight: "600",
-  color: "#555",
-  display: "block",
-  marginBottom: "4px",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "6px",
-  border: "1px solid #ccc",
-  borderRadius: "4px",
-  fontSize: "13px",
-  backgroundColor: "#fff",
-};
-
+// Estilos
+const labelStyle = { fontSize: "13px", fontWeight: "600", color: "#555", display: "block", marginBottom: "4px" };
+const inputStyle = { width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px", fontSize: "13px", backgroundColor: "#fff" };
 const selectStyle = { ...inputStyle, backgroundColor: "#fff" };
-
-const textareaStyle = {
-  ...inputStyle,
-  resize: "none",
-};
-
-const menuStyle = {
-  position: "absolute",
-  top: "100%",
-  left: 0,
-  width: "100%",
-  background: "#fff",
-  border: "1px solid #ddd",
-  borderRadius: "6px",
-  marginTop: "4px",
-  maxHeight: "180px",
-  overflowY: "auto",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-  zIndex: 20,
-};
-
-const menuItemStyle = {
-  padding: "8px",
-  cursor: "pointer",
-  fontSize: "13px",
-};
-
-const buttonPrimary = {
-  backgroundColor: "#023047",
-  color: "#fff",
-  width: "100%",
-  padding: "10px",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontWeight: "600",
-  marginTop: "10px",
-};
-
-const buttonSecondary = {
-  backgroundColor: "#adb5bd",
-  color: "#fff",
-  width: "100%",
-  padding: "10px",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontWeight: "600",
-  marginTop: "8px",
-};
+const textareaStyle = { ...inputStyle, resize: "none" };
+const menuStyle = { position: "absolute", top: "100%", left: 0, width: "100%", background: "#fff", border: "1px solid #ddd", borderRadius: "6px", marginTop: "4px", maxHeight: "180px", overflowY: "auto", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 20 };
+const menuItemStyle = { padding: "8px", cursor: "pointer", fontSize: "13px" };
+const buttonPrimary = { backgroundColor: "#023047", color: "#fff", width: "100%", padding: "10px", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600", marginTop: "10px" };
 
 export default AmonestacionForm;

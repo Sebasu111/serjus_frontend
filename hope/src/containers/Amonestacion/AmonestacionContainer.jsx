@@ -6,10 +6,12 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import CartaLlamadaAtencion from "./CartaLlamadaAtencion.jsx";
 import AmonestacionForm from "./AmonestacionForm.jsx";
+import AmonestacionTable from "./AmonestacionTable.jsx";
+import SubirCartaModal from "./SubirCartaModal.jsx";
 import html2pdf from "html2pdf.js";
-import { showPDFToasts } from "../../utils/toast.js";
+import axios from "axios";
+import { showToast, showPDFToasts } from "../../utils/toast.js";
 import { crearAmonestacion } from "../Amonestacion/AmonestaciónService.js";
-
 
 const AmonestacionesContainer = () => {
   const [generandoPDF, setGenerandoPDF] = useState(false);
@@ -18,6 +20,10 @@ const AmonestacionesContainer = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     document.body.classList.contains("sidebar-collapsed")
   );
+
+  const [empleados, setEmpleados] = useState([]); // Todos los empleados (colaboradores)
+  const [responsables, setResponsables] = useState([]); // Solo los que tienen ciertos roles
+  const [amonestaciones, setAmonestaciones] = useState([]);
 
   const [data, setData] = useState({
     dia: "",
@@ -36,12 +42,14 @@ const AmonestacionesContainer = () => {
     cargoResponsable: "",
   });
 
+  const [mostrarModalCarta, setMostrarModalCarta] = useState(false);
+  const [amonestacionSeleccionada, setAmonestacionSeleccionada] = useState(null);
+  const [archivoCarta, setArchivoCarta] = useState(null);
   const editorRef = useRef();
 
+  // 🧠 Detectar resize y cambios de sidebar
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -60,16 +68,93 @@ const AmonestacionesContainer = () => {
     };
   }, []);
 
+  // 🔹 Cuando se entra a la vista de listar, carga datos
+  // 🔹 Cuando se entra a la vista de crear o listar, carga empleados y responsables
+useEffect(() => {
+  if (vistaActual === "crear" || vistaActual === "listar") {
+    fetchEmpleadosPorRol(); // Carga empleados y responsables
+  }
+
+  if (vistaActual === "listar") {
+    fetchAmonestaciones(); // Solo carga amonestaciones en listar
+  }
+}, [vistaActual]);
+
+
+  // 🔹 Obtener amonestaciones
+  const fetchAmonestaciones = async () => {
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/amonestaciones/");
+      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+      setAmonestaciones(data);
+    } catch (error) {
+      showToast("Error al cargar las amonestaciones", "error");
+    }
+  };
+
+  // 🔹 Un solo método para obtener empleados y filtrar responsables
+  const fetchEmpleadosPorRol = async (rolesPermitidos = [1, 5]) => {
+    try {
+      const [resEmpleados, resUsuarios] = await Promise.all([
+        axios.get("http://127.0.0.1:8000/api/empleados/"),
+        axios.get("http://127.0.0.1:8000/api/usuarios/"),
+      ]);
+
+      const empleadosData = Array.isArray(resEmpleados.data.results)
+        ? resEmpleados.data.results
+        : resEmpleados.data;
+
+      const usuariosData = Array.isArray(resUsuarios.data.results)
+        ? resUsuarios.data.results
+        : resUsuarios.data;
+
+      // 🔹 Todos los empleados para colaboradores
+      setEmpleados(empleadosData);
+       console.log("Empleados (todos):", empleadosData);
+
+      // 🔹 Filtrar responsables por roles permitidos
+      const responsablesFiltrados = empleadosData.filter((emp) => {
+        const usuario = usuariosData.find(
+          (u) => u.idempleado === emp.idempleado || u.id_empleado === emp.idempleado
+        );
+        return usuario && rolesPermitidos.includes(usuario.idrol);
+      });
+
+      setResponsables(responsablesFiltrados);
+      console.log("Responsables (según rol):", responsablesFiltrados);
+    } catch (error) {
+      showToast("Error al cargar empleados o usuarios", "error");
+    }
+  };
+
+  const abrirModalCarta = (amonestacion) => {
+    setAmonestacionSeleccionada(amonestacion);
+    setArchivoCarta(null);
+    setMostrarModalCarta(true);
+  };
+
+  const cerrarModalCarta = () => {
+    setMostrarModalCarta(false);
+    setAmonestacionSeleccionada(null);
+    setArchivoCarta(null);
+  };
+
   const onChange = (e) => {
     const { name, value } = e.target;
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
   const limpiarFormulario = () => {
+    const fecha = new Date();
+    const meses = [
+      "enero", "febrero", "marzo", "abril", "mayo", "junio",
+      "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+    ];
+
     setData({
-      dia: "",
-      mes: "",
-      anio: "",
+      dia: fecha.getDate(),
+      mes: meses[fecha.getMonth()],
+      anio: fecha.getFullYear(),
       nombreTrabajador: "",
       puesto: "",
       descripcionHecho: "",
@@ -84,63 +169,63 @@ const AmonestacionesContainer = () => {
     });
   };
 
+  // 🔹 Generar carta PDF y guardar registro
   const handlePrint = async () => {
-  try {
-    setGenerandoPDF(true);
-    showPDFToasts.generando();
+    try {
+      setGenerandoPDF(true);
+      showPDFToasts.generando();
 
-    //Preparar datos para guardar
-    const nuevaAmonestacion = {
-      idEmpleado: data.idEmpleado,
-      tipo: data.tipoFalta, // leve, grave, gravísima
-      motivo: data.descripcionHecho,
-      fechaAmonestacion: new Date().toISOString().split("T")[0],
-      idDocumento: 0,
-      idUsuario: localStorage.getItem("idUsuario") || 1, // fallback 1 si no hay usuario logueado
-    };
+      const hoy = new Date();
+      const fechaLocal = hoy.toLocaleDateString("en-CA");
 
-    // Guardar en la BD
-    await crearAmonestacion(nuevaAmonestacion);
-
-    // Luego generar PDF
-    const content = document.getElementById("printable");
-    if (!content) throw new Error("No se encontró el contenido a imprimir");
-
-    const inputs = content.querySelectorAll(".input-field");
-    const originalStyles = [];
-    inputs.forEach((el, i) => {
-      originalStyles[i] = {
-        background: el.style.background,
-        border: el.style.border,
-        boxShadow: el.style.boxShadow,
-        padding: el.style.padding,
+      const nuevaAmonestacion = {
+        idEmpleado: data.idEmpleado,
+        tipo: data.tipoFalta,
+        motivo: data.descripcionHecho,
+        fechaAmonestacion: fechaLocal,
+        idDocumento: 0,
+        idUsuario: localStorage.getItem("idUsuario") || 1,
       };
-      el.style.background = "transparent";
-      el.style.border = "none";
-      el.style.boxShadow = "none";
-      el.style.padding = "0";
-    });
 
-    const opt = {
-      margin: [20, 20, 20, 20],
-      filename: `Carta_Llamada_Atencion_${data.nombreTrabajador || "empleado"}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-    };
+      await crearAmonestacion(nuevaAmonestacion);
 
-    await html2pdf().set(opt).from(content).save();
+      const content = document.getElementById("printable");
+      if (!content) throw new Error("No se encontró el contenido a imprimir");
 
-    showPDFToasts.descargado();
-    limpiarFormulario();
-  } catch (error) {
-    console.error(error);
-    showPDFToasts.error(error.message || "Error al generar la carta");
-  } finally {
-    setGenerandoPDF(false);
-  }
-};
+      const inputs = content.querySelectorAll(".input-field");
+      const originalStyles = [];
+      inputs.forEach((el, i) => {
+        originalStyles[i] = {
+          background: el.style.background,
+          border: el.style.border,
+          boxShadow: el.style.boxShadow,
+          padding: el.style.padding,
+        };
+        el.style.background = "transparent";
+        el.style.border = "none";
+        el.style.boxShadow = "none";
+        el.style.padding = "0";
+      });
+
+      const opt = {
+        margin: [20, 20, 20, 20],
+        filename: `Carta_Llamada_Atencion_${data.nombreTrabajador || "empleado"}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "pt", format: "letter", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      };
+
+      await html2pdf().set(opt).from(content).save();
+
+      showPDFToasts.descargado();
+      limpiarFormulario();
+    } catch (error) {
+      showPDFToasts.error(error.message || "Error al generar la carta");
+    } finally {
+      setGenerandoPDF(false);
+    }
+  };
 
   return (
     <Layout>
@@ -157,10 +242,13 @@ const AmonestacionesContainer = () => {
               minHeight: "calc(100vh - 80px)",
               marginLeft: isMobile ? "0" : sidebarCollapsed ? "90px" : "300px",
               transition: "margin-left 0.3s ease",
-              width: `calc(100vw - ${isMobile ? "0px" : sidebarCollapsed ? "90px" : "300px"})`,
+              width: `calc(100vw - ${
+                isMobile ? "0px" : sidebarCollapsed ? "90px" : "300px"
+              })`,
               overflow: "hidden",
             }}
           >
+            {/* 🔹 Botones de navegación */}
             <div
               style={{
                 borderBottom: "2px solid #e0e0e0",
@@ -202,6 +290,7 @@ const AmonestacionesContainer = () => {
               </div>
             </div>
 
+            {/* 🔹 Contenido principal */}
             {vistaActual === "crear" ? (
               <div
                 style={{
@@ -242,21 +331,29 @@ const AmonestacionesContainer = () => {
                   onPrint={handlePrint}
                   generandoPDF={generandoPDF}
                   limpiarFormulario={limpiarFormulario}
+                  empleados={empleados}
+                  responsables={responsables}
                 />
               </div>
             ) : (
-              <div
-                style={{
-                  height: "calc(100vh - 130px)",
-                  overflow: "auto",
-                  backgroundColor: "#fff",
-                  padding: "20px",
-                }}
-              >
-                <p style={{ color: "#555" }}>
-                  📋 Aquí puedes listar las amonestaciones registradas (pendiente de implementación).
-                </p>
-              </div>
+              <>
+                <AmonestacionTable
+                  amonestaciones={amonestaciones}
+                  empleados={empleados}
+                  onSubirCarta={abrirModalCarta}
+                />
+
+                {/* Modal de subir carta */}
+                {mostrarModalCarta && (
+                  <SubirCartaModal
+                    isOpen={mostrarModalCarta}
+                    onClose={cerrarModalCarta}
+                    amonestacion={amonestacionSeleccionada}
+                    onFileChange={setArchivoCarta}
+                    archivo={archivoCarta}
+                  />
+                )}
+              </>
             )}
           </main>
           <Footer />
