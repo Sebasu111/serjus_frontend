@@ -68,7 +68,7 @@ const PostulacionesTable = ({
               );
 
               showToast(
-                `⚠️ Convocatoria #${idConv}: Se alcanzaron 3 seleccionadas. Las demás fueron rechazadas.`,
+                `Convocatoria #${idConv}: Se alcanzaron 3 seleccionadas. Las demás fueron rechazadas.`,
                 "warning"
               );
 
@@ -137,6 +137,7 @@ const PostulacionesTable = ({
     try {
       const idSel = postulacionParaSeleccionar.idpostulacion;
       const idConv = postulacionParaSeleccionar.idconvocatoria;
+      const idAsp = postulacionParaSeleccionar.idaspirante;
 
       // 🔹 1. Seleccionar esta postulación
       await axios.put(`${API}/postulaciones/${idSel}/`, {
@@ -144,15 +145,33 @@ const PostulacionesTable = ({
         idestado: 2, // Seleccionada
       });
 
-      // 🔹 2. Obtener todas las postulaciones de la misma convocatoria
+      // 🔥 2. Rechazar todas las demás postulaciones del mismo aspirante
+      const otrasDelMismoAspirante = postulaciones.filter(
+        (p) => p.idaspirante === idAsp && p.idpostulacion !== idSel
+      );
+
+      if (otrasDelMismoAspirante.length > 0) {
+        await Promise.all(
+          otrasDelMismoAspirante.map((p) =>
+            axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
+              ...p,
+              idestado: 3, // Rechazada
+            })
+          )
+        );
+      }
+
+      // 🔹 3. Obtener todas las postulaciones de la misma convocatoria
       const mismasConvocatorias = postulaciones.filter(
         (p) => p.idconvocatoria === idConv
       );
 
       // Contar cuántas quedan seleccionadas
-      const seleccionadas = mismasConvocatorias.filter((p) => p.idestado === 2 || p.idpostulacion === idSel);
+      const seleccionadas = mismasConvocatorias.filter(
+        (p) => p.idestado === 2 || p.idpostulacion === idSel
+      );
 
-      // 🔹 3. Si ya hay 3 seleccionadas → rechazar todas las demás
+      // 🔹 4. Si ya hay 3 seleccionadas → rechazar todas las demás
       if (seleccionadas.length >= 3) {
         const restantes = mismasConvocatorias.filter(
           (p) => p.idestado !== 2 && p.idpostulacion !== idSel
@@ -167,16 +186,39 @@ const PostulacionesTable = ({
           )
         );
 
-        showToast("Se alcanzaron las 3 postulaciones seleccionadas. Las demás fueron rechazadas.", "warning");
+        showToast(
+          "Se alcanzaron las 3 postulaciones seleccionadas. Las demás fueron rechazadas.",
+          "warning"
+        );
       } else {
         showToast("Postulación seleccionada correctamente.", "success");
       }
 
-      // 🔹 4. Actualizar estado local
+      // 🔹 5. Actualizar estado local correctamente
+      const seleccionadasActuales = new Set([
+        idSel,
+        ...postulaciones
+          .filter((p) => p.idconvocatoria === idConv && p.idestado === 2)
+          .map((p) => p.idpostulacion),
+      ]);
+
       const updated = postulaciones.map((p) => {
+        // 🔸 Postulación recién seleccionada
         if (p.idpostulacion === idSel) return { ...p, idestado: 2 };
-        if (p.idconvocatoria === idConv && seleccionadas.length >= 3 && p.idpostulacion !== idSel)
+
+        // 🔸 Rechazar otras del mismo aspirante
+        if (p.idaspirante === idAsp && p.idpostulacion !== idSel)
           return { ...p, idestado: 3 };
+
+        // 🔸 Si hay 3 seleccionadas en la misma convocatoria,
+        // rechazar solo las que no están entre las seleccionadas reales
+        if (
+          p.idconvocatoria === idConv &&
+          seleccionadasActuales.size >= 3 &&
+          !seleccionadasActuales.has(p.idpostulacion)
+        )
+          return { ...p, idestado: 3 };
+
         return p;
       });
 
@@ -187,7 +229,6 @@ const PostulacionesTable = ({
       showToast("Error al seleccionar la postulación", "error");
     }
   };
-
 
   // 🔹 Paginación
   const totalPaginas = Math.max(1, Math.ceil(postulacionesFiltradas.length / elementosPorPagina));

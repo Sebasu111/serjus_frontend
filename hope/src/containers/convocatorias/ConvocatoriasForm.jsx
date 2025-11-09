@@ -9,47 +9,26 @@ const ConvocatoriasForm = ({
   setMostrarFormulario,
   editingId,
 }) => {
-  // 🔧 Helper para asegurar formato válido
-  const toISODate = (fecha) => {
-    if (!fecha) return "";
-    if (fecha.includes("/")) {
-      const [dia, mes, anio] = fecha.split("/");
-      return `${anio}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
-    }
-    return fecha;
-  };
+  // 🔧 Helper para obtener fecha actual en formato YYYY-MM-DD
+  const hoyISO = new Date().toISOString().split("T")[0];
 
-  const fromISODate = (fecha) => {
-    if (!fecha) return "";
-    if (fecha.includes("-")) {
-      const [anio, mes, dia] = fecha.split("-");
-      return `${dia}/${mes}/${anio}`;
-    }
-    return fecha;
-  };
-
+  // 🔧 Definir mínimo y máximo según selección
+  const minFechaInicio = hoyISO;
+  const minFechaFin = form.fechainicio ? form.fechainicio.split("T")[0] || form.fechainicio : "";
+  
+  // 🔧 Handler general
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Si es una fecha, convertimos el formato al estilo DD/MM/YYYY
-    if (name === "fechainicio" || name === "fechafin") {
-      const formatted = fromISODate(value);
-      if (name === "fechainicio") {
-        onChange({ target: { name: "fechainicio", value: formatted } });
+    if (name === "fechainicio") {
+      // Al cambiar fecha de inicio, limpiamos fecha fin si ya no es válida
+      if (form.fechafin && new Date(value) > new Date(form.fechafin)) {
         onChange({ target: { name: "fechafin", value: "" } });
-      } else {
-        onChange({ target: { name, value: formatted } });
       }
-      return;
     }
 
     onChange(e);
   };
-
-  // Definir minFechaInicio según si es edición o creación
-  const minFechaInicio = editingId
-    ? toISODate(form.fechainicio) || new Date().toISOString().split("T")[0]
-    : new Date().toISOString().split("T")[0];
 
   return (
     <div style={modalStyle}>
@@ -82,8 +61,10 @@ const ConvocatoriasForm = ({
           type="date"
           name="fechainicio"
           value={form.fechainicio ? form.fechainicio.split("T")[0] : ""}
-          onChange={onChange}
-          className="form-control"
+          min={minFechaInicio} // ⛔ No permite fechas pasadas
+          onChange={handleInputChange}
+          required
+          style={inputStyle}
         />
 
         <label>Fecha fin:</label>
@@ -91,8 +72,15 @@ const ConvocatoriasForm = ({
           type="date"
           name="fechafin"
           value={form.fechafin ? form.fechafin.split("T")[0] : ""}
-          onChange={onChange}
-          className="form-control"
+          min={minFechaFin || hoyISO} // ⛔ Solo permite días posteriores al inicio
+          onChange={handleInputChange}
+          disabled={!form.fechainicio} // ⛔ Deshabilitado si no se seleccionó inicio
+          required
+          style={{
+            ...inputStyle,
+            backgroundColor: !form.fechainicio ? "#f3f3f3" : "#fff",
+            cursor: !form.fechainicio ? "not-allowed" : "text",
+          }}
         />
 
         <label>Puesto</label>
@@ -142,6 +130,7 @@ const inputStyle = {
   border: "1px solid #ccc",
   marginBottom: 12,
 };
+
 const btnPrimary = {
   padding: 10,
   width: "100%",
@@ -151,7 +140,9 @@ const btnPrimary = {
   marginTop: 12,
   border: "none",
   outline: "none",
+  cursor: "pointer",
 };
+
 const modalStyle = {
   position: "fixed",
   top: "50%",

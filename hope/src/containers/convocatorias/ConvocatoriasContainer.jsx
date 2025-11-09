@@ -129,6 +129,7 @@ const ConvocatoriasContainer = () => {
         fechainicio: form.fechainicio,
         fechafin: form.fechafin || null,
         estado: true,
+        idestado_id: 4,
         idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
         idpuesto: Number(form.idpuesto)
     };
@@ -208,12 +209,24 @@ const ConvocatoriasContainer = () => {
 
     const toggleEstado = async (row, nuevo) => {
         try {
+            // Si se finaliza, ponemos el estado booleano en false y el idestado_id correspondiente a “Finalizada”
+            const nuevoEstadoId = nuevo ? 4 : 5; // Ejemplo: 4 = Abierta, 3 = Finalizada
+
             await axios.put(`${API}/convocatorias/${row.idconvocatoria}/`, {
                 ...row,
-                estado: nuevo
+                estado: nuevo,
+                idestado_id: nuevoEstadoId,
             });
+
             fetchList();
-        } catch { }
+            showToast(
+                nuevo ? "Convocatoria reactivada correctamente" : "Convocatoria finalizada correctamente",
+                "success"
+            );
+        } catch (error) {
+            console.error(error);
+            showToast("Error al cambiar el estado de la convocatoria", "error");
+        }
     };
 
     const textoBusqueda = busqueda.toLowerCase().trim();

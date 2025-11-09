@@ -44,7 +44,8 @@ const CapacitacionesSection = ({
                     </thead>
                     <tbody>
                         {capacitacionesInfo.map(c => {
-                            const asistenciaRegistrada = c.asistencia === "Sí";
+                            const asistenciaRegistrada =
+  c.asistencia === "Sí" || c.asistencia === "No" || c.iddocumento != null;
                             return (
                                 <tr
                                     key={c.idempleadocapacitacion}
