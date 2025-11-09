@@ -346,9 +346,16 @@ const ConvocatoriasTable = ({
                   await toggleEstado(row, true);
                   showToast("Convocatoria reabierta correctamente", "success");
                 } else if (modo === "limpiar") {
-                  // Limpiar postulaciones
-                  await axios.delete(`http://127.0.0.1:8000/api/postulaciones/limpiar/${row.idconvocatoria}/`);
-                  showToast("Postulaciones eliminadas correctamente", "success");
+                  try {
+                    await axios.put(`http://127.0.0.1:8000/api/postulaciones/limpiar/${row.idconvocatoria}/`);
+                    showToast("Postulaciones borradas correctamente", "success");
+                  } catch (error) {
+                    if (error.response && error.response.data && error.response.data.error) {
+                      showToast(error.response.data.error, "error");
+                    } else {
+                      showToast("Error al borrar las postulaciones", "error");
+                    }
+                  }
                 }
 
                 setConfirmModal({ open: false, row: null, modo: "" });

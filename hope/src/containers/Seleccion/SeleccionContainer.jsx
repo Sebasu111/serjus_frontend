@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
-import { showToast } from "../../utils/toast.js";
 import EvaluacionSeleccion from "./EvaluacionSeleccion.jsx";
 
 const SeleccionContainer = () => {

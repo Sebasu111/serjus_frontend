@@ -1,7 +1,9 @@
 // useEvaluacionSeleccion.js
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { showToast, showPDFToasts } from "../../utils/toast";
+import { showToast } from "../../utils/toast";
+
+const API = "http://127.0.0.1:8000/api";
 
 const useEvaluacionSeleccion = () => {
   const [convocatorias, setConvocatorias] = useState([]);
@@ -13,27 +15,23 @@ const useEvaluacionSeleccion = () => {
 
   // === Cargar convocatorias ===
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/convocatorias/")
+    fetch(`${API}/convocatorias/`)
       .then((res) => res.json())
       .then((data) => setConvocatorias(data.results || data))
       .catch((err) => console.error("Error cargando convocatorias:", err));
   }, []);
 
-  // === Cargar criterios desde la API ===
+  // === Cargar criterios base ===
   useEffect(() => {
     const cargarCriterios = async () => {
       try {
-        const variableRes = await fetch(
-          "http://127.0.0.1:8000/api/variables/?idtipoevaluacion=4"
-        );
+        const variableRes = await fetch(`${API}/variables/?idtipoevaluacion=4`);
         const variableData = (await variableRes.json()).results || [];
         if (!variableData.length) return;
 
         const idVariable = variableData[0].idvariable;
 
-        const criteriosRes = await fetch(
-          `http://127.0.0.1:8000/api/criterio/?idvariable=${idVariable}`
-        );
+        const criteriosRes = await fetch(`${API}/criterio/?idvariable=${idVariable}`);
         const criteriosData = (await criteriosRes.json()).results || [];
 
         const listaCriterios = criteriosData.map((c) => ({
@@ -51,14 +49,14 @@ const useEvaluacionSeleccion = () => {
     cargarCriterios();
   }, []);
 
-  // === Cuando se selecciona convocatoria ===
+  // === Cargar aspirantes de la convocatoria seleccionada ===
   useEffect(() => {
     if (!convocatoriaSeleccionada) return;
 
     const cargarAspirantes = async () => {
       try {
-        const postRes = await fetch("http://127.0.0.1:8000/api/postulaciones/");
-        const aspRes = await fetch("http://127.0.0.1:8000/api/aspirantes/");
+        const postRes = await fetch(`${API}/postulaciones/`);
+        const aspRes = await fetch(`${API}/aspirantes/`);
 
         const postulaciones = (await postRes.json()).results || [];
         const aspirantes = (await aspRes.json()).results || [];
@@ -71,9 +69,7 @@ const useEvaluacionSeleccion = () => {
 
         const seleccionados = postulacionesFiltradas
           .map((p) => {
-            const aspirante = aspirantes.find(
-              (a) => a.idaspirante === p.idaspirante
-            );
+            const aspirante = aspirantes.find((a) => a.idaspirante === p.idaspirante);
             if (!aspirante) return null;
             return {
               idaspirante: aspirante.idaspirante,
@@ -123,6 +119,7 @@ const useEvaluacionSeleccion = () => {
     setGanador(keys.length === 1 ? keys[0] : null);
   }, [evaluaciones]);
 
+  // === Handlers de campos ===
   const handleChange = (index, field, value, persona) => {
     const newEval = [...evaluaciones];
     if (field === "observaciones") newEval[index].observaciones = value;
@@ -130,14 +127,23 @@ const useEvaluacionSeleccion = () => {
     setEvaluaciones(newEval);
   };
 
-  // === Agregar / eliminar / editar criterios dinámicos ===
   const agregarCriterio = () => {
+    const selCount = nombresEvaluados.filter(
+      (n) => n && n.nombre && n.nombre.trim() !== ""
+    ).length;
+
+    if (selCount < 3) {
+      showToast("Debes tener 3 postulaciones seleccionadas antes de agregar criterios.", "warning");
+      return;
+    }
+
     const nuevo = { id: `uuid-${uuidv4()}`, nombre: "", descripcion: "" };
     setCriterios([...criterios, nuevo]);
     setEvaluaciones([
       ...evaluaciones,
       { criterio: "", puntajes: { p1: "", p2: "", p3: "" }, observaciones: "" },
     ]);
+    showToast("Criterio agregado correctamente.", "success");
   };
 
   const eliminarCriterio = (index) => {
@@ -161,211 +167,103 @@ const useEvaluacionSeleccion = () => {
     }
   };
 
-  // === Guardar evaluación ===
-  const handleGuardarEvaluacion = async (indiceGanador) => {
+  // === Guardar evaluación general (botón GUARDAR CRITERIOS) ===
+  const handleGuardarCriterios = async () => {
     try {
-      console.log("=== Iniciando guardado de evaluación ===");
-
-      const ganadorObj = nombresEvaluados[indiceGanador];
-      if (!ganadorObj || !ganadorObj.idpostulacion) {
-        showToast("No se encontró la postulación del ganador.", "error");
-        console.error("Postulación no encontrada:", ganadorObj);
+      if (!convocatoriaSeleccionada) {
+        showToast("Debes seleccionar una convocatoria.", "warning");
         return;
       }
 
-      const nombreGanador = ganadorObj.nombre;
-      console.log("Ganador seleccionado:", nombreGanador);
-
-      // ✅ Calcular total
-      const total = totalPorPersona(`p${indiceGanador + 1}`);
-      if (isNaN(total)) {
-        showToast("Error: alguno de los puntajes es inválido.", "error");
+      if (!nombresEvaluados.some((n) => n)) {
+        showToast("No hay aspirantes seleccionados.", "warning");
         return;
       }
-      console.log("Puntaje total:", total);
+
+      console.log("=== Iniciando guardado general de evaluación ===");
+
+      // ✅ Obtener variable
+      const variableRes = await fetch(`${API}/variables/?idtipoevaluacion=4`);
+      const variableData = (await variableRes.json()).results || [];
+      if (!variableData.length)
+        throw new Error("No existe variable para idtipoevaluacion=4");
+      const idVariable = variableData[0].idvariable;
 
       // ✅ Crear evaluación principal
-      const evaluacionRes = await fetch("http://127.0.0.1:8000/api/evaluacion/", {
+      const evalRes = await fetch(`${API}/evaluacion/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           idempleado: null,
           modalidad: "Entrevista",
           fechaevaluacion: new Date().toISOString(),
-          puntajetotal: total,
-          observacion: "Evaluación automática",
+          puntajetotal: 0,
+          observacion: "Evaluación general de convocatoria",
           estado: true,
           idusuario: 1,
-          idpostulacion: ganadorObj.idpostulacion,
+          idpostulacion: nombresEvaluados[0]?.idpostulacion || null,
         }),
       });
 
-      if (!evaluacionRes.ok) {
-        const errorText = await evaluacionRes.text();
-        throw new Error("Error al crear evaluación: " + errorText);
-      }
+      if (!evalRes.ok) throw new Error("Error al crear evaluación principal");
+      const evalData = await evalRes.json();
+      const idevaluacion = evalData.idevaluacion;
+      console.log("Evaluación creada:", idevaluacion);
 
-      const evaluacionData = await evaluacionRes.json();
-      const idevaluacion = evaluacionData.idevaluacion;
-      console.log("Evaluación creada con ID:", idevaluacion);
-
-      // ✅ Obtener variable válida
-      const variableRes = await fetch(
-        "http://127.0.0.1:8000/api/variables/?idtipoevaluacion=4"
-      );
-      const variableData = (await variableRes.json()).results || [];
-      if (!variableData.length)
-        throw new Error("No existe variable para idtipoevaluacion=4");
-      const idVariable = variableData[0].idvariable;
-      console.log("Variable encontrada:", idVariable);
-
-      // ✅ Crear criterios nuevos si los hay
+      // ✅ Asegurar que los criterios estén creados en la BD
       const criteriosIds = [];
       for (const c of criterios) {
         let idCriterio = c.id;
-
         if (!c.id || String(c.id).startsWith("uuid")) {
+          const res = await fetch(`${API}/criterio/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              idvariable: idVariable,
+              nombrecriterio: c.nombre.trim() || "Sin nombre",
+              descripcioncriterio: c.descripcion.trim() || "Sin descripción",
+              estado: true,
+              idusuario: 1,
+            }),
+          });
+          if (!res.ok) continue;
+          const data = await res.json();
+          idCriterio = data.idcriterio;
+        }
+        criteriosIds.push(idCriterio);
+      }
+
+      // ✅ Crear EvaluacionCriterio para cada persona y cada criterio
+      for (let idx = 0; idx < criterios.length; idx++) {
+        for (let persona of ["p1", "p2", "p3"]) {
+          const aspirante = nombresEvaluados[persona === "p1" ? 0 : persona === "p2" ? 1 : 2];
+          if (!aspirante) continue;
+
+          const puntaje = parseFloat(evaluaciones[idx].puntajes[persona] || 0);
+          const observacion = evaluaciones[idx].observaciones || "";
+
           const payload = {
-            idvariable: idVariable,
-            nombrecriterio: c.nombre?.trim() || "Sin nombre",
-            descripcioncriterio: c.descripcion?.trim() || "Sin descripción",
+            idevaluacion,
+            idcriterio: criteriosIds[idx],
+            puntajecriterio: puntaje,
+            observacion,
             estado: true,
             idusuario: 1,
           };
 
-          console.log("Creando nuevo criterio:", payload);
-
-          const res = await fetch("http://127.0.0.1:8000/api/criterio/", {
+          await fetch(`${API}/evaluacioncriterio/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
-
-          if (!res.ok) {
-            const errorText = await res.text();
-            console.error("❌ Error creando criterio:", errorText);
-            alert("Error al crear un criterio. Revise la consola para más detalles.");
-            continue;
-          }
-
-          const data = await res.json();
-          idCriterio = data.idcriterio;
-          console.log("Criterio creado con ID:", idCriterio);
-        }
-
-        criteriosIds.push({ idCriterio, descripcion: c.descripcion });
-      }
-
-      // ✅ Crear evaluacióncriterio
-      for (let idx = 0; idx < criterios.length; idx++) {
-        const puntaje = parseFloat(
-          evaluaciones[idx].puntajes[`p${indiceGanador + 1}`] || 0
-        );
-        const observacion = evaluaciones[idx].observaciones || "";
-
-        const payloadEvalCriterio = {
-          idevaluacion,
-          idcriterio: parseInt(criteriosIds[idx].idCriterio),
-          puntajecriterio: puntaje,
-          observacion,
-          estado: true,
-          idusuario: 1,
-        };
-
-        console.log("Creando EvaluacionCriterio:", payloadEvalCriterio);
-
-        const res = await fetch("http://127.0.0.1:8000/api/evaluacioncriterio/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payloadEvalCriterio),
-        });
-
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("❌ Error creando EvaluacionCriterio:", errorText);
         }
       }
 
-      // ✅ Marcar postulaciones como inactivas (usando PUT con objeto completo)
-      console.log("=== Marcando postulaciones como inactivas ===");
-      const postRes = await fetch("http://127.0.0.1:8000/api/postulaciones/");
-      const postulaciones = (await postRes.json()).results || [];
-      const postulacionesAMarcar = postulaciones.filter(
-        (p) => p.idconvocatoria === Number(convocatoriaSeleccionada)
-      );
-
-      for (const post of postulacionesAMarcar) {
-        // Obtener el registro completo
-        const getRes = await fetch(`http://127.0.0.1:8000/api/postulaciones/${post.idpostulacion}/`);
-        if (!getRes.ok) {
-          console.error("❌ Error obteniendo postulación:", post.idpostulacion);
-          continue;
-        }
-        const postData = await getRes.json();
-
-        // Modificar solo el estado y enviar objeto completo
-        const updatedPost = { ...postData, estado: false };
-
-        const updateRes = await fetch(`http://127.0.0.1:8000/api/postulaciones/${post.idpostulacion}/`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedPost),
-        });
-
-        if (!updateRes.ok) {
-          const errorText = await updateRes.text();
-          console.error("❌ Error marcando postulación como inactiva:", post.idpostulacion, errorText);
-          alert(`Error al marcar postulación ${post.idpostulacion} como inactiva. Detalles: ${errorText}`);
-        } else {
-          console.log("Postulación marcada como inactiva:", post.idpostulacion);
-        }
-      }
-
-      // ✅ Marcar convocatoria como inactiva (usando PUT con objeto completo)
-      console.log("=== Marcando convocatoria como inactiva ===");
-      // Obtener el registro completo
-      const getConvRes = await fetch(`http://127.0.0.1:8000/api/convocatorias/${convocatoriaSeleccionada}/`);
-      if (!getConvRes.ok) {
-        console.error("❌ Error obteniendo convocatoria:", convocatoriaSeleccionada);
-        alert(`Error al obtener convocatoria ${convocatoriaSeleccionada}.`);
-      } else {
-        const convData = await getConvRes.json();
-
-        // Modificar solo el estado y enviar objeto completo
-        const updatedConv = { ...convData, estado: false };
-
-        const updateConvRes = await fetch(`http://127.0.0.1:8000/api/convocatorias/${convocatoriaSeleccionada}/`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedConv),
-        });
-
-        if (!updateConvRes.ok) {
-          const errorText = await updateConvRes.text();
-          console.error("❌ Error marcando convocatoria como inactiva:", convocatoriaSeleccionada, errorText);
-          alert(`Error al marcar convocatoria ${convocatoriaSeleccionada} como inactiva. Detalles: ${errorText}`);
-        } else {
-          console.log("Convocatoria marcada como inactiva:", convocatoriaSeleccionada);
-        }
-      }
-
-      // ✅ Recargar convocatorias y resetear estado
-      const newConvRes = await fetch("http://127.0.0.1:8000/api/convocatorias/");
-      const newConvData = (await newConvRes.json()).results || [];
-      setConvocatorias(newConvData);
-      setConvocatoriaSeleccionada("");
-      setNombresEvaluados([null, null, null]);
-      setEvaluaciones([]);
-      setGanador(null);
-
-      showToast(`Evaluación y contratación de ${nombreGanador} guardadas correctamente. Proceso finalizado.`);
-      console.log("=== Evaluación completada exitosamente ===");
-      if (ganadorObj?.idaspirante && convocatoriaSeleccionada) {
-        showToast("Redirigiendo al registro de colaborador...", "success");
-        window.location.href = `/empleados?aspirante=${ganadorObj.idaspirante}&convocatoria=${convocatoriaSeleccionada}`;
-      }
+      showToast("Evaluación y criterios guardados correctamente.", "success");
+      console.log("=== Evaluación general guardada ===");
     } catch (err) {
       console.error("Error guardando evaluación:", err);
+      showToast("Error al guardar evaluación.", "error");
     }
   };
 
@@ -382,7 +280,7 @@ const useEvaluacionSeleccion = () => {
     agregarCriterio,
     eliminarCriterio,
     handleCriterioChange,
-    handleGuardarEvaluacion,
+    handleGuardarCriterios, // 👈 nuevo
   };
 };
 

@@ -105,13 +105,19 @@ const PostulacionesTable = ({
       );
     }
 
+    // 🔹 Excluir postulaciones inactivas o rechazadas
+    filtradas = filtradas.filter(
+      (p) => p.estado !== false && p.idestado !== 3
+    );
+
     // 🔹 Ordenar por fecha de creación (más reciente primero)
     return [...filtradas].sort((a, b) => {
       const fechaA = new Date(a.createdat);
       const fechaB = new Date(b.createdat);
-      return fechaB - fechaA; // descendente
+      return fechaB - fechaA;
     });
   }, [postulaciones, convocatoriaSeleccionada]);
+
 
 
   const handleSeleccionarClick = (postulacion) => {
@@ -131,104 +137,105 @@ const PostulacionesTable = ({
     setShowConfirmSeleccion(true);
   };
 
-  const confirmarSeleccion = async () => {
-    setShowConfirmSeleccion(false);
+ const confirmarSeleccion = async () => {
+  setShowConfirmSeleccion(false);
 
-    try {
-      const idSel = postulacionParaSeleccionar.idpostulacion;
-      const idConv = postulacionParaSeleccionar.idconvocatoria;
-      const idAsp = postulacionParaSeleccionar.idaspirante;
+  try {
+    const idSel = postulacionParaSeleccionar.idpostulacion;
+    const idConv = postulacionParaSeleccionar.idconvocatoria;
+    const idAsp = postulacionParaSeleccionar.idaspirante;
 
-      // 🔹 1. Seleccionar esta postulación
-      await axios.put(`${API}/postulaciones/${idSel}/`, {
-        ...postulacionParaSeleccionar,
-        idestado: 2, // Seleccionada
-      });
+    // 🔹 1. Seleccionar esta postulación
+    await axios.put(`${API}/postulaciones/${idSel}/`, {
+      ...postulacionParaSeleccionar,
+      idestado: 2, // Seleccionada
+    });
 
-      // 🔥 2. Rechazar todas las demás postulaciones del mismo aspirante
-      const otrasDelMismoAspirante = postulaciones.filter(
-        (p) => p.idaspirante === idAsp && p.idpostulacion !== idSel
-      );
+    // 🔹 2. Rechazar todas las demás postulaciones del mismo aspirante
+    const otrasDelMismoAspirante = postulaciones.filter(
+      (p) => p.idaspirante === idAsp && p.idpostulacion !== idSel
+    );
 
-      if (otrasDelMismoAspirante.length > 0) {
-        await Promise.all(
-          otrasDelMismoAspirante.map((p) =>
-            axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
-              ...p,
-              idestado: 3, // Rechazada
-            })
-          )
-        );
-      }
-
-      // 🔹 3. Obtener todas las postulaciones de la misma convocatoria
-      const mismasConvocatorias = postulaciones.filter(
-        (p) => p.idconvocatoria === idConv
-      );
-
-      // Contar cuántas quedan seleccionadas
-      const seleccionadas = mismasConvocatorias.filter(
-        (p) => p.idestado === 2 || p.idpostulacion === idSel
-      );
-
-      // 🔹 4. Si ya hay 3 seleccionadas → rechazar todas las demás
-      if (seleccionadas.length >= 3) {
-        const restantes = mismasConvocatorias.filter(
-          (p) => p.idestado !== 2 && p.idpostulacion !== idSel
-        );
-
-        await Promise.all(
-          restantes.map((p) =>
-            axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
-              ...p,
-              idestado: 3, // Rechazadas
-            })
-          )
-        );
-
-        showToast(
-          "Se alcanzaron las 3 postulaciones seleccionadas. Las demás fueron rechazadas.",
-          "warning"
-        );
-      } else {
-        showToast("Postulación seleccionada correctamente.", "success");
-      }
-
-      // 🔹 5. Actualizar estado local correctamente
-      const seleccionadasActuales = new Set([
-        idSel,
-        ...postulaciones
-          .filter((p) => p.idconvocatoria === idConv && p.idestado === 2)
-          .map((p) => p.idpostulacion),
-      ]);
-
-      const updated = postulaciones.map((p) => {
-        // 🔸 Postulación recién seleccionada
-        if (p.idpostulacion === idSel) return { ...p, idestado: 2 };
-
-        // 🔸 Rechazar otras del mismo aspirante
-        if (p.idaspirante === idAsp && p.idpostulacion !== idSel)
-          return { ...p, idestado: 3 };
-
-        // 🔸 Si hay 3 seleccionadas en la misma convocatoria,
-        // rechazar solo las que no están entre las seleccionadas reales
-        if (
-          p.idconvocatoria === idConv &&
-          seleccionadasActuales.size >= 3 &&
-          !seleccionadasActuales.has(p.idpostulacion)
+    if (otrasDelMismoAspirante.length > 0) {
+      await Promise.all(
+        otrasDelMismoAspirante.map((p) =>
+          axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
+            ...p,
+            idestado: 3, // Rechazada
+          })
         )
-          return { ...p, idestado: 3 };
+      );
+    }
 
-        return p;
+    // 🔹 3. Obtener todas las postulaciones de la misma convocatoria
+    const mismasConvocatorias = postulaciones.filter(
+      (p) => p.idconvocatoria === idConv
+    );
+
+    // Calcular cuáles quedan seleccionadas (incluyendo la actual)
+    const seleccionadasActuales = new Set([
+      idSel,
+      ...mismasConvocatorias
+        .filter((p) => p.idestado === 2)
+        .map((p) => p.idpostulacion),
+    ]);
+
+    // 🔹 4. Si ya hay 3 seleccionadas → rechazar todas las demás y cerrar convocatoria
+    if (seleccionadasActuales.size >= 3) {
+      const restantes = mismasConvocatorias.filter(
+        (p) => !seleccionadasActuales.has(p.idpostulacion)
+      );
+
+      // Rechazar las no seleccionadas
+      await Promise.all(
+        restantes.map((p) =>
+          axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
+            ...p,
+            idestado: 3,
+          })
+        )
+      );
+
+      // 🔥 Cerrar convocatoria
+      await axios.put(`${API}/convocatorias/${idConv}/`, {
+        estado: false,
+        idestado_id: 5, // ⚠️ cambia este ID al de "Cerrada" en tu tabla Estado
       });
 
-      setPostulaciones(updated);
-      setPostulacionParaSeleccionar(null);
-    } catch (err) {
-      console.error(err);
-      showToast("Error al seleccionar la postulación", "error");
+      showToast(
+        `Se alcanzaron las 3 postulaciones seleccionadas. Convocatoria #${idConv} fue cerrada automáticamente.`,
+        "warning"
+      );
+    } else {
+      showToast("Postulación seleccionada correctamente.", "success");
     }
-  };
+
+    // 🔹 5. Actualizar estado local correctamente
+    const updated = postulaciones.map((p) => {
+      if (p.idpostulacion === idSel) return { ...p, idestado: 2 };
+
+      // Rechazar las del mismo aspirante
+      if (p.idaspirante === idAsp && p.idpostulacion !== idSel)
+        return { ...p, idestado: 3 };
+
+      // Rechazar las demás si hay 3 seleccionadas en la misma convocatoria
+      if (
+        p.idconvocatoria === idConv &&
+        seleccionadasActuales.size >= 3 &&
+        !seleccionadasActuales.has(p.idpostulacion)
+      )
+        return { ...p, idestado: 3 };
+
+      return p;
+    });
+
+    setPostulaciones(updated);
+    setPostulacionParaSeleccionar(null);
+  } catch (err) {
+    console.error(err);
+    showToast("Error al seleccionar la postulación", "error");
+  }
+};
 
   // 🔹 Paginación
   const totalPaginas = Math.max(1, Math.ceil(postulacionesFiltradas.length / elementosPorPagina));
@@ -320,7 +327,7 @@ const PostulacionesTable = ({
                       fontWeight: 500,
                     }}
                   >
-                    {convocatoria.nombrepuesto}
+                    Puesto: {convocatoria.nombrepuesto}
                   </span>
                 )
               );
