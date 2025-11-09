@@ -6,7 +6,7 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import {  } from "react-toastify";import { buttonStyles } from "../../stylesGenerales/buttons.js";
+import { } from "react-toastify"; import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
 import CapacitacionForm from "./CapacitacionForm";
 import CapacitacionesTable from "./CapacitacionTable.jsx";
@@ -56,7 +56,16 @@ const CapacitacionContainer = () => {
         if (!formData.fechaFin) return showToast("La fecha de fin es obligatoria", "warning");
         if (new Date(formData.fechaInicio) > new Date(formData.fechaFin))
             return showToast("La fecha de fin no puede ser menor a la fecha de inicio", "warning");
-        
+
+        // Validar fechas pasadas para nuevas capacitaciones y al editar
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+        const fechaInicio = new Date(formData.fechaInicio);
+
+        if (fechaInicio < hoy) {
+            return showToast("No se pueden programar capacitaciones en fechas pasadas", "warning");
+        }
+
         if (!formData.institucion.trim()) return showToast("La institución facilitadora es obligatoria", "warning");
         if (isNaN(formData.monto) || Number(formData.monto) <= 0)
             return showToast("El monto debe ser mayor a 0", "warning");
@@ -127,7 +136,7 @@ const CapacitacionContainer = () => {
 
     // Función para manejar la asignación de colaboradores
     const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
-    
+
     const handleAsignarCapacitacion = (capacitacion) => {
         setCapacitacionSeleccionada(capacitacion);
         setMostrarAsignacion(true);
@@ -170,67 +179,78 @@ const CapacitacionContainer = () => {
     };
 
     const capacitacionesFiltradas = capacitaciones
-  .sort((a, b) => {
-    const idA = a.idcapacitacion || a.id || 0;
-    const idB = b.idcapacitacion || b.id || 0;
-    return idB - idA;
-  })
-  .filter(c => {
-    const textoBusqueda = busqueda.toLowerCase().trim();
-    if (!textoBusqueda) return true;
+        .sort((a, b) => {
+            const idA = a.idcapacitacion || a.id || 0;
+            const idB = b.idcapacitacion || b.id || 0;
+            return idB - idA;
+        })
+        .filter(c => {
+            const textoBusqueda = busqueda.toLowerCase().trim();
+            if (!textoBusqueda) return true;
 
-    // 🔹 Detectar rango de fechas con formato "dd-mm-yy a dd-mm-yy"
-    const rangoRegex = /(\d{1,2}-\d{1,2}-\d{2})\s*(?:a|-)\s*(\d{1,2}-\d{1,2}-\d{2})/;
-    const match = textoBusqueda.match(rangoRegex);
+            // Verificar si está buscando por estado específicamente
+            const buscandoActivo = "activo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
+            const buscandoInactivo = "inactivo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
 
-    if (match) {
-      const [_, desdeStr, hastaStr] = match;
+            // Si está buscando por estado, solo mostrar ese estado
+            if (buscandoActivo && !buscandoInactivo) {
+                return c.estado; // Solo capacitaciones activas
+            } else if (buscandoInactivo && !buscandoActivo) {
+                return !c.estado; // Solo capacitaciones inactivas
+            }
 
-      const parseFecha = str => {
-        const [dia, mes, anio2] = str.split("-");
-        const anio = Number(anio2) + 2000; // Convertir 2 dígitos a 4
-        return new Date(anio, Number(mes) - 1, Number(dia));
-      };
+            // Si no está buscando por estado, continuar con otras búsquedas
+            if (!buscandoActivo && !buscandoInactivo) {
+                // 🔹 Detectar rango de fechas con formato "dd-mm-yy a dd-mm-yy"
+                const rangoRegex = /(\d{1,2}-\d{1,2}-\d{2})\s*(?:a|-)\s*(\d{1,2}-\d{1,2}-\d{2})/;
+                const match = textoBusqueda.match(rangoRegex);
 
-      const desde = parseFecha(desdeStr);
-      const hasta = parseFecha(hastaStr);
+                if (match) {
+                    const [_, desdeStr, hastaStr] = match;
 
-      const inicio = new Date(c.fechainicio);
-      const fin = new Date(c.fechafin);
+                    const parseFecha = str => {
+                        const [dia, mes, anio2] = str.split("-");
+                        const anio = Number(anio2) + 2000; // Convertir 2 dígitos a 4
+                        return new Date(anio, Number(mes) - 1, Number(dia));
+                    };
 
-      // 🔹 Comparación rango: si inicio o fin está dentro del rango
-      if ((inicio >= desde && inicio <= hasta) || (fin >= desde && fin <= hasta)) {
-        return true;
-      } else {
-        return false;
-      }
-    }
+                    const desde = parseFecha(desdeStr);
+                    const hasta = parseFecha(hastaStr);
 
-    // 🔹 Búsqueda normal en otras columnas
-    const formatFecha = dateStr => {
-      if (!dateStr) return "";
-      const date = new Date(dateStr);
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = String(date.getFullYear()).slice(-2);
-      return `${day}-${month}-${year}`;
-    };
+                    const inicio = new Date(c.fechainicio);
+                    const fin = new Date(c.fechafin);
 
-    const fechaInicio = formatFecha(c.fechainicio);
-    const fechaFin = formatFecha(c.fechafin);
+                    // 🔹 Comparación rango: si inicio o fin está dentro del rango
+                    return (inicio >= desde && inicio <= hasta) || (fin >= desde && fin <= hasta);
+                }
 
-    const montoStr = String(c.montoejecutado || "").toLowerCase();
+                // 🔹 Búsqueda normal en otras columnas
+                const formatFecha = dateStr => {
+                    if (!dateStr) return "";
+                    const date = new Date(dateStr);
+                    const day = String(date.getDate()).padStart(2, "0");
+                    const month = String(date.getMonth() + 1).padStart(2, "0");
+                    const year = String(date.getFullYear()).slice(-2);
+                    return `${day}-${month}-${year}`;
+                };
 
-    return (
-      c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
-      c.lugar?.toLowerCase().includes(textoBusqueda) ||
-      c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
-      fechaInicio.includes(textoBusqueda) ||
-      fechaFin.includes(textoBusqueda) ||
-      montoStr.startsWith(textoBusqueda) ||
-      (c.estado ? "activo" : "inactivo").includes(textoBusqueda)
-    );
-  });
+                const fechaInicio = formatFecha(c.fechainicio);
+                const fechaFin = formatFecha(c.fechafin);
+                const montoStr = String(c.montoejecutado || "").toLowerCase();
+
+                return (
+                    c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
+                    c.lugar?.toLowerCase().includes(textoBusqueda) ||
+                    c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
+                    fechaInicio.includes(textoBusqueda) ||
+                    fechaFin.includes(textoBusqueda) ||
+                    montoStr.startsWith(textoBusqueda)
+                );
+            }
+
+            // Si hay conflicto (ej: busca algo que podría ser ambos), no mostrar nada
+            return false;
+        });
 
 
 
@@ -339,12 +359,12 @@ const CapacitacionContainer = () => {
                 )}
 
                 {mostrarAsignacion && (
-                    <AsignarCapacitacion 
+                    <AsignarCapacitacion
                         capacitacionInicial={capacitacionSeleccionada}
                         onClose={() => {
                             setMostrarAsignacion(false);
                             setCapacitacionSeleccionada(null);
-                        }} 
+                        }}
                     />
                 )}
 

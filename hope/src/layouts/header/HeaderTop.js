@@ -79,15 +79,6 @@ const HeaderTop = () => {
                                                     setMostrarCambiarContrasena(true);
                                                     setUserMenuOpen(false);
                                                 }}
-                                                style={{
-                                                    background: "none",
-                                                    border: "none",
-                                                    color: "#fff",
-                                                    width: "100%",
-                                                    textAlign: "left",
-                                                    padding: "0",
-                                                    cursor: "pointer"
-                                                }}
                                             >
                                                 Cambiar Contraseña
                                             </button>
@@ -96,15 +87,6 @@ const HeaderTop = () => {
                                         <li>
                                             <button
                                                 onClick={handleLogout}
-                                                style={{
-                                                    background: "none",
-                                                    border: "none",
-                                                    color: "#fff",
-                                                    width: "100%",
-                                                    textAlign: "left",
-                                                    padding: "0",
-                                                    cursor: "pointer"
-                                                }}
                                             >
                                                 Cerrar sesión
                                             </button>

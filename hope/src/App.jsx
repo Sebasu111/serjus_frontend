@@ -130,16 +130,16 @@ const App = () => {
                     {/*PERSONAL*/}
                     <Route exact path={`${base}/Empleados`} component={EmpleadosContainer} />
                     <Route exact path={`${base}/Contratos`} component={ContratosContainer} />
-                    {<Route exact path={`${base}/Equipos`} component={EquiposContainer} />}
+                    <Route exact path={`${base}/Equipos`} component={EquiposContainer} />
                     <Route exact path={`${base}/Usuarios`} component={UsuariosContainer} />
 
                     {/*RECLUTAMIENTO*/}
-                    {<Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />}
-                    {<Route exact path={`${base}/Postulaciones`} component={PostulacionesContainer} />}
-                    {<Route exact path={`${base}/Seleccion`} component={SeleccionContainer} />}
+                    <Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />
+                    <Route exact path={`${base}/Postulaciones`} component={PostulacionesContainer} />
+                    <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} />
 
                     {/*INTEGRACIÓN*/}
-                    {<Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />}
+                    <Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />
                     <Route exact path={`${base}/Induccion`} component={InduccionContainer} />
 
                     {/*DESEMPEÑO*/}

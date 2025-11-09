@@ -82,58 +82,58 @@ const ContratosTable = () => {
     const descargarContrato = async (contrato) => {
         try {
             console.log("🔄 Iniciando descarga de contrato:", contrato);
-            
+
             // Obtener todos los documentos
             const documentosResponse = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.DOCUMENTOS));
             const documentos = Array.isArray(documentosResponse.data) ? documentosResponse.data : documentosResponse.data?.results || [];
-            
+
             console.log("📄 Documentos disponibles:", documentos);
-            
+
             // Buscar el empleado relacionado con este contrato
             let empleadoId = null;
-            
+
             if (contrato.idhistorialpuesto) {
                 // Si tiene historial de puesto, buscar el empleado a través del historial
                 const historial = historialPuestos.find(h => h.idhistorialpuesto === contrato.idhistorialpuesto);
                 empleadoId = historial?.idempleado;
                 console.log("👤 Empleado encontrado via historial:", empleadoId);
             }
-            
+
             if (!empleadoId) {
                 showToast("No se pudo identificar al empleado para este contrato", "warning");
                 return;
             }
-            
+
             // Buscar el documento del contrato (tipo 2) para este empleado
-            const documentoContrato = documentos.find(doc => 
+            const documentoContrato = documentos.find(doc =>
                 doc.idempleado == empleadoId && doc.idtipodocumento == 2
             );
-            
+
             console.log("📋 Documento contrato encontrado:", documentoContrato);
-            
+
             if (!documentoContrato) {
                 showToast("No se encontró documento PDF para este contrato. Puede subir uno desde la gestión de empleados.", "info");
                 return;
             }
-            
+
             if (!documentoContrato.archivo_url && !documentoContrato.archivo) {
                 showToast("El documento no tiene archivo asociado", "warning");
                 return;
             }
-            
+
             // Usar la URL del archivo
             const fileUrl = documentoContrato.archivo_url || documentoContrato.archivo;
             console.log("🔗 Descargando desde URL:", fileUrl);
-            
+
             // Usar fetch para forzar descarga como blob (igual que funciona con CVs)
             const response = await fetch(fileUrl);
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
-            
+
             const blob = await response.blob();
             console.log("📦 Blob creado:", blob);
-            
+
             // Crear URL del blob y descargar
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -143,9 +143,9 @@ const ContratosTable = () => {
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            
+
             showToast("Descarga de contrato iniciada exitosamente", "success");
-            
+
         } catch (error) {
             console.error("❌ Error al descargar contrato:", error);
             showToast(`Error al descargar el contrato: ${error.message}`, "error");
@@ -270,7 +270,7 @@ const ContratosTable = () => {
                     placeholder="Buscar por nombre del colaborador, puesto o tipo de contrato..."
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}
-                    style={{...inputStyle, width: 'calc(100% - 24px)'}}
+                    style={{ ...inputStyle, width: 'calc(100% - 24px)' }}
                 />
             </div>
 

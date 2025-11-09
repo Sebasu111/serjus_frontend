@@ -18,7 +18,43 @@ const SidebarMenu = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const history = useHistory();
     const location = useLocation();
-    const idRol = parseInt(sessionStorage.getItem("idRol"), 10);
+
+    // Obtener idRol de localStorage (persistente entre pestañas) o sessionStorage (fallback)
+    const getIdRol = () => {
+        // Primero intentar desde localStorage (donde está el usuario completo)
+        const usuarioGuardado = localStorage.getItem("usuarioLogueado");
+        if (usuarioGuardado) {
+            try {
+                const usuario = JSON.parse(usuarioGuardado);
+                return parseInt(usuario.idrol, 10);
+            } catch (error) {
+                console.error("Error parsing usuarioLogueado:", error);
+            }
+        }
+
+        // Fallback a sessionStorage
+        const idRolSession = sessionStorage.getItem("idRol");
+        return idRolSession ? parseInt(idRolSession, 10) : null;
+    };
+
+    const [idRol, setIdRol] = useState(getIdRol());
+
+    // Actualizar idRol cuando cambie el localStorage o sessionStorage
+    useEffect(() => {
+        const updateIdRol = () => {
+            setIdRol(getIdRol());
+        };
+
+        // Escuchar cambios en localStorage y sessionStorage
+        window.addEventListener('storage', updateIdRol);
+
+        // También verificar cada vez que cambie la ubicación
+        updateIdRol();
+
+        return () => {
+            window.removeEventListener('storage', updateIdRol);
+        };
+    }, [location.pathname]);
 
     // --- CONFIGURACIÓN DEL MENÚ ---
     const menuConfig = [
@@ -176,6 +212,10 @@ const SidebarMenu = () => {
                 <ul className="sidebar-menu-list">
                     {menuConfig.map(menu => {
                         const visibleSubmenus = menu.submenus?.filter(sub => sub.roles.includes(idRol)) || [];
+
+                        // Si no hay idRol válido, no mostrar ningún menú (usuario no autenticado)
+                        if (!idRol || isNaN(idRol)) return null;
+
                         if (menu.submenus && visibleSubmenus.length === 0) return null;
                         if (!menu.submenus && !menu.roles.includes(idRol)) return null;
 
