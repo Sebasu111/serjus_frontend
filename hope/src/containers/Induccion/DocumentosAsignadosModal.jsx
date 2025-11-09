@@ -9,11 +9,13 @@ const DocumentosAsignadosModal = ({ induccion, onClose }) => {
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(10);
     const [empleados, setEmpleados] = useState([]);
+    const [documentos, setDocumentos] = useState([]);
 
     useEffect(() => {
         if (induccion) {
             fetchDocumentosAsignados();
             fetchEmpleados();
+            fetchDocumentos();
         }
     }, [induccion]);
 
@@ -37,6 +39,16 @@ const DocumentosAsignadosModal = ({ induccion, onClose }) => {
             setEmpleados(data.filter(item => item.estado));
         } catch (e) {
             console.error("Error al cargar colaboradores:", e);
+        }
+    };
+
+    const fetchDocumentos = async () => {
+        try {
+            const res = await axios.get("http://127.0.0.1:8000/api/documentos/");
+            const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+            setDocumentos(data);
+        } catch (e) {
+            console.error("Error al cargar documentos:", e);
         }
     };
 
@@ -124,36 +136,51 @@ const DocumentosAsignadosModal = ({ induccion, onClose }) => {
                         <table style={{ width: "100%", borderCollapse: "collapse" }}>
                             <thead>
                                 <tr style={{ backgroundColor: "#f8f9fa" }}>
+                                    <th style={{ padding: "15px", textAlign: "left", borderBottom: "2px solid #eee", fontWeight: "600" }}>Nombre</th>
+                                    <th style={{ padding: "15px", textAlign: "left", borderBottom: "2px solid #eee", fontWeight: "600" }}>Fecha</th>
                                     <th style={{ padding: "15px", textAlign: "left", borderBottom: "2px solid #eee", fontWeight: "600" }}>Colaborador</th>
-                                    <th style={{ padding: "15px", textAlign: "center", borderBottom: "2px solid #eee", fontWeight: "600" }}>Fecha Asignado</th>
-                                    <th style={{ padding: "15px", textAlign: "center", borderBottom: "2px solid #eee", fontWeight: "600" }}>Fecha Completado</th>
-                                    <th style={{ padding: "15px", textAlign: "center", borderBottom: "2px solid #eee", fontWeight: "600" }}>Estado</th>
+                                    <th style={{ padding: "15px", textAlign: "center", borderBottom: "2px solid #eee", fontWeight: "600" }}>Tipo</th>
+                                    <th style={{ padding: "15px", textAlign: "center", borderBottom: "2px solid #eee", fontWeight: "600" }}>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {paginados.length > 0 ? (
                                     paginados.map(item => {
                                         const empleado = empleados.find(emp => emp.idempleado === item.idempleado);
+                                        const documento = documentos.find(doc => (doc.iddocumento || doc.id) === item.iddocumento);
                                         return (
                                             <tr key={item.idinducciondocumento} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                                                {/* Nombre del documento */}
                                                 <td style={{ padding: "15px" }}>
-                                                    <div style={{ 
-                                                        display: "flex", 
+                                                    <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                                                        {documento ? documento.nombrearchivo : "Documento no encontrado"}
+                                                    </div>
+                                                </td>
+
+                                                {/* Fecha */}
+                                                <td style={{ padding: "15px", fontSize: "14px" }}>
+                                                    {new Date(item.fechaasignado).toLocaleDateString("es-ES")}
+                                                </td>
+
+                                                {/* Colaborador */}
+                                                <td style={{ padding: "15px" }}>
+                                                    <div style={{
+                                                        display: "flex",
                                                         alignItems: "center",
                                                         fontSize: "14px",
                                                         fontWeight: "500"
                                                     }}>
                                                         <div style={{
-                                                            width: "40px",
-                                                            height: "40px",
+                                                            width: "32px",
+                                                            height: "32px",
                                                             borderRadius: "50%",
                                                             backgroundColor: "#219ebc",
                                                             color: "#fff",
                                                             display: "flex",
                                                             alignItems: "center",
                                                             justifyContent: "center",
-                                                            marginRight: "12px",
-                                                            fontSize: "16px",
+                                                            marginRight: "10px",
+                                                            fontSize: "12px",
                                                             fontWeight: "600"
                                                         }}>
                                                             {empleado ? `${empleado.nombre[0]}${empleado.apellido[0]}` : "?"}
@@ -163,72 +190,44 @@ const DocumentosAsignadosModal = ({ induccion, onClose }) => {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td style={{ padding: "15px", textAlign: "center", fontSize: "14px" }}>
+
+                                                {/* Tipo */}
+                                                <td style={{ padding: "15px", textAlign: "center" }}>
                                                     <span style={{
                                                         padding: "4px 12px",
                                                         borderRadius: "12px",
-                                                        backgroundColor: "#e3f2fd",
-                                                        color: "#1976d2",
+                                                        backgroundColor: "#e8f5e8",
+                                                        color: "#2e7d32",
                                                         fontSize: "12px",
                                                         fontWeight: "500"
                                                     }}>
-                                                        {new Date(item.fechaasignado).toLocaleDateString("es-ES")}
+                                                        DOCUMENTOS DE INDUCCIÓN
                                                     </span>
                                                 </td>
-                                                <td style={{ padding: "15px", textAlign: "center", fontSize: "14px" }}>
-                                                    {item.fechacompletado ? (
-                                                        <span style={{
-                                                            padding: "4px 12px",
-                                                            borderRadius: "12px",
-                                                            backgroundColor: "#e8f5e8",
-                                                            color: "#2e7d32",
-                                                            fontSize: "12px",
-                                                            fontWeight: "500"
-                                                        }}>
-                                                            {new Date(item.fechacompletado).toLocaleDateString("es-ES")}
-                                                        </span>
-                                                    ) : (
-                                                        <span style={{
-                                                            padding: "4px 12px",
-                                                            borderRadius: "12px",
-                                                            backgroundColor: "#fff3e0",
-                                                            color: "#f57c00",
-                                                            fontSize: "12px",
-                                                            fontWeight: "500"
-                                                        }}>
-                                                            Pendiente
-                                                        </span>
-                                                    )}
-                                                </td>
+
+                                                {/* Acciones */}
                                                 <td style={{ padding: "15px", textAlign: "center" }}>
-                                                    <span style={{
-                                                        display: "inline-flex",
-                                                        alignItems: "center",
+                                                    <select style={{
                                                         padding: "6px 12px",
-                                                        borderRadius: "20px",
+                                                        borderRadius: "6px",
+                                                        border: "1px solid #ccc",
                                                         fontSize: "12px",
-                                                        fontWeight: "600",
-                                                        backgroundColor: item.fechacompletado ? "#e8f5e8" : "#fff3e0",
-                                                        color: item.fechacompletado ? "#2e7d32" : "#f57c00",
+                                                        cursor: "pointer"
                                                     }}>
-                                                        <div style={{
-                                                            width: "6px",
-                                                            height: "6px",
-                                                            borderRadius: "50%",
-                                                            backgroundColor: item.fechacompletado ? "#4caf50" : "#ff9800",
-                                                            marginRight: "6px"
-                                                        }} />
-                                                        {item.fechacompletado ? "Completado" : "Pendiente"}
-                                                    </span>
+                                                        <option>Opciones</option>
+                                                        <option>Ver documento</option>
+                                                        <option>Marcar como completado</option>
+                                                        <option>Eliminar asignación</option>
+                                                    </select>
                                                 </td>
                                             </tr>
                                         );
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="4" style={{ 
-                                            textAlign: "center", 
-                                            padding: "40px 20px", 
+                                        <td colSpan="4" style={{
+                                            textAlign: "center",
+                                            padding: "40px 20px",
                                             color: "#666",
                                             fontSize: "14px"
                                         }}>
@@ -241,8 +240,8 @@ const DocumentosAsignadosModal = ({ induccion, onClose }) => {
                         </table>
 
                         {/* Paginación y elementos por página */}
-                        <div style={{ 
-                            padding: "20px", 
+                        <div style={{
+                            padding: "20px",
                             borderTop: "1px solid #eee",
                             display: "flex",
                             justifyContent: "space-between",
@@ -293,12 +292,12 @@ const DocumentosAsignadosModal = ({ induccion, onClose }) => {
                                     >
                                         Anterior
                                     </button>
-                                    
+
                                     {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                                         const startPage = Math.max(1, paginaActual - 2);
                                         const page = startPage + i;
                                         if (page > totalPaginas) return null;
-                                        
+
                                         return (
                                             <button
                                                 key={page}
@@ -318,7 +317,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose }) => {
                                             </button>
                                         );
                                     })}
-                                    
+
                                     <button
                                         onClick={() => setPaginaActual(Math.min(totalPaginas, paginaActual + 1))}
                                         disabled={paginaActual === totalPaginas}

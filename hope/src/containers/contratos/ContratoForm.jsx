@@ -350,8 +350,6 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
     const renderFields = fields =>
         Object.entries(fields).map(([k, { label, placeholder }]) => {
             if (k.includes("sexo")) {
-                const autoCompletado = esAutoCompletado(k);
-
                 return (
                     <div key={k} style={{ display: "flex", flexDirection: "column" }}>
                         <label
@@ -359,38 +357,21 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                             style={{
                                 marginBottom: "4px",
                                 fontWeight: "bold",
-                                fontFamily: '"Inter", sans-serif',
-                                color: autoCompletado ? "#1976d2" : "inherit"
+                                fontFamily: '"Inter", sans-serif'
                             }}
                         >
                             {label}:
                         </label>
-                        {autoCompletado ? (
-                            <div style={{
-                                padding: "12px",
-                                backgroundColor: "#e3f2fd",
-                                border: "1px solid #2196f3",
-                                borderRadius: "6px",
-                                fontSize: "16px",
-                                color: "#0d47a1"
-                            }}>
-                                {data[k]}
-                            </div>
-                        ) : (
-                            <select id={k} name={k} value={data[k]} onChange={onChange} style={input} {...commonProps}>
-                                <option value="">Seleccione...</option>
-                                <option value="Masculino">Masculino</option>
-                                <option value="Femenino">Femenino</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-                        )}
+                        <select id={k} name={k} value={data[k]} onChange={onChange} style={input} {...commonProps}>
+                            <option value="">Seleccione...</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                        </select>
                     </div>
                 );
             }
 
             if (k.includes("estadoCivil")) {
-                const autoCompletado = esAutoCompletado(k);
-
                 return (
                     <div key={k} style={{ display: "flex", flexDirection: "column" }}>
                         <label
@@ -398,33 +379,16 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                             style={{
                                 marginBottom: "4px",
                                 fontWeight: "bold",
-                                fontFamily: '"Inter", sans-serif',
-                                color: autoCompletado ? "#1976d2" : "inherit"
+                                fontFamily: '"Inter", sans-serif'
                             }}
                         >
                             {label}:
                         </label>
-                        {autoCompletado ? (
-                            <div style={{
-                                padding: "12px",
-                                backgroundColor: "#e3f2fd",
-                                border: "1px solid #2196f3",
-                                borderRadius: "6px",
-                                fontSize: "16px",
-                                color: "#0d47a1"
-                            }}>
-                                {data[k]}
-                            </div>
-                        ) : (
-                            <select id={k} name={k} value={data[k]} onChange={onChange} style={input} {...commonProps}>
-                                <option value="">Seleccione...</option>
-                                <option value="Soltero/a">Soltero/a</option>
-                                <option value="Casado/a">Casado/a</option>
-                                <option value="Viudo/a">Viudo/a</option>
-                                <option value="Divorciado/a">Divorciado/a</option>
-                                <option value="Unión de hecho">Unión de hecho</option>
-                            </select>
-                        )}
+                        <select id={k} name={k} value={data[k]} onChange={onChange} style={input} {...commonProps}>
+                            <option value="">Seleccione...</option>
+                            <option value="Soltero/a">Soltero/a</option>
+                            <option value="Casado/a">Casado/a</option>
+                        </select>
                     </div>
                 );
             }
@@ -686,23 +650,8 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
 
                 {pagina === 2 && (
                     <div className="pagina-2">
-                        <h3
-                            style={{
-                                fontSize: "20px",
-                                marginBottom: "10px",
-                                fontFamily: '"Inter", sans-serif',
-                                fontWeight: "600"
-                            }}
-                        >
-                            Selección de Empleado
-                        </h3>
-
                         {/* Selector de Empleado basado en Historial de Puestos */}
-                        <div style={{ marginBottom: "30px" }}>
-                            {/* Info de estado */}
-                            <div style={{ fontSize: "12px", color: "#666", marginBottom: "15px", padding: "10px", backgroundColor: "#f8f9fa", borderRadius: "4px" }}>
-
-                            </div>
+                        <div style={{ marginBottom: "15px" }}>
 
                             {historialPuestos.length > 0 ? (
                                 // Usar historial de puestos (método correcto)
@@ -715,7 +664,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                             fontFamily: '"Inter", sans-serif'
                                         }}
                                     >
-                                        Seleccionar Colaborador (Historial de Puesto):
+                                        Seleccionar Colaborador:
                                     </label>
                                     <select
                                         id="empleadoHistorial"

@@ -93,7 +93,7 @@ const InduccionForm = ({ nombre, setNombre, fechainicio, setFechaInicio, activoE
                             fontSize: "14px",
                             color: "#495057"
                         }}>
-                            <strong>Fecha de Inicio:</strong> {new Date().toLocaleDateString("es-ES")} (Automática)
+                            <strong>Fecha de Inicio:</strong> {new Date().toLocaleDateString("es-ES")}
                         </div>
                     </div>
                 )}

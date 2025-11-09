@@ -27,11 +27,11 @@ const InduccionContainer = () => {
     const [busqueda, setBusqueda] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
-    
+
     // Nuevo estado para el modal de gestionar documentos
     const [mostrarGestionarDocumentos, setMostrarGestionarDocumentos] = useState(false);
     const [induccionSeleccionada, setInduccionSeleccionada] = useState(null);
-    
+
     // Nuevo estado para el modal de documentos asignados
     const [mostrarDocumentosAsignados, setMostrarDocumentosAsignados] = useState(false);
     const [induccionParaDocumentos, setInduccionParaDocumentos] = useState(null);
@@ -268,7 +268,7 @@ const InduccionContainer = () => {
                                         whiteSpace: "nowrap"
                                     }}
                                 >
-                                    Nuevo Registro
+                                    Nueva Inducción
                                 </button>
                             </div>
 

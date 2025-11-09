@@ -19,10 +19,12 @@ const CapacitacionContainer = () => {
     const [capacitacionActivaEditando, setCapacitacionActivaEditando] = useState(true);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [mostrarAsignacion, setMostrarAsignacion] = useState(false);
-    const [modalAccion, setModalAccion] = useState(null); // { tipo: "activar" | "desactivar", data: {...} }
+    const [modalAccion, setModalAccion] = useState(null); // { tipo: "activar" | "desactivar" | "eliminar" | "finalizar", data: {...} }
     const [busqueda, setBusqueda] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
+    const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
+    const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
 
     const [formData, setFormData] = useState({
         nombreEvento: "",
@@ -42,7 +44,36 @@ const CapacitacionContainer = () => {
         try {
             const res = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
-            setCapacitaciones(data);
+
+            // Verificar y actualizar estados automáticamente
+            const hoy = new Date();
+            hoy.setHours(23, 59, 59, 999); // Fin del día actual
+
+            const capacitacionesActualizadas = await Promise.all(data.map(async (capacitacion) => {
+                const fechaFin = new Date(capacitacion.fechafin);
+
+                // Si la capacitación ya terminó y está activa, marcarla como finalizada
+                if (fechaFin < hoy && capacitacion.estado === true) {
+                    try {
+                        const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+                        const payload = {
+                            ...capacitacion,
+                            estado: "finalizado",
+                            idusuario: idUsuario
+                        };
+
+                        await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${capacitacion.idcapacitacion || capacitacion.id}/`, payload);
+                        return { ...capacitacion, estado: "finalizado" };
+                    } catch (error) {
+                        console.error("Error al finalizar capacitación:", error);
+                        return capacitacion;
+                    }
+                }
+
+                return capacitacion;
+            }));
+
+            setCapacitaciones(capacitacionesActualizadas);
         } catch (error) {
             console.error(error);
             showToast("Error al cargar capacitaciones", "error");
@@ -129,9 +160,54 @@ const CapacitacionContainer = () => {
         setMostrarFormulario(true);
     };
 
-    // Abre el modal de confirmación para activar o desactivar
+    // Abre el modal de confirmación para activar, desactivar, eliminar o finalizar
     const handleToggleEstado = (cap, tipo) => {
         setModalAccion({ tipo, data: cap });
+    };
+
+    // Verificar si una capacitación se puede eliminar
+    const puedeEliminar = async (capacitacion) => {
+        try {
+            // Verificar si ya tiene empleados asignados
+            const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
+            const asignaciones = res.data.results || res.data;
+
+            const tieneAsignados = asignaciones.some(
+                asig => Number(asig.idcapacitacion) === Number(capacitacion.idcapacitacion || capacitacion.id)
+            );
+
+            if (tieneAsignados) {
+                showToast("No se puede eliminar: La capacitación ya tiene colaboradores asignados", "warning");
+                return false;
+            }
+
+            // Verificar si ya inició
+            const hoy = new Date();
+            const fechaInicio = new Date(capacitacion.fechainicio);
+
+            if (fechaInicio <= hoy) {
+                showToast("No se puede eliminar: La capacitación ya ha iniciado", "warning");
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Error al verificar capacitación:", error);
+            showToast("Error al verificar la capacitación", "error");
+            return false;
+        }
+    };
+
+    // Función para eliminar capacitación
+    const eliminarCapacitacion = async (capacitacion) => {
+        if (await puedeEliminar(capacitacion)) {
+            setModalAccion({ tipo: "eliminar", data: capacitacion });
+        }
+    };
+
+    // Función para finalizar capacitación manualmente
+    const finalizarCapacitacion = async (capacitacion) => {
+        setModalAccion({ tipo: "finalizar", data: capacitacion });
     };
 
     // Función para manejar la asignación de colaboradores
@@ -142,23 +218,40 @@ const CapacitacionContainer = () => {
         setMostrarAsignacion(true);
     };
 
-    // Confirma la acción (activar o desactivar)
+    // Confirma la acción (activar, desactivar, eliminar o finalizar)
     const confirmarAccion = async () => {
         if (!modalAccion?.data) return;
         const { tipo, data } = modalAccion;
 
         try {
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-            await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`, {
-                ...data,
-                estado: tipo === "activar",
-                idusuario: idUsuario
-            });
-            showToast(`Capacitación ${tipo === "activar" ? "activada" : "desactivada"} correctamente`, "success");
+
+            if (tipo === "eliminar") {
+                await axios.delete(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`);
+                showToast("Capacitación eliminada correctamente", "success");
+            } else if (tipo === "finalizar") {
+                await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`, {
+                    ...data,
+                    estado: "finalizado",
+                    idusuario: idUsuario
+                });
+                showToast("Capacitación finalizada correctamente", "success");
+            } else {
+                await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`, {
+                    ...data,
+                    estado: tipo === "activar",
+                    idusuario: idUsuario
+                });
+                showToast(`Capacitación ${tipo === "activar" ? "activada" : "desactivada"} correctamente`, "success");
+            }
+
             fetchCapacitaciones();
         } catch (error) {
             console.error(error);
-            showToast(`Error al ${tipo === "activar" ? "activar" : "desactivar"} la capacitación`, "error");
+            const accion = tipo === "eliminar" ? "eliminar" :
+                tipo === "finalizar" ? "finalizar" :
+                    tipo === "activar" ? "activar" : "desactivar";
+            showToast(`Error al ${accion} la capacitación`, "error");
         } finally {
             setModalAccion(null);
         }
@@ -185,22 +278,30 @@ const CapacitacionContainer = () => {
             return idB - idA;
         })
         .filter(c => {
+            // Filtro por estado finalizado
+            if (!mostrarFinalizadas && c.estado === "finalizado") {
+                return false;
+            }
+
             const textoBusqueda = busqueda.toLowerCase().trim();
             if (!textoBusqueda) return true;
 
             // Verificar si está buscando por estado específicamente
             const buscandoActivo = "activo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
             const buscandoInactivo = "inactivo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
+            const buscandoFinalizado = "finalizado".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
 
             // Si está buscando por estado, solo mostrar ese estado
-            if (buscandoActivo && !buscandoInactivo) {
-                return c.estado; // Solo capacitaciones activas
-            } else if (buscandoInactivo && !buscandoActivo) {
-                return !c.estado; // Solo capacitaciones inactivas
+            if (buscandoActivo && !buscandoInactivo && !buscandoFinalizado) {
+                return c.estado === true; // Solo capacitaciones activas
+            } else if (buscandoInactivo && !buscandoActivo && !buscandoFinalizado) {
+                return c.estado === false; // Solo capacitaciones inactivas
+            } else if (buscandoFinalizado && !buscandoActivo && !buscandoInactivo) {
+                return c.estado === "finalizado"; // Solo capacitaciones finalizadas
             }
 
             // Si no está buscando por estado, continuar con otras búsquedas
-            if (!buscandoActivo && !buscandoInactivo) {
+            if (!buscandoActivo && !buscandoInactivo && !buscandoFinalizado) {
                 // 🔹 Detectar rango de fechas con formato "dd-mm-yy a dd-mm-yy"
                 const rangoRegex = /(\d{1,2}-\d{1,2}-\d{2})\s*(?:a|-)\s*(\d{1,2}-\d{1,2}-\d{2})/;
                 const match = textoBusqueda.match(rangoRegex);
@@ -311,10 +412,13 @@ const CapacitacionContainer = () => {
                                     const cap = capacitaciones.find(c => (c.idcapacitacion || c.id) === id);
                                     handleToggleEstado(cap, "activar");
                                 }}
+                                handleEliminar={eliminarCapacitacion}
+                                handleFinalizar={finalizarCapacitacion}
                                 handleAsignarCapacitacion={handleAsignarCapacitacion}
                                 paginaActual={paginaActual}
                                 totalPaginas={totalPaginas}
                                 setPaginaActual={setPaginaActual}
+                                onRefreshEmpleados={fetchCapacitaciones}
                             />
 
                             <div style={{ marginTop: "20px", textAlign: "center" }}>
@@ -338,6 +442,15 @@ const CapacitacionContainer = () => {
                                         textAlign: "center"
                                     }}
                                 />
+                                <label style={{ marginLeft: "20px", display: "inline-flex", alignItems: "center", gap: "8px", fontWeight: "500" }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={mostrarFinalizadas}
+                                        onChange={e => setMostrarFinalizadas(e.target.checked)}
+                                        style={{ width: "16px", height: "16px", accentColor: "#007bff" }}
+                                    />
+                                    Mostrar finalizadas
+                                </label>
                             </div>
                         </div>
                     </main>
@@ -371,9 +484,20 @@ const CapacitacionContainer = () => {
                 {/*   Modal de confirmación genérico */}
                 {modalAccion && (
                     <ConfirmModal
-                        title={modalAccion.tipo === "activar" ? "Activar Capacitación" : "Desactivar Capacitación"}
-                        message={`¿Está seguro de ${modalAccion.tipo === "activar" ? "activar" : "desactivar"
-                            } la capacitación "${modalAccion.data?.nombreevento}"?`}
+                        title={
+                            modalAccion.tipo === "activar" ? "Activar Capacitación" :
+                                modalAccion.tipo === "desactivar" ? "Desactivar Capacitación" :
+                                    modalAccion.tipo === "eliminar" ? "Eliminar Capacitación" :
+                                        modalAccion.tipo === "finalizar" ? "Finalizar Capacitación" :
+                                            "Confirmar Acción"
+                        }
+                        message={
+                            modalAccion.tipo === "activar" ? `¿Está seguro de activar la capacitación "${modalAccion.data?.nombreevento}"?` :
+                                modalAccion.tipo === "desactivar" ? `¿Está seguro de desactivar la capacitación "${modalAccion.data?.nombreevento}"?` :
+                                    modalAccion.tipo === "eliminar" ? `¿Está seguro de eliminar la capacitación "${modalAccion.data?.nombreevento}"? Esta acción no se puede deshacer.` :
+                                        modalAccion.tipo === "finalizar" ? `¿Está seguro de finalizar la capacitación "${modalAccion.data?.nombreevento}"?` :
+                                            "¿Está seguro de realizar esta acción?"
+                        }
                         onConfirm={confirmarAccion}
                         onCancel={() => setModalAccion(null)}
                         actionType={modalAccion.tipo}

@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
+import GestionAsistencia from "./GestionAsistencia";
 
-const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170 }) => {
+const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170, onRefresh }) => {
+  const [mostrarGestionAsistencia, setMostrarGestionAsistencia] = useState(false);
+
   if (!visible || !evento) return null;
 
   // Formateo de fecha
@@ -161,6 +164,26 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
 
         {/* Colaboradores asignados */}
         <Section title="Colaboradores Asignados">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+            <div></div>
+            {empleados.length > 0 && (
+              <button
+                onClick={() => setMostrarGestionAsistencia(true)}
+                style={{
+                  padding: "8px 16px",
+                  background: "#007bff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "500"
+                }}
+              >
+                Gestionar Asistencia
+              </button>
+            )}
+          </div>
+
           {loading ? (
             <div style={{ textAlign: "center", color: "#666" }}>Cargando...</div>
           ) : empleados.length === 0 ? (
@@ -187,15 +210,17 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
                 }}
               >
                 <colgroup>
-                  <col style={{ width: "35%" }} />
+                  <col style={{ width: "25%" }} />
                   <col style={{ width: "15%" }} />
-                  <col style={{ width: "25%" }} />
-                  <col style={{ width: "25%" }} />
+                  <col style={{ width: "30%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "15%" }} />
                 </colgroup>
                 <thead>
                   <tr style={{ background: "#f3f4f6" }}>
                     <th style={thStyle}>Colaborador</th>
                     <th style={thStyle}>Asistencia</th>
+                    <th style={thStyle}>Observaciones</th>
                     <th style={thStyle}>Informe</th>
                     <th style={thStyle}>Fecha envío</th>
                   </tr>
@@ -215,6 +240,13 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
                         }}
                       >
                         {emp.asistencia || "No"}
+                      </td>
+                      <td style={tdStyle}>
+                        {emp.observacion ? (
+                          <span title={emp.observacion} style={{ cursor: "help" }}>
+                            {emp.observacion.length > 50 ? emp.observacion.substring(0, 50) + "..." : emp.observacion}
+                          </span>
+                        ) : "-"}
                       </td>
                       <td style={tdStyle}>
                         {emp.documento ? (
@@ -244,6 +276,18 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
             </div>
           )}
         </Section>
+
+        {/* Modal de gestión de asistencia */}
+        <GestionAsistencia
+          visible={mostrarGestionAsistencia}
+          onClose={() => setMostrarGestionAsistencia(false)}
+          capacitacion={evento}
+          empleadosAsignados={empleados.map(emp => ({
+            ...emp,
+            idempleado: emp.idempleado || emp.id
+          }))}
+          onRefresh={onRefresh}
+        />
       </div>
     </div>
   );

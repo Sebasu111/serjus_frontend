@@ -6,12 +6,25 @@ const ConfirmModal = ({
     message = "¿Está seguro de realizar esta acción?",
     onConfirm,
     onCancel,
-    actionType = "desactivar" // puede ser "activar" o "desactivar"
+    actionType = "desactivar" // puede ser "activar", "desactivar", "eliminar", "finalizar"
 }) => {
     // Configuración del botón principal según la acción
-    const isActivate = actionType === "activar";
-    const confirmButtonText = isActivate ? "Sí, Activar" : "Sí, Desactivar";
-    const confirmButtonColor = isActivate ? "#86efac" : "#fca5a5"; // verde claro / rojo claro
+    const getButtonConfig = () => {
+        switch (actionType) {
+            case "activar":
+                return { text: "Sí, Activar", color: "#86efac" };
+            case "desactivar":
+                return { text: "Sí, Desactivar", color: "#fca5a5" };
+            case "eliminar":
+                return { text: "Sí, Eliminar", color: "#dc2626" };
+            case "finalizar":
+                return { text: "Sí, Finalizar", color: "#f59e0b" };
+            default:
+                return { text: "Confirmar", color: "#fca5a5" };
+        }
+    };
+
+    const buttonConfig = getButtonConfig();
 
     return (
         <div style={ModalConfirmacionStyles.overlay}>
@@ -24,12 +37,12 @@ const ConfirmModal = ({
                         onClick={onConfirm}
                         style={{
                             ...ModalConfirmacionStyles.boton,
-                            background: confirmButtonColor,
-                            color: "#000",
+                            background: buttonConfig.color,
+                            color: actionType === "eliminar" ? "#fff" : "#000",
                             fontWeight: "600"
                         }}
                     >
-                        {confirmButtonText}
+                        {buttonConfig.text}
                     </button>
 
                     <button

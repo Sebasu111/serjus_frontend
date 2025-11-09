@@ -8,10 +8,13 @@ const CapacitacionesTable = ({
     handleEdit,
     handleDelete,
     handleActivate,
+    handleEliminar,
+    handleFinalizar,
     handleAsignarCapacitacion,
     paginaActual,
     totalPaginas,
-    setPaginaActual
+    setPaginaActual,
+    onRefreshEmpleados
 }) => {
     const [openMenuId, setOpenMenuId] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
@@ -55,18 +58,18 @@ const CapacitacionesTable = ({
                 .map(asig => {
                     const emp = empleados.find(e => Number(e.idempleado) === Number(asig.idempleado));
                     let doc = null;
-            if (asig.iddocumento) {
-                doc = documentos.find(d => Number(d.iddocumento) === Number(asig.iddocumento)) || null;
-            }
+                    if (asig.iddocumento) {
+                        doc = documentos.find(d => Number(d.iddocumento) === Number(asig.iddocumento)) || null;
+                    }
                     return emp
                         ? {
-                              nombre: emp.nombre,
-                              apellido: emp.apellido,
-                              asistencia: asig.asistencia,
-                              observacion: asig.observacion,
-                              fechaenvio: asig.fechaenvio,
-                              documento: doc ? { nombrearchivo: doc.nombrearchivo, archivo_url: doc.archivo_url } : null
-                          }
+                            nombre: emp.nombre,
+                            apellido: emp.apellido,
+                            asistencia: asig.asistencia,
+                            observacion: asig.observacion,
+                            fechaenvio: asig.fechaenvio,
+                            documento: doc ? { nombrearchivo: doc.nombrearchivo, archivo_url: doc.archivo_url } : null
+                        }
                         : null;
                 })
                 .filter(Boolean);
@@ -159,10 +162,14 @@ const CapacitacionesTable = ({
                                             textAlign: "center",
                                             borderBottom: "1px solid #f0f0f0",
                                             fontWeight: "600",
-                                            color: c.estado ? "#28a745" : "#F87171"
+                                            color: c.estado === true ? "#28a745" :
+                                                c.estado === "finalizado" ? "#FFA500" :
+                                                    "#F87171"
                                         }}
                                     >
-                                        {c.estado ? "Activo" : "Inactivo"}
+                                        {c.estado === true ? "Activo" :
+                                            c.estado === "finalizado" ? "Finalizado" :
+                                                "Inactivo"}
                                     </td>
                                     <td
                                         style={{
@@ -189,26 +196,58 @@ const CapacitacionesTable = ({
                                                     <div
                                                         style={{
                                                             ...comboBoxStyles.menu.item.editar.base,
-                                                            ...(c.estado
+                                                            ...(c.estado === true
                                                                 ? {}
                                                                 : comboBoxStyles.menu.item.editar.disabled)
                                                         }}
-                                                        onClick={() => c.estado && handleEdit(c)}
+                                                        onClick={() => c.estado === true && handleEdit(c)}
                                                     >
                                                         Editar
                                                     </div>
-                                                    {c.estado && (
-                                                        <div
-                                                            style={comboBoxStyles.menu.item.desactivar.base}
-                                                            onClick={() => handleDelete(c)}
-                                                        >
-                                                            Desactivar
-                                                        </div>
+                                                    {c.estado === true && (
+                                                        <>
+                                                            <div
+                                                                style={comboBoxStyles.menu.item.desactivar.base}
+                                                                onClick={() => {
+                                                                    handleDelete(c);
+                                                                    setOpenMenuId(null);
+                                                                }}
+                                                            >
+                                                                Desactivar
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    ...comboBoxStyles.menu.item.editar.base,
+                                                                    color: "#dc3545"
+                                                                }}
+                                                                onClick={() => {
+                                                                    handleEliminar(c);
+                                                                    setOpenMenuId(null);
+                                                                }}
+                                                            >
+                                                                Eliminar
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    ...comboBoxStyles.menu.item.editar.base,
+                                                                    color: "#FFA500"
+                                                                }}
+                                                                onClick={() => {
+                                                                    handleFinalizar(c);
+                                                                    setOpenMenuId(null);
+                                                                }}
+                                                            >
+                                                                Finalizar
+                                                            </div>
+                                                        </>
                                                     )}
-                                                    {!c.estado && (
+                                                    {c.estado === false && (
                                                         <div
                                                             style={comboBoxStyles.menu.item.activar.base}
-                                                            onClick={() => handleActivate(id)}
+                                                            onClick={() => {
+                                                                handleActivate(id);
+                                                                setOpenMenuId(null);
+                                                            }}
                                                         >
                                                             Activar
                                                         </div>
@@ -261,6 +300,10 @@ const CapacitacionesTable = ({
                     empleados={empleadosAsignados}
                     evento={eventoSeleccionado}
                     loading={loadingEmpleados}
+                    onRefresh={() => {
+                        handleVerEmpleados(eventoSeleccionado);
+                        if (onRefreshEmpleados) onRefreshEmpleados();
+                    }}
                 />
             )}
         </div>

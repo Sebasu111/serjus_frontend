@@ -55,6 +55,33 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
     }
   };
 
+  const desasignarEmpleado = async (idEmpleado) => {
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
+      const asignaciones = res.data.results || res.data;
+
+      const asignacion = asignaciones.find(
+        asig =>
+          Number(asig.idempleado) === Number(idEmpleado) &&
+          Number(asig.idcapacitacion) === Number(capacitacionSeleccionada)
+      );
+
+      if (asignacion) {
+        await axios.delete(`http://127.0.0.1:8000/api/empleadocapacitacion/${asignacion.id}/`);
+        showToast("Colaborador desasignado correctamente", "success");
+
+        // Actualizar la lista de empleados seleccionados
+        setEmpleadosSeleccionados(prev => prev.filter(id => id !== idEmpleado));
+
+        // Refrescar lista de asignados
+        fetchEmpleadosAsignados(capacitacionSeleccionada);
+      }
+    } catch (error) {
+      console.error("Error al desasignar colaborador:", error);
+      showToast("Error al desasignar colaborador", "error");
+    }
+  };
+
   const toggleEmpleadoSeleccionado = id => {
     setEmpleadosSeleccionados(prev =>
       prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]
@@ -73,11 +100,26 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
     setShowError(false);
 
     try {
+      // Obtener la capacitación seleccionada para validar fechas
+      const capacitacionActual = capacitaciones.find(cap =>
+        Number(cap.idcapacitacion || cap.id) === Number(capacitacionSeleccionada)
+      );
+
+      if (!capacitacionActual) {
+        showToast("Error: No se pudo encontrar la capacitación seleccionada", "error");
+        return;
+      }
+
       const idUsuario = Number(sessionStorage.getItem("idUsuario") || 1);
       const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
       const asignacionesExistentes = res.data.results || res.data;
 
+      // Obtener todas las capacitaciones para validar conflictos
+      const resCapacitaciones = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
+      const todasCapacitaciones = resCapacitaciones.data.results || resCapacitaciones.data;
+
       let asignacionesRealizadas = 0;
+      let conflictos = [];
 
       for (const idEmpleado of empleadosSeleccionados) {
         const yaAsignado = asignacionesExistentes.some(
@@ -88,10 +130,55 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
 
         if (yaAsignado) continue;
 
+        // Validar conflictos de fechas para este empleado
+        const asignacionesEmpleado = asignacionesExistentes.filter(
+          asig => Number(asig.idempleado) === Number(idEmpleado)
+        );
+
+        const conflictosEmpleado = [];
+
+        for (const asignacion of asignacionesEmpleado) {
+          const capacitacionExistente = todasCapacitaciones.find(
+            cap => Number(cap.idcapacitacion || cap.id) === Number(asignacion.idcapacitacion)
+          );
+
+          if (capacitacionExistente && capacitacionExistente.estado === true) {
+            const fechaInicioExistente = new Date(capacitacionExistente.fechainicio);
+            const fechaFinExistente = new Date(capacitacionExistente.fechafin);
+            const fechaInicioNueva = new Date(capacitacionActual.fechainicio);
+            const fechaFinNueva = new Date(capacitacionActual.fechafin);
+
+            // Verificar si hay solapamiento de fechas
+            const hayConflicto = (
+              (fechaInicioNueva >= fechaInicioExistente && fechaInicioNueva <= fechaFinExistente) ||
+              (fechaFinNueva >= fechaInicioExistente && fechaFinNueva <= fechaFinExistente) ||
+              (fechaInicioExistente >= fechaInicioNueva && fechaInicioExistente <= fechaFinNueva)
+            );
+
+            if (hayConflicto) {
+              conflictosEmpleado.push({
+                empleadoId: idEmpleado,
+                capacitacionConflicto: capacitacionExistente.nombreevento,
+                fechas: `${fechaInicioExistente.toLocaleDateString()} - ${fechaFinExistente.toLocaleDateString()}`
+              });
+            }
+          }
+        }
+
+        if (conflictosEmpleado.length > 0) {
+          const empleado = empleados.find(emp => Number(emp.idempleado || emp.id) === Number(idEmpleado));
+          conflictos.push({
+            empleado: empleado ? `${empleado.nombre} ${empleado.apellido}` : 'Empleado desconocido',
+            conflictos: conflictosEmpleado
+          });
+          continue; // No asignar este empleado
+        }
+
+        // Si no hay conflictos, proceder con la asignación
         const payload = {
           idempleado: Number(idEmpleado),
           idcapacitacion: Number(capacitacionSeleccionada),
-          fechaenvio: null, // <-- enviamos null en lugar de la fecha actual
+          fechaenvio: null,
           asistencia: "no",
           idusuario: idUsuario,
           estado: true
@@ -101,9 +188,23 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         asignacionesRealizadas++;
       }
 
+      // Mostrar resultados
+      if (conflictos.length > 0) {
+        let mensajeConflictos = "ADVERTENCIA - Conflictos de horarios detectados:\n\n";
+        conflictos.forEach(conf => {
+          mensajeConflictos += `• ${conf.empleado}:\n`;
+          conf.conflictos.forEach(c => {
+            mensajeConflictos += `  - Ya asignado a "${c.capacitacionConflicto}" (${c.fechas})\n`;
+          });
+          mensajeConflictos += "\n";
+        });
+
+        showToast(mensajeConflictos + "Estos colaboradores NO fueron asignados.", "warning");
+      }
+
       if (asignacionesRealizadas > 0) {
-        showToast("Colaboradores asignados correctamente", "success");
-      } else {
+        showToast(`${asignacionesRealizadas} colaborador(es) asignado(s) correctamente`, "success");
+      } else if (conflictos.length === 0) {
         showToast("No se realizó ninguna asignación nueva", "info");
       }
 
@@ -177,6 +278,58 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* Colaboradores ya asignados */}
+        {capacitacionInicial && empleadosSeleccionados.length > 0 && (
+          <div style={{ marginBottom: "15px" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#2e7d32" }}>
+              Colaboradores ya asignados:
+            </label>
+            <div style={{
+              border: "1px solid #4caf50",
+              borderRadius: "6px",
+              backgroundColor: "#f1f8e9",
+              padding: "10px",
+              maxHeight: "120px",
+              overflowY: "auto"
+            }}>
+              {empleadosSeleccionados.map(idEmpleado => {
+                const empleado = empleados.find(emp => (emp.idempleado || emp.id) === idEmpleado);
+                return empleado ? (
+                  <div key={idEmpleado} style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "6px 8px",
+                    margin: "2px 0",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "4px",
+                    border: "1px solid #c8e6c9"
+                  }}>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>
+                      {empleado.nombre} {empleado.apellido}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => desasignarEmpleado(idEmpleado)}
+                      style={{
+                        background: "#f44336",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "4px 8px",
+                        fontSize: "12px",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Desasignar
+                    </button>
+                  </div>
+                ) : null;
+              })}
+            </div>
           </div>
         )}
 
@@ -278,7 +431,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
             fontWeight: "600"
           }}
         >
-          Asignar
+          {capacitacionInicial ? "Guardar Cambios" : "Asignar"}
         </button>
 
         <button

@@ -112,7 +112,7 @@ const UsuarioCreadoModal = ({
                         textAlign: "center"
                     }}
                 >
-                    Guarda estos datos. La contraseña se puede cambiar después.
+                    Guarde estos datos. La contraseña se puede cambiar después.
                 </p>
 
                 <button
