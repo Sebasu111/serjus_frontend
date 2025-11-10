@@ -16,13 +16,14 @@ const ConvocatoriasTable = ({
   totalPaginas,
   handleEdit,
   toggleEstado,
-  setMostrarFormulario
+  setMostrarFormulario,
 }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const containerRef = useRef(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [descripcionSeleccionada, setDescripcionSeleccionada] = useState("");
   const [confirmModal, setConfirmModal] = useState({ open: false, row: null, modo: "" });
+  const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
 
   const formatDate = dateStr => {
        if (!dateStr) return "-";
@@ -85,8 +86,8 @@ const ConvocatoriasTable = ({
         </p>
       )}
 
-      {/* Buscador + Nueva Convocatoria */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 15 }}>
+      {/* Buscador + Nueva Convocatoria + Mostrar finalizadas */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 15 }}>
         <input
           placeholder="Buscar convocatoria..."
           value={busqueda}
@@ -96,6 +97,7 @@ const ConvocatoriasTable = ({
           }}
           style={{ flex: 1, padding: 10, borderRadius: 6, border: "1px solid #ccc" }}
         />
+
         <button onClick={() => setMostrarFormulario(true)} style={btnPrimary}>
           Nueva Convocatoria
         </button>
@@ -115,7 +117,14 @@ const ConvocatoriasTable = ({
           </thead>
           <tbody>
               {paginadas.length ? (
-                paginadas.map((r) => {
+                paginadas
+                // 🔹 Filtrar convocatorias: ocultar finalizadas salvo que se marque el checkbox
+                .filter((r) => {
+                  const esFinalizada = r.idestado?.idestado === 6 && r.estado === false;
+                  return mostrarFinalizadas ? esFinalizada : !esFinalizada;
+                })
+                .map((r) => {
+                  const esFinalizada = r.idestado?.idestado === 6 && r.estado === false;
                   const nombreEstado =
                     r.idestado?.nombreestado || // si el backend envía el objeto relacionado
                     r.nombreestado ||           // si solo viene el nombre
@@ -165,12 +174,24 @@ const ConvocatoriasTable = ({
                       <td style={tdCenter}>
                         <div style={comboBoxStyles.container}>
                           <button
-                            onClick={() => toggleMenu(r.idconvocatoria)}
-                            style={comboBoxStyles.button.base}
+                            onClick={() => !esFinalizada && toggleMenu(r.idconvocatoria)}
+                            style={{
+                              ...comboBoxStyles.button.base,
+                              backgroundColor:
+                                r.idestado?.idestado === 6 ? "#ccc" : comboBoxStyles.button.base.backgroundColor,
+                              cursor: r.idestado?.idestado === 6 ? "not-allowed" : "pointer",
+                            }}
+                            disabled={r.idestado?.idestado === 6}
+                            title={
+                              r.idestado?.idestado === 6
+                                ? "Convocatoria finalizada — acciones desactivadas"
+                                : "Ver opciones"
+                            }
                           >
                             Opciones ▾
                           </button>
-                          {openMenuId === r.idconvocatoria && (
+
+                          {openMenuId === r.idconvocatoria && r.idestado?.idestado !== 6 && (
                             <div style={comboBoxStyles.menu.container}>
                               {/* Editar */}
                               <div
@@ -204,7 +225,7 @@ const ConvocatoriasTable = ({
                                 </div>
                               )}
 
-                              {/* 🔓 Reabrir convocatoria (solo si está cerrada) */}
+                              {/* Reabrir convocatoria */}
                               {!r.estado && (
                                 <div
                                   onClick={() => {
@@ -217,7 +238,7 @@ const ConvocatoriasTable = ({
                                 </div>
                               )}
 
-                              {/* 🧹 Limpiar postulaciones */}
+                              {/* Limpiar postulaciones */}
                               <div
                                 onClick={() => {
                                   setConfirmModal({ open: true, row: r, modo: "limpiar" });
@@ -241,6 +262,29 @@ const ConvocatoriasTable = ({
                   </td>
                 </tr>
               )}
+            {/* 🔹 Checkbox centrado dentro de la tabla */}
+            <tr>
+              <td colSpan="7" style={{ textAlign: "center", padding: "15px 0" }}>
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontWeight: 500,
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={mostrarFinalizadas}
+                    onChange={(e) => setMostrarFinalizadas(e.target.checked)}
+                    style={{ transform: "scale(1.1)", cursor: "pointer" }}
+                  />
+                  Mostrar finalizadas
+                </label>
+              </td>
+            </tr>
             </tbody>
         </table>
 

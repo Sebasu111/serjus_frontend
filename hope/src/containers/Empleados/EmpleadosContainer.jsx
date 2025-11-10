@@ -1255,6 +1255,71 @@ const EmpleadosContainer = () => {
                     console.error("Error al crear usuario automático:", userError);
                     showToast("Colaborador creado, pero hubo un error al generar el usuario automáticamente", "warning");
                 }
+
+                // ========================================================
+                // 🔹 ACTUALIZAR ESTADOS DE CONVOCATORIA Y POSTULACIONES
+                // ========================================================
+                try {
+                const aspiranteParam = new URLSearchParams(window.location.search).get("aspirante");
+                const convocatoriaParam = new URLSearchParams(window.location.search).get("convocatoria");
+
+                if (aspiranteParam && convocatoriaParam) {
+                    // 1️⃣ Obtener la convocatoria actual
+                    const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`);
+                    const convocatoriaActual = convRes.data;
+
+                    // 2️⃣ Actualizar convocatoria a FINALIZADA (idestado_id = 6)
+                    const payloadConv = {
+                    fechainicio: convocatoriaActual.fechainicio,
+                    fechafin: new Date().toISOString().slice(0, 10),
+                    idestado_id: 6, // Finalizada
+                    nombreconvocatoria: convocatoriaActual.nombreconvocatoria,
+                    descripcion: convocatoriaActual.descripcion,
+                    estado: false,
+                    idusuario: getIdUsuario(),
+                    idpuesto: convocatoriaActual.idpuesto,
+                    };
+
+                    await axios.put(`${API}/convocatorias/${convocatoriaParam}/`, payloadConv);
+                    console.log("Convocatoria finalizada correctamente");
+
+                    // 3️⃣ Obtener todas las postulaciones de esa convocatoria
+                    const postRes = await axios.get(`${API}/postulaciones/`);
+                    const todasPostulaciones = Array.isArray(postRes.data)
+                    ? postRes.data
+                    : postRes.data?.results || [];
+
+                    const postulacionesDeConv = todasPostulaciones.filter(
+                    (p) => String(p.idconvocatoria) === String(convocatoriaParam)
+                    );
+
+                    // 4️⃣ Actualizar estados de postulaciones
+                    for (const post of postulacionesDeConv) {
+                    const payloadPost = {
+                        fechapostulacion: post.fechapostulacion || new Date().toISOString().slice(0, 10),
+                        observacion: post.observacion || "",
+                        idusuario: getIdUsuario(),
+                        idaspirante: post.idaspirante,
+                        idconvocatoria: post.idconvocatoria,
+                        estado: true,
+                        idestado:
+                        String(post.idaspirante) === String(aspiranteParam)
+                            ? 7 // ✅ Contratado
+                            : 3, // ❌ Rechazado
+                    };
+
+                    await axios.put(`${API}/postulaciones/${post.idpostulacion}/`, payloadPost);
+                    console.log(
+                        `Postulación ${post.idpostulacion} actualizada a estado ${payloadPost.idestado === 7 ? "Contratado" : "Rechazado"}`
+                    );
+                    }
+
+                    showToast("Convocatoria finalizada y postulaciones actualizadas correctamente.", "success");
+                }
+                } catch (error) {
+                console.error("Error al actualizar estados de convocatoria/postulaciones:", error);
+                showToast("Empleado creado, pero hubo un error al actualizar los estados.", "warning");
+                }
             }
 
             resetForm();

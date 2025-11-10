@@ -6,6 +6,7 @@ import { showToast } from "../../utils/toast";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
 import ConfirmModal from "./ConfirmModal";
 import axios from "axios";
+import { useHistory } from "react-router-dom";
 
 const thStyle = { borderBottom: "2px solid #eee", padding: 12, textAlign: "left", fontSize: 15 };
 const tdStyle = { padding: 12, borderBottom: "1px solid #f0f0f0", fontSize: 15 };
@@ -28,14 +29,28 @@ const PostulacionesTable = ({
   const [convocatoriaSeleccionada, setConvocatoriaSeleccionada] = useState("");
   const [showConfirmSeleccion, setShowConfirmSeleccion] = useState(false);
   const [postulacionParaSeleccionar, setPostulacionParaSeleccionar] = useState(null);
+  const history = useHistory();
+  const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
+
+    // 🔹 Lista filtrada de convocatorias según el checkbox
+  const convocatoriasFiltradas = useMemo(() => {
+    return convocatorias.filter((c) => {
+      const esFinalizada =
+        c.idestado?.idestado === 6 ||
+        c.idestado?.nombreestado?.toLowerCase() === "finalizada";
+
+      // Si el checkbox está activo → mostrar solo finalizadas
+      // Si no → mostrar todas las no finalizadas
+      return mostrarFinalizadas ? esFinalizada : !esFinalizada;
+    });
+  }, [convocatorias, mostrarFinalizadas]);
 
   // 🔹 Seleccionar automáticamente la primera convocatoria activa
   useEffect(() => {
-    if (convocatorias.length > 0 && !convocatoriaSeleccionada) {
-      const primeraActiva = convocatorias.find((c) => c.estado);
-      if (primeraActiva) setConvocatoriaSeleccionada(primeraActiva.idconvocatoria);
+    if (convocatoriasFiltradas.length > 0 && !convocatoriaSeleccionada) {
+      setConvocatoriaSeleccionada(convocatoriasFiltradas[0].idconvocatoria);
     }
-  }, [convocatorias, convocatoriaSeleccionada]);
+  }, [convocatoriasFiltradas, convocatoriaSeleccionada]);
 
   // 🔹 useEffect: Validar automáticamente si hay 3 seleccionados por convocatoria
   useEffect(() => {
@@ -94,7 +109,7 @@ const PostulacionesTable = ({
   }, [postulaciones]);
 
 
-  // 🔹 Filtrar postulaciones según convocatoria seleccionada
+  // 🔹 Filtrar postulaciones según convocatoria seleccionada y estado (finalizada o no)
   const postulacionesFiltradas = useMemo(() => {
     let filtradas = postulaciones;
 
@@ -106,9 +121,24 @@ const PostulacionesTable = ({
     }
 
     // 🔹 Excluir postulaciones inactivas o rechazadas
-    filtradas = filtradas.filter(
-      (p) => p.estado !== false && p.idestado !== 3
-    );
+    filtradas = filtradas.filter((p) => p.estado !== false && p.idestado !== 3);
+
+    // 🔹 Filtrar convocatorias según si están finalizadas o no
+    filtradas = filtradas.filter((p) => {
+      const conv = convocatorias.find(
+        (c) => c.idconvocatoria === p.idconvocatoria
+      );
+
+      if (!conv) return false;
+
+      const esFinalizada =
+        conv.idestado?.idestado === 6 ||
+        conv.idestado?.nombreestado?.toLowerCase() === "finalizada";
+
+      // Si mostrarFinalizadas está marcado → mostrar todo (incluye finalizadas)
+      // Si NO está marcado → solo mostrar no finalizadas
+      return mostrarFinalizadas ? true : !esFinalizada;
+    });
 
     // 🔹 Ordenar por fecha de creación (más reciente primero)
     return [...filtradas].sort((a, b) => {
@@ -116,7 +146,7 @@ const PostulacionesTable = ({
       const fechaB = new Date(b.createdat);
       return fechaB - fechaA;
     });
-  }, [postulaciones, convocatoriaSeleccionada]);
+  }, [postulaciones, convocatoriaSeleccionada, mostrarFinalizadas, convocatorias]);
 
 
 
@@ -302,7 +332,7 @@ const PostulacionesTable = ({
               value={convocatoriaSeleccionada}
               onChange={(e) => {
                 setConvocatoriaSeleccionada(e.target.value);
-                setPaginaActual(1); // Resetear a la primera página al cambiar convocatoria
+                setPaginaActual(1);
               }}
               style={{
                 padding: "6px 12px",
@@ -311,7 +341,11 @@ const PostulacionesTable = ({
                 minWidth: 250,
               }}
             >
-              {convocatorias.map((c) => (
+              {/* 🔹 Opción por defecto */}
+              <option value="">Seleccione una convocatoria</option>
+
+              {/* 🔹 Convocatorias filtradas */}
+              {convocatoriasFiltradas.map((c) => (
                 <option key={c.idconvocatoria} value={c.idconvocatoria}>
                   {c.nombreconvocatoria}
                 </option>
@@ -340,6 +374,21 @@ const PostulacionesTable = ({
                 )
               );
             })()}
+            {/* 🔹 Checkbox para mostrar finalizadas */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 15, marginTop: 20, }}>
+              <input
+                type="checkbox"
+                checked={mostrarFinalizadas}
+                onChange={(e) => {
+                  setMostrarFinalizadas(e.target.checked);
+                  setConvocatoriaSeleccionada(""); // 🔹 Limpia selección si cambia el filtro
+                }}
+                style={{ transform: "scale(1.1)", cursor: "pointer" }}
+              />
+              <label style={{ fontWeight: 500, cursor: "pointer" }}>
+                Mostrar convocatorias finalizadas
+              </label>
+            </div>
           </div>
 
 
@@ -362,7 +411,7 @@ const PostulacionesTable = ({
                   const aspirante = aspirantes.find((a) => a.idaspirante === p.idaspirante);
                   const convocatoria = convocatorias.find((c) => c.idconvocatoria === p.idconvocatoria);
                   const estadoColor =
-                    p.idestado === 2 ? "green" : p.idestado === 3 ? "red" : "#bbbb00ff";
+                    p.idestado === 2 ? "green" : p.idestado === 3 ? "red": p.idestado === 7 ? "#FCC649" : "#bbbb00ff";
 
                   return (
                     <tr key={p.idpostulacion}>
@@ -390,6 +439,8 @@ const PostulacionesTable = ({
                           ? "Seleccionado"
                           : p.idestado === 3
                           ? "Rechazado"
+                          : p.idestado === 7
+                          ? "Contratado"
                           : "Pendiente"}
                       </td>
                       <td style={tdStyle}>{p.observacion || "-"}</td>
@@ -401,8 +452,10 @@ const PostulacionesTable = ({
                           >
                             Acciones ▾
                           </button>
+
                           {openCombo === p.idpostulacion && (
                             <div style={comboBoxStyles.menu.container}>
+                              {/* 🔹 Siempre disponible: Ver CV */}
                               <div
                                 style={comboBoxStyles.menu.item.activar.base}
                                 onClick={() => {
@@ -412,28 +465,72 @@ const PostulacionesTable = ({
                               >
                                 Ver CV
                               </div>
-                              {/* Mostrar "Seleccionar" solo si no está ya seleccionada */}
-                              {p.idestado !== 2 && (
-                                <div
-                                  style={comboBoxStyles.menu.item.activar.base}
-                                  onClick={() => {
-                                    handleSeleccionarClick(p);
-                                    setOpenCombo(null);
-                                  }}
-                                >
-                                  Seleccionar
-                                </div>
+
+                              {/* 🔹 Solo mostrar otras acciones si NO está contratada */}
+                              {p.idestado !== 7 && (
+                                <>
+                                  {/* 🔹 Mostrar "Contratar" solo si la postulación está seleccionada */}
+                                  {p.idestado === 2 && (
+                                    <div
+                                      style={comboBoxStyles.menu.item.activar.base}
+                                      onClick={() => {
+                                        setOpenCombo(null);
+                                        const aspirante = aspirantes.find(
+                                          (a) => a.idaspirante === p.idaspirante
+                                        );
+                                        const convocatoria = convocatorias.find(
+                                          (c) => c.idconvocatoria === p.idconvocatoria
+                                        );
+
+                                        if (!aspirante || !convocatoria) {
+                                          showToast(
+                                            "No se pudieron obtener los datos del aspirante o convocatoria",
+                                            "error"
+                                          );
+                                          return;
+                                        }
+
+                                        // ✅ Navegación con React Router v5
+                                        history.push(
+                                          `/empleados?aspirante=${aspirante.idaspirante}&convocatoria=${convocatoria.idconvocatoria}`
+                                        );
+
+                                        showToast(
+                                          `Iniciando contratación de ${aspirante.nombreaspirante} ${aspirante.apellidoaspirante}`,
+                                          "info"
+                                        );
+                                      }}
+                                    >
+                                      Contratar
+                                    </div>
+                                  )}
+
+                                  {/* 🔹 Mostrar "Seleccionar" si no está seleccionada */}
+                                  {p.idestado !== 2 && (
+                                    <div
+                                      style={comboBoxStyles.menu.item.activar.base}
+                                      onClick={() => {
+                                        handleSeleccionarClick(p);
+                                        setOpenCombo(null);
+                                      }}
+                                    >
+                                      Seleccionar
+                                    </div>
+                                  )}
+
+                                  {/* 🔹 Opción Eliminar */}
+                                  <div
+                                    style={comboBoxStyles.menu.item.desactivar.base}
+                                    onClick={() => {
+                                      setPostulacionSeleccionada(p);
+                                      setMostrarModalEliminar(true);
+                                      setOpenCombo(null);
+                                    }}
+                                  >
+                                    Eliminar
+                                  </div>
+                                </>
                               )}
-                              <div
-                                style={comboBoxStyles.menu.item.desactivar.base}
-                                onClick={() => {
-                                  setPostulacionSeleccionada(p);
-                                  setMostrarModalEliminar(true);
-                                  setOpenCombo(null);
-                                }}
-                              >
-                                Eliminar
-                              </div>
                             </div>
                           )}
                         </div>
