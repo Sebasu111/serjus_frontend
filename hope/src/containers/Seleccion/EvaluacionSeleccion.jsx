@@ -85,7 +85,13 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
             }}
           >
             <option value="">Seleccione una convocatoria</option>
-            {convocatorias.map((c) => (
+            {convocatorias
+            .filter(
+              (c) =>
+                c.idestado?.idestado !== 6 &&
+                c.idestado?.nombreestado?.toLowerCase() !== "finalizada"
+            )
+            .map((c) => (
               <option key={c.idconvocatoria} value={c.idconvocatoria}>
                 {c.nombreconvocatoria}
               </option>

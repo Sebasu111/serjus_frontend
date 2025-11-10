@@ -232,22 +232,42 @@ const ConvocatoriasContainer = () => {
     const textoBusqueda = busqueda.toLowerCase().trim();
 
     const filtradas = rows.filter((r) => {
-        const nombre = (r.nombreconvocatoria || "").toLowerCase();
-        const puesto = (r.nombrepuesto || "").toLowerCase();
-        const descripcion = (r.descripcion || "").toLowerCase();
-        const estadoTexto = r.estado ? "activo" : "inactivo";
-        const fechaInicio = r.fechainicio ? new Date(r.fechainicio).toLocaleDateString("es-ES") : "";
-        const fechaFin = r.fechafin ? new Date(r.fechafin).toLocaleDateString("es-ES") : "";
+    const textoBusqueda = busqueda.toLowerCase().trim();
 
-        const nombreCoincide = nombre.includes(textoBusqueda);
-        const puestoCoincide = puesto.includes(textoBusqueda);
-        const descripcionCoincide = descripcion.includes(textoBusqueda);
-        const estadoCoincide = estadoTexto.startsWith(textoBusqueda);
-        const fechaInicioCoincide = fechaInicio.includes(textoBusqueda);
-        const fechaFinCoincide = fechaFin.includes(textoBusqueda);
+    // 🔹 Campos a comparar (convertidos a texto plano)
+    const nombre = (r.nombreconvocatoria || "").toLowerCase();
+    const puesto = (r.nombrepuesto || "").toLowerCase();
+    const descripcion = (r.descripcion || "").toLowerCase();
+    const estadoTexto = r.estado ? "activo" : "inactivo";
+    const nombreEstado = (r.idestado?.nombreestado || "").toLowerCase();
+    const fechaInicio = r.fechainicio
+        ? new Date(r.fechainicio).toLocaleDateString("es-ES")
+        : "";
+    const fechaFin = r.fechafin
+        ? new Date(r.fechafin).toLocaleDateString("es-ES")
+        : "";
 
-        return nombreCoincide || puestoCoincide || descripcionCoincide || estadoCoincide || fechaInicioCoincide || fechaFinCoincide;
-    });
+    // 🔹 Validaciones: coincidencia con lo que el usuario escribe
+    const nombreCoincide = nombre.includes(textoBusqueda);
+    const puestoCoincide = puesto.includes(textoBusqueda);
+    const descripcionCoincide = descripcion.includes(textoBusqueda);
+    const estadoCoincide =
+        estadoTexto.includes(textoBusqueda) ||
+        nombreEstado.includes(textoBusqueda);
+    const fechaInicioCoincide = fechaInicio.includes(textoBusqueda);
+    const fechaFinCoincide = fechaFin.includes(textoBusqueda);
+
+    // 🔹 Retornar true si alguna coincide
+    return (
+        nombreCoincide ||
+        puestoCoincide ||
+        descripcionCoincide ||
+        estadoCoincide ||
+        fechaInicioCoincide ||
+        fechaFinCoincide
+    );
+});
+
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const paginadas = filtradas.slice(indexOfLast - elementosPorPagina, indexOfLast);
