@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import { X } from "lucide-react";
-import { showToast } from "../../utils/toast.js"; 
+import { showToast } from "../../utils/toast.js";
 
 const API = "http://127.0.0.1:8000/api";
 
 const displayName = (emp) => [emp?.nombre, emp?.apellido].filter(Boolean).join(" ");
-
 const empId = (emp) => emp.idempleado ?? emp.idEmpleado;
 
 const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }) => {
@@ -28,18 +27,18 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   const wrapperRef = useRef(null);
   const [openMenu, setOpenMenu] = useState(false);
 
-  
+  // --- Inicialización ---
   useEffect(() => {
     if (editingAusencia) {
-    setTipo(editingAusencia.tipo || "");
-    setDiagnostico(editingAusencia.diagnostico || "");
-    setEsIGSS(editingAusencia.es_iggs || false);
-    setOtro(editingAusencia.otro || "");
-    setPrevOtro(editingAusencia.otro || ""); 
-    setFechaInicio(editingAusencia.fechainicio || "");
-    setFechaFin(editingAusencia.fechafin || "");
-    setCantidadDias(editingAusencia.cantidad_dias || 0);
-    setIdEmpleado(editingAusencia.idempleado || "");
+      setTipo(editingAusencia.tipo || "");
+      setDiagnostico(editingAusencia.diagnostico || "");
+      setEsIGSS(editingAusencia.es_iggs || false);
+      setOtro(editingAusencia.otro || "");
+      setPrevOtro(editingAusencia.otro || "");
+      setFechaInicio(editingAusencia.fechainicio || "");
+      setFechaFin(editingAusencia.fechafin || "");
+      setCantidadDias(editingAusencia.cantidad_dias || 0);
+      setIdEmpleado(editingAusencia.idempleado || "");
 
       if (editingAusencia.iddocumento) {
         axios
@@ -47,12 +46,16 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
           .then((res) => setArchivoActual(res.data.nombrearchivo || ""))
           .catch(() => setArchivoActual("Sin archivo"));
       }
-    } else if (usuario && empleados?.length > 0) {
+    } else if (!editingAusencia && !idEmpleado && usuario && empleados?.length > 0) {
       const encontrado = empleados.find((e) => e.idusuario === usuario.idusuario);
-      if (encontrado) setIdEmpleado(encontrado.idempleado);
+      if (encontrado) {
+        setIdEmpleado(encontrado.idempleado);
+        setQEmpleado(displayName(encontrado));
+      }
     }
   }, [editingAusencia, empleados, usuario]);
 
+  // --- Calcular cantidad de días ---
   useEffect(() => {
     if (fechaInicio && fechaFin) {
       const inicio = new Date(fechaInicio);
@@ -68,6 +71,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     }
   }, [fechaInicio, fechaFin]);
 
+  // --- Cerrar menú si se hace clic fuera ---
   useEffect(() => {
     const onClick = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpenMenu(false);
@@ -76,6 +80,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  // --- Reset form ---
   const resetForm = () => {
     setIdEmpleado("");
     setQEmpleado("");
@@ -91,6 +96,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     setErrorFechaFin("");
   };
 
+  // --- Submit ---
   const handleSubmit = async (e) => {
   e.preventDefault();
 
@@ -107,34 +113,6 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
   setSubiendo(true);
 
   try {
-    
-    const resp = await axios.get(`${API}/ausencias/?idempleado=${idEmpleado}`);
-    const ausenciasEmpleado = Array.isArray(resp.data)
-      ? resp.data
-      : resp.data.results || [];
-
-    const inicioNueva = new Date(fechaInicio);
-    const finNueva = new Date(fechaFin);
-
-    const conflicto = ausenciasEmpleado.some((a) => {
-  
-  if (editingAusencia && a.idausencia === editingAusencia.idausencia) return false;
-
-  const activa = a.estado === true || a.estado === 1 || a.estado === "true";
-  if (!activa) return false;
-
-  const inicioExistente = new Date(a.fechainicio);
-  const finExistente = new Date(a.fechafin);
-
-  return inicioNueva <= finExistente && finNueva >= inicioExistente;
-});
-
-    if (conflicto) {
-      showToast("Ya existe una ausencia registrada para este colaborador en esas fechas.", "error");
-      setSubiendo(false);
-      return;
-    }
-
     let idDocumento = editingAusencia?.iddocumento || null;
 
     if (archivo) {
@@ -146,6 +124,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
       formData.append("idusuario", usuario.idusuario);
       formData.append("idtipodocumento", 3);
       formData.append("idempleado", idEmpleado);
+      formData.append("estado", true);
 
       if (editingAusencia?.iddocumento) {
         const respDoc = await axios.put(`${API}/documentos/${editingAusencia.iddocumento}/`, formData, {
@@ -174,29 +153,36 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
       idusuario: usuario.idusuario,
     };
 
-    await onSubmit(dataAusencia, editingAusencia?.idausencia);
-    resetForm();
+    let guardadoExitoso = false;
 
-    if (editingAusencia) {
-      showToast("Ausencia actualizada correctamente", "success");
-    } else {
-      showToast("Ausencia registrada correctamente", "success");
+    try {
+      await onSubmit(dataAusencia, editingAusencia?.idausencia);
+      guardadoExitoso = true;
+    } catch (error) {
+      // 👇 Ya no mostramos toast aquí, lo maneja el contenedor
+      console.warn("onSubmit rechazó la operación (por conflicto o error):", error?.message || error);
     }
 
+    if (guardadoExitoso) {
+      resetForm();
+      showToast(
+        editingAusencia ? "Ausencia actualizada correctamente" : "Ausencia registrada correctamente",
+        "success"
+      );
+    }
   } catch (error) {
-    console.error("Error al verificar ausencias existentes:", error);
+    console.error("Error al registrar o actualizar la ausencia:", error);
     showToast("Error al registrar o actualizar la ausencia", "error");
   } finally {
     setSubiendo(false);
   }
 };
 
+
+  // --- Filtrado de empleados ---
   const empleadosFiltrados = useMemo(() => {
     const t = qEmpleado.toLowerCase().trim();
-    return empleados.filter(
-      (e) =>
-        displayName(e).toLowerCase().includes(t)
-    );
+    return empleados.filter((e) => displayName(e).toLowerCase().includes(t));
   }, [qEmpleado, empleados]);
 
   const seleccionarEmpleado = (emp) => {
@@ -205,6 +191,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
     setOpenMenu(false);
   };
 
+  // --- Render ---
   return (
     <div
       style={{
@@ -227,71 +214,75 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
       </h3>
 
       <form onSubmit={handleSubmit}>
-        
+        {/* --- Colaborador --- */}
         <div style={{ marginBottom: "15px", position: "relative" }}>
-  <label>Colaborador/a</label>
-  <input
-    type="text"
-    placeholder="Buscar colaborador/a por nombre o apellido..."
-    value={editingAusencia ? displayName(empleados.find(e => empId(e) === editingAusencia.idempleado)) : qEmpleado}
-    onChange={(e) => {
-      setQEmpleado(e.target.value);
-      setOpenMenu(true);
-    }}
-    onFocus={() => setOpenMenu(true)}
-    required
-    style={{
-      width: "100%",
-      padding: "10px",
-      borderRadius: "6px",
-      border: "1px solid #ccc",
-      background: editingAusencia ? "#f3f3f3" : "#fff", 
-    }}
-    disabled={!!editingAusencia} 
-  />
-  {openMenu && !editingAusencia && ( 
-    <div
-      style={{
-        position: "absolute",
-        zIndex: 10,
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: 6,
-        marginTop: 4,
-        width: "100%",
-        maxHeight: 180,
-        overflowY: "auto",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-      }}
-    >
-      {empleadosFiltrados.length === 0 ? (
-        <div style={{ padding: 10, color: "#6b7280" }}>Sin resultados</div>
-      ) : (
-        empleadosFiltrados.map((emp) => (
-          <button
-            key={empId(emp)}
-            type="button"
-            onClick={() => seleccionarEmpleado(emp)}
+          <label>Colaborador/a</label>
+          <input
+            type="text"
+            placeholder="Buscar colaborador/a por nombre o apellido..."
+            value={
+              editingAusencia
+                ? displayName(empleados.find((e) => empId(e) === editingAusencia.idempleado))
+                : qEmpleado
+            }
+            onChange={(e) => {
+              setQEmpleado(e.target.value);
+              setOpenMenu(true);
+            }}
+            onFocus={() => setOpenMenu(true)}
+            required
             style={{
               width: "100%",
-              textAlign: "left",
-              padding: 10,
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              background: editingAusencia ? "#f3f3f3" : "#fff",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-          >
-            {displayName(emp)}
-          </button>
-        ))
-      )}
-    </div>
-  )}
-</div>
+            disabled={!!editingAusencia}
+          />
+          {openMenu && !editingAusencia && (
+            <div
+              style={{
+                position: "absolute",
+                zIndex: 10,
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+                borderRadius: 6,
+                marginTop: 4,
+                width: "100%",
+                maxHeight: 180,
+                overflowY: "auto",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              }}
+            >
+              {empleadosFiltrados.length === 0 ? (
+                <div style={{ padding: 10, color: "#6b7280" }}>Sin resultados</div>
+              ) : (
+                empleadosFiltrados.map((emp) => (
+                  <button
+                    key={empId(emp)}
+                    type="button"
+                    onClick={() => seleccionarEmpleado(emp)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: 10,
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    {displayName(emp)}
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
 
-        
+        {/* --- Tipo --- */}
         <div style={{ marginBottom: "15px" }}>
           <label>Tipo</label>
           <select
@@ -304,7 +295,12 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
               }
             }}
             required
-            style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+            }}
           >
             <option value="" disabled>Seleccione tipo de ausencia</option>
             <option value="Enfermedad">Enfermedad</option>
@@ -313,23 +309,24 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
           </select>
         </div>
 
+        {/* --- IGSS / Otro --- */}
         {(tipo === "Enfermedad" || tipo === "Examen") && (
           <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "15px" }}>
             <label style={{ flex: "0 0 60px" }}>IGSS:</label>
             <input
-  type="checkbox"
-  checked={esIGSS}
-  onChange={(e) => {
-    const checked = e.target.checked;
-    setEsIGSS(checked);
-    if (checked) {
-      setPrevOtro(otro);
-      setOtro("");
-    } else {
-      setOtro(prevOtro);
-    }
-  }}
-/>
+              type="checkbox"
+              checked={esIGSS}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setEsIGSS(checked);
+                if (checked) {
+                  setPrevOtro(otro);
+                  setOtro("");
+                } else {
+                  setOtro(prevOtro);
+                }
+              }}
+            />
             <input
               type="text"
               placeholder="Otro (nombre clínica)"
@@ -348,6 +345,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
           </div>
         )}
 
+        {/* --- Diagnóstico --- */}
         <div style={{ marginBottom: "15px" }}>
           <label>Diagnóstico</label>
           <input
@@ -356,10 +354,16 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
             onChange={(e) => setDiagnostico(e.target.value)}
             placeholder="Ingrese diagnóstico o descripción"
             required
-            style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+            }}
           />
         </div>
 
+        {/* --- Fechas --- */}
         <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
           <div style={{ flex: 1 }}>
             <label>Fecha Inicio</label>
@@ -368,7 +372,12 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
               value={fechaInicio}
               onChange={(e) => setFechaInicio(e.target.value)}
               required
-              style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+              }}
             />
           </div>
           <div style={{ flex: 1 }}>
@@ -378,38 +387,59 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
               value={fechaFin}
               onChange={(e) => setFechaFin(e.target.value)}
               required
-              style={{ width: "100%", padding: "10px", borderRadius: "6px", border: `1px solid ${errorFechaFin ? "red" : "#ccc"}` }}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: "6px",
+                border: `1px solid ${errorFechaFin ? "red" : "#ccc"}`,
+              }}
             />
-            {errorFechaFin && <small style={{ color: "red", fontSize: "12px" }}>{errorFechaFin}</small>}
+            {errorFechaFin && (
+              <small style={{ color: "red", fontSize: "12px" }}>{errorFechaFin}</small>
+            )}
           </div>
         </div>
 
+        {/* --- Cantidad de días --- */}
         <div style={{ marginBottom: "15px" }}>
-  <label>Cantidad de días</label>
-  <input
-    type="number"
-    value={cantidadDias}
-    readOnly 
-    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", background: "#f3f3f3" }}
-  />
-</div>
+          <label>Cantidad de días</label>
+          <input
+            type="number"
+            value={cantidadDias}
+            readOnly
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              background: "#f3f3f3",
+            }}
+          />
+        </div>
 
+        {/* --- Documento --- */}
         <div style={{ marginBottom: "20px" }}>
-  <label>Documento (Comprobante)</label>
-  {editingAusencia?.iddocumento && !archivo && (
-    <div style={{ marginBottom: "6px", fontSize: "14px" }}>
-      Archivo actual: <strong>{archivoActual || "Sin archivo"}</strong>
-    </div>
-  )}
-  <input
-    type="file"
-    accept="application/pdf" 
-    onChange={(e) => setArchivo(e.target.files[0])}
-    required={!editingAusencia || !archivoActual}
-    style={{ width: "100%", padding: "5px", borderRadius: "6px", border: "1px solid #ccc" }}
-  />
-</div>
+          <label>Documento (Comprobante)</label>
+          {editingAusencia?.iddocumento && !archivo && (
+            <div style={{ marginBottom: "6px", fontSize: "14px" }}>
+              Archivo actual: <strong>{archivoActual || "Sin archivo"}</strong>
+            </div>
+          )}
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) => setArchivo(e.target.files[0])}
+            required={!editingAusencia || !archivoActual}
+            style={{
+              width: "100%",
+              padding: "5px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+            }}
+          />
+        </div>
 
+        {/* --- Botón submit --- */}
         <button
           type="submit"
           disabled={subiendo}
@@ -428,6 +458,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
         </button>
       </form>
 
+      {/* --- Cerrar modal --- */}
       <button
         onClick={onClose}
         style={{

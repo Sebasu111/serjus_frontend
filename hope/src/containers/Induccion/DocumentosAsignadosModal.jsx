@@ -1,347 +1,283 @@
-import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { showToast } from "../../utils/toast.js";
 
-const DocumentosAsignadosModal = ({ induccion, onClose }) => {
-    const [items, setItems] = useState([]);
-    const [busqueda, setBusqueda] = useState("");
-    const [paginaActual, setPaginaActual] = useState(1);
-    const [elementosPorPagina, setElementosPorPagina] = useState(10);
-    const [empleados, setEmpleados] = useState([]);
-    const [documentos, setDocumentos] = useState([]);
+const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
+  const [documentos, setDocumentos] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
 
-    useEffect(() => {
-        if (induccion) {
-            fetchDocumentosAsignados();
-            fetchEmpleados();
-            fetchDocumentos();
-        }
-    }, [induccion]);
+  useEffect(() => {
+    if (!visible || !induccion) return;
 
-    const fetchDocumentosAsignados = async () => {
-        try {
-            const res = await axios.get(`http://127.0.0.1:8000/api/inducciondocumentos/`);
-            const raw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
-            // Filtrar solo los documentos de esta inducción
-            const documentosInduccion = raw.filter(item => item.idinduccion === induccion.idinduccion);
-            setItems(documentosInduccion);
-        } catch (e) {
-            console.error(e);
-            showToast("Error al cargar documentos asignados", "error");
-        }
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+        const raw = Array.isArray(res.data) ? res.data : res.data.results || [];
+
+        const filtrados = raw.filter(
+          d => Number(d.idinduccion) === Number(induccion.idinduccion) && d.estado === true
+        );
+
+        const empleadosIds = [...new Set(filtrados.map(f => Number(f.idempleado)).filter(Boolean))];
+        const documentosIds = [...new Set(filtrados.map(f => Number(f.iddocumento)).filter(Boolean))];
+
+        const resEmp = await axios.get("http://127.0.0.1:8000/api/empleados/");
+        const allEmps = Array.isArray(resEmp.data) ? resEmp.data : resEmp.data.results || [];
+        const empleadosFiltrados = allEmps.filter(e => {
+          const empId = Number(e.idempleado ?? e.id ?? e.pk);
+          return e.estado === true && empleadosIds.includes(empId);
+        });
+        setEmpleados(empleadosFiltrados);
+
+        const resDocs = await axios.get("http://127.0.0.1:8000/api/documentos/");
+        const allDocs = Array.isArray(resDocs.data) ? resDocs.data : resDocs.data.results || [];
+        const documentosFiltrados = allDocs.filter(d => {
+          const docId = Number(d.iddocumento ?? d.id);
+          return documentosIds.includes(docId) && d.estado === true;
+        });
+        setDocumentos(documentosFiltrados);
+      } catch (e) {
+        console.error("Error cargando documentos asignados:", e);
+      }
     };
 
-    const fetchEmpleados = async () => {
-        try {
-            const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
-            const data = Array.isArray(res.data) ? res.data : res.data.results || [];
-            setEmpleados(data.filter(item => item.estado));
-        } catch (e) {
-            console.error("Error al cargar colaboradores:", e);
-        }
-    };
+    fetchData();
+  }, [visible, induccion]);
 
-    const fetchDocumentos = async () => {
-        try {
-            const res = await axios.get("http://127.0.0.1:8000/api/documentos/");
-            const data = Array.isArray(res.data) ? res.data : res.data.results || [];
-            setDocumentos(data);
-        } catch (e) {
-            console.error("Error al cargar documentos:", e);
-        }
-    };
+  if (!visible || !induccion) return null;
 
-    const filtrados = items.filter(i => {
-        const empleado = empleados.find(emp => emp.idempleado === i.idempleado);
-        const nombreEmpleado = empleado ? `${empleado.nombre} ${empleado.apellido}`.toLowerCase() : "";
-        return nombreEmpleado.includes(busqueda.toLowerCase());
-    });
+  const infoBoxStyle = {
+    background: "#f9fafb",
+    border: "1px solid #eef2f7",
+    borderRadius: 12,
+    padding: 12,
+  };
 
-    const indexLast = paginaActual * elementosPorPagina;
-    const indexFirst = indexLast - elementosPorPagina;
-    const paginados = filtrados.slice(indexFirst, indexLast);
-    const totalPaginas = Math.ceil(filtrados.length / elementosPorPagina);
+  const Section = ({ title, children }) => (
+    <section style={{ marginBottom: 24 }}>
+      <h4
+        style={{
+          margin: "0 0 12px 0",
+          fontSize: 19,
+          fontWeight: 800,
+          borderBottom: "1px solid #e5e7eb",
+          paddingBottom: 6,
+          color: "#0f172a",
+          letterSpacing: 0.2,
+        }}
+      >
+        {title}
+      </h4>
+      {children}
+    </section>
+  );
 
-    return (
+  const formatDate = dateStr => {
+    if (!dateStr) return "-";
+    const partes = dateStr.split("-");
+    if (partes.length !== 3) return dateStr;
+    const [year, month, day] = partes;
+    return `${day}-${month}-${year}`;
+  };
+
+  const getEmpleadoNombre = emp => {
+    const nombresPosibles = [
+      emp.nombreempleado,
+      `${emp.nombres || ""} ${emp.apellidos || ""}`.trim(),
+      `${emp.nombre || ""} ${emp.apellido || ""}`.trim(),
+      emp.full_name,
+      emp.nombreCompleto,
+    ].filter(Boolean);
+    return nombresPosibles[0] || `Empleado #${emp.idempleado ?? emp.id}`;
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,.45)",
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        zIndex: 4000,
+        paddingRight: "170px",
+      }}
+    >
+      <div
+        style={{
+          width: "min(1100px,95vw)",
+          maxHeight: "92vh",
+          overflowY: "auto",
+          background: "#fff",
+          boxShadow: "0 10px 40px rgba(0,0,0,.25)",
+          padding: 28,
+          borderRadius: 16,
+          position: "relative",
+        }}
+      >
+        {/* Botón cerrar */}
         <div
-            style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                backgroundColor: "rgba(0,0,0,0.5)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 1000,
-            }}
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: 16,
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+          }}
         >
-            <div
-                style={{
-                    backgroundColor: "#fff",
-                    borderRadius: "12px",
-                    width: "90%",
-                    maxWidth: "900px",
-                    maxHeight: "90vh",
-                    overflow: "auto",
-                    padding: "30px",
-                    position: "relative",
-                }}
-            >
-                <button
-                    onClick={onClose}
-                    style={{
-                        position: "absolute",
-                        top: "15px",
-                        right: "15px",
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                    }}
-                >
-                    <X size={24} color="#555" />
-                </button>
-
-                <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
-                    Documentos Asignados - {induccion?.nombre}
-                </h2>
-
-                <div>
-                    <input
-                        type="text"
-                        placeholder="Buscar por colaborador..."
-                        value={busqueda}
-                        onChange={e => {
-                            setBusqueda(e.target.value);
-                            setPaginaActual(1);
-                        }}
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            marginBottom: "20px",
-                            border: "1px solid #ccc",
-                            borderRadius: "6px",
-                            fontSize: "14px"
-                        }}
-                    />
-
-                    <div style={{
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        border: "1px solid #eee",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-                    }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr style={{ backgroundColor: "#f8f9fa" }}>
-                                    <th style={{ padding: "15px", textAlign: "left", borderBottom: "2px solid #eee", fontWeight: "600" }}>Nombre</th>
-                                    <th style={{ padding: "15px", textAlign: "left", borderBottom: "2px solid #eee", fontWeight: "600" }}>Fecha</th>
-                                    <th style={{ padding: "15px", textAlign: "left", borderBottom: "2px solid #eee", fontWeight: "600" }}>Colaborador</th>
-                                    <th style={{ padding: "15px", textAlign: "center", borderBottom: "2px solid #eee", fontWeight: "600" }}>Tipo</th>
-                                    <th style={{ padding: "15px", textAlign: "center", borderBottom: "2px solid #eee", fontWeight: "600" }}>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginados.length > 0 ? (
-                                    paginados.map(item => {
-                                        const empleado = empleados.find(emp => emp.idempleado === item.idempleado);
-                                        const documento = documentos.find(doc => (doc.iddocumento || doc.id) === item.iddocumento);
-                                        return (
-                                            <tr key={item.idinducciondocumento} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                                                {/* Nombre del documento */}
-                                                <td style={{ padding: "15px" }}>
-                                                    <div style={{ fontSize: "14px", fontWeight: "500" }}>
-                                                        {documento ? documento.nombrearchivo : "Documento no encontrado"}
-                                                    </div>
-                                                </td>
-
-                                                {/* Fecha */}
-                                                <td style={{ padding: "15px", fontSize: "14px" }}>
-                                                    {new Date(item.fechaasignado).toLocaleDateString("es-ES")}
-                                                </td>
-
-                                                {/* Colaborador */}
-                                                <td style={{ padding: "15px" }}>
-                                                    <div style={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        fontSize: "14px",
-                                                        fontWeight: "500"
-                                                    }}>
-                                                        <div style={{
-                                                            width: "32px",
-                                                            height: "32px",
-                                                            borderRadius: "50%",
-                                                            backgroundColor: "#219ebc",
-                                                            color: "#fff",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            marginRight: "10px",
-                                                            fontSize: "12px",
-                                                            fontWeight: "600"
-                                                        }}>
-                                                            {empleado ? `${empleado.nombre[0]}${empleado.apellido[0]}` : "?"}
-                                                        </div>
-                                                        <div>
-                                                            {empleado ? `${empleado.nombre} ${empleado.apellido}` : "Colaborador no encontrado"}
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                {/* Tipo */}
-                                                <td style={{ padding: "15px", textAlign: "center" }}>
-                                                    <span style={{
-                                                        padding: "4px 12px",
-                                                        borderRadius: "12px",
-                                                        backgroundColor: "#e8f5e8",
-                                                        color: "#2e7d32",
-                                                        fontSize: "12px",
-                                                        fontWeight: "500"
-                                                    }}>
-                                                        DOCUMENTOS DE INDUCCIÓN
-                                                    </span>
-                                                </td>
-
-                                                {/* Acciones */}
-                                                <td style={{ padding: "15px", textAlign: "center" }}>
-                                                    <select style={{
-                                                        padding: "6px 12px",
-                                                        borderRadius: "6px",
-                                                        border: "1px solid #ccc",
-                                                        fontSize: "12px",
-                                                        cursor: "pointer"
-                                                    }}>
-                                                        <option>Opciones</option>
-                                                        <option>Ver documento</option>
-                                                        <option>Marcar como completado</option>
-                                                        <option>Eliminar asignación</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                ) : (
-                                    <tr>
-                                        <td colSpan="4" style={{
-                                            textAlign: "center",
-                                            padding: "40px 20px",
-                                            color: "#666",
-                                            fontSize: "14px"
-                                        }}>
-                                            <div style={{ marginBottom: "8px", fontSize: "48px", opacity: 0.3 }}>📄</div>
-                                            No hay documentos asignados para esta inducción
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-
-                        {/* Paginación y elementos por página */}
-                        <div style={{
-                            padding: "20px",
-                            borderTop: "1px solid #eee",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            flexWrap: "wrap",
-                            gap: "15px"
-                        }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                <label style={{ fontSize: "14px", color: "#666" }}>Mostrar:</label>
-                                <select
-                                    value={elementosPorPagina}
-                                    onChange={e => {
-                                        setElementosPorPagina(Number(e.target.value));
-                                        setPaginaActual(1);
-                                    }}
-                                    style={{
-                                        padding: "6px 10px",
-                                        border: "1px solid #ccc",
-                                        borderRadius: "4px",
-                                        fontSize: "14px"
-                                    }}
-                                >
-                                    <option value={5}>5</option>
-                                    <option value={10}>10</option>
-                                    <option value={15}>15</option>
-                                    <option value={20}>20</option>
-                                </select>
-                                <span style={{ fontSize: "14px", color: "#666" }}>
-                                    de {filtrados.length} registros
-                                </span>
-                            </div>
-
-                            {totalPaginas > 1 && (
-                                <div style={{ display: "flex", gap: "5px" }}>
-                                    <button
-                                        onClick={() => setPaginaActual(Math.max(1, paginaActual - 1))}
-                                        disabled={paginaActual === 1}
-                                        style={{
-                                            padding: "8px 12px",
-                                            border: "1px solid #219ebc",
-                                            background: "#fff",
-                                            color: "#219ebc",
-                                            borderRadius: "5px",
-                                            cursor: paginaActual === 1 ? "not-allowed" : "pointer",
-                                            opacity: paginaActual === 1 ? 0.5 : 1,
-                                            fontSize: "14px"
-                                        }}
-                                    >
-                                        Anterior
-                                    </button>
-
-                                    {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                                        const startPage = Math.max(1, paginaActual - 2);
-                                        const page = startPage + i;
-                                        if (page > totalPaginas) return null;
-
-                                        return (
-                                            <button
-                                                key={page}
-                                                onClick={() => setPaginaActual(page)}
-                                                style={{
-                                                    padding: "8px 12px",
-                                                    border: "1px solid #219ebc",
-                                                    background: paginaActual === page ? "#219ebc" : "#fff",
-                                                    color: paginaActual === page ? "#fff" : "#219ebc",
-                                                    borderRadius: "5px",
-                                                    cursor: "pointer",
-                                                    fontSize: "14px",
-                                                    minWidth: "40px"
-                                                }}
-                                            >
-                                                {page}
-                                            </button>
-                                        );
-                                    })}
-
-                                    <button
-                                        onClick={() => setPaginaActual(Math.min(totalPaginas, paginaActual + 1))}
-                                        disabled={paginaActual === totalPaginas}
-                                        style={{
-                                            padding: "8px 12px",
-                                            border: "1px solid #219ebc",
-                                            background: "#fff",
-                                            color: "#219ebc",
-                                            borderRadius: "5px",
-                                            cursor: paginaActual === totalPaginas ? "not-allowed" : "pointer",
-                                            opacity: paginaActual === totalPaginas ? 0.5 : 1,
-                                            fontSize: "14px"
-                                        }}
-                                    >
-                                        Siguiente
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
+          <button
+            onClick={onClose}
+            aria-label="Cerrar"
+            title="Cerrar"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: "999px",
+              border: "1px solid #e5e7eb",
+              background: "#f9fafb",
+              cursor: "pointer",
+              fontSize: 18,
+              fontWeight: 700,
+              lineHeight: 1,
+              display: "grid",
+              placeItems: "center",
+              color: "#0f172a",
+              boxShadow: "0 1px 6px rgba(0,0,0,.06)",
+            }}
+          >
+            ✕
+          </button>
         </div>
-    );
+
+        <h3 style={{ marginBottom: 12, fontSize: 28, textAlign: "center" }}>
+          Detalle de la Inducción
+        </h3>
+
+        {/* === INFORMACIÓN PRINCIPAL === */}
+        <Section title="Información de la Inducción">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 14,
+            }}
+          >
+            <div style={infoBoxStyle}>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  textTransform: "uppercase",
+                  color: "#6b7280",
+                  marginBottom: 6,
+                }}
+              >
+                Nombre
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>
+                {induccion.nombre || "-"}
+              </div>
+            </div>
+
+            <div style={infoBoxStyle}>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  textTransform: "uppercase",
+                  color: "#6b7280",
+                  marginBottom: 6,
+                }}
+              >
+                Fecha de Inicio
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>
+                {formatDate(induccion.fechainicio)}
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* === DOCUMENTOS === */}
+        <Section title="Documentos Asignados (Activos)">
+          {documentos.length === 0 ? (
+            <div
+              style={{
+                background: "#f9fafb",
+                border: "1px dashed #e5e7eb",
+                borderRadius: 12,
+                padding: 14,
+                color: "#6b7280",
+                textAlign: "center",
+              }}
+            >
+              No hay documentos activos asignados.
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 10 }}>
+              {documentos.map((doc, i) => (
+                <div key={i} style={infoBoxStyle}>
+                  <a
+                    href={doc.archivo_url}
+                    download={doc.nombrearchivo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "#2563eb",
+                      textDecoration: "underline",
+                      fontWeight: 600,
+                      fontSize: 15,
+                    }}
+                  >
+                    {doc.nombrearchivo}.pdf
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        {/* === EMPLEADOS === */}
+        <Section title="Empleados Asignados (Activos)">
+          {empleados.length === 0 ? (
+            <div
+              style={{
+                background: "#f9fafb",
+                border: "1px dashed #e5e7eb",
+                borderRadius: 12,
+                padding: 14,
+                color: "#6b7280",
+                textAlign: "center",
+              }}
+            >
+              No hay empleados activos asignados.
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 10,
+              }}
+            >
+              {empleados.map((emp, i) => (
+                <div key={i} style={infoBoxStyle}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 15,
+                      color: "#1f2937",
+                    }}
+                  >
+                    {getEmpleadoNombre(emp)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      </div>
+    </div>
+  );
 };
 
 export default DocumentosAsignadosModal;

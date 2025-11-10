@@ -6,17 +6,23 @@ import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import AsistenciaModal from "../../components/confirmarasistencia/AsistenciaModal.jsx";
-import CapacitacionesSection from "./CapacitacionesSection.jsx";
 import InfoPersonal from "./InfoPersonal.jsx";
+import CapacitacionesSection from "./CapacitacionesSection.jsx";
+import InduccionesSection from "./InduccionesSection.jsx";
+import ModalDocumentos from "./ModalDocumentos.jsx";
+import AsistenciaModal from "../../components/confirmarasistencia/AsistenciaModal.jsx";
 
 const API = "http://127.0.0.1:8000/api";
 
 const PerfilContainer = () => {
   const [empleado, setEmpleado] = useState(null);
   const [capacitacionesInfo, setCapacitacionesInfo] = useState([]);
+  const [induccionesAsignadas, setInduccionesAsignadas] = useState([]);
   const [showAsistenciaModal, setShowAsistenciaModal] = useState(false);
   const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [documentosModal, setDocumentosModal] = useState([]);
+  const [induccionSeleccionada, setInduccionSeleccionada] = useState(null);
 
   useEffect(() => {
     const fetchPerfil = async () => {
@@ -24,22 +30,37 @@ const PerfilContainer = () => {
         const idUsuario = Number(sessionStorage.getItem("idUsuario"));
         if (!idUsuario) return;
 
+        // Obtener usuario logueado
         const resUsuarios = await axios.get(`${API}/usuarios/`);
-        const usuarioActual = resUsuarios.data.results.find(u => u.idusuario === idUsuario);
+        const usuarioActual = resUsuarios.data.results
+          ? resUsuarios.data.results.find((u) => u.idusuario === idUsuario)
+          : resUsuarios.data.find((u) => u.idusuario === idUsuario);
+
         if (!usuarioActual) {
           showToast("Usuario no encontrado", "error");
           return;
         }
 
+        // Obtener empleado asociado
         const resEmpleados = await axios.get(`${API}/empleados/`);
-        const empleadoActual = resEmpleados.data.results.find(e => e.idempleado === usuarioActual.idempleado);
-        setEmpleado(empleadoActual);
+        const empleadoActual = resEmpleados.data.results
+          ? resEmpleados.data.results.find(
+              (e) => e.idempleado === usuarioActual.idempleado
+            )
+          : resEmpleados.data.find(
+              (e) => e.idempleado === usuarioActual.idempleado
+            );
+
         if (!empleadoActual) {
           showToast("No se encontró el colaborador asociado al usuario", "error");
           return;
         }
 
+        setEmpleado(empleadoActual);
+
+        // Cargar datos relacionados
         await cargarCapacitaciones(empleadoActual.idempleado);
+        await cargarInduccionesEmpleado(empleadoActual.idempleado);
       } catch (error) {
         console.error(error);
         showToast("Error al cargar datos del perfil", "error");
@@ -49,44 +70,145 @@ const PerfilContainer = () => {
     fetchPerfil();
   }, []);
 
-  //   Corrige fechas y toma correctamente la fechaenvio
+  // 🔹 Cargar capacitaciones
   const cargarCapacitaciones = async (idEmpleado) => {
-  try {
-    const resCap = await axios.get(`${API}/empleadocapacitacion/`);
-    const capsEmpleado = resCap.data.results
-      ? resCap.data.results.filter(c => c.idempleado === idEmpleado)
-      : resCap.data.filter(c => c.idempleado === idEmpleado);
+    try {
+      const resCap = await axios.get(`${API}/empleadocapacitacion/`);
+      const capsEmpleado = resCap.data.results
+        ? resCap.data.results.filter((c) => c.idempleado === idEmpleado)
+        : resCap.data.filter((c) => c.idempleado === idEmpleado);
 
-    const resCapsInfo = await axios.get(`${API}/capacitaciones/`);
-    const listaCapacitaciones = resCapsInfo.data.results || resCapsInfo.data;
+      const resCapsInfo = await axios.get(`${API}/capacitaciones/`);
+      const listaCapacitaciones = resCapsInfo.data.results || resCapsInfo.data;
 
-    const info = capsEmpleado.map(c => {
-      const idCap = typeof c.idcapacitacion === "object"
-        ? c.idcapacitacion.idcapacitacion
-        : c.idcapacitacion;
+      const info = capsEmpleado.map((c) => {
+        const idCap =
+          typeof c.idcapacitacion === "object"
+            ? c.idcapacitacion.idcapacitacion
+            : c.idcapacitacion;
 
-      const cap = listaCapacitaciones.find(ci => ci.idcapacitacion === idCap);
+        const cap = listaCapacitaciones.find(
+          (ci) => ci.idcapacitacion === idCap
+        );
 
-      return {
-        ...c,
-        idcapacitacion: idCap,
-        nombre: cap?.nombreevento || "N/A",
-        lugar: cap?.lugar || "N/A",
-        fechaInicio: cap?.fechainicio || "-",   // 🔹 fecha de inicio
-        fechaFin: cap?.fechafin || "-",         // 🔹 fecha de fin
-        observacion: cap?.observacion || "-",
-      };
-    });
+        return {
+          ...c,
+          idcapacitacion: idCap,
+          nombre: cap?.nombreevento || "N/A",
+          lugar: cap?.lugar || "N/A",
+          fechaInicio: cap?.fechainicio || "-",
+          fechaFin: cap?.fechafin || "-",
+          observacion: cap?.observacion || "-",
+        };
+      });
 
-    setCapacitacionesInfo(info);
-  } catch (error) {
-    console.error(error);
-    showToast("Error al cargar capacitaciones", "error");
-  }
-};
+      setCapacitacionesInfo(info);
+    } catch (error) {
+      console.error(error);
+      showToast("Error al cargar capacitaciones", "error");
+    }
+  };
 
+  // 🔹 Cargar inducciones asignadas al empleado
+  const cargarInduccionesEmpleado = async (idEmpleado) => {
+    try {
+      const resInducciones = await axios.get(`${API}/inducciones/`);
+      const listaInducciones = resInducciones.data.results || resInducciones.data;
 
-  //   Nueva versión: sin errores por zona horaria
+      const resDocs = await axios.get(`${API}/inducciondocumentos/`);
+      const listaDocs = resDocs.data.results || resDocs.data;
+
+      const induccionesEmpleado = listaDocs
+        .filter(
+          (doc) =>
+            doc.idempleado === idEmpleado &&
+            doc.estado === true &&
+            doc.idinduccion
+        )
+        .map((doc) => {
+          const induccion =
+            typeof doc.idinduccion === "object"
+              ? doc.idinduccion
+              : listaInducciones.find(
+                  (i) => i.idinduccion === doc.idinduccion
+                );
+          return induccion;
+        })
+        .filter(
+          (ind, index, self) =>
+            ind && index === self.findIndex((i) => i.idinduccion === ind.idinduccion)
+        );
+
+      setInduccionesAsignadas(induccionesEmpleado);
+    } catch (error) {
+      console.error("Error al cargar inducciones:", error);
+      showToast("Error al cargar inducciones asignadas", "error");
+    }
+  };
+
+  // 🔹 Ver documentos asignados a una inducción (descarga funcional)
+  const handleVerDocumentos = async (induccion) => {
+    try {
+      setInduccionSeleccionada(induccion);
+
+      const resDocs = await axios.get(`${API}/inducciondocumentos/`);
+      const docsEmpleado = resDocs.data.results || resDocs.data;
+
+      const documentosRelacionados = docsEmpleado.filter(
+        (d) =>
+          d.idinduccion === induccion.idinduccion &&
+          d.idempleado === empleado.idempleado &&
+          d.estado === true
+      );
+
+      if (documentosRelacionados.length === 0) {
+        showToast("No hay documentos asignados para esta inducción", "info");
+        setDocumentosModal([]);
+        setModalVisible(true);
+        return;
+      }
+
+      // Obtener metadatos de los documentos
+      const docsData = await Promise.all(
+        documentosRelacionados.map(async (d) => {
+          const resDoc = await axios.get(`${API}/documentos/${d.iddocumento}/`);
+          return resDoc.data;
+        })
+      );
+
+      // Añadir un método directo de descarga
+      const docsConDescarga = docsData.map((doc) => ({
+        ...doc,
+        descargar: async () => {
+          try {
+            const response = await fetch(`http://127.0.0.1:8000${doc.archivo}`);
+            if (!response.ok) throw new Error("Error al descargar el archivo");
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = doc.nombrearchivo || "documento.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+          } catch (err) {
+            console.error("Error al descargar:", err);
+            showToast("No se pudo descargar el documento", "error");
+          }
+        },
+      }));
+
+      setDocumentosModal(docsConDescarga);
+      setModalVisible(true);
+    } catch (error) {
+      console.error("Error al cargar documentos:", error);
+      showToast("Error al cargar documentos", "error");
+    }
+  };
+
+  // 🔹 Formatear fecha
   const formatFecha = (fecha) => {
     if (!fecha) return "-";
     const partes = fecha.split("-");
@@ -95,10 +217,17 @@ const PerfilContainer = () => {
     return `${day}-${month}-${year}`;
   };
 
-  // 🔹 Actualización de asistencia + idDocumento opcional
-  const actualizarCapacitacion = async (id, asistenciaBool, observacion = "", idDocumento = null) => {
+  // 🔹 Actualizar asistencia (capacitaciones)
+  const actualizarCapacitacion = async (
+    id,
+    asistenciaBool,
+    observacion = "",
+    idDocumento = null
+  ) => {
     try {
-      const cap = capacitacionesInfo.find(c => c.idempleadocapacitacion === id);
+      const cap = capacitacionesInfo.find(
+        (c) => c.idempleadocapacitacion === id
+      );
       if (!cap) return;
 
       const idUsuario = Number(sessionStorage.getItem("idUsuario"));
@@ -106,16 +235,19 @@ const PerfilContainer = () => {
         idempleado: cap.idempleado,
         idcapacitacion: cap.idcapacitacion,
         asistencia: asistenciaBool ? "Sí" : "No",
-        observacion: observacion || (asistenciaBool ? "Asistió" : "Inasistencia Justificada"),
-        //   Guarda la fecha actual correctamente (sin desfase)
+        observacion:
+          observacion || (asistenciaBool ? "Asistió" : "Inasistencia Justificada"),
         fechaenvio: new Date().toISOString().split("T")[0],
         estado: true,
         idusuario: idUsuario,
-        iddocumento: idDocumento
+        iddocumento: idDocumento,
       };
 
       await axios.put(`${API}/empleadocapacitacion/${id}/`, payload);
-      showToast(asistenciaBool ? "Asistencia registrada" : "Inasistencia justificada", "success");
+      showToast(
+        asistenciaBool ? "Asistencia registrada" : "Inasistencia justificada",
+        "success"
+      );
 
       if (empleado) await cargarCapacitaciones(empleado.idempleado);
     } catch (error) {
@@ -130,6 +262,7 @@ const PerfilContainer = () => {
       <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <Header />
+
           <main
             className="main-content site-wrapper-reveal"
             style={{
@@ -138,31 +271,56 @@ const PerfilContainer = () => {
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: "#EEF2F7",
-              padding: "48px 20px 8rem"
+              padding: "48px 20px 8rem",
             }}
           >
             <div style={{ width: "min(1100px, 96vw)" }}>
-              <h2 style={{ textAlign: "center", marginBottom: "30px", color: "#023047" }}>
+              <h2
+                style={{
+                  textAlign: "center",
+                  marginBottom: "30px",
+                  color: "#023047",
+                }}
+              >
                 Perfil de {empleado ? empleado.nombre : "Cargando..."}
               </h2>
 
               {empleado && (
                 <>
                   <InfoPersonal empleado={empleado} formatFecha={formatFecha} />
+
+                  {/* 📘 Capacitaciones */}
                   <CapacitacionesSection
                     capacitacionesInfo={capacitacionesInfo}
                     formatFecha={formatFecha}
                     setCapacitacionSeleccionada={setCapacitacionSeleccionada}
                     setShowAsistenciaModal={setShowAsistenciaModal}
                   />
+
+                  {/* 📗 Inducciones */}
+                  <InduccionesSection
+                    induccionesAsignadas={induccionesAsignadas}
+                    formatFecha={formatFecha}
+                    onVerDocumentos={handleVerDocumentos}
+                  />
                 </>
               )}
             </div>
           </main>
+
           <Footer />
           <ScrollToTop />
         </div>
 
+        {/* 📂 Modal de documentos de inducción */}
+        <ModalDocumentos
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          documentos={documentosModal}
+          induccionNombre={induccionSeleccionada?.nombre}
+        />
+
+        {/* 📘 Modal de asistencia a capacitaciones */}
         <AsistenciaModal
           show={showAsistenciaModal}
           onClose={() => setShowAsistenciaModal(false)}
