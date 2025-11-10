@@ -1,301 +1,240 @@
-// containers/criterioevaluacion/index.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Layout from "../../layouts/index.jsx";
-import Header from "../../layouts/header/index.jsx";
-import Footer from "../../layouts/footer/index.jsx";
-import ScrollToTop from "../../components/scroll-to-top/index.jsx";
-import SEO from "../../components/seo/index.jsx";
+import Layout from "../../layouts";
+import Header from "../../layouts/header";
+import Footer from "../../layouts/footer";
+import ScrollToTop from "../../components/scroll-to-top";
+import SEO from "../../components/seo";
+import { showToast } from "../../utils/toast.js";
+import { buttonStyles } from "../../stylesGenerales/buttons.js";
+import CriterioTable from "./CriterioTable.jsx";
+import CriterioForm from "./CriterioForm.jsx";
+
+const API = "http://127.0.0.1:8000/api";
 
 const CriterioEvaluacionContainer = () => {
-    const [nombreCriterio, setNombreCriterio] = useState("");
-    const [descripcionCriterio, setDescripcionCriterio] = useState("");
-    const [estadoActivo, setEstadoActivo] = useState(true);
-    const [mensaje, setMensaje] = useState("");
-    const [criterios, setCriterios] = useState([]);
-    const [editingId, setEditingId] = useState(null);
+  const [criterios, setCriterios] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [elementosPorPagina, setElementosPorPagina] = useState(5);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchCriterios();
-    }, []);
+  const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroVariable, setFiltroVariable] = useState("");
+  const [variables, setVariables] = useState([]);
+  const [tipos, setTipos] = useState([]);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
-    const fetchCriterios = async () => {
-        try {
-            const res = await axios.get("http://127.0.0.1:8000/api/criterioevaluacion/ ");
-            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
-            setCriterios(data);
-        } catch (error) {
-            console.error("Error al cargar criterios:", error);
-            setCriterios([]);
-            setMensaje("Error al cargar los criterios");
-        }
+  // 🔹 Cargar todos los datos
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [resCriterios, resVars, resTipos] = await Promise.all([
+          axios.get(`${API}/criterio/`),
+          axios.get(`${API}/variables/`),
+          axios.get(`${API}/tipoevaluacion/`),
+        ]);
+
+        const criteriosData = resCriterios.data.results || resCriterios.data || [];
+        const varsData = resVars.data.results || resVars.data || [];
+        const tiposData = resTipos.data.results || resTipos.data || [];
+
+        setCriterios(criteriosData);
+        setVariables(varsData);
+        setTipos(tiposData);
+      } catch (error) {
+        console.error("Error al cargar criterios:", error);
+        showToast("Error al cargar los criterios de evaluación", "error");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handleSubmit = async e => {
-        e.preventDefault();
-        try {
-            const data = {
-                nombrecriterio: nombreCriterio,
-                descripcioncriterio: descripcionCriterio,
-                estado: estadoActivo,
-                idusuario: 1 // reemplazar con usuario logueado
-            };
+    fetchData();
+  }, []);
 
-            if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/criterioevaluacion/ ${editingId}/`, data);
-                setMensaje("Criterio actualizado correctamente");
-            } else {
-                await axios.post("http://127.0.0.1:8000/api/criterioevaluacion/ ", data);
-                setMensaje("Criterio registrado correctamente");
-            }
+  // 🔹 Filtrado principal basado en IDs
+  const criteriosFiltrados = criterios.filter((c) => {
+    const variable = variables.find((v) => v.idvariable === c.idvariable);
+    const tipoId = variable?.idtipoevaluacion;
 
-            setNombreCriterio("");
-            setDescripcionCriterio("");
-            setEstadoActivo(true);
-            setEditingId(null);
-            fetchCriterios();
-        } catch (error) {
-            console.error("Error al guardar criterio:", error.response?.data || error);
-            setMensaje("Error al registrar el criterio");
-        }
-    };
+    if (filtroTipo && tipoId !== Number(filtroTipo)) return false;
+    if (filtroVariable && c.idvariable !== Number(filtroVariable)) return false;
 
-    const handleEdit = criterio => {
-        setNombreCriterio(criterio.nombrecriterio);
-        setDescripcionCriterio(criterio.descripcioncriterio);
-        setEstadoActivo(criterio.estado);
-        setEditingId(criterio.idcriterioevaluacion);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    const handleDelete = async id => {
-        if (!window.confirm("¿Está seguro de desactivar este criterio?")) return;
-        try {
-            const crit = criterios.find(c => c.idcriterioevaluacion === id);
-            if (!crit) return;
-
-            await axios.put(`http://127.0.0.1:8000/api/criterioevaluacion/ ${id}/`, {
-                ...crit,
-                estado: false
-            });
-
-            setMensaje("Criterio desactivado correctamente");
-            fetchCriterios();
-        } catch (error) {
-            console.error("Error al desactivar criterio:", error.response?.data || error);
-            setMensaje("Error al desactivar el criterio");
-        }
-    };
-
-    const handleActivate = async id => {
-        try {
-            const crit = criterios.find(c => c.idcriterioevaluacion === id);
-            if (!crit) return;
-
-            await axios.put(`http://127.0.0.1:8000/api/criterioevaluacion/ ${id}/`, {
-                ...crit,
-                estado: true
-            });
-
-            setMensaje("Criterio activado correctamente");
-            fetchCriterios();
-        } catch (error) {
-            console.error("Error al activar criterio:", error.response?.data || error);
-            setMensaje("Error al activar el criterio");
-        }
-    };
-
+    const texto = busqueda.toLowerCase().trim();
     return (
-        <Layout>
-            <SEO title="Criterios de Evaluación" />
-            <div className="wrapper" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-                <Header />
-
-                <main style={{ flex: 1, padding: "60px 20px", background: "#f0f2f5" }}>
-                    <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-                        {/* --- FORMULARIO --- */}
-                        <div
-                            style={{
-                                background: "#fff",
-                                padding: "40px",
-                                borderRadius: "12px",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                                marginBottom: "40px"
-                            }}
-                        >
-                            <h2 style={{ textAlign: "center", marginBottom: "30px" }}>
-                                {editingId ? "Editar Criterio" : "Registrar nuevo Criterio"}
-                            </h2>
-                            {mensaje && (
-                                <p
-                                    style={{
-                                        textAlign: "center",
-                                        color: mensaje.includes("Error") ? "red" : "green",
-                                        marginBottom: "20px",
-                                        fontWeight: "bold"
-                                    }}
-                                >
-                                    {mensaje}
-                                </p>
-                            )}
-                            <form onSubmit={handleSubmit}>
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label>Nombre del Criterio</label>
-                                    <input
-                                        type="text"
-                                        value={nombreCriterio}
-                                        onChange={e => setNombreCriterio(e.target.value)}
-                                        required
-                                        style={{ width: "100%", padding: "10px" }}
-                                    />
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label>Descripción</label>
-                                    <input
-                                        type="text"
-                                        value={descripcionCriterio}
-                                        onChange={e => setDescripcionCriterio(e.target.value)}
-                                        required
-                                        style={{ width: "100%", padding: "10px" }}
-                                    />
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={estadoActivo}
-                                        onChange={e => setEstadoActivo(e.target.checked)}
-                                    />{" "}
-                                    Activo
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    style={{
-                                        width: "100%",
-                                        padding: "12px",
-                                        background: "#007bff",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        fontWeight: "bold",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    {editingId ? "Actualizar" : "Guardar"}
-                                </button>
-                            </form>
-                        </div>
-
-                        {/* --- TABLA --- */}
-                        <div
-                            style={{
-                                background: "#fff",
-                                borderRadius: "12px",
-                                padding: "20px 30px",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                                maxHeight: "600px",
-                                overflowY: "auto"
-                            }}
-                        >
-                            <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
-                                Criterios de Evaluación Registrados
-                            </h3>
-                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Nombre</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Descripción</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Estado</th>
-                                        <th style={{ borderBottom: "2px solid #eee", padding: "10px" }}>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {criterios.length > 0 ? (
-                                        criterios.map(c => (
-                                            <tr key={c.idcriterioevaluacion}>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
-                                                    {c.nombrecriterio}
-                                                </td>
-                                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
-                                                    {c.descripcioncriterio}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        padding: "10px",
-                                                        textAlign: "center",
-                                                        color: c.estado ? "green" : "red",
-                                                        fontWeight: "600"
-                                                    }}
-                                                >
-                                                    {c.estado ? "Activo" : "Inactivo"}
-                                                </td>
-                                                <td style={{ padding: "10px", textAlign: "center" }}>
-                                                    <button
-                                                        onClick={() => handleEdit(c)}
-                                                        style={{
-                                                            padding: "6px 14px",
-                                                            background: " #FED7AA",
-                                                            color: "#fff",
-                                                            border: "none",
-                                                            borderRadius: "5px",
-                                                            marginRight: "6px",
-                                                            cursor: "pointer"
-                                                        }}
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    {c.estado ? (
-                                                        <button
-                                                            onClick={() => handleDelete(c.idcriterioevaluacion)}
-                                                            style={{
-                                                                padding: "6px 14px",
-                                                                background: "#F87171",
-                                                                color: "#fff",
-                                                                border: "none",
-                                                                borderRadius: "5px",
-                                                                cursor: "pointer"
-                                                            }}
-                                                        >
-                                                            Desactivar
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => handleActivate(c.idcriterioevaluacion)}
-                                                            style={{
-                                                                padding: "6px 14px",
-                                                                background: "#28a745",
-                                                                color: "#fff",
-                                                                border: "none",
-                                                                borderRadius: "5px",
-                                                                cursor: "pointer"
-                                                            }}
-                                                        >
-                                                            Activar
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="4" style={{ textAlign: "center", padding: "20px" }}>
-                                                No hay criterios registrados
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </main>
-
-                <Footer />
-                <ScrollToTop />
-            </div>
-        </Layout>
+      c.nombrecriterio?.toLowerCase().includes(texto) ||
+      c.descripcioncriterio?.toLowerCase().includes(texto)
     );
+  });
+
+  // 🔹 Paginación
+  const indexOfLast = paginaActual * elementosPorPagina;
+  const indexOfFirst = indexOfLast - elementosPorPagina;
+  const criteriosPaginados = criteriosFiltrados.slice(indexOfFirst, indexOfLast);
+  const totalPaginas = Math.ceil(criteriosFiltrados.length / elementosPorPagina);
+
+  // 🔹 Activar / Desactivar
+  const handleActivate = async (criterio) => {
+    try {
+      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+      await axios.put(`${API}/criterio/${criterio.idcriterio}/`, {
+        nombrecriterio: criterio.nombrecriterio,
+        descripcioncriterio: criterio.descripcioncriterio,
+        estado: true,
+        idusuario: idUsuario,
+        idvariable: criterio.idvariable,
+      });
+      showToast("Criterio activado correctamente");
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      showToast("Error al activar el criterio", "error");
+    }
+  };
+
+  const handleDelete = async (criterio) => {
+    try {
+      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+      await axios.put(`${API}/criterio/${criterio.idcriterio}/`, {
+        nombrecriterio: criterio.nombrecriterio,
+        descripcioncriterio: criterio.descripcioncriterio,
+        estado: false,
+        idusuario: idUsuario,
+        idvariable: criterio.idvariable,
+      });
+      showToast("Criterio desactivado correctamente");
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      showToast("Error al desactivar el criterio", "error");
+    }
+  };
+
+  const handleEdit = (criterio) => {
+    showToast("Función de edición disponible próximamente", "info");
+    console.log("Editar criterio:", criterio);
+  };
+
+  const handleNuevoCriterio = () => {
+    showToast("Formulario para crear un nuevo criterio próximamente 🛠️", "info");
+  };
+
+  return (
+    <Layout>
+      <SEO title="Criterios de Evaluación" />
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Header />
+          <main
+            className="main-content site-wrapper-reveal"
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#EEF2F7",
+              padding: "48px 20px 8rem",
+            }}
+          >
+            <div style={{ width: "min(1100px, 96vw)" }}>
+              <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
+                Criterios de Evaluación Institucional
+              </h2>
+
+              {/* Buscador y botón nuevo — igual que Idiomas */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "15px",
+                  alignItems: "center",
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Buscar criterio..."
+                  value={busqueda}
+                  onChange={(e) => {
+                    setBusqueda(e.target.value);
+                    setPaginaActual(1);
+                  }}
+                  style={buttonStyles.buscador}
+                />
+
+                <button
+                  onClick={() => setMostrarFormulario(true)}
+                  style={buttonStyles.nuevo}
+                >
+                  Nuevo Criterio
+                </button>
+              </div>
+
+              {loading ? (
+                <p style={{ textAlign: "center", color: "#777" }}>
+                  Cargando criterios...
+                </p>
+              ) : (
+                <CriterioTable
+                  criterios={criteriosPaginados}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                  handleActivate={handleActivate}
+                  paginaActual={paginaActual}
+                  totalPaginas={totalPaginas}
+                  setPaginaActual={setPaginaActual}
+                  busqueda={busqueda}
+                  setBusqueda={setBusqueda}
+                  filtroTipo={filtroTipo}
+                  setFiltroTipo={setFiltroTipo}
+                  filtroVariable={filtroVariable}
+                  setFiltroVariable={setFiltroVariable}
+                  variables={variables}
+                  tipos={tipos}
+                />
+              )}
+
+              {/* Config de paginación */}
+              <div style={{ marginTop: "20px", textAlign: "center" }}>
+                <label style={{ marginRight: "10px", fontWeight: "600" }}>
+                  Mostrar:
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={elementosPorPagina}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    const numero = val === "" ? "" : Number(val);
+                    setElementosPorPagina(numero > 0 ? numero : 1);
+                    setPaginaActual(1);
+                  }}
+                  onFocus={(e) => e.target.select()}
+                  style={{
+                    width: "80px",
+                    padding: "6px",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                    textAlign: "center",
+                  }}
+                />
+              </div>
+            </div>
+          </main>
+          <Footer />
+        </div>
+
+        {mostrarFormulario && (
+          <CriterioForm
+            onClose={() => setMostrarFormulario(false)}
+            variables={variables}
+            onSuccess={() => window.location.reload()}
+          />
+        )}
+        <ScrollToTop />
+      </div>
+    </Layout>
+  );
 };
 
 export default CriterioEvaluacionContainer;
