@@ -124,6 +124,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
       formData.append("idusuario", usuario.idusuario);
       formData.append("idtipodocumento", 3);
       formData.append("idempleado", idEmpleado);
+      formData.append("estado", true);
 
       if (editingAusencia?.iddocumento) {
         const respDoc = await axios.put(`${API}/documentos/${editingAusencia.iddocumento}/`, formData, {
