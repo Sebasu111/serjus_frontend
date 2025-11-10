@@ -154,63 +154,73 @@ const AusenciaContainer = () => {
   };
 
 // Guardar o actualizar ausencia
+// Guardar o actualizar ausencia
 const handleSubmit = async (dataAusencia, idAusencia) => {
-  try {
-    
-    if (
-      (!dataAusencia.cantidad_dias || dataAusencia.cantidad_dias <= 0) &&
-      dataAusencia.fechainicio &&
-      dataAusencia.fechafin
-    ) {
-      const fi = new Date(dataAusencia.fechainicio);
-      const ff = new Date(dataAusencia.fechafin);
-      const diff = Math.ceil((ff - fi) / (1000 * 60 * 60 * 24)) + 1;
-      dataAusencia.cantidad_dias = diff > 0 ? diff : 1;
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Asegurar estado = true
+      dataAusencia.estado = true;
+
+      if (
+        (!dataAusencia.cantidad_dias || dataAusencia.cantidad_dias <= 0) &&
+        dataAusencia.fechainicio &&
+        dataAusencia.fechafin
+      ) {
+        const fi = new Date(dataAusencia.fechainicio);
+        const ff = new Date(dataAusencia.fechafin);
+        const diff = Math.ceil((ff - fi) / (1000 * 60 * 60 * 24)) + 1;
+        dataAusencia.cantidad_dias = diff > 0 ? diff : 1;
+      }
+
+      const empleadoId = Number(dataAusencia.idempleado);
+      const nuevaInicio = new Date(dataAusencia.fechainicio);
+      const nuevaFin = new Date(dataAusencia.fechafin);
+
+      const conflictos = ausencias.filter((a) => {
+        const activa = a.estado === true || a.estado === 1 || a.estado === "true";
+        if (!activa) return false;
+        if (a.idausencia === idAusencia) return false;
+
+        const idExistente =
+          typeof a.idempleado === "object"
+            ? Number(a.idempleado.idempleado)
+            : Number(a.idempleado);
+
+        if (idExistente !== empleadoId) return false;
+
+        const inicioExistente = new Date(a.fechainicio);
+        const finExistente = new Date(a.fechafin);
+        return nuevaInicio <= finExistente && nuevaFin >= inicioExistente;
+      });
+
+      if (conflictos.length > 0) {
+        showToast(
+          "El colaborador ya tiene una ausencia activa que se solapa con las fechas ingresadas.",
+          "warning"
+        );
+        return reject(new Error("Fechas en conflicto"));
+      }
+
+      if (idAusencia) {
+        await axios.put(`${API}/ausencias/${idAusencia}/`, dataAusencia);
+      } else {
+        await axios.post(`${API}/ausencias/`, dataAusencia);
+      }
+
+      // 🔄 Actualizamos UI
+      setEditingAusencia(null);
+      setMostrarFormulario(false);
+      fetchAusencias();
+
+      resolve(); // ✅ Solo resolvemos si todo fue exitoso
+    } catch (error) {
+      console.error(error);
+      showToast("Error al guardar la ausencia", "error");
+      reject(error); // ❌ Indicamos al form que falló
     }
-
-    // Verificar que no existan ausencias ACTIVAS solapadas
-    const empleadoId = dataAusencia.idempleado;
-    const nuevaInicio = new Date(dataAusencia.fechainicio);
-    const nuevaFin = new Date(dataAusencia.fechafin);
-
-    const conflictos = ausencias.filter((a) => {
-      const activa = a.estado === true || a.estado === 1 || a.estado === "true";
-      if (!activa) return false; 
-      if (a.idausencia === idAusencia) return false; 
-      if (a.idempleado !== empleadoId) return false; 
-
-      const inicioExistente = new Date(a.fechainicio);
-      const finExistente = new Date(a.fechafin);
-
-      return (
-        nuevaInicio <= finExistente && nuevaFin >= inicioExistente
-      );
-    });
-
-    if (conflictos.length > 0) {
-      showToast(
-        "El colaborador ya tiene una ausencia activa que se solapa con las fechas ingresadas.",
-        "warning"
-      );
-      return; 
-    }
-
-    if (idAusencia) {
-      await axios.put(`${API}/ausencias/${idAusencia}/`, dataAusencia);
-      showToast("Ausencia actualizada correctamente");
-    } else {
-      await axios.post(`${API}/ausencias/`, dataAusencia);
-      showToast("Ausencia registrada correctamente");
-    }
-
-    setEditingAusencia(null);
-    setMostrarFormulario(false);
-    fetchAusencias();
-  } catch (error) {
-    console.error(error);
-    showToast("Error al guardar la ausencia", "error");
-  }
+  });
 };
+
 
 
   // Editar
