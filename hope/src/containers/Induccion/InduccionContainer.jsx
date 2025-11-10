@@ -28,28 +28,28 @@ const InduccionContainer = () => {
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
 
-    // Nuevo estado para el modal de gestionar documentos
     const [mostrarGestionarDocumentos, setMostrarGestionarDocumentos] = useState(false);
     const [induccionSeleccionada, setInduccionSeleccionada] = useState(null);
 
-    // Nuevo estado para el modal de documentos asignados
     const [mostrarDocumentosAsignados, setMostrarDocumentosAsignados] = useState(false);
     const [induccionParaDocumentos, setInduccionParaDocumentos] = useState(null);
 
     useEffect(() => {
         fetchAll();
-        // Inicializar fecha de inicio con fecha actual
-        const fechaActual = new Date().toISOString().split('T')[0];
+        const fechaActual = new Date().toISOString().split("T")[0];
         setFechaInicio(fechaActual);
     }, []);
 
     const fetchAll = async () => {
         try {
             const res = await axios.get(API);
-            const raw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
-            // Normaliza a camelCase para la UI
+            const raw = Array.isArray(res.data)
+                ? res.data
+                : Array.isArray(res.data.results)
+                ? res.data.results
+                : [];
             const data = raw.map(r => ({
-                idinduccion: r.idinduccion ?? r.idinduccion ?? r.id,
+                idinduccion: r.idinduccion ?? r.id,
                 nombre: r.nombre,
                 fechainicio: r.fechainicio ?? r.fechaInicio,
                 estado: r.estado
@@ -64,7 +64,6 @@ const InduccionContainer = () => {
     const handleSubmit = async e => {
         e.preventDefault();
         try {
-            // validar duplicado de nombre (case-insensitive)
             const yaExiste = items.some(
                 i =>
                     (i.nombre || "").trim().toLowerCase() === nombre.trim().toLowerCase() &&
@@ -75,14 +74,12 @@ const InduccionContainer = () => {
                 return;
             }
 
-            // Obtener fecha actual para fecha de inicio
-            const fechaActual = new Date().toISOString().split('T')[0];
-
+            const fechaActual = new Date().toISOString().split("T")[0];
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+
             const payload = {
-                // payload en snake_case para DRF
-                nombre: nombre,
-                fechainicio: editingId ? fechainicio : fechaActual, // Si está editando, mantener la fecha original
+                nombre,
+                fechainicio: editingId ? fechainicio : fechaActual,
                 estado: Boolean(activoEditando),
                 idusuario: idUsuario
             };
@@ -95,7 +92,6 @@ const InduccionContainer = () => {
 
             showToast(editingId ? "Actualizado correctamente" : "Registrado correctamente");
             setNombre("");
-            // fechainicio se maneja automáticamente
             setEditingId(null);
             setActivoEditando(true);
             setMostrarFormulario(false);
@@ -166,36 +162,44 @@ const InduccionContainer = () => {
         }
     };
 
-    const handleGestionarDocumentos = (induccion) => {
+    const handleGestionarDocumentos = induccion => {
         setInduccionSeleccionada(induccion);
         setMostrarGestionarDocumentos(true);
     };
 
-    const handleDocumentosAsignados = (induccion) => {
+    const handleVerDetalle = induccion => {
         setInduccionParaDocumentos(induccion);
         setMostrarDocumentosAsignados(true);
     };
 
-    const formatDateForDisplay = (dateString) => {
+    const formatDateForDisplay = dateString => {
         if (!dateString) return "";
         const date = new Date(dateString);
         return date.toLocaleDateString("es-ES");
     };
 
-    const filtrados = items
-        // Ordenar alfabéticamente por nombre (A-Z)
-        .sort((a, b) => {
-            const nombreA = (a.nombre || "").toLowerCase();
-            const nombreB = (b.nombre || "").toLowerCase();
-            return nombreA.localeCompare(nombreB);
-        })
-        .filter(i => {
-            const t = busqueda.toLowerCase().trim();
-            const n = i.nombre?.toLowerCase() || "";
-            const fechaInicioStr = formatDateForDisplay(i.fechainicio).toLowerCase();
-            const e = i.estado ? "activo" : "inactivo";
-            return n.includes(t) || fechaInicioStr.includes(t) || e.startsWith(t);
-        });
+    const filtrados = [...items]
+
+  .sort((a, b) => {
+
+    const fechaA =
+      new Date(a.createdAt || a.created_at || a.fechainicio || "1900-01-01").getTime();
+    const fechaB =
+      new Date(b.createdAt || b.created_at || b.fechainicio || "1900-01-01").getTime();
+
+    if (isNaN(fechaA) && isNaN(fechaB)) return 0;
+    if (isNaN(fechaA)) return 1; 
+    if (isNaN(fechaB)) return -1;
+
+    return fechaB > fechaA ? -1 : fechaB < fechaA ? 1 : 0;
+  })
+  .filter((i) => {
+    const t = busqueda.toLowerCase().trim();
+    const n = i.nombre?.toLowerCase() || "";
+    const fechaInicioStr = formatDateForDisplay(i.fechainicio).toLowerCase();
+    const e = i.estado ? "activo" : "inactivo";
+    return n.includes(t) || fechaInicioStr.includes(t) || e.startsWith(t);
+  });
 
     const indexLast = paginaActual * elementosPorPagina;
     const indexFirst = indexLast - elementosPorPagina;
@@ -222,7 +226,7 @@ const InduccionContainer = () => {
                         <div style={{ width: "min(1100px, 96vw)" }}>
                             <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Inducciones</h2>
 
-                            {/* Buscador + Nuevo */}
+                            {/* Buscador */}
                             <div
                                 style={{
                                     display: "flex",
@@ -249,9 +253,8 @@ const InduccionContainer = () => {
                                 />
                                 <button
                                     onClick={() => {
-                                        // Resetear formulario para nuevo registro
                                         setNombre("");
-                                        const fechaActual = new Date().toISOString().split('T')[0];
+                                        const fechaActual = new Date().toISOString().split("T")[0];
                                         setFechaInicio(fechaActual);
                                         setEditingId(null);
                                         setActivoEditando(true);
@@ -264,27 +267,28 @@ const InduccionContainer = () => {
                                         border: "none",
                                         borderRadius: "8px",
                                         cursor: "pointer",
-                                        fontWeight: "600",
-                                        whiteSpace: "nowrap"
+                                        fontWeight: "600"
                                     }}
                                 >
                                     Nueva Inducción
                                 </button>
                             </div>
 
+                            {/* Tabla principal */}
                             <InduccionTable
                                 items={paginados}
                                 handleEdit={handleEdit}
                                 handleDelete={handleDelete}
                                 handleActivate={handleActivate}
                                 handleGestionarDocumentos={handleGestionarDocumentos}
-                                handleDocumentosAsignados={handleDocumentosAsignados}
+                                handleVerDetalle={handleVerDetalle} 
                                 paginaActual={paginaActual}
                                 totalPaginas={totalPaginas}
                                 setPaginaActual={setPaginaActual}
                                 formatDateForDisplay={formatDateForDisplay}
                             />
 
+                            {/* Selector de elementos por página */}
                             <div style={{ marginTop: "20px", textAlign: "center" }}>
                                 <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
                                 <input
@@ -292,12 +296,10 @@ const InduccionContainer = () => {
                                     min="1"
                                     value={elementosPorPagina}
                                     onChange={e => {
-                                        const val = e.target.value.replace(/\D/g, "");
-                                        const n = val === "" ? "" : Number(val);
-                                        setElementosPorPagina(n > 0 ? n : 1);
+                                        const n = Number(e.target.value) || 1;
+                                        setElementosPorPagina(n);
                                         setPaginaActual(1);
                                     }}
-                                    onFocus={e => e.target.select()}
                                     style={{
                                         width: "80px",
                                         padding: "10px",
@@ -312,50 +314,50 @@ const InduccionContainer = () => {
                     <Footer />
                 </div>
 
-                {mostrarFormulario && (
-                    <InduccionForm
-                        nombre={nombre}
-                        setNombre={setNombre}
-                        fechainicio={fechainicio}
-                        setFechaInicio={setFechaInicio}
-                        activoEditando={activoEditando}
-                        editingId={editingId}
-                        handleSubmit={handleSubmit}
-                        onClose={() => {
-                            setMostrarFormulario(false);
-                            // Resetear al cerrar
-                            setNombre("");
-                            setEditingId(null);
-                            setActivoEditando(true);
-                        }}
-                    />
-                )}
+                {/* === Formularios y modales === */}
+{mostrarFormulario && (
+  <InduccionForm
+    nombre={nombre}
+    setNombre={setNombre}
+    fechainicio={fechainicio}
+    setFechaInicio={setFechaInicio}
+    activoEditando={activoEditando}
+    editingId={editingId}
+    handleSubmit={handleSubmit}
+    onClose={() => {
+      setMostrarFormulario(false);
+      setNombre("");
+      setEditingId(null);
+      setActivoEditando(true);
+    }}
+  />
+)}
 
-                {mostrarConfirmacion && (
-                    <ConfirmModal
-                        registro={seleccionado}
-                        onConfirm={confirmarDesactivacion}
-                        onCancel={() => setMostrarConfirmacion(false)}
-                        tipo="inducción"
-                    />
-                )}
+{mostrarConfirmacion && (
+  <ConfirmModal
+    registro={seleccionado}
+    onConfirm={confirmarDesactivacion}
+    onCancel={() => setMostrarConfirmacion(false)}
+    tipo="inducción"
+  />
+)}
 
-                {mostrarGestionarDocumentos && (
-                    <GestionarDocumentosModal
-                        visible={mostrarGestionarDocumentos}
-                        onClose={() => setMostrarGestionarDocumentos(false)}
-                        induccion={induccionSeleccionada}
-                    />
-                )}
+{mostrarGestionarDocumentos && (
+  <GestionarDocumentosModal
+    onClose={() => setMostrarGestionarDocumentos(false)}
+    induccion={induccionSeleccionada}
+  />
+)}
 
-                {mostrarDocumentosAsignados && (
-                    <DocumentosAsignadosModal
-                        induccion={induccionParaDocumentos}
-                        onClose={() => setMostrarDocumentosAsignados(false)}
-                    />
-                )}
+{mostrarDocumentosAsignados && (
+  <DocumentosAsignadosModal
+    visible={mostrarDocumentosAsignados}
+    onClose={() => setMostrarDocumentosAsignados(false)}
+    induccion={induccionParaDocumentos}
+  />
+)}
 
-                <ScrollToTop />
+<ScrollToTop />
             </div>
         </Layout>
     );
