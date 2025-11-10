@@ -7,8 +7,8 @@ const InduccionTable = ({
     handleEdit,
     handleDelete,
     handleActivate,
-    handleGestionarDocumentos, // Nueva función
-    handleDocumentosAsignados, // Nueva función para ver documentos asignados
+    handleGestionarDocumentos,
+    handleVerDetalle, 
     paginaActual,
     totalPaginas,
     setPaginaActual,
@@ -17,7 +17,7 @@ const InduccionTable = ({
     const [openMenuId, setOpenMenuId] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
-    const [modoModal, setModoModal] = useState("desactivar"); // "desactivar" o "activar"
+    const [modoModal, setModoModal] = useState("desactivar");
 
     const toggleMenu = id => {
         setOpenMenuId(openMenuId === id ? null : id);
@@ -28,8 +28,6 @@ const InduccionTable = ({
         setModoModal(modo);
         setModalOpen(true);
     };
-
-
 
     return (
         <div
@@ -46,21 +44,33 @@ const InduccionTable = ({
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Nombre</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Fecha Inicio</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Estado</th>
-                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>
-                            Acciones
-                        </th>
+                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {items.length > 0 ? (
                         items.map(row => (
                             <tr key={row.idinduccion}>
-                                <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
+                                
+                                <td
+                                    style={{
+                                        padding: "10px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        cursor: "pointer",
+                                        color: "#2563eb",
+                                        fontWeight: "bold",
+                                        textDecoration: "none"
+                                    }}
+                                    onClick={() => handleVerDetalle && handleVerDetalle(row)}
+                                    title="Ver documentos y empleados asignados"
+                                >
                                     {row.nombre}
                                 </td>
+
                                 <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
                                     {formatDateForDisplay(row.fechainicio)}
                                 </td>
+
                                 <td
                                     style={{
                                         padding: "10px",
@@ -72,6 +82,7 @@ const InduccionTable = ({
                                 >
                                     {row.estado ? "Activo" : "Inactivo"}
                                 </td>
+
                                 <td style={{ padding: "10px", textAlign: "center", borderBottom: "1px solid #f0f0f0" }}>
                                     <div style={comboBoxStyles.container}>
                                         <button
@@ -80,6 +91,7 @@ const InduccionTable = ({
                                         >
                                             Opciones ▾
                                         </button>
+
                                         {openMenuId === row.idinduccion && (
                                             <div style={comboBoxStyles.menu.container}>
                                                 <div
@@ -96,15 +108,13 @@ const InduccionTable = ({
                                                         ...comboBoxStyles.menu.item.editar.base,
                                                         ...(row.estado ? {} : comboBoxStyles.menu.item.editar.disabled)
                                                     }}
-                                                    onClick={() => row.estado && handleGestionarDocumentos && handleGestionarDocumentos(row)}
+                                                    onClick={() =>
+                                                        row.estado &&
+                                                        handleGestionarDocumentos &&
+                                                        handleGestionarDocumentos(row)
+                                                    }
                                                 >
                                                     Gestionar Documentos
-                                                </div>
-                                                <div
-                                                    style={comboBoxStyles.menu.item.editar.base}
-                                                    onClick={() => handleDocumentosAsignados && handleDocumentosAsignados(row)}
-                                                >
-                                                    Documentos Asignados
                                                 </div>
                                                 {row.estado ? (
                                                     <div
