@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 import { X } from "lucide-react";
@@ -47,38 +47,11 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
       const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
       const asignaciones = res.data.results || res.data;
       const empleadosIdsAsignados = asignaciones
-        .filter(a => Number(a.idcapacitacion) === Number(idCapacitacion))
+        .filter(a => Number(a.idcapacitacion) === Number(idCapacitacion) && a.estado === true) // Solo activos
         .map(a => Number(a.idempleado));
       setEmpleadosSeleccionados(empleadosIdsAsignados);
     } catch (error) {
       console.error("Error al cargar colaboradores asignados:", error);
-    }
-  };
-
-  const desasignarEmpleado = async (idEmpleado) => {
-    try {
-      const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
-      const asignaciones = res.data.results || res.data;
-
-      const asignacion = asignaciones.find(
-        asig =>
-          Number(asig.idempleado) === Number(idEmpleado) &&
-          Number(asig.idcapacitacion) === Number(capacitacionSeleccionada)
-      );
-
-      if (asignacion) {
-        await axios.delete(`http://127.0.0.1:8000/api/empleadocapacitacion/${asignacion.id}/`);
-        showToast("Colaborador desasignado correctamente", "success");
-
-        // Actualizar la lista de empleados seleccionados
-        setEmpleadosSeleccionados(prev => prev.filter(id => id !== idEmpleado));
-
-        // Refrescar lista de asignados
-        fetchEmpleadosAsignados(capacitacionSeleccionada);
-      }
-    } catch (error) {
-      console.error("Error al desasignar colaborador:", error);
-      showToast("Error al desasignar colaborador", "error");
     }
   };
 
@@ -91,128 +64,132 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
   const handleSubmit = async e => {
     e.preventDefault();
 
-    if (!capacitacionSeleccionada || !empleadosSeleccionados.length) {
+    if (!capacitacionSeleccionada) {
       setShowError(true);
-      showToast("Complete todos los campos obligatorios", "warning");
+      showToast("Debe seleccionar una capacitación", "warning");
       return;
     }
 
     setShowError(false);
 
     try {
-      // Obtener la capacitación seleccionada para validar fechas
-      const capacitacionActual = capacitaciones.find(cap =>
-        Number(cap.idcapacitacion || cap.id) === Number(capacitacionSeleccionada)
-      );
-
-      if (!capacitacionActual) {
-        showToast("Error: No se pudo encontrar la capacitación seleccionada", "error");
-        return;
-      }
-
       const idUsuario = Number(sessionStorage.getItem("idUsuario") || 1);
+
+      // Obtener asignaciones existentes
       const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
       const asignacionesExistentes = res.data.results || res.data;
 
-      // Obtener todas las capacitaciones para validar conflictos
-      const resCapacitaciones = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
-      const todasCapacitaciones = resCapacitaciones.data.results || resCapacitaciones.data;
+      // Filtrar asignaciones activas de esta capacitación
+      const asignacionesActuales = asignacionesExistentes.filter(
+        asig => Number(asig.idcapacitacion) === Number(capacitacionSeleccionada) && asig.estado === true
+      );
 
-      let asignacionesRealizadas = 0;
-      let conflictos = [];
+      console.log("Asignaciones activas actuales:", asignacionesActuales);
+      console.log("Empleados seleccionados:", empleadosSeleccionados);
 
+      let operacionesRealizadas = 0;
+
+      // 1. Desactivar asignaciones que ya no están seleccionadas
+      for (const asignacion of asignacionesActuales) {
+        const empleadoSigueSeleccionado = empleadosSeleccionados.includes(Number(asignacion.idempleado));
+
+        if (!empleadoSigueSeleccionado) {
+          try {
+            const idAsignacion = asignacion.idempleadocapacitacion || asignacion.id;
+
+            console.log("Desactivando asignación:", {
+              idAsignacion,
+              idempleado: asignacion.idempleado,
+              idcapacitacion: asignacion.idcapacitacion
+            });
+
+            if (idAsignacion) {
+              // Usar PUT para desactivar en lugar de DELETE
+              const payload = {
+                ...asignacion,
+                estado: false,
+                idusuario: idUsuario
+              };
+
+              await axios.put(`http://127.0.0.1:8000/api/empleadocapacitacion/${idAsignacion}/`, payload);
+              operacionesRealizadas++;
+              console.log(`Asignación ${idAsignacion} desactivada exitosamente`);
+            }
+          } catch (error) {
+            console.error(`Error al desactivar asignación:`, error);
+            console.error("Datos de la asignación que falló:", asignacion);
+          }
+        } else {
+          console.log(`Empleado ${asignacion.idempleado} sigue seleccionado, no se desactiva`);
+        }
+      }
+
+      // 2. Agregar nuevas asignaciones o reactivar existentes
       for (const idEmpleado of empleadosSeleccionados) {
-        const yaAsignado = asignacionesExistentes.some(
-          asig =>
-            Number(asig.idempleado) === Number(idEmpleado) &&
+        const asignacionExistente = asignacionesExistentes.find(
+          asig => Number(asig.idempleado) === Number(idEmpleado) &&
             Number(asig.idcapacitacion) === Number(capacitacionSeleccionada)
         );
 
-        if (yaAsignado) continue;
+        if (asignacionExistente) {
+          // Si existe pero está desactivada, reactivarla
+          if (!asignacionExistente.estado) {
+            try {
+              const payload = {
+                ...asignacionExistente,
+                estado: true,
+                idusuario: idUsuario
+              };
 
-        // Validar conflictos de fechas para este empleado
-        const asignacionesEmpleado = asignacionesExistentes.filter(
-          asig => Number(asig.idempleado) === Number(idEmpleado)
-        );
-
-        const conflictosEmpleado = [];
-
-        for (const asignacion of asignacionesEmpleado) {
-          const capacitacionExistente = todasCapacitaciones.find(
-            cap => Number(cap.idcapacitacion || cap.id) === Number(asignacion.idcapacitacion)
-          );
-
-          if (capacitacionExistente && capacitacionExistente.estado === true) {
-            const fechaInicioExistente = new Date(capacitacionExistente.fechainicio);
-            const fechaFinExistente = new Date(capacitacionExistente.fechafin);
-            const fechaInicioNueva = new Date(capacitacionActual.fechainicio);
-            const fechaFinNueva = new Date(capacitacionActual.fechafin);
-
-            // Verificar si hay solapamiento de fechas
-            const hayConflicto = (
-              (fechaInicioNueva >= fechaInicioExistente && fechaInicioNueva <= fechaFinExistente) ||
-              (fechaFinNueva >= fechaInicioExistente && fechaFinNueva <= fechaFinExistente) ||
-              (fechaInicioExistente >= fechaInicioNueva && fechaInicioExistente <= fechaFinNueva)
-            );
-
-            if (hayConflicto) {
-              conflictosEmpleado.push({
-                empleadoId: idEmpleado,
-                capacitacionConflicto: capacitacionExistente.nombreevento,
-                fechas: `${fechaInicioExistente.toLocaleDateString()} - ${fechaFinExistente.toLocaleDateString()}`
-              });
+              const idAsignacion = asignacionExistente.idempleadocapacitacion || asignacionExistente.id;
+              await axios.put(`http://127.0.0.1:8000/api/empleadocapacitacion/${idAsignacion}/`, payload);
+              operacionesRealizadas++;
+              console.log(`Asignación ${idAsignacion} reactivada exitosamente`);
+            } catch (error) {
+              console.error("Error al reactivar asignación:", error);
             }
           }
+          // Si existe y está activa, no hacer nada
+        } else {
+          // No existe, crear nueva asignación
+          try {
+            const payload = {
+              idempleado: Number(idEmpleado),
+              idcapacitacion: Number(capacitacionSeleccionada),
+              fechaenvio: null,
+              asistencia: "no",
+              idusuario: idUsuario,
+              estado: true
+            };
+
+            await axios.post("http://127.0.0.1:8000/api/empleadocapacitacion/", payload);
+            operacionesRealizadas++;
+            console.log(`Nueva asignación creada para empleado ${idEmpleado}`);
+          } catch (error) {
+            console.error("Error al crear asignación:", error);
+          }
         }
-
-        if (conflictosEmpleado.length > 0) {
-          const empleado = empleados.find(emp => Number(emp.idempleado || emp.id) === Number(idEmpleado));
-          conflictos.push({
-            empleado: empleado ? `${empleado.nombre} ${empleado.apellido}` : 'Empleado desconocido',
-            conflictos: conflictosEmpleado
-          });
-          continue; // No asignar este empleado
-        }
-
-        // Si no hay conflictos, proceder con la asignación
-        const payload = {
-          idempleado: Number(idEmpleado),
-          idcapacitacion: Number(capacitacionSeleccionada),
-          fechaenvio: null,
-          asistencia: "no",
-          idusuario: idUsuario,
-          estado: true
-        };
-
-        await axios.post("http://127.0.0.1:8000/api/empleadocapacitacion/", payload);
-        asignacionesRealizadas++;
       }
 
-      // Mostrar resultados
-      if (conflictos.length > 0) {
-        let mensajeConflictos = "ADVERTENCIA - Conflictos de horarios detectados:\n\n";
-        conflictos.forEach(conf => {
-          mensajeConflictos += `• ${conf.empleado}:\n`;
-          conf.conflictos.forEach(c => {
-            mensajeConflictos += `  - Ya asignado a "${c.capacitacionConflicto}" (${c.fechas})\n`;
-          });
-          mensajeConflictos += "\n";
-        });
-
-        showToast(mensajeConflictos + "Estos colaboradores NO fueron asignados.", "warning");
-      }
-
-      if (asignacionesRealizadas > 0) {
-        showToast(`${asignacionesRealizadas} colaborador(es) asignado(s) correctamente`, "success");
-      } else if (conflictos.length === 0) {
-        showToast("No se realizó ninguna asignación nueva", "info");
+      // Mostrar mensaje según el resultado
+      if (operacionesRealizadas > 0) {
+        showToast("Asignaciones actualizadas correctamente", "success");
+        // Cerrar el modal inmediatamente después del guardado exitoso
+        onClose();
+      } else if (empleadosSeleccionados.length === 0 && asignacionesActuales.length === 0) {
+        showToast("No hay colaboradores asignados a esta capacitación", "info");
+        // También cerrar inmediatamente en este caso
+        onClose();
+      } else {
+        showToast("No se realizaron cambios", "info");
+        // En este caso no cerrar porque no hubo cambios reales
       }
 
       // Refrescar colaboradores asignados
       fetchEmpleadosAsignados(capacitacionSeleccionada);
     } catch (error) {
       console.error(error);
-      showToast("Error al asignar colaboradores", "error");
+      showToast("Error al actualizar asignaciones", "error");
     }
   };
 
@@ -281,52 +258,97 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
           </div>
         )}
 
-        {/* Colaboradores ya asignados */}
-        {capacitacionInicial && empleadosSeleccionados.length > 0 && (
-          <div style={{ marginBottom: "15px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#2e7d32" }}>
-              Colaboradores ya asignados:
-            </label>
+        {/* Colaboradores seleccionados */}
+        {empleadosSeleccionados.length > 0 && (
+          <div style={{
+            marginBottom: "20px"
+          }}>
             <div style={{
-              border: "1px solid #4caf50",
-              borderRadius: "6px",
-              backgroundColor: "#f1f8e9",
-              padding: "10px",
-              maxHeight: "120px",
-              overflowY: "auto"
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "8px"
             }}>
+              <div style={{
+                fontSize: "14px",
+                color: "#6b7280",
+                fontWeight: "400"
+              }}>
+                Colaboradores seleccionados ({empleadosSeleccionados.length}):
+              </div>
+              <button
+                type="button"
+                onClick={() => setEmpleadosSeleccionados([])}
+                style={{
+                  backgroundColor: "transparent",
+                  color: "#6b7280",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "6px",
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  fontWeight: "400",
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#f9fafb";
+                  e.target.style.color = "#374151";
+                  e.target.style.borderColor = "#9ca3af";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "transparent";
+                  e.target.style.color = "#6b7280";
+                  e.target.style.borderColor = "#d1d5db";
+                }}
+                title="Quitar todos los colaboradores"
+              >
+                Limpiar selección
+              </button>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
               {empleadosSeleccionados.map(idEmpleado => {
                 const empleado = empleados.find(emp => (emp.idempleado || emp.id) === idEmpleado);
                 return empleado ? (
-                  <div key={idEmpleado} style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "6px 8px",
-                    margin: "2px 0",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "4px",
-                    border: "1px solid #c8e6c9"
-                  }}>
-                    <span style={{ fontSize: "14px", fontWeight: "500" }}>
-                      {empleado.nombre} {empleado.apellido}
-                    </span>
+                  <span
+                    key={idEmpleado}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      backgroundColor: "#e1f5fe",
+                      color: "#01579b",
+                      padding: "6px 12px",
+                      borderRadius: "16px",
+                      fontSize: "13px",
+                      fontWeight: "400",
+                      border: "1px solid #b3e5fc"
+                    }}
+                  >
+                    {empleado.nombre} {empleado.apellido}
                     <button
                       type="button"
-                      onClick={() => desasignarEmpleado(idEmpleado)}
+                      onClick={() => toggleEmpleadoSeleccionado(idEmpleado)}
                       style={{
-                        background: "#f44336",
-                        color: "white",
+                        background: "none",
                         border: "none",
-                        borderRadius: "4px",
-                        padding: "4px 8px",
-                        fontSize: "12px",
-                        cursor: "pointer"
+                        color: "#01579b",
+                        cursor: "pointer",
+                        padding: "0",
+                        borderRadius: "50%",
+                        width: "16px",
+                        height: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "14px",
+                        fontWeight: "normal",
+                        lineHeight: "1"
                       }}
+                      title="Quitar colaborador"
                     >
-                      Desasignar
+                      ×
                     </button>
-                  </div>
+                  </span>
                 ) : null;
               })}
             </div>
@@ -336,12 +358,12 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         {/* Colaboradores */}
         <div>
           <label style={{ display: "block", marginBottom: "6px" }}>
-            Seleccione colaboradores <span style={{ color: "red" }}>*</span>
+            Seleccione colaboradores
           </label>
 
           <div
             style={{
-              border: `1px solid ${empleadosSeleccionados.length === 0 && showError ? "red" : "#ccc"}`,
+              border: `1px solid #ccc`,
               borderRadius: "6px",
               backgroundColor: "#f9fafb"
             }}
@@ -397,25 +419,6 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
               )}
             </div>
           </div>
-
-          {empleadosSeleccionados.length > 0 && (
-            <div style={{
-              marginTop: "8px",
-              padding: "6px 8px",
-              backgroundColor: "#e8f5e8",
-              borderRadius: "4px",
-              fontSize: "12px",
-              color: "#2e7d32"
-            }}>
-              {empleadosSeleccionados.length} colaborador{empleadosSeleccionados.length > 1 ? "es" : ""} seleccionado{empleadosSeleccionados.length > 1 ? "s" : ""}
-            </div>
-          )}
-
-          {empleadosSeleccionados.length === 0 && showError && (
-            <span style={{ color: "red", fontSize: "12px", marginTop: "4px", display: "block" }}>
-              Debe seleccionar al menos un colaborador
-            </span>
-          )}
         </div>
 
         <button
@@ -431,7 +434,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
             fontWeight: "600"
           }}
         >
-          {capacitacionInicial ? "Guardar Cambios" : "Asignar"}
+          Guardar
         </button>
 
         <button

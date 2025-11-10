@@ -2,25 +2,29 @@ import React, { useState } from "react";
 import axios from "axios";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import ModalEmpleadosAsignados from "./ModalEmpleadosAsignados";
+import GestionAsistenciaModal from "./GestionAsistenciaModal";
 
 const CapacitacionesTable = ({
     capacitaciones,
     handleEdit,
     handleDelete,
     handleActivate,
-    handleEliminar,
-    handleFinalizar,
     handleAsignarCapacitacion,
+    mostrarFinalizadas,
     paginaActual,
     totalPaginas,
-    setPaginaActual,
-    onRefreshEmpleados
+    setPaginaActual
 }) => {
     const [openMenuId, setOpenMenuId] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
     const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
     const [loadingEmpleados, setLoadingEmpleados] = useState(false);
+    const [modalAsistenciaVisible, setModalAsistenciaVisible] = useState(false);
+    const [capacitacionAsistencia, setCapacitacionAsistencia] = useState(null);
+
+    const idRol = parseInt(sessionStorage.getItem("idRol"));
+    const esCoordinadorOAdmin = [4, 5].includes(idRol);
 
     const toggleMenu = id => {
         setOpenMenuId(openMenuId === id ? null : id);
@@ -89,6 +93,60 @@ const CapacitacionesTable = ({
         setEmpleadosAsignados([]);
     };
 
+    const handleGestionAsistencia = async (capacitacion) => {
+        setCapacitacionAsistencia(capacitacion);
+        setLoadingEmpleados(true);
+
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/api/empleadocapacitacion/?capacitacion=${capacitacion.idcapacitacion || capacitacion.id}`);
+            const asignacionesActivas = response.data.filter(asig => asig.estado);
+
+            if (asignacionesActivas.length > 0) {
+                const listaFinal = await Promise.all(
+                    asignacionesActivas.map(async asig => {
+                        const emp = await axios.get(`http://127.0.0.1:8000/api/empleados/${asig.idempleado}/`);
+
+                        let documento = null;
+                        if (asig.iddocumento) {
+                            try {
+                                const doc = await axios.get(`http://127.0.0.1:8000/api/documentos/${asig.iddocumento}/`);
+                                documento = doc.data;
+                            } catch (docError) {
+                                console.warn("Error al obtener documento:", docError);
+                            }
+                        }
+
+                        return {
+                            idempleadocapacitacion: asig.idempleadocapacitacion,
+                            idempleado: asig.idempleado,
+                            nombre: emp.data.nombre,
+                            apellido: emp.data.apellido,
+                            asistencia: asig.asistencia,
+                            documento: documento,
+                            fechaenvio: asig.fechaenvio,
+                            observacion: asig.observacion
+                        };
+                    })
+                );
+                setEmpleadosAsignados(listaFinal);
+            } else {
+                setEmpleadosAsignados([]);
+            }
+        } catch (error) {
+            console.error("Error al obtener empleados para asistencia:", error);
+            setEmpleadosAsignados([]);
+        } finally {
+            setLoadingEmpleados(false);
+            setModalAsistenciaVisible(true);
+        }
+    };
+
+    const closeModalAsistencia = () => {
+        setModalAsistenciaVisible(false);
+        setCapacitacionAsistencia(null);
+        setEmpleadosAsignados([]);
+    };
+
     return (
         <div
             style={{
@@ -109,9 +167,11 @@ const CapacitacionesTable = ({
                         </th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "right" }}>Monto</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Estado</th>
-                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>
-                            Acciones
-                        </th>
+                        {!mostrarFinalizadas && (
+                            <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>
+                                Acciones
+                            </th>
+                        )}
                     </tr>
                 </thead>
                 <tbody>
@@ -162,106 +222,157 @@ const CapacitacionesTable = ({
                                             textAlign: "center",
                                             borderBottom: "1px solid #f0f0f0",
                                             fontWeight: "600",
-                                            color: c.estado === true ? "#28a745" :
-                                                c.estado === "finalizado" ? "#FFA500" :
-                                                    "#F87171"
+                                            color: (() => {
+                                                const hoy = new Date();
+                                                const fechaInicio = new Date(c.fechainicio);
+                                                const fechaFin = new Date(c.fechafin);
+
+                                                // Si está desactivado manualmente
+                                                if (!c.estado) {
+                                                    return "#dc2626"; // Rojo (mismo que otros elementos del proyecto)
+                                                }
+
+                                                // Si ya terminó
+                                                if (fechaFin < hoy) {
+                                                    return "#dc2626"; // Rojo para finalizado
+                                                }
+
+                                                // Si está en proceso (entre inicio y fin)
+                                                if (fechaInicio <= hoy && hoy <= fechaFin) {
+                                                    return "#2563eb"; // Azul para en proceso
+                                                }
+
+                                                // Si aún no ha empezado
+                                                return "#16a34a"; // Verde para activo
+                                            })()
                                         }}
                                     >
-                                        {c.estado === true ? "Activo" :
-                                            c.estado === "finalizado" ? "Finalizado" :
-                                                "Inactivo"}
+                                        {(() => {
+                                            const hoy = new Date();
+                                            const fechaInicio = new Date(c.fechainicio);
+                                            const fechaFin = new Date(c.fechafin);
+
+                                            // Si está desactivado manualmente
+                                            if (!c.estado) {
+                                                return "Inactivo";
+                                            }
+
+                                            // Si ya terminó
+                                            if (fechaFin < hoy) {
+                                                return "Finalizado";
+                                            }
+
+                                            // Si está en proceso (entre inicio y fin)
+                                            if (fechaInicio <= hoy && hoy <= fechaFin) {
+                                                return "En Proceso";
+                                            }
+
+                                            // Si aún no ha empezado
+                                            return "Activo";
+                                        })()}
                                     </td>
-                                    <td
-                                        style={{
-                                            padding: "10px",
-                                            textAlign: "center",
-                                            borderBottom: "1px solid #f0f0f0"
-                                        }}
-                                    >
-                                        <div style={comboBoxStyles.container}>
-                                            <button style={comboBoxStyles.button.base} onClick={() => toggleMenu(id)}>
-                                                Opciones ▾
-                                            </button>
-                                            {openMenuId === id && (
-                                                <div style={comboBoxStyles.menu.container}>
-                                                    <div
-                                                        style={comboBoxStyles.menu.item.editar.base}
-                                                        onClick={() => {
-                                                            handleAsignarCapacitacion(c);
-                                                            setOpenMenuId(null);
-                                                        }}
-                                                    >
-                                                        Asignar Colaboradores
+                                    {!mostrarFinalizadas && (
+                                        <td
+                                            style={{
+                                                padding: "10px",
+                                                textAlign: "center",
+                                                borderBottom: "1px solid #f0f0f0"
+                                            }}
+                                        >
+                                            <div style={comboBoxStyles.container}>
+                                                <button style={comboBoxStyles.button.base} onClick={() => toggleMenu(id)}>
+                                                    Opciones ▾
+                                                </button>
+                                                {openMenuId === id && (
+                                                    <div style={comboBoxStyles.menu.container}>
+                                                        {(() => {
+                                                            const hoy = new Date();
+                                                            const fechaInicio = new Date(c.fechainicio);
+                                                            const fechaFin = new Date(c.fechafin);
+
+                                                            // Si está inactivo (desactivado manualmente)
+                                                            if (!c.estado) {
+                                                                return (
+                                                                    <div
+                                                                        style={comboBoxStyles.menu.item.activar.base}
+                                                                        onClick={() => {
+                                                                            handleActivate(id);
+                                                                            setOpenMenuId(null);
+                                                                        }}
+                                                                    >
+                                                                        Reactivar
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            // Si ya finalizó (después de fecha fin) o está en proceso, mostrar gestión de asistencia si es coordinador/admin
+                                                            if (fechaFin < hoy || (fechaInicio <= hoy && hoy <= fechaFin)) {
+                                                                // Para capacitaciones finalizadas, mostrar gestión de asistencia
+                                                                if (fechaFin < hoy && (esCoordinadorOAdmin || !esCoordinadorOAdmin)) {
+                                                                    return (
+                                                                        <div
+                                                                            style={comboBoxStyles.menu.item.editar.base}
+                                                                            onClick={() => {
+                                                                                handleGestionAsistencia(c);
+                                                                                setOpenMenuId(null);
+                                                                            }}
+                                                                        >
+                                                                            Gestionar Asistencia
+                                                                        </div>
+                                                                    );
+                                                                }
+
+                                                                return (
+                                                                    <div style={{ padding: "10px", color: "#666", textAlign: "center" }}>
+                                                                        Sin acciones disponibles
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            // Si aún no ha empezado, todas las acciones disponibles
+                                                            return (
+                                                                <>
+                                                                    <div
+                                                                        style={comboBoxStyles.menu.item.editar.base}
+                                                                        onClick={() => {
+                                                                            handleAsignarCapacitacion(c);
+                                                                            setOpenMenuId(null);
+                                                                        }}
+                                                                    >
+                                                                        Asignar Colaboradores
+                                                                    </div>
+                                                                    <div
+                                                                        style={comboBoxStyles.menu.item.editar.base}
+                                                                        onClick={() => {
+                                                                            handleEdit(c);
+                                                                            setOpenMenuId(null);
+                                                                        }}
+                                                                    >
+                                                                        Editar
+                                                                    </div>
+                                                                    <div
+                                                                        style={comboBoxStyles.menu.item.desactivar.base}
+                                                                        onClick={() => {
+                                                                            handleDelete(c);
+                                                                            setOpenMenuId(null);
+                                                                        }}
+                                                                    >
+                                                                        Desactivar
+                                                                    </div>
+                                                                </>
+                                                            );
+                                                        })()}
                                                     </div>
-                                                    <div
-                                                        style={{
-                                                            ...comboBoxStyles.menu.item.editar.base,
-                                                            ...(c.estado === true
-                                                                ? {}
-                                                                : comboBoxStyles.menu.item.editar.disabled)
-                                                        }}
-                                                        onClick={() => c.estado === true && handleEdit(c)}
-                                                    >
-                                                        Editar
-                                                    </div>
-                                                    {c.estado === true && (
-                                                        <>
-                                                            <div
-                                                                style={comboBoxStyles.menu.item.desactivar.base}
-                                                                onClick={() => {
-                                                                    handleDelete(c);
-                                                                    setOpenMenuId(null);
-                                                                }}
-                                                            >
-                                                                Desactivar
-                                                            </div>
-                                                            <div
-                                                                style={{
-                                                                    ...comboBoxStyles.menu.item.editar.base,
-                                                                    color: "#dc3545"
-                                                                }}
-                                                                onClick={() => {
-                                                                    handleEliminar(c);
-                                                                    setOpenMenuId(null);
-                                                                }}
-                                                            >
-                                                                Eliminar
-                                                            </div>
-                                                            <div
-                                                                style={{
-                                                                    ...comboBoxStyles.menu.item.editar.base,
-                                                                    color: "#FFA500"
-                                                                }}
-                                                                onClick={() => {
-                                                                    handleFinalizar(c);
-                                                                    setOpenMenuId(null);
-                                                                }}
-                                                            >
-                                                                Finalizar
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                    {c.estado === false && (
-                                                        <div
-                                                            style={comboBoxStyles.menu.item.activar.base}
-                                                            onClick={() => {
-                                                                handleActivate(id);
-                                                                setOpenMenuId(null);
-                                                            }}
-                                                        >
-                                                            Activar
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
+                                                )}
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             );
                         })
                     ) : (
                         <tr>
-                            <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
+                            <td colSpan={mostrarFinalizadas ? "6" : "7"} style={{ textAlign: "center", padding: "20px" }}>
                                 No hay capacitaciones registradas
                             </td>
                         </tr>
@@ -300,9 +411,19 @@ const CapacitacionesTable = ({
                     empleados={empleadosAsignados}
                     evento={eventoSeleccionado}
                     loading={loadingEmpleados}
-                    onRefresh={() => {
-                        handleVerEmpleados(eventoSeleccionado);
-                        if (onRefreshEmpleados) onRefreshEmpleados();
+                />
+            )}
+
+            {/* Modal de gestión de asistencia */}
+            {modalAsistenciaVisible && capacitacionAsistencia && (
+                <GestionAsistenciaModal
+                    visible={modalAsistenciaVisible}
+                    onClose={closeModalAsistencia}
+                    capacitacion={capacitacionAsistencia}
+                    empleadosAsignados={empleadosAsignados}
+                    onActualizar={() => {
+                        // Recargar empleados después de actualizar
+                        handleGestionAsistencia(capacitacionAsistencia);
                     }}
                 />
             )}

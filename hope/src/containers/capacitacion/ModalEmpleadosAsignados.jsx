@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import GestionAsistencia from "./GestionAsistencia";
 
-const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170, onRefresh }) => {
-  const [mostrarGestionAsistencia, setMostrarGestionAsistencia] = useState(false);
+const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170 }) => {
+  const [documentoVisualizando, setDocumentoVisualizando] = useState(null);
+  const [modalDocumentoVisible, setModalDocumentoVisible] = useState(false);
 
   if (!visible || !evento) return null;
 
@@ -33,6 +33,30 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
       {children}
     </section>
   );
+
+  const handleVerDocumento = (empleado) => {
+    if (!empleado.documento) return;
+
+    setDocumentoVisualizando({
+      ...empleado.documento,
+      empleado: `${empleado.nombre} ${empleado.apellido}`,
+      asistencia: empleado.asistencia,
+      tipoDocumento: empleado.asistencia === "Sí" ? "Informe de Asistencia" : "Justificación de Ausencia"
+    });
+    setModalDocumentoVisible(true);
+  };
+
+  const handleDescargarDocumento = (documento) => {
+    if (!documento.archivo_url) return;
+
+    const link = document.createElement('a');
+    link.href = documento.archivo_url;
+    link.download = documento.nombrearchivo || 'documento.pdf';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const thStyle = {
     textAlign: "center",
@@ -164,26 +188,6 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
 
         {/* Colaboradores asignados */}
         <Section title="Colaboradores Asignados">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-            <div></div>
-            {empleados.length > 0 && (
-              <button
-                onClick={() => setMostrarGestionAsistencia(true)}
-                style={{
-                  padding: "8px 16px",
-                  background: "#007bff",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: "500"
-                }}
-              >
-                Gestionar Asistencia
-              </button>
-            )}
-          </div>
-
           {loading ? (
             <div style={{ textAlign: "center", color: "#666" }}>Cargando...</div>
           ) : empleados.length === 0 ? (
@@ -210,18 +214,16 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
                 }}
               >
                 <colgroup>
-                  <col style={{ width: "25%" }} />
+                  <col style={{ width: "35%" }} />
                   <col style={{ width: "15%" }} />
                   <col style={{ width: "30%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "20%" }} />
                 </colgroup>
                 <thead>
                   <tr style={{ background: "#f3f4f6" }}>
                     <th style={thStyle}>Colaborador</th>
                     <th style={thStyle}>Asistencia</th>
-                    <th style={thStyle}>Observaciones</th>
-                    <th style={thStyle}>Informe</th>
+                    <th style={thStyle}>Documento</th>
                     <th style={thStyle}>Fecha envío</th>
                   </tr>
                 </thead>
@@ -242,30 +244,24 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
                         {emp.asistencia || "No"}
                       </td>
                       <td style={tdStyle}>
-                        {emp.observacion ? (
-                          <span title={emp.observacion} style={{ cursor: "help" }}>
-                            {emp.observacion.length > 50 ? emp.observacion.substring(0, 50) + "..." : emp.observacion}
-                          </span>
-                        ) : "-"}
-                      </td>
-                      <td style={tdStyle}>
                         {emp.documento ? (
-                          <a
-                            href={emp.documento.archivo_url}
-                            download={emp.documento.nombrearchivo}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            onClick={() => handleVerDocumento(emp)}
                             style={{
+                              background: "none",
+                              border: "none",
                               color: "#2563eb",
                               textDecoration: "underline",
-                              fontWeight: 500,
-                              cursor: "pointer"
+                              cursor: "pointer",
+                              fontWeight: 600,
+                              fontSize: "12px",
+                              padding: "0"
                             }}
                           >
                             {emp.documento.nombrearchivo}
-                          </a>
+                          </button>
                         ) : (
-                          "-"
+                          <span style={{ color: "#6b7280" }}>Sin documento</span>
                         )}
                       </td>
                       <td style={tdStyle}>{emp.fechaenvio ? formatDate(emp.fechaenvio) : "-"}</td>
@@ -277,17 +273,179 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
           )}
         </Section>
 
-        {/* Modal de gestión de asistencia */}
-        <GestionAsistencia
-          visible={mostrarGestionAsistencia}
-          onClose={() => setMostrarGestionAsistencia(false)}
-          capacitacion={evento}
-          empleadosAsignados={empleados.map(emp => ({
-            ...emp,
-            idempleado: emp.idempleado || emp.id
-          }))}
-          onRefresh={onRefresh}
-        />
+        {/* Modal para visualizar documentos */}
+        {modalDocumentoVisible && documentoVisualizando && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,.6)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 5000,
+              padding: "20px",
+            }}
+          >
+            <div
+              style={{
+                width: "min(900px, 95vw)",
+                height: "min(700px, 90vh)",
+                background: "#fff",
+                borderRadius: 16,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+              }}
+            >
+              {/* Header del modal */}
+              <div
+                style={{
+                  padding: "20px 25px",
+                  borderBottom: "1px solid #e5e7eb",
+                  background: "#f9fafb",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#0f172a" }}>
+                    {documentoVisualizando.tipoDocumento}
+                  </h3>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "14px", color: "#6b7280" }}>
+                    Colaborador: <strong>{documentoVisualizando.empleado}</strong>
+                  </p>
+                  <p style={{ margin: "2px 0 0 0", fontSize: "13px", color: "#6b7280" }}>
+                    Archivo: {documentoVisualizando.nombrearchivo}
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <button
+                    onClick={() => handleDescargarDocumento(documentoVisualizando)}
+                    style={{
+                      padding: "8px 16px",
+                      border: "none",
+                      borderRadius: "8px",
+                      background: "#059669",
+                      color: "#fff",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "0.2s",
+                    }}
+                  >
+                    ⬇️ Descargar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setModalDocumentoVisible(false);
+                      setDocumentoVisualizando(null);
+                    }}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      border: "1px solid #e5e7eb",
+                      background: "#fff",
+                      cursor: "pointer",
+                      fontSize: 18,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#374151",
+                      transition: "0.2s",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Visor de PDF */}
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "#f3f4f6",
+                }}
+              >
+                {documentoVisualizando.archivo_url ? (
+                  <iframe
+                    src={documentoVisualizando.archivo_url}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      border: "none",
+                    }}
+                    title={`Documento: ${documentoVisualizando.nombrearchivo}`}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "40px",
+                      color: "#6b7280",
+                    }}
+                  >
+                    <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
+                    <p style={{ fontSize: "16px", margin: 0 }}>No se pudo cargar el documento</p>
+                    <p style={{ fontSize: "14px", margin: "8px 0 0 0" }}>
+                      Intente descargarlo para verlo
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer del modal */}
+              <div
+                style={{
+                  padding: "15px 25px",
+                  background: "#f9fafb",
+                  borderTop: "1px solid #e5e7eb",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ fontSize: "13px", color: "#6b7280" }}>
+                  Estado de asistencia: <strong
+                    style={{
+                      color: documentoVisualizando.asistencia === "Sí" ? "#059669" : "#dc2626"
+                    }}
+                  >
+                    {documentoVisualizando.asistencia}
+                  </strong>
+                </div>
+                <button
+                  onClick={() => {
+                    setModalDocumentoVisible(false);
+                    setDocumentoVisualizando(null);
+                  }}
+                  style={{
+                    padding: "8px 20px",
+                    border: "none",
+                    borderRadius: "6px",
+                    background: "#6b7280",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

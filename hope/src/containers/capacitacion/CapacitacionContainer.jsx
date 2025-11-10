@@ -19,12 +19,11 @@ const CapacitacionContainer = () => {
     const [capacitacionActivaEditando, setCapacitacionActivaEditando] = useState(true);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [mostrarAsignacion, setMostrarAsignacion] = useState(false);
-    const [modalAccion, setModalAccion] = useState(null); // { tipo: "activar" | "desactivar" | "eliminar" | "finalizar", data: {...} }
+    const [modalAccion, setModalAccion] = useState(null); // { tipo: "activar" | "desactivar", data: {...} }
     const [busqueda, setBusqueda] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
     const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
-    const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
 
     const [formData, setFormData] = useState({
         nombreEvento: "",
@@ -40,43 +39,54 @@ const CapacitacionContainer = () => {
         fetchCapacitaciones();
     }, []);
 
+    // Resetear paginación cuando cambie el filtro de finalizadas
+    useEffect(() => {
+        setPaginaActual(1);
+    }, [mostrarFinalizadas]);
+
     const fetchCapacitaciones = async () => {
         try {
             const res = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
 
-            // Verificar y actualizar estados automáticamente
-            const hoy = new Date();
-            hoy.setHours(23, 59, 59, 999); // Fin del día actual
+            // Verificar capacitaciones que deberían estar finalizadas automáticamente
+            await verificarCapacitacionesFinalizadas(data);
 
-            const capacitacionesActualizadas = await Promise.all(data.map(async (capacitacion) => {
-                const fechaFin = new Date(capacitacion.fechafin);
-
-                // Si la capacitación ya terminó y está activa, marcarla como finalizada
-                if (fechaFin < hoy && capacitacion.estado === true) {
-                    try {
-                        const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-                        const payload = {
-                            ...capacitacion,
-                            estado: "finalizado",
-                            idusuario: idUsuario
-                        };
-
-                        await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${capacitacion.idcapacitacion || capacitacion.id}/`, payload);
-                        return { ...capacitacion, estado: "finalizado" };
-                    } catch (error) {
-                        console.error("Error al finalizar capacitación:", error);
-                        return capacitacion;
-                    }
-                }
-
-                return capacitacion;
-            }));
-
-            setCapacitaciones(capacitacionesActualizadas);
+            setCapacitaciones(data);
         } catch (error) {
             console.error(error);
             showToast("Error al cargar capacitaciones", "error");
+        }
+    };
+
+    // Función para verificar y finalizar automáticamente capacitaciones vencidas
+    const verificarCapacitacionesFinalizadas = async (capacitaciones) => {
+        const hoy = new Date();
+        hoy.setHours(23, 59, 59, 999); // Final del día actual
+
+        const capacitacionesAFinalizar = capacitaciones.filter(cap => {
+            // Solo verificar capacitaciones activas (estado: true)
+            if (!cap.estado) return false;
+
+            const fechaFin = new Date(cap.fechafin);
+            // Si la fecha fin ya pasó, debe finalizarse automáticamente
+            return fechaFin < hoy;
+        });
+
+        // Finalizar automáticamente las capacitaciones vencidas
+        for (const cap of capacitacionesAFinalizar) {
+            try {
+                const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+                await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${cap.idcapacitacion || cap.id}/`, {
+                    ...cap,
+                    estado: true, // Mantener como true, el estado se determina por fechas
+                    idestado_id: 3, // Finalizada
+                    idusuario: idUsuario
+                });
+                console.log(`Capacitación "${cap.nombreevento}" finalizada automáticamente`);
+            } catch (error) {
+                console.error(`Error al finalizar automáticamente la capacitación ${cap.nombreevento}:`, error);
+            }
         }
     };
 
@@ -112,6 +122,7 @@ const CapacitacionContainer = () => {
                 montoejecutado: formData.monto,
                 observacion: formData.observacion,
                 estado: Boolean(capacitacionActivaEditando),
+                idestado_id: Boolean(capacitacionActivaEditando) ? 1 : 2, // 1 = Activa, 2 = Inactiva
                 idusuario: idUsuario
             };
 
@@ -146,6 +157,20 @@ const CapacitacionContainer = () => {
 
     const handleEdit = cap => {
         if (!cap.estado) return showToast("No se puede editar una capacitación inactiva", "warning");
+
+        // Verificar si ya finalizó o está en proceso
+        const hoy = new Date();
+        const fechaInicio = new Date(cap.fechainicio);
+        const fechaFin = new Date(cap.fechafin);
+
+        if (fechaFin < hoy) {
+            return showToast("No se puede editar una capacitación que ya finalizó", "warning");
+        }
+
+        if (fechaInicio <= hoy && hoy <= fechaFin) {
+            return showToast("No se puede editar una capacitación que está en proceso", "warning");
+        }
+
         setFormData({
             nombreEvento: cap.nombreevento,
             lugar: cap.lugar,
@@ -160,54 +185,9 @@ const CapacitacionContainer = () => {
         setMostrarFormulario(true);
     };
 
-    // Abre el modal de confirmación para activar, desactivar, eliminar o finalizar
+    // Abre el modal de confirmación para activar o desactivar
     const handleToggleEstado = (cap, tipo) => {
         setModalAccion({ tipo, data: cap });
-    };
-
-    // Verificar si una capacitación se puede eliminar
-    const puedeEliminar = async (capacitacion) => {
-        try {
-            // Verificar si ya tiene empleados asignados
-            const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
-            const asignaciones = res.data.results || res.data;
-
-            const tieneAsignados = asignaciones.some(
-                asig => Number(asig.idcapacitacion) === Number(capacitacion.idcapacitacion || capacitacion.id)
-            );
-
-            if (tieneAsignados) {
-                showToast("No se puede eliminar: La capacitación ya tiene colaboradores asignados", "warning");
-                return false;
-            }
-
-            // Verificar si ya inició
-            const hoy = new Date();
-            const fechaInicio = new Date(capacitacion.fechainicio);
-
-            if (fechaInicio <= hoy) {
-                showToast("No se puede eliminar: La capacitación ya ha iniciado", "warning");
-                return false;
-            }
-
-            return true;
-        } catch (error) {
-            console.error("Error al verificar capacitación:", error);
-            showToast("Error al verificar la capacitación", "error");
-            return false;
-        }
-    };
-
-    // Función para eliminar capacitación
-    const eliminarCapacitacion = async (capacitacion) => {
-        if (await puedeEliminar(capacitacion)) {
-            setModalAccion({ tipo: "eliminar", data: capacitacion });
-        }
-    };
-
-    // Función para finalizar capacitación manualmente
-    const finalizarCapacitacion = async (capacitacion) => {
-        setModalAccion({ tipo: "finalizar", data: capacitacion });
     };
 
     // Función para manejar la asignación de colaboradores
@@ -218,7 +198,7 @@ const CapacitacionContainer = () => {
         setMostrarAsignacion(true);
     };
 
-    // Confirma la acción (activar, desactivar, eliminar o finalizar)
+    // Confirma la acción (activar o desactivar)
     const confirmarAccion = async () => {
         if (!modalAccion?.data) return;
         const { tipo, data } = modalAccion;
@@ -226,31 +206,35 @@ const CapacitacionContainer = () => {
         try {
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
 
-            if (tipo === "eliminar") {
-                await axios.delete(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`);
-                showToast("Capacitación eliminada correctamente", "success");
-            } else if (tipo === "finalizar") {
-                await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`, {
-                    ...data,
-                    estado: "finalizado",
-                    idusuario: idUsuario
-                });
-                showToast("Capacitación finalizada correctamente", "success");
-            } else {
-                await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`, {
-                    ...data,
-                    estado: tipo === "activar",
-                    idusuario: idUsuario
-                });
-                showToast(`Capacitación ${tipo === "activar" ? "activada" : "desactivada"} correctamente`, "success");
+            let nuevoEstado, nuevoEstadoId;
+
+            // Determinar el estado y estado_id según el tipo de acción
+            switch (tipo) {
+                case "activar":
+                    nuevoEstado = true;
+                    nuevoEstadoId = 1; // Activa
+                    break;
+                case "desactivar":
+                    nuevoEstado = false;
+                    nuevoEstadoId = 2; // Inactiva
+                    break;
+                default:
+                    return;
             }
 
+            await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`, {
+                ...data,
+                estado: nuevoEstado,
+                idestado_id: nuevoEstadoId,
+                idusuario: idUsuario
+            });
+
+            const mensaje = tipo === "activar" ? "activada" : "desactivada";
+            showToast(`Capacitación ${mensaje} correctamente`, "success");
             fetchCapacitaciones();
         } catch (error) {
             console.error(error);
-            const accion = tipo === "eliminar" ? "eliminar" :
-                tipo === "finalizar" ? "finalizar" :
-                    tipo === "activar" ? "activar" : "desactivar";
+            const accion = tipo === "activar" ? "activar" : "desactivar";
             showToast(`Error al ${accion} la capacitación`, "error");
         } finally {
             setModalAccion(null);
@@ -271,6 +255,20 @@ const CapacitacionContainer = () => {
         setCapacitacionActivaEditando(true);
     };
 
+    // Función helper para determinar el estado de una capacitación
+    const determinarEstadoCapacitacion = (capacitacion) => {
+        const hoy = new Date();
+        const fechaInicio = new Date(capacitacion.fechainicio);
+        const fechaFin = new Date(capacitacion.fechafin);
+
+        const esInactivo = !capacitacion.estado; // Desactivado manualmente
+        const esFinalizado = capacitacion.estado && fechaFin < hoy; // Ya terminó
+        const enProceso = capacitacion.estado && fechaInicio <= hoy && hoy <= fechaFin; // Entre fechas
+        const esActivo = capacitacion.estado && fechaInicio > hoy; // Aún no empieza
+
+        return { esInactivo, esFinalizado, enProceso, esActivo, hoy, fechaInicio, fechaFin };
+    };
+
     const capacitacionesFiltradas = capacitaciones
         .sort((a, b) => {
             const idA = a.idcapacitacion || a.id || 0;
@@ -278,9 +276,15 @@ const CapacitacionContainer = () => {
             return idB - idA;
         })
         .filter(c => {
-            // Filtro por estado finalizado
-            if (!mostrarFinalizadas && c.estado === "finalizado") {
-                return false;
+            const { esInactivo, esFinalizado, enProceso, esActivo } = determinarEstadoCapacitacion(c);
+
+            // Filtrar primero por estado (finalizadas o no)
+            if (mostrarFinalizadas) {
+                // Solo mostrar capacitaciones finalizadas
+                if (!esFinalizado) return false;
+            } else {
+                // Solo mostrar capacitaciones no finalizadas (activas, en proceso, inactivas)
+                if (esFinalizado) return false;
             }
 
             const textoBusqueda = busqueda.toLowerCase().trim();
@@ -290,18 +294,21 @@ const CapacitacionContainer = () => {
             const buscandoActivo = "activo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
             const buscandoInactivo = "inactivo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
             const buscandoFinalizado = "finalizado".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
+            const buscandoProceso = "proceso".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
 
-            // Si está buscando por estado, solo mostrar ese estado
-            if (buscandoActivo && !buscandoInactivo && !buscandoFinalizado) {
-                return c.estado === true; // Solo capacitaciones activas
-            } else if (buscandoInactivo && !buscandoActivo && !buscandoFinalizado) {
-                return c.estado === false; // Solo capacitaciones inactivas
-            } else if (buscandoFinalizado && !buscandoActivo && !buscandoInactivo) {
-                return c.estado === "finalizado"; // Solo capacitaciones finalizadas
+            // Si está buscando por estado específico
+            if (buscandoActivo && !buscandoInactivo && !buscandoFinalizado && !buscandoProceso) {
+                return esActivo;
+            } else if (buscandoInactivo && !buscandoActivo && !buscandoFinalizado && !buscandoProceso) {
+                return esInactivo;
+            } else if (buscandoFinalizado && !buscandoActivo && !buscandoInactivo && !buscandoProceso) {
+                return esFinalizado;
+            } else if (buscandoProceso && !buscandoActivo && !buscandoInactivo && !buscandoFinalizado) {
+                return enProceso;
             }
 
             // Si no está buscando por estado, continuar con otras búsquedas
-            if (!buscandoActivo && !buscandoInactivo && !buscandoFinalizado) {
+            if (!buscandoActivo && !buscandoInactivo && !buscandoFinalizado && !buscandoProceso) {
                 // 🔹 Detectar rango de fechas con formato "dd-mm-yy a dd-mm-yy"
                 const rangoRegex = /(\d{1,2}-\d{1,2}-\d{2})\s*(?:a|-)\s*(\d{1,2}-\d{1,2}-\d{2})/;
                 const match = textoBusqueda.match(rangoRegex);
@@ -412,13 +419,11 @@ const CapacitacionContainer = () => {
                                     const cap = capacitaciones.find(c => (c.idcapacitacion || c.id) === id);
                                     handleToggleEstado(cap, "activar");
                                 }}
-                                handleEliminar={eliminarCapacitacion}
-                                handleFinalizar={finalizarCapacitacion}
                                 handleAsignarCapacitacion={handleAsignarCapacitacion}
+                                mostrarFinalizadas={mostrarFinalizadas}
                                 paginaActual={paginaActual}
                                 totalPaginas={totalPaginas}
                                 setPaginaActual={setPaginaActual}
-                                onRefreshEmpleados={fetchCapacitaciones}
                             />
 
                             <div style={{ marginTop: "20px", textAlign: "center" }}>
@@ -442,15 +447,40 @@ const CapacitacionContainer = () => {
                                         textAlign: "center"
                                     }}
                                 />
-                                <label style={{ marginLeft: "20px", display: "inline-flex", alignItems: "center", gap: "8px", fontWeight: "500" }}>
+
+                                {/* Checkbox para mostrar finalizadas */}
+                                <div style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    marginLeft: "20px",
+                                    gap: "8px"
+                                }}>
                                     <input
                                         type="checkbox"
+                                        id="mostrarFinalizadas"
                                         checked={mostrarFinalizadas}
-                                        onChange={e => setMostrarFinalizadas(e.target.checked)}
-                                        style={{ width: "16px", height: "16px", accentColor: "#007bff" }}
+                                        onChange={(e) => {
+                                            setMostrarFinalizadas(e.target.checked);
+                                            setPaginaActual(1); // Resetear a la primera página
+                                        }}
+                                        style={{
+                                            width: "18px",
+                                            height: "18px",
+                                            cursor: "pointer"
+                                        }}
                                     />
-                                    Mostrar finalizadas
-                                </label>
+                                    <label
+                                        htmlFor="mostrarFinalizadas"
+                                        style={{
+                                            fontWeight: "600",
+                                            cursor: "pointer",
+                                            color: mostrarFinalizadas ? "#1a73e8" : "#333",
+                                            fontSize: "14px"
+                                        }}
+                                    >
+                                        Mostrar capacitaciones finalizadas
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </main>
@@ -484,20 +514,9 @@ const CapacitacionContainer = () => {
                 {/*   Modal de confirmación genérico */}
                 {modalAccion && (
                     <ConfirmModal
-                        title={
-                            modalAccion.tipo === "activar" ? "Activar Capacitación" :
-                                modalAccion.tipo === "desactivar" ? "Desactivar Capacitación" :
-                                    modalAccion.tipo === "eliminar" ? "Eliminar Capacitación" :
-                                        modalAccion.tipo === "finalizar" ? "Finalizar Capacitación" :
-                                            "Confirmar Acción"
-                        }
-                        message={
-                            modalAccion.tipo === "activar" ? `¿Está seguro de activar la capacitación "${modalAccion.data?.nombreevento}"?` :
-                                modalAccion.tipo === "desactivar" ? `¿Está seguro de desactivar la capacitación "${modalAccion.data?.nombreevento}"?` :
-                                    modalAccion.tipo === "eliminar" ? `¿Está seguro de eliminar la capacitación "${modalAccion.data?.nombreevento}"? Esta acción no se puede deshacer.` :
-                                        modalAccion.tipo === "finalizar" ? `¿Está seguro de finalizar la capacitación "${modalAccion.data?.nombreevento}"?` :
-                                            "¿Está seguro de realizar esta acción?"
-                        }
+                        title={modalAccion.tipo === "activar" ? "Activar Capacitación" : "Desactivar Capacitación"}
+                        message={`¿Está seguro de ${modalAccion.tipo === "activar" ? "activar" : "desactivar"
+                            } la capacitación "${modalAccion.data?.nombreevento}"?`}
                         onConfirm={confirmarAccion}
                         onCancel={() => setModalAccion(null)}
                         actionType={modalAccion.tipo}

@@ -166,34 +166,64 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
           {modo === "justifico"
             ? "Justificar inasistencia"
             : modo === "asistio"
-            ? "Confirmar asistencia"
-            : "Registro de asistencia"}
+              ? "Confirmar asistencia"
+              : "Registro de asistencia"}
         </h3>
 
-        <div style={{ marginBottom: "15px" }}>
-          <p><strong>Capacitación:</strong> {capacitacion.nombre}</p>
-          <p><strong>Lugar:</strong> {capacitacion.lugar}</p>
-          <p><strong>Observaciones:</strong> {capacitacion.observacion || "Sin observaciones"}</p>
+        {/* Cuadro de información de la capacitación */}
+        <div style={{
+          backgroundColor: modo === "justifico" ? "#fee2e2" : "#dbeafe",
+          border: `2px solid ${modo === "justifico" ? "#fca5a5" : "#60a5fa"}`,
+          borderRadius: "12px",
+          padding: "20px",
+          marginBottom: "20px"
+        }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "auto 1fr",
+            gap: "12px 20px",
+            fontSize: "14px"
+          }}>
+            <div style={{ fontWeight: "600", color: "#374151" }}>Capacitación:</div>
+            <div style={{ color: "#1f2937" }}>{capacitacion.nombre}</div>
 
-          <div style={{ display: "flex", gap: "15px" }}>
-            <span><strong>Inicio:</strong> {formatearFecha(capacitacion.fechaInicio)}</span>
-            <span><strong>Fin:</strong> {formatearFecha(capacitacion.fechaFin)}</span>
+            <div style={{ fontWeight: "600", color: "#374151" }}>Lugar:</div>
+            <div style={{ color: "#1f2937" }}>{capacitacion.lugar}</div>
+
+            <div style={{ fontWeight: "600", color: "#374151" }}>Inicio:</div>
+            <div style={{ color: "#1f2937" }}>{formatearFecha(capacitacion.fechaInicio)}</div>
+
+            <div style={{ fontWeight: "600", color: "#374151" }}>Fin:</div>
+            <div style={{ color: "#1f2937" }}>{formatearFecha(capacitacion.fechaFin)}</div>
+
+            <div style={{ fontWeight: "600", color: "#374151" }}>Observaciones:</div>
+            <div style={{ color: "#1f2937" }}>{capacitacion.observacion || "Sin observaciones"}</div>
           </div>
         </div>
 
         {/* Selección de modo */}
         {!modo && (
-          <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
+          <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
             <button
               onClick={() => setModo("asistio")}
-              style={{ ...buttonStyle, background: "#219ebc" }}
+              style={{
+                ...buttonStyle,
+                background: "#2563eb",
+                boxShadow: "0 4px 6px rgba(37, 99, 235, 0.3)",
+                border: "2px solid #2563eb"
+              }}
             >
               Asistió
             </button>
 
             <button
               onClick={() => setModo("justifico")}
-              style={{ ...buttonStyle, background: "#FCA5A5" }}
+              style={{
+                ...buttonStyle,
+                background: "#dc2626",
+                boxShadow: "0 4px 6px rgba(220, 38, 38, 0.3)",
+                border: "2px solid #dc2626"
+              }}
             >
               Justificar
             </button>
@@ -202,82 +232,142 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
 
         {/* Modo Asistió */}
         {modo === "asistio" && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleGuardar(true);
-            }}
-            style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}
-          >
-            <label htmlFor="archivoAsistencia" style={{ fontWeight: "500" }}>
-              Adjuntar informe en PDF:
-            </label>
-            <input
-              id="archivoAsistencia"
-              type="file"
-              required
-              accept="application/pdf"
-              onChange={(e) => setArchivo(e.target.files[0])}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "6px",
-                border: "1px solid #ccc",
-              }}
-            />
+          <div style={{
+            backgroundColor: "#dbeafe",
+            border: "2px solid #60a5fa",
+            borderRadius: "12px",
+            padding: "20px",
+            marginTop: "15px"
+          }}>
+            <h4 style={{
+              margin: "0 0 15px 0",
+              color: "#1e40af",
+              fontSize: "16px",
+              fontWeight: "600"
+            }}>
+              Confirmar Asistencia
+            </h4>
 
-            <button
-              type="submit"
-              disabled={subiendo}
-              style={{
-                ...buttonStyle,
-                background: subiendo ? "#ccc" : "#219ebc",
-                cursor: subiendo ? "not-allowed" : "pointer",
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleGuardar(true);
               }}
+              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
             >
-              {subiendo ? "Subiendo..." : "Confirmar asistencia"}
-            </button>
-          </form>
+              <div>
+                <label htmlFor="archivoAsistencia" style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "600",
+                  color: "#374151"
+                }}>
+                  Adjuntar informe en PDF:
+                </label>
+                <input
+                  id="archivoAsistencia"
+                  type="file"
+                  required
+                  accept="application/pdf"
+                  onChange={(e) => setArchivo(e.target.files[0])}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "2px solid #93c5fd",
+                    backgroundColor: "#ffffff",
+                    fontSize: "14px"
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={subiendo}
+                style={{
+                  ...buttonStyle,
+                  background: subiendo ? "#9ca3af" : "#2563eb",
+                  cursor: subiendo ? "not-allowed" : "pointer",
+                  padding: "12px 20px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  boxShadow: subiendo ? "none" : "0 4px 6px rgba(37, 99, 235, 0.3)"
+                }}
+              >
+                {subiendo ? "Subiendo..." : "Confirmar asistencia"}
+              </button>
+            </form>
+          </div>
         )}
 
         {/* Modo Justificar */}
         {modo === "justifico" && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleGuardar(false);
-            }}
-            style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}
-          >
-            <label htmlFor="archivoJustificacion" style={{ fontWeight: "500" }}>
-              Adjuntar documento justificativo (PDF):
-            </label>
-            <input
-              id="archivoJustificacion"
-              type="file"
-              required
-              accept="application/pdf"
-              onChange={(e) => setArchivo(e.target.files[0])}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "6px",
-                border: "1px solid #ccc",
-              }}
-            />
+          <div style={{
+            backgroundColor: "#fee2e2",
+            border: "2px solid #fca5a5",
+            borderRadius: "12px",
+            padding: "20px",
+            marginTop: "15px"
+          }}>
+            <h4 style={{
+              margin: "0 0 15px 0",
+              color: "#dc2626",
+              fontSize: "16px",
+              fontWeight: "600"
+            }}>
+              Justificar Inasistencia
+            </h4>
 
-            <button
-              type="submit"
-              disabled={subiendo}
-              style={{
-                ...buttonStyle,
-                background: subiendo ? "#ccc" : "#FCA5A5",
-                cursor: subiendo ? "not-allowed" : "pointer",
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleGuardar(false);
               }}
+              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
             >
-              {subiendo ? "Subiendo..." : "Confirmar justificación"}
-            </button>
-          </form>
+              <div>
+                <label htmlFor="archivoJustificacion" style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "600",
+                  color: "#374151"
+                }}>
+                  Adjuntar documento justificativo (PDF):
+                </label>
+                <input
+                  id="archivoJustificacion"
+                  type="file"
+                  required
+                  accept="application/pdf"
+                  onChange={(e) => setArchivo(e.target.files[0])}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "2px solid #fca5a5",
+                    backgroundColor: "#ffffff",
+                    fontSize: "14px"
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={subiendo}
+                style={{
+                  ...buttonStyle,
+                  background: subiendo ? "#9ca3af" : "#dc2626",
+                  cursor: subiendo ? "not-allowed" : "pointer",
+                  padding: "12px 20px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  boxShadow: subiendo ? "none" : "0 4px 6px rgba(220, 38, 38, 0.3)"
+                }}
+              >
+                {subiendo ? "Subiendo..." : "Confirmar justificación"}
+              </button>
+            </form>
+          </div>
         )}
       </div>
     </div>
