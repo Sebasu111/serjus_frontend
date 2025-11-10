@@ -68,32 +68,52 @@ const useEvaluacionSeleccion = () => {
   }, []);
 
   // === Cargar criterios base ===
-  useEffect(() => {
-    const cargarCriterios = async () => {
-      try {
-        const variableRes = await fetch(`${API}/variables/?idtipoevaluacion=4`);
-        const variableData = (await variableRes.json()).results || [];
-        if (!variableData.length) return;
+useEffect(() => {
+  const cargarCriterios = async () => {
+    try {
+      // 🔹 Trae todas las variables
+      const variableRes = await fetch(`${API}/variables/`);
+      const variableJson = await variableRes.json();
+      const allVariables = variableJson.results || variableJson;
 
-        const idVariable = variableData[0].idvariable;
+      // 🔹 Filtra solo la variable de Evaluación de Entrevista
+      const variableData = allVariables.filter(
+        (v) =>
+          v.idtipoevaluacion === 4 &&
+          v.nombrevariable === "Evaluación de Entrevista"
+      );
 
-        const criteriosRes = await fetch(`${API}/criterio/?idvariable=${idVariable}`);
-        const criteriosData = (await criteriosRes.json()).results || [];
-
-        const listaCriterios = criteriosData.map((c) => ({
-          id: c.idcriterio,
-          nombre: c.nombrecriterio,
-          descripcion: c.descripcioncriterio,
-        }));
-
-        setCriterios(listaCriterios);
-      } catch (err) {
-        showToast("Error cargando criterios:", "error");
+      if (!variableData.length) {
+        showToast("No se encontró la variable 'Evaluación de Entrevista'.", "warning");
+        return;
       }
-    };
 
-    cargarCriterios();
-  }, []);
+      const idVariable = variableData[0].idvariable;
+
+      // 🔹 Trae todos los criterios y filtra solo los de esa variable
+      const criteriosRes = await fetch(`${API}/criterio/`);
+      const criteriosJson = await criteriosRes.json();
+      const criteriosData = (criteriosJson.results || criteriosJson).filter(
+        (c) => c.idvariable === idVariable
+      );
+
+      // 🔹 Mapea solo los que pertenecen a Evaluación de Entrevista
+      const listaCriterios = criteriosData.map((c) => ({
+        id: c.idcriterio,
+        nombre: c.nombrecriterio,
+        descripcion: c.descripcioncriterio,
+      }));
+
+      setCriterios(listaCriterios);
+      console.log("✅ Criterios filtrados:", listaCriterios);
+    } catch (err) {
+      console.error("Error cargando criterios:", err);
+      showToast("Error cargando criterios.", "error");
+    }
+  };
+
+  cargarCriterios();
+}, []);
 
   // === Cargar aspirantes de la convocatoria seleccionada ===
   useEffect(() => {

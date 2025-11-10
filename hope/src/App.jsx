@@ -46,8 +46,6 @@ import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
 // =============================================================
 import ConvocatoriasContainer from "./containers/convocatorias/ConvocatoriasContainer";
 import PostulacionesContainer from "./containers/postulaciones/PostulacionesContainer";
-// import AspirantesContainer from "./containers/aspirantes";
-// import SeleccionContainer from "./containers/seleccion";
 
 // =============================================================
 //   INTEGRACIÓN
@@ -143,7 +141,7 @@ const App = () => {
                     <Route exact path={`${base}/Induccion`} component={InduccionContainer} />
 
                     {/*DESEMPEÑO*/}
-                    <Route exact path={`${base}/CriterioEvaluacion`} component={CriterioEvaluacionContainer} />
+                    <Route exact path={`${base}/Criterios`} component={CriterioEvaluacionContainer} />
                     <Route exact path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} />
                     <Route exact path={`${base}/Evaluaciones`} component={EvaluacionContainer} />
 
