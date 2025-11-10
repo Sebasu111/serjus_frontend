@@ -156,19 +156,6 @@ const EmpleadoForm = ({
     };
 
     // NUEVO: Forzamos que cualquier invalidación use nuestro texto
-    const handleInvalid = e => {
-        // Evita que el navegador muestre su string por defecto
-        e.preventDefault();
-        const input = e.target;
-        // Si está vacío (u otro caso inválido), ponemos nuestro mensaje
-        if (input && input.setCustomValidity) {
-            input.setCustomValidity("Este campo es obligatorio");
-            // Mostrar inmediatamente el tooltip con nuestro texto
-            if (input.reportValidity) input.reportValidity();
-            if (input.focus) input.focus();
-        }
-    };
-
     // Validación LITERAL por paso (para el botón Siguiente)
     const validateCurrentStepNative = () => {
         const box = document.querySelector(`[data-step="${step}"]`);
@@ -314,8 +301,8 @@ const EmpleadoForm = ({
                         Paso {step} de 3
                     </div>
 
-                    {/* onInvalid a nivel de form para forzar el mensaje */}
-                    <form onSubmit={handleSubmit} onInvalid={handleInvalid}>
+                    {/* Formulario principal */}
+                    <form onSubmit={handleSubmit}>
                         {/* ===== PASO 1 ===== */}
                         {step === 1 && (
                             <div data-step="1">
