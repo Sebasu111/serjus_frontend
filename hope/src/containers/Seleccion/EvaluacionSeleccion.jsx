@@ -1,9 +1,10 @@
 // EvaluacionSeleccion.jsx
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import serjusHeader from "../../assets/header-contrato/header-contrato.png";
 import useEvaluacionSeleccion from "./useEvaluacionSeleccion";
 import "./EvaluacionSeleccion.css";
 import { showToast } from "../../utils/toast";
+import CriterioModal from "./CriterioModal"; 
 
 const EvaluacionSeleccion = forwardRef((props, ref) => {
   const {
@@ -32,6 +33,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
 
   const tresSeleccionados = nombresEvaluados.filter((n) => n && n.nombre && n.nombre.trim() !== "").length >= 3;
   const esEvaluacionCargada = Boolean(evaluacionSeleccionada);
+  const [mostrarModal, setMostrarModal] = useState(false);
 
   // Verifica si toda la tabla está completa
   const tablaCompleta =
@@ -45,6 +47,17 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
         ["p1", "p2", "p3"].every((p) => ev.puntajes[p] && ev.puntajes[p] !== "")
       );
     });
+
+  // 🔹 Cuando el usuario agrega desde el modal
+  const handleAgregarCriterioDesdeModal = (criterio) => {
+    // criterio llega con { id, nombre, descripcion }
+    setCriterios((prev) => [...prev, criterio]);
+    setEvaluaciones((prev) => [
+      ...prev,
+      { criterio: criterio.nombre, puntajes: { p1: "", p2: "", p3: "" }, observaciones: "" },
+    ]);
+    setMostrarModal(false);
+  };
 
   return (
     <div id="printable" ref={ref}>
@@ -172,48 +185,35 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
       </div>
 
       <button
-  className="btn-agregar"
-  onClick={() => {
-    if (esEvaluacionCargada) return; // 🔒 no permite acción si es cargada
-    if (!tresSeleccionados) {
-      showToast("Selecciona 3 aspirantes antes de agregar criterios.", "warning");
-      return;
-    }
-    agregarCriterio();
-  }}
-  disabled={!tresSeleccionados || esEvaluacionCargada}
-  title={
-    esEvaluacionCargada
-      ? "Deshabilitado: evaluación cargada"
-      : !tresSeleccionados
-      ? "Desactivado: faltan aspirantes seleccionados"
-      : "Agregar un nuevo criterio"
-  }
-  style={{
-    backgroundColor:
-      !tresSeleccionados || esEvaluacionCargada ? "#ccc" : "#219ebc",
-    color:
-      !tresSeleccionados || esEvaluacionCargada ? "#666" : "#fff",
-    cursor:
-      !tresSeleccionados || esEvaluacionCargada
-        ? "not-allowed"
-        : "pointer",
-    border: "none",
-    borderRadius: 6,
-    padding: "8px 16px",
-    fontWeight: 600,
-    transition: "background 0.3s ease",
-  }}
->
-  Agregar Criterio
-</button>
+        className="btn-agregar"
+        onClick={() => {
+          if (esEvaluacionCargada) return;
+          if (!tresSeleccionados) {
+            showToast("Selecciona 3 aspirantes antes de agregar criterios.", "warning");
+            return;
+          }
+          setMostrarModal(true); // 🔥 ahora abre el modal
+        }}
+        disabled={!tresSeleccionados || esEvaluacionCargada}
+        style={{
+          backgroundColor: !tresSeleccionados || esEvaluacionCargada ? "#ccc" : "#219ebc",
+          color: !tresSeleccionados || esEvaluacionCargada ? "#666" : "#fff",
+          cursor: !tresSeleccionados || esEvaluacionCargada ? "not-allowed" : "pointer",
+          border: "none",
+          borderRadius: 6,
+          padding: "8px 16px",
+          fontWeight: 600,
+          transition: "background 0.3s ease",
+        }}
+      >
+        Agregar Criterio
+      </button>
 
-
-      {/* 🔘 Botón para guardar criterios */}
+      {/* Botón para guardar criterios */}
       <button
         className="btn-guardar"
         onClick={() => {
-          if (esEvaluacionCargada) return; // 🔒 no guarda si es evaluación cargada
+          if (esEvaluacionCargada) return;
           if (!tablaCompleta) {
             showToast("Debes completar todos los puntajes antes de guardar.", "warning");
             return;
@@ -245,7 +245,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
           transition: "background 0.3s ease",
         }}
       >
-        Guardar Criterios
+        Guardar Evaluación
       </button>
 
 
@@ -282,8 +282,8 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
                       handleCriterioChange(index, "nombre", e.target.value)
                     }
                     style={{
-                      backgroundColor: esInstitucional ? "rgba(243, 255, 105, 0.315); " : "white",
-                      color: esInstitucional ? "#777" : "black",
+                      backgroundColor: esInstitucional ? "#f3ff6950 " : "white",
+                      color: esInstitucional ? "#000000ff" : "black",
                       cursor: esInstitucional ? "not-allowed" : "text",
                       border: "1px solid #ccc",
                       borderRadius: 4,
@@ -309,8 +309,8 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
                       e.target.style.height = e.target.scrollHeight + "px";
                     }}
                     style={{
-                      backgroundColor: esInstitucional ? "rgba(243, 255, 105, 0.315); " : "white",
-                      color: esInstitucional ? "rgba(243, 255, 105, 0.315); " : "black",
+                      backgroundColor: esInstitucional ? "#f3ff6950 " : "white",
+                      color: esInstitucional ? "#000000ff " : "black",
                       cursor: esInstitucional ? "not-allowed" : "text",
                       overflow: "hidden",
                       width: "100%",
@@ -437,72 +437,78 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
         <li>5 = Cumple plenamente y demuestra compromiso.</li>
       </ul>
 
+      {mostrarModal && (
+        <CriterioModal
+          onClose={() => setMostrarModal(false)}
+          onAdd={handleAgregarCriterioDesdeModal}
+        />
+      )}
+
       {/* Mostrar los botones solo cuando la tabla esté completa */}
-{tablaCompleta && (
-  <div className="botones-final">
-    {(() => {
-      // Calcular totales
-      const totales = [
-        { key: "p1", total: totalPorPersona("p1"), nombre: nombresEvaluados[0]?.nombre || "Entrevistado 1" },
-        { key: "p2", total: totalPorPersona("p2"), nombre: nombresEvaluados[1]?.nombre || "Entrevistado 2" },
-        { key: "p3", total: totalPorPersona("p3"), nombre: nombresEvaluados[2]?.nombre || "Entrevistado 3" },
-      ];
+      {tablaCompleta && (
+        <div className="botones-final">
+          {(() => {
+            // Calcular totales
+            const totales = [
+              { key: "p1", total: totalPorPersona("p1"), nombre: nombresEvaluados[0]?.nombre || "Entrevistado 1" },
+              { key: "p2", total: totalPorPersona("p2"), nombre: nombresEvaluados[1]?.nombre || "Entrevistado 2" },
+              { key: "p3", total: totalPorPersona("p3"), nombre: nombresEvaluados[2]?.nombre || "Entrevistado 3" },
+            ];
 
-      // Ordenar de mayor a menor puntaje
-      const ordenados = [...totales].sort((a, b) => b.total - a.total);
+            // Ordenar de mayor a menor puntaje
+            const ordenados = [...totales].sort((a, b) => b.total - a.total);
 
-      // Paleta semáforo (colores suaves y bonitos)
-      const colores = {
-        [ordenados[0]?.key]: "#bdfaa5ff", // 🟢 Verde (ganador)
-        [ordenados[1]?.key]: "#f9d683ff", // 🟡 Amarillo (2do)
-        [ordenados[2]?.key]: "#f98ba5ff", // 🔴 Rojo (3ro)
-      };
+            // Paleta semáforo (colores suaves y bonitos)
+            const colores = {
+              [ordenados[0]?.key]: "#bdfaa5ff", 
+              [ordenados[1]?.key]: "#f9d683ff",
+              [ordenados[2]?.key]: "#f98ba5ff",
+            };
 
-      // Etiquetas según posición
-      const textos = {
-        [ordenados[0]?.key]: "1er Lugar - Ganador",
-        [ordenados[1]?.key]: "2do Lugar",
-        [ordenados[2]?.key]: "3er Lugar",
-      };
+            // Etiquetas según posición
+            const textos = {
+              [ordenados[0]?.key]: "1er Lugar - Ganador",
+              [ordenados[1]?.key]: "2do Lugar",
+              [ordenados[2]?.key]: "3er Lugar",
+            };
 
-      return ["p1", "p2", "p3"].map((p, i) => {
-        const color = colores[p] || "#ccc";
-        const aspirante = nombresEvaluados[i]?.nombre || `Entrevistado ${i + 1}`;
-        const total = totalPorPersona(p);
+            return ["p1", "p2", "p3"].map((p, i) => {
+              const color = colores[p] || "#ccc";
+              const aspirante = nombresEvaluados[i]?.nombre || `Entrevistado ${i + 1}`;
+              const total = totalPorPersona(p);
 
-        return (
-          <button
-            key={p}
-            disabled={!nombresEvaluados[i]}
-            onClick={() => handleGuardarEvaluacion(i)}
-            style={{
-              backgroundColor: color,
-              color: "#000000ff",
-              border: "none",
-              borderRadius: 10,
-              padding: "12px 20px",
-              margin: "8px",
-              fontWeight: 600,
-              cursor: "pointer",
-              minWidth: "230px",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
-              transition: "all 0.2s ease",
-              transform: "scale(1)",
-            }}
-            onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
-            onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
-            title={`Puntaje total: ${total}`}
-          >
-            {textos[p] ? `${textos[p]} — ${aspirante}` : aspirante}
-          </button>
+              return (
+                <button
+                  key={p}
+                  disabled={!nombresEvaluados[i]}
+                  onClick={() => handleGuardarEvaluacion(i)}
+                  style={{
+                    backgroundColor: color,
+                    color: "#000000ff",
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "12px 20px",
+                    margin: "8px",
+                    fontWeight: 600,
+                    cursor: "default",
+                    minWidth: "230px",
+                    boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
+                    transition: "all 0.2s ease",
+                    transform: "scale(1)",
+                  }}
+                  onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
+                  onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                  title={`Puntaje total: ${total}`}
+                >
+                  {textos[p] ? `${textos[p]} — ${aspirante}` : aspirante}
+                </button>
+              );
+            });
+          })()}
+        </div>
+      )}
+          </div>
         );
       });
-    })()}
-  </div>
-)}
-
-    </div>
-  );
-});
 
 export default EvaluacionSeleccion;

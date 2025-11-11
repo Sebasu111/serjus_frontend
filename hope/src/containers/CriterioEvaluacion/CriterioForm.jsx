@@ -4,12 +4,18 @@ import { showToast } from "../../utils/toast.js";
 
 const API = "http://127.0.0.1:8000/api";
 
-const CriterioForm = ({ onClose, variables, onSuccess }) => {
+const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [idTipo, setIdTipo] = useState("");
   const [idVariable, setIdVariable] = useState("");
   const [estado] = useState(true); // activo por defecto, oculto
   const [cargando, setCargando] = useState(false);
+
+  // 🔹 Filtrar variables asociadas al tipo seleccionado
+  const variablesFiltradas = variables.filter(
+    (v) => !idTipo || v.idtipoevaluacion === Number(idTipo)
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +38,7 @@ const CriterioForm = ({ onClose, variables, onSuccess }) => {
       };
 
       await axios.post(`${API}/criterio/`, payload);
-      showToast("Criterio creado correctamente ✅");
+      showToast("Criterio creado correctamente ");
       onSuccess();
       onClose();
     } catch (error) {
@@ -58,8 +64,9 @@ const CriterioForm = ({ onClose, variables, onSuccess }) => {
             gap: "12px",
           }}
         >
+          {/* Nombre */}
           <label style={labelStyle}>
-            Nombre del Criterio <span style={{ color: "red" }}>*</span>
+            Nombre del Criterio  
             <input
               type="text"
               value={nombre}
@@ -69,25 +76,54 @@ const CriterioForm = ({ onClose, variables, onSuccess }) => {
             />
           </label>
 
+          {/* Descripción */}
           <label style={labelStyle}>
             Descripción
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               style={{ ...inputStyle, minHeight: "70px", resize: "vertical" }}
+              required
             />
           </label>
 
+          {/* Tipo de Evaluación */}
           <label style={labelStyle}>
-            Variable Asociada <span style={{ color: "red" }}>*</span>
+            Tipo de Evaluación  
+            <select
+              value={idTipo}
+              onChange={(e) => {
+                setIdTipo(e.target.value);
+                setIdVariable("");
+              }}
+              style={inputStyle}
+              required
+            >
+              <option value="">Seleccione un tipo</option>
+              {tipos.map((t) => (
+                <option key={t.idtipoevaluacion} value={t.idtipoevaluacion}>
+                  {t.nombretipo}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {/* Variables dependientes */}
+          <label style={labelStyle}>
+            Variable Asociada  
             <select
               value={idVariable}
               onChange={(e) => setIdVariable(e.target.value)}
               style={inputStyle}
               required
+              disabled={!idTipo}
             >
-              <option value="">Seleccione una variable</option>
-              {variables.map((v) => (
+              <option value="">
+                {idTipo
+                  ? "Seleccione una variable"
+                  : "Primero seleccione un tipo"}
+              </option>
+              {variablesFiltradas.map((v) => (
                 <option key={v.idvariable} value={v.idvariable}>
                   {v.nombrevariable}
                 </option>
@@ -95,7 +131,7 @@ const CriterioForm = ({ onClose, variables, onSuccess }) => {
             </select>
           </label>
 
-          {/* Botones al final */}
+          {/* Botones */}
           <div
             style={{
               display: "flex",
@@ -107,7 +143,7 @@ const CriterioForm = ({ onClose, variables, onSuccess }) => {
               type="submit"
               disabled={cargando}
               style={{
-                background: "#007BFF",
+                background: "#219ebc",
                 color: "white",
                 border: "none",
                 borderRadius: "6px",
@@ -126,8 +162,8 @@ const CriterioForm = ({ onClose, variables, onSuccess }) => {
               type="button"
               onClick={onClose}
               style={{
-                background: "#ccc",
-                color: "#333",
+                background: "#919191ff",
+                color: "#ffffffff",
                 border: "none",
                 borderRadius: "6px",
                 padding: "10px 18px",
@@ -145,7 +181,7 @@ const CriterioForm = ({ onClose, variables, onSuccess }) => {
   );
 };
 
-// 🎨 Estilos
+// Estilos
 const overlayStyle = {
   position: "fixed",
   top: 0,

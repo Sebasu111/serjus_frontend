@@ -34,25 +34,36 @@ const CriterioTable = ({
 
   const toggleMenu = (id) => setMenuAbierto(menuAbierto === id ? null : id);
 
-  // 🔹 Generar botones de paginación
+  // 🔹 Generar botones de paginación (máximo 7 visibles)
   const generarBotones = () => {
     const botones = [];
-    const rangoVisible = 1;
+    const maxVisible = 7; // máximo de botones visibles
 
-    if (totalPaginas <= 7) {
+    if (totalPaginas <= maxVisible) {
       for (let i = 1; i <= totalPaginas; i++) botones.push(i);
-      return botones;
+    } else {
+      botones.push(1);
+      if (paginaActual > 4) {
+        botones.push("...");
+      }
+
+      const inicio = Math.max(2, paginaActual - 2);
+      const fin = Math.min(totalPaginas - 1, paginaActual + 2);
+
+      for (let i = inicio; i <= fin; i++) {
+        botones.push(i);
+      }
+
+      if (paginaActual < totalPaginas - 3) {
+        botones.push("...");
+      }
+
+      botones.push(totalPaginas);
     }
 
-    botones.push(1);
-    if (paginaActual > rangoVisible + 2) botones.push("...");
-    const inicio = Math.max(2, paginaActual - rangoVisible);
-    const fin = Math.min(totalPaginas - 1, paginaActual + rangoVisible);
-    for (let i = inicio; i <= fin; i++) botones.push(i);
-    if (paginaActual < totalPaginas - rangoVisible - 1) botones.push("...");
-    botones.push(totalPaginas);
     return botones;
   };
+
 
   return (
     <div
@@ -64,7 +75,7 @@ const CriterioTable = ({
         boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
       }}
     >
-      {/* 🔍 Filtros */}
+      {/* Filtros */}
       <div
         style={{
           display: "flex",
@@ -179,7 +190,7 @@ const CriterioTable = ({
                 ? tipos.find((t) => t.idtipoevaluacion === variable.idtipoevaluacion)
                 : null;
 
-              const esDefault = criterio.idcriterio <= 98; // 🔒 Criterios protegidos
+              const esDefault = criterio.idcriterio <= 98; // Criterios protegidos
 
               return (
                 <tr key={criterio.idcriterio}>
@@ -208,7 +219,6 @@ const CriterioTable = ({
 
                       {menuAbierto === criterio.idcriterio && (
                         <div style={comboBoxStyles.menu.container}>
-                          {/* 🔒 Si es default (<=98), se bloquea edición y desactivación */}
                           {esDefault ? (
                             <>
                               <button

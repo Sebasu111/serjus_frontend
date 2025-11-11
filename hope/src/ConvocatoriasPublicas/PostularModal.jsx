@@ -184,7 +184,7 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
           idusuario: 1,
           idaspirante: Number(idAspirante),
           idconvocatoria: Number(convocatoria?.idconvocatoria),
-          idestado: estadoPostulado.idestado, // ✅ usamos el ID dinámico
+          idestado: estadoPostulado.idestado, //   usamos el ID dinámico
         }),
       });
 
