@@ -93,9 +93,9 @@ useEffect(() => {
       // 🔹 Trae todos los criterios y filtra solo los de esa variable
       const criteriosRes = await fetch(`${API}/criterio/`);
       const criteriosJson = await criteriosRes.json();
-      const criteriosData = (criteriosJson.results || criteriosJson).filter(
-        (c) => c.idvariable === idVariable
-      );
+      const criteriosData = (criteriosJson.results || criteriosJson)
+        .filter((c) => c.idvariable === idVariable && c.idcriterio <= 12);
+
 
       // 🔹 Mapea solo los que pertenecen a Evaluación de Entrevista
       const listaCriterios = criteriosData.map((c) => ({
@@ -105,7 +105,7 @@ useEffect(() => {
       }));
 
       setCriterios(listaCriterios);
-      console.log("✅ Criterios filtrados:", listaCriterios);
+      console.log("  Criterios filtrados:", listaCriterios);
     } catch (err) {
       console.error("Error cargando criterios:", err);
       showToast("Error cargando criterios.", "error");
@@ -399,14 +399,14 @@ setEvaluaciones(evaluacionesAlineadas);
         return;
       }
 
-      // ✅ Obtener variable
+      //  Obtener variable
       const variableRes = await fetch(`${API}/variables/?idtipoevaluacion=4`);
       const variableData = (await variableRes.json()).results || [];
       if (!variableData.length)
         throw new Error("No existe variable para idtipoevaluacion=4");
       const idVariable = variableData[0].idvariable;
 
-      // ✅ Crear evaluación principal
+      //  Crear evaluación principal
       const evalRes = await fetch(`${API}/evaluacion/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -426,7 +426,7 @@ setEvaluaciones(evaluacionesAlineadas);
       const evalData = await evalRes.json();
       const idevaluacion = evalData.idevaluacion;
 
-      // ✅ Asegurar que los criterios estén creados en la BD
+      //  Asegurar que los criterios estén creados en la BD
       const criteriosIds = [];
       for (const c of criterios) {
         let idCriterio = c.id;
@@ -449,7 +449,7 @@ setEvaluaciones(evaluacionesAlineadas);
         criteriosIds.push(idCriterio);
       }
 
-      // ✅ Crear EvaluacionCriterio para cada persona y cada criterio
+      //  Crear EvaluacionCriterio para cada persona y cada criterio
       for (let idx = 0; idx < criterios.length; idx++) {
         for (let persona of ["p1", "p2", "p3"]) {
           const aspirante = nombresEvaluados[persona === "p1" ? 0 : persona === "p2" ? 1 : 2];
@@ -488,12 +488,12 @@ setEvaluaciones(evaluacionesAlineadas);
   setConvocatoriaSeleccionada,
   convocatoriaSeleccionada,
   nombresEvaluados,
-  setNombresEvaluados,   // ✅ agregar
+  setNombresEvaluados,   //   agregar
   criterios,
-  setCriterios,          // ✅ agregar
+  setCriterios,          //   agregar
   evaluaciones,
-  setEvaluaciones,       // ✅ agregar
-  setGanador,            // ✅ agregar
+  setEvaluaciones,       //   agregar
+  setGanador,            //   agregar
   totalPorPersona,
   handleChange,
   agregarCriterio,

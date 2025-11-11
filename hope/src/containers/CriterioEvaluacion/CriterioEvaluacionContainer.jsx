@@ -228,6 +228,7 @@ const CriterioEvaluacionContainer = () => {
           <CriterioForm
             onClose={() => setMostrarFormulario(false)}
             variables={variables}
+            tipos={tipos}
             onSuccess={() => window.location.reload()}
           />
         )}
