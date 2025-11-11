@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import ConfirmModal from "./ConfirmModal";
 import AmonestacionModal from "./AmonestacionModal.jsx";
@@ -15,19 +15,16 @@ const AmonestacionTable = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [amonestacionSeleccionada, setAmonestacionSeleccionada] = useState(null);
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
+  const [busqueda, setBusqueda] = useState("");
 
   const toggleMenu = (id) => setOpenMenuId(openMenuId === id ? null : id);
-
-  const amonestacionesOrdenadas = [...amonestaciones].sort(
-    (a, b) => new Date(b.createdat) - new Date(a.createdat)
-  );
 
   const formatFecha = (fechaISO) => {
     if (!fechaISO) return "-";
     const fecha = new Date(fechaISO);
     const fechaLocal = new Date(fecha.getTime() + fecha.getTimezoneOffset() * 60000);
-    const dia = fechaLocal.getDate();
-    const mes = fechaLocal.getMonth() + 1;
+    const dia = fechaLocal.getDate().toString().padStart(2, "0");
+    const mes = (fechaLocal.getMonth() + 1).toString().padStart(2, "0");
     const anio = fechaLocal.getFullYear();
     return `${dia}-${mes}-${anio}`;
   };
@@ -44,6 +41,91 @@ const AmonestacionTable = ({
     setEmpleadoSeleccionado(null);
   };
 
+ // 🔍 Filtrado de búsqueda global
+const amonestacionesFiltradas = useMemo(() => {
+  // 🔸 Normaliza el término (quita tildes y espacios dobles)
+  const term = busqueda
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+  if (!term)
+    return [...amonestaciones].sort(
+      (a, b) => new Date(b.createdat) - new Date(a.createdat)
+    );
+
+  return [...amonestaciones]
+    .sort((a, b) => new Date(b.createdat) - new Date(a.createdat))
+    .filter((row) => {
+      const empleado =
+        empleados.find((e) => e.idempleado === row.idempleado) || {};
+      const colaborador = `${empleado.nombre || ""} ${empleado.apellido || ""}`
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      const tipo = (row.tipo || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      const fecha = formatFecha(row.fechaamonestacion)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      const motivo = (row.motivo || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      const estadoTexto = (row.estado ? "activo" : "inactivo")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      const idDoc = row.iddocumento || row.idDocumento;
+      const tieneCarta = Number(idDoc) > 0;
+
+      // 🟩 Texto base de carta
+      const cartaTexto = tieneCarta ? "subida" : "aun no subida";
+
+      // 🧠 Reglas para buscar cartas
+      const buscaSubida =
+        term === "sub" ||
+        term === "subi" ||
+        term === "subid" ||
+        term === "subida" ||
+        term.startsWith("sub");
+
+      // "no subida", "aun no subida", "aún no subida", "aun subida"
+      const buscaNoSubida =
+        term.includes("no subida") ||
+        term.includes("aun no subida") ||
+        term.includes("aun subida") ||
+        term.includes("aun") && term.includes("subida");
+
+      // 🧩 Coincidencia general
+      const coincideGeneral =
+        colaborador.includes(term) ||
+        tipo.includes(term) ||
+        fecha.includes(term) ||
+        motivo.includes(term) ||
+        estadoTexto.includes(term);
+
+      // 🧩 Coincidencia específica por carta
+      let coincideCarta = false;
+      if (buscaSubida) {
+        coincideCarta = tieneCarta; // solo las subidas
+      } else if (buscaNoSubida) {
+        coincideCarta = !tieneCarta; // solo las no subidas
+      } else {
+        coincideCarta = cartaTexto.includes(term); // búsqueda general
+      }
+
+      return coincideGeneral || coincideCarta;
+    });
+}, [busqueda, amonestaciones, empleados]);
+
+
+
+
   return (
     <div
       style={{
@@ -54,6 +136,24 @@ const AmonestacionTable = ({
         position: "relative",
       }}
     >
+      {/* 🔍 Campo de búsqueda */}
+      <div style={{ marginBottom: "15px" }}>
+        <input
+          type="text"
+          placeholder="Buscar por colaborador, tipo, fecha, motivo, carta o estado..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          style={{
+            width: "100%", // 🔸 ocupa todo el ancho de la tabla
+            padding: "10px 14px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+            fontSize: "15px",
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#023047", color: "white" }}>
@@ -61,21 +161,18 @@ const AmonestacionTable = ({
             <th style={{ padding: "10px", textAlign: "left" }}>Tipo</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Fecha</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Motivo</th>
-            <th style={{ padding: "10px", textAlign: "center" }}>Carta</th> {/* ✅ NUEVA COLUMNA */}
+            <th style={{ padding: "10px", textAlign: "center" }}>Carta</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Estado</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Acciones</th>
           </tr>
         </thead>
 
         <tbody>
-          {amonestacionesOrdenadas.length > 0 ? (
-            amonestacionesOrdenadas.map((row) => {
-              const empleado =
-                empleados.find((e) => e.idempleado === row.idempleado) || {};
+          {amonestacionesFiltradas.length > 0 ? (
+            amonestacionesFiltradas.map((row) => {
+              const empleado = empleados.find((e) => e.idempleado === row.idempleado) || {};
               const estadoTexto = row.estado ? "Activo" : "Inactivo";
               const colorEstado = row.estado ? "green" : "red";
-
-              // ✅ Detectar si tiene documento real (id > 0)
               const idDoc = row.iddocumento || row.idDocumento;
               const tieneCarta = Number(idDoc) > 0;
 
@@ -196,37 +293,14 @@ const AmonestacionTable = ({
           ) : (
             <tr>
               <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
-                No hay amonestaciones registradas
+                No se encontraron resultados para "{busqueda}"
               </td>
             </tr>
           )}
         </tbody>
       </table>
 
-      {/* Paginación */}
-      {totalPaginas > 1 && (
-        <div style={{ marginTop: "20px", textAlign: "center" }}>
-          {Array.from({ length: totalPaginas }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => setPaginaActual(i + 1)}
-              style={{
-                margin: "0 5px",
-                padding: "6px 12px",
-                border: "1px solid #219ebc",
-                background: paginaActual === i + 1 ? "#219ebc" : "#fff",
-                color: paginaActual === i + 1 ? "#fff" : "#219ebc",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Modal de Detalle de Amonestación */}
+      {/* Modal de detalle */}
       {modalVisible && amonestacionSeleccionada && (
         <AmonestacionModal
           visible={modalVisible}

@@ -352,7 +352,7 @@ const responsablesFiltrados = useMemo(() => {
     e.preventDefault();
     const form = e.target.closest("form");
 
-    // ⚠️ Validar campos requeridos primero
+    
     if (!form.checkValidity()) {
       form.reportValidity();
       showToast(
@@ -362,7 +362,7 @@ const responsablesFiltrados = useMemo(() => {
       return;
     }
 
-    // ⚠️ Validar que colaborador y responsable no sean la misma persona
+    
     const nombreEmpleado = (data.nombreTrabajador || "").trim().toLowerCase();
     const nombreResponsable = (data.nombreResponsable || "").trim().toLowerCase();
 
@@ -375,10 +375,10 @@ const responsablesFiltrados = useMemo(() => {
         "El responsable no puede ser la misma persona que el colaborador.",
         "error"
       );
-      return; // ❌ Detiene la impresión
+      return; 
     }
 
-    onPrint(); // ✅ Continúa solo si pasa la validación
+    onPrint(); 
   }}
   style={buttonPrimary}
 >
