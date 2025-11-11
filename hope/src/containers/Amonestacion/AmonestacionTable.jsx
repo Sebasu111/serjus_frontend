@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import ConfirmModal from "./ConfirmModal";
-import AmonestacionModal from "./AmonestacionModal.jsx"; 
+import AmonestacionModal from "./AmonestacionModal.jsx";
 
 const AmonestacionTable = ({
   amonestaciones = [],
   empleados = [],
-  onSubirCarta, 
+  onSubirCarta,
   paginaActual,
   totalPaginas,
   setPaginaActual,
 }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false); 
+  const [modalVisible, setModalVisible] = useState(false);
   const [amonestacionSeleccionada, setAmonestacionSeleccionada] = useState(null);
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
 
@@ -25,9 +25,7 @@ const AmonestacionTable = ({
   const formatFecha = (fechaISO) => {
     if (!fechaISO) return "-";
     const fecha = new Date(fechaISO);
-    const fechaLocal = new Date(
-      fecha.getTime() + fecha.getTimezoneOffset() * 60000
-    );
+    const fechaLocal = new Date(fecha.getTime() + fecha.getTimezoneOffset() * 60000);
     const dia = fechaLocal.getDate();
     const mes = fechaLocal.getMonth() + 1;
     const anio = fechaLocal.getFullYear();
@@ -63,6 +61,7 @@ const AmonestacionTable = ({
             <th style={{ padding: "10px", textAlign: "left" }}>Tipo</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Fecha</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Motivo</th>
+            <th style={{ padding: "10px", textAlign: "center" }}>Carta</th> {/* ✅ NUEVA COLUMNA */}
             <th style={{ padding: "10px", textAlign: "center" }}>Estado</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Acciones</th>
           </tr>
@@ -75,6 +74,10 @@ const AmonestacionTable = ({
                 empleados.find((e) => e.idempleado === row.idempleado) || {};
               const estadoTexto = row.estado ? "Activo" : "Inactivo";
               const colorEstado = row.estado ? "green" : "red";
+
+              // ✅ Detectar si tiene documento real (id > 0)
+              const idDoc = row.iddocumento || row.idDocumento;
+              const tieneCarta = Number(idDoc) > 0;
 
               return (
                 <tr key={row.idamonestacion}>
@@ -122,6 +125,22 @@ const AmonestacionTable = ({
                     }}
                   >
                     {row.motivo || "-"}
+                  </td>
+
+                  {/* Carta */}
+                  <td
+                    style={{
+                      padding: "10px",
+                      textAlign: "center",
+                      borderBottom: "1px solid #f0f0f0",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {tieneCarta ? (
+                      <span style={{ color: "green" }}>Subida</span>
+                    ) : (
+                      <span style={{ color: "red" }}>Aún no subida</span>
+                    )}
                   </td>
 
                   {/* Estado */}
@@ -176,7 +195,7 @@ const AmonestacionTable = ({
             })
           ) : (
             <tr>
-              <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
+              <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
                 No hay amonestaciones registradas
               </td>
             </tr>
@@ -207,7 +226,7 @@ const AmonestacionTable = ({
         </div>
       )}
 
-      {/*Modal de Detalle de Amonestación */}
+      {/* Modal de Detalle de Amonestación */}
       {modalVisible && amonestacionSeleccionada && (
         <AmonestacionModal
           visible={modalVisible}
@@ -217,7 +236,6 @@ const AmonestacionTable = ({
         />
       )}
     </div>
-    
   );
 };
 

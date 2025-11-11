@@ -94,14 +94,23 @@ const AmonestacionForm = ({
     });
   }, [qEmpleado, empleados]);
 
-  // Filtrado de responsables
-  const responsablesFiltrados = useMemo(() => {
-    const term = qResponsable.toLowerCase().trim();
-    return responsables.filter((emp) => {
-      const nombre = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.toLowerCase();
-      return nombre.includes(term);
-    });
-  }, [qResponsable, responsables]);
+  // Filtrado de responsables (excluye al colaborador seleccionado)
+const responsablesFiltrados = useMemo(() => {
+  const term = qResponsable.toLowerCase().trim();
+
+  return responsables.filter((emp) => {
+    const nombre = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.toLowerCase();
+    const idEmp = emp.idempleado || emp.id;
+
+    // ⚠️ Si el colaborador seleccionado es este mismo, lo excluimos
+    if (data.idEmpleado && Number(idEmp) === Number(data.idEmpleado)) {
+      return false;
+    }
+
+    return nombre.includes(term);
+  });
+}, [qResponsable, responsables, data.idEmpleado]);
+
 
   const seleccionarEmpleado = (emp) => {
     const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.trim();
@@ -336,23 +345,46 @@ const AmonestacionForm = ({
       </div>
 
       {/* Botón imprimir */}
-      <button
-        type="button"
-        disabled={generandoPDF}
-        onClick={(e) => {
-          e.preventDefault();
-          const form = e.target.closest("form");
-          if (!form.checkValidity()) {
-            form.reportValidity();
-            showToast("Por favor, complete todos los campos requeridos antes de continuar.", "warning");
-            return;
-          }
-          onPrint();
-        }}
-        style={buttonPrimary}
-      >
-        {generandoPDF ? "Generando PDF..." : "Imprimir Carta"}
-      </button>
+<button
+  type="button"
+  disabled={generandoPDF}
+  onClick={(e) => {
+    e.preventDefault();
+    const form = e.target.closest("form");
+
+    // ⚠️ Validar campos requeridos primero
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      showToast(
+        "Por favor, complete todos los campos requeridos antes de continuar.",
+        "warning"
+      );
+      return;
+    }
+
+    // ⚠️ Validar que colaborador y responsable no sean la misma persona
+    const nombreEmpleado = (data.nombreTrabajador || "").trim().toLowerCase();
+    const nombreResponsable = (data.nombreResponsable || "").trim().toLowerCase();
+
+    if (
+      nombreEmpleado &&
+      nombreResponsable &&
+      nombreEmpleado === nombreResponsable
+    ) {
+      showToast(
+        "El responsable no puede ser la misma persona que el colaborador.",
+        "error"
+      );
+      return; // ❌ Detiene la impresión
+    }
+
+    onPrint(); // ✅ Continúa solo si pasa la validación
+  }}
+  style={buttonPrimary}
+>
+  {generandoPDF ? "Generando PDF..." : "Imprimir Carta"}
+</button>
+
     </form>
   );
 };
