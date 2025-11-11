@@ -11,13 +11,14 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
 
   // 🔹 Cargar documento existente si la amonestación tiene idDocumento > 0
   useEffect(() => {
-    const idDoc = amonestacion?.idDocumento || amonestacion?.iddocumento;
-    if (idDoc && idDoc > 0) {
-      fetchDocumento(idDoc);
-    } else {
-      setDocumentoExistente(null);
-    }
-  }, [amonestacion]);
+  const idDoc = amonestacion?.idDocumento || amonestacion?.iddocumento;
+  if (idDoc && idDoc > 0) {
+    fetchDocumento(idDoc);
+  } else {
+    setDocumentoExistente(null);
+  }
+}, [amonestacion?.idDocumento, amonestacion?.iddocumento]);
+
 
   const fetchDocumento = async (idDocumento) => {
     try {
@@ -84,6 +85,7 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
 
     showToast("Carta subida y actualizada correctamente", "success");
     onActualizado?.();
+    onClose();
 
   } catch (error) {
     showToast("Error al subir o refrescar la carta", "error");

@@ -9,7 +9,6 @@ const AmonestacionModal = ({
   amonestacion,
   empleado,
   loading = false,
-  offsetRight = 170,
 }) => {
   const [documento, setDocumento] = useState(null);
 
@@ -31,7 +30,7 @@ const AmonestacionModal = ({
         } else {
           setDocumento(null);
         }
-      } catch (error) {
+      } catch {
         setDocumento(null);
       }
     };
@@ -84,15 +83,15 @@ const AmonestacionModal = ({
         inset: 0,
         background: "rgba(0,0,0,.45)",
         display: "flex",
-        justifyContent: "flex-end",
+        justifyContent: "center", // ✅ centrado horizontalmente
         alignItems: "center",
         zIndex: 4000,
-        paddingRight: `${offsetRight}px`,
+        padding: "0 20px",
       }}
     >
       <div
         style={{
-          width: "min(1100px,95vw)",
+          width: "min(950px, 90vw)", // ✅ un poco más angosto que antes
           maxHeight: "92vh",
           overflowY: "auto",
           background: "#fff",

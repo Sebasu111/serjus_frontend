@@ -92,6 +92,17 @@ useEffect(() => {
     }
   };
 
+  const handleCartaActualizada = async () => {
+  await fetchAmonestaciones(); // refresca la lista
+  if (amonestacionSeleccionada) {
+    // vuelve a abrir el modal actualizado para ver el nuevo archivo
+    const actualizada = await axios.get(
+      `http://127.0.0.1:8000/api/amonestaciones/${amonestacionSeleccionada.idamonestacion}/`
+    );
+    setAmonestacionSeleccionada(actualizada.data);
+  }
+};
+
   // 🔹 Un solo método para obtener empleados y filtrar responsables
   const fetchEmpleadosPorRol = async (rolesPermitidos = [1, 5]) => {
     try {
@@ -351,6 +362,7 @@ useEffect(() => {
                     amonestacion={amonestacionSeleccionada}
                     onFileChange={setArchivoCarta}
                     archivo={archivoCarta}
+                    onActualizado={handleCartaActualizada}
                   />
                 )}
               </>
