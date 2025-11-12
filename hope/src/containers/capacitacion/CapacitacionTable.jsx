@@ -49,7 +49,7 @@ const CapacitacionesTable = ({
             const data = res.data.results || res.data;
 
             const asignados = data.filter(
-                item => Number(item.idcapacitacion) === Number(capacitacion.idcapacitacion || capacitacion.id)
+                item => Number(item.idcapacitacion) === Number(capacitacion.idcapacitacion || capacitacion.id) && item.estado === true
             );
 
             const empleadosRes = await axios.get("http://127.0.0.1:8000/api/empleados/");

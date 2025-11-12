@@ -87,30 +87,35 @@ const AmonestacionForm = ({
 
   // Filtrado de empleados
   const empleadosFiltrados = useMemo(() => {
-    const term = qEmpleado.toLowerCase().trim();
-    return empleados.filter((emp) => {
-      const nombre = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.toLowerCase();
+  const term = qEmpleado.toLowerCase().trim();
+  return empleados
+    .filter((emp) => emp.estado === true || emp.estado === 1) 
+    .filter((emp) => {
+      const nombre = `${emp.nombre || emp.primernombre || ""} ${
+        emp.apellido || emp.primerapellido || ""
+      }`.toLowerCase();
       return nombre.includes(term);
     });
-  }, [qEmpleado, empleados]);
+}, [qEmpleado, empleados]);
 
-  // Filtrado de responsables (excluye al colaborador seleccionado)
 const responsablesFiltrados = useMemo(() => {
   const term = qResponsable.toLowerCase().trim();
 
-  return responsables.filter((emp) => {
-    const nombre = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.toLowerCase();
-    const idEmp = emp.idempleado || emp.id;
+  return responsables
+    .filter((emp) => emp.estado === true || emp.estado === 1) 
+    .filter((emp) => {
+      const nombre = `${emp.nombre || emp.primernombre || ""} ${
+        emp.apellido || emp.primerapellido || ""
+      }`.toLowerCase();
+      const idEmp = emp.idempleado || emp.id;
 
-    // ⚠️ Si el colaborador seleccionado es este mismo, lo excluimos
-    if (data.idEmpleado && Number(idEmp) === Number(data.idEmpleado)) {
-      return false;
-    }
+      if (data.idEmpleado && Number(idEmp) === Number(data.idEmpleado)) {
+        return false;
+      }
 
-    return nombre.includes(term);
-  });
+      return nombre.includes(term);
+    });
 }, [qResponsable, responsables, data.idEmpleado]);
-
 
   const seleccionarEmpleado = (emp) => {
     const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.trim();

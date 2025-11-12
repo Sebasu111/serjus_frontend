@@ -50,6 +50,15 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
       ),
     [empleados]
   );
+  // ✅ Fecha local correcta
+const getFechaLocalISO = () => {
+  const hoy = new Date();
+  const anio = hoy.getFullYear();
+  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+  const dia = String(hoy.getDate()).padStart(2, "0");
+  return `${anio}-${mes}-${dia}`;
+};
+
 
   const empleadosFiltrados = useMemo(() => {
     const texto = busquedaEmpleados.toLowerCase().trim();
@@ -122,7 +131,7 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
       setEmpleadosSeleccionados([]);
       fetchEmpleados();
       cargarDocumentosExistentes();
-      const fechaActual = new Date().toISOString().split("T")[0];
+      const fechaActual = getFechaLocalISO();
       setFechaAsignado(fechaActual);
     }
   }, [induccion]);
@@ -191,13 +200,34 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
-        showToast(
-          "Debe subir al menos un documento PDF y seleccionar al menos un colaborador",
-          "warning"
-        );
-        return;
-      }
+      // ✅ Si no hay documentos ni empleados, desactiva todos los registros existentes
+if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
+  try {
+    const res = await axios.get(`http://127.0.0.1:8000/api/inducciondocumentos/`);
+    const todos = Array.isArray(res.data) ? res.data : res.data.results || [];
+    const activos = todos.filter(
+      (r) =>
+        Number(r.idinduccion) === Number(induccion.idinduccion) &&
+        r.estado === true
+    );
+
+    for (const reg of activos) {
+      await axios.put(
+        `http://127.0.0.1:8000/api/inducciondocumentos/${reg.idinducciondocumento}/`,
+        { ...reg, estado: false }
+      );
+    }
+
+    showToast("Inducción sin asignaciones, registros desactivados", "info");
+    onClose(); // ✅ Cierra modal
+    return;
+  } catch (e) {
+    console.error("Error desactivando registros vacíos:", e);
+    showToast("Error al limpiar asignaciones", "error");
+    return;
+  }
+}
+
 
       const idUsuario = Number(sessionStorage.getItem("idUsuario"));
       const documentosNuevos = documentosPDF.filter((doc) => !doc.isExisting);

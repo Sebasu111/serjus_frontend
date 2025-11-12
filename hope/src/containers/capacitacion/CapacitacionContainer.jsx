@@ -203,6 +203,26 @@ const CapacitacionContainer = () => {
         if (!modalAccion?.data) return;
         const { tipo, data } = modalAccion;
 
+        // Si es desactivar, primero verificar si tiene personas asignadas
+        if (tipo === "desactivar") {
+            try {
+                const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/?capacitacion=" + (data.idcapacitacion || data.id));
+                const asignados = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
+                // Solo considerar asignaciones activas de esta capacitación
+                const asignadosActivos = asignados.filter(a => a.estado === true && Number(a.idcapacitacion) === Number(data.idcapacitacion || data.id));
+                console.log('Asignaciones activas de esta capacitación:', asignadosActivos);
+                if (asignadosActivos.length > 0) {
+                    showToast("No se puede desactivar la capacitación porque tiene personas asignadas.", "warning");
+                    setModalAccion(null);
+                    return;
+                }
+            } catch (error) {
+                showToast("Error al verificar personas asignadas", "error");
+                setModalAccion(null);
+                return;
+            }
+        }
+
         try {
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
 
@@ -276,88 +296,54 @@ const CapacitacionContainer = () => {
             return idB - idA;
         })
         .filter(c => {
+            const textoBusqueda = busqueda.toLowerCase().trim();
+            // Mostrar inactivas solo si hay búsqueda
+            if (!c.estado && !textoBusqueda) return false;
+            return true;
+        })
+        .filter(c => {
             const { esInactivo, esFinalizado, enProceso, esActivo } = determinarEstadoCapacitacion(c);
+            const textoBusqueda = busqueda.toLowerCase().trim();
 
             // Filtrar primero por estado (finalizadas o no)
             if (mostrarFinalizadas) {
-                // Solo mostrar capacitaciones finalizadas
                 if (!esFinalizado) return false;
             } else {
-                // Solo mostrar capacitaciones no finalizadas (activas, en proceso, inactivas)
                 if (esFinalizado) return false;
             }
 
-            const textoBusqueda = busqueda.toLowerCase().trim();
-            if (!textoBusqueda) return true;
+            if (!textoBusqueda) return c.estado === true;
 
-            // Verificar si está buscando por estado específicamente
-            const buscandoActivo = "activo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
-            const buscandoInactivo = "inactivo".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
-            const buscandoFinalizado = "finalizado".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
-            const buscandoProceso = "proceso".startsWith(textoBusqueda) && textoBusqueda.length >= 2;
-
-            // Si está buscando por estado específico
-            if (buscandoActivo && !buscandoInactivo && !buscandoFinalizado && !buscandoProceso) {
-                return esActivo;
-            } else if (buscandoInactivo && !buscandoActivo && !buscandoFinalizado && !buscandoProceso) {
-                return esInactivo;
-            } else if (buscandoFinalizado && !buscandoActivo && !buscandoInactivo && !buscandoProceso) {
-                return esFinalizado;
-            } else if (buscandoProceso && !buscandoActivo && !buscandoInactivo && !buscandoFinalizado) {
-                return enProceso;
+            // Búsqueda especial por estado
+            if (/^ac(t(i(v(o)?)?)?)?$/.test(textoBusqueda)) {
+                return c.estado === true;
+            }
+            if (/^in(a(c(t(i(v(o)?)?)?)?)?)?$/.test(textoBusqueda)) {
+                return c.estado === false;
             }
 
-            // Si no está buscando por estado, continuar con otras búsquedas
-            if (!buscandoActivo && !buscandoInactivo && !buscandoFinalizado && !buscandoProceso) {
-                // 🔹 Detectar rango de fechas con formato "dd-mm-yy a dd-mm-yy"
-                const rangoRegex = /(\d{1,2}-\d{1,2}-\d{2})\s*(?:a|-)\s*(\d{1,2}-\d{1,2}-\d{2})/;
-                const match = textoBusqueda.match(rangoRegex);
-
-                if (match) {
-                    const [_, desdeStr, hastaStr] = match;
-
-                    const parseFecha = str => {
-                        const [dia, mes, anio2] = str.split("-");
-                        const anio = Number(anio2) + 2000; // Convertir 2 dígitos a 4
-                        return new Date(anio, Number(mes) - 1, Number(dia));
-                    };
-
-                    const desde = parseFecha(desdeStr);
-                    const hasta = parseFecha(hastaStr);
-
-                    const inicio = new Date(c.fechainicio);
-                    const fin = new Date(c.fechafin);
-
-                    // 🔹 Comparación rango: si inicio o fin está dentro del rango
-                    return (inicio >= desde && inicio <= hasta) || (fin >= desde && fin <= hasta);
-                }
-
-                // 🔹 Búsqueda normal en otras columnas
-                const formatFecha = dateStr => {
-                    if (!dateStr) return "";
-                    const date = new Date(dateStr);
-                    const day = String(date.getDate()).padStart(2, "0");
-                    const month = String(date.getMonth() + 1).padStart(2, "0");
-                    const year = String(date.getFullYear()).slice(-2);
-                    return `${day}-${month}-${year}`;
-                };
-
-                const fechaInicio = formatFecha(c.fechainicio);
-                const fechaFin = formatFecha(c.fechafin);
-                const montoStr = String(c.montoejecutado || "").toLowerCase();
-
-                return (
-                    c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
-                    c.lugar?.toLowerCase().includes(textoBusqueda) ||
-                    c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
-                    fechaInicio.includes(textoBusqueda) ||
-                    fechaFin.includes(textoBusqueda) ||
-                    montoStr.startsWith(textoBusqueda)
-                );
-            }
-
-            // Si hay conflicto (ej: busca algo que podría ser ambos), no mostrar nada
-            return false;
+            // Búsqueda por todos los campos relevantes
+            const formatFecha = dateStr => {
+                if (!dateStr) return "";
+                const date = new Date(dateStr);
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const year = String(date.getFullYear()).slice(-2);
+                return `${day}-${month}-${year}`;
+            };
+            const fechaInicio = formatFecha(c.fechainicio);
+            const fechaFin = formatFecha(c.fechafin);
+            const montoStr = String(c.montoejecutado || "").toLowerCase();
+            const estadoStr = c.estado ? "activo" : "inactivo";
+            return (
+                c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
+                c.lugar?.toLowerCase().includes(textoBusqueda) ||
+                c.institucionfacilitadora?.toLowerCase().includes(textoBusqueda) ||
+                fechaInicio.includes(textoBusqueda) ||
+                fechaFin.includes(textoBusqueda) ||
+                montoStr.includes(textoBusqueda) ||
+                estadoStr.includes(textoBusqueda)
+            );
         });
 
 
@@ -507,6 +493,7 @@ const CapacitacionContainer = () => {
                         onClose={() => {
                             setMostrarAsignacion(false);
                             setCapacitacionSeleccionada(null);
+                            fetchCapacitaciones(); // Refresca la lista y los detalles
                         }}
                     />
                 )}

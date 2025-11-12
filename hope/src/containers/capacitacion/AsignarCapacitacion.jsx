@@ -84,8 +84,40 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         asig => Number(asig.idcapacitacion) === Number(capacitacionSeleccionada) && asig.estado === true
       );
 
-      console.log("Asignaciones activas actuales:", asignacionesActuales);
-      console.log("Empleados seleccionados:", empleadosSeleccionados);
+      // Validar que ningún empleado seleccionado esté asignado a otra capacitación en las mismas fechas
+      const capacitacionActual = capacitaciones.find(
+        c => Number(c.idcapacitacion || c.id) === Number(capacitacionSeleccionada)
+      );
+      if (capacitacionActual) {
+        const fechaInicioActual = new Date(capacitacionActual.fechainicio);
+        const fechaFinActual = new Date(capacitacionActual.fechafin);
+
+        for (const idEmpleado of empleadosSeleccionados) {
+          // Buscar asignaciones activas de este empleado en otras capacitaciones
+          const otrasAsignaciones = asignacionesExistentes.filter(
+            asig => Number(asig.idempleado) === Number(idEmpleado) &&
+              Number(asig.idcapacitacion) !== Number(capacitacionSeleccionada) &&
+              asig.estado === true
+          );
+          for (const asig of otrasAsignaciones) {
+            const otraCap = capacitaciones.find(
+              c => Number(c.idcapacitacion || c.id) === Number(asig.idcapacitacion)
+            );
+            if (otraCap) {
+              const fechaInicioOtra = new Date(otraCap.fechainicio);
+              const fechaFinOtra = new Date(otraCap.fechafin);
+              // Validar si hay cruce de fechas
+              if (
+                (fechaInicioActual <= fechaFinOtra && fechaFinActual >= fechaInicioOtra)
+              ) {
+                const empleado = empleados.find(emp => (emp.idempleado || emp.id) === idEmpleado);
+                showToast(`El colaborador ${empleado?.nombre || ''} ${empleado?.apellido || ''} ya está asignado a otra capacitación en las mismas fechas.`, "warning");
+                return;
+              }
+            }
+          }
+        }
+      }
 
       let operacionesRealizadas = 0;
 
@@ -97,12 +129,6 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
           try {
             const idAsignacion = asignacion.idempleadocapacitacion || asignacion.id;
 
-            console.log("Desactivando asignación:", {
-              idAsignacion,
-              idempleado: asignacion.idempleado,
-              idcapacitacion: asignacion.idcapacitacion
-            });
-
             if (idAsignacion) {
               // Usar PUT para desactivar en lugar de DELETE
               const payload = {
@@ -111,16 +137,13 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 idusuario: idUsuario
               };
 
-              await axios.put(`http://127.0.0.1:8000/api/empleadocapacitacion/${idAsignacion}/`, payload);
+              const resp = await axios.put(`http://127.0.0.1:8000/api/empleadocapacitacion/${idAsignacion}/`, payload);
+              console.log('Respuesta al desactivar asignación:', resp.data);
               operacionesRealizadas++;
-              console.log(`Asignación ${idAsignacion} desactivada exitosamente`);
             }
           } catch (error) {
             console.error(`Error al desactivar asignación:`, error);
-            console.error("Datos de la asignación que falló:", asignacion);
           }
-        } else {
-          console.log(`Empleado ${asignacion.idempleado} sigue seleccionado, no se desactiva`);
         }
       }
 
@@ -144,7 +167,6 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
               const idAsignacion = asignacionExistente.idempleadocapacitacion || asignacionExistente.id;
               await axios.put(`http://127.0.0.1:8000/api/empleadocapacitacion/${idAsignacion}/`, payload);
               operacionesRealizadas++;
-              console.log(`Asignación ${idAsignacion} reactivada exitosamente`);
             } catch (error) {
               console.error("Error al reactivar asignación:", error);
             }
@@ -164,7 +186,6 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
 
             await axios.post("http://127.0.0.1:8000/api/empleadocapacitacion/", payload);
             operacionesRealizadas++;
-            console.log(`Nueva asignación creada para empleado ${idEmpleado}`);
           } catch (error) {
             console.error("Error al crear asignación:", error);
           }
