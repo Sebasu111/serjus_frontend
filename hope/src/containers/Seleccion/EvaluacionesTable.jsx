@@ -56,14 +56,25 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
           };
         });
 
-        const activas = enriquecidas.filter((e) => e.estado !== false);
-        const ordenadas = [...activas].sort((a, b) => {
-          const fechaA = new Date(a.fechaevaluacion || a.created_at || 0);
-          const fechaB = new Date(b.fechaevaluacion || b.created_at || 0);
-          return fechaB - fechaA;
-        });
+       // 🔹 Filtrar solo evaluaciones de tipo "Entrevista" con postulacion válida
+      const filtradas = enriquecidas.filter(
+        (e) =>
+          e.modalidad === "Entrevista" && 
+          e.idpostulacion !== null && 
+          e.idpostulacion !== undefined
+      );
 
-        setEvaluaciones(ordenadas);
+      // 🔹 (Opcional) mostrar solo las activas, si lo deseas
+      const activas = filtradas.filter((e) => e.estado !== false);
+
+      // 🔹 Ordenar por fecha descendente
+      const ordenadas = [...activas].sort((a, b) => {
+        const fechaA = new Date(a.fechaevaluacion || a.created_at || 0);
+        const fechaB = new Date(b.fechaevaluacion || b.created_at || 0);
+        return fechaB - fechaA;
+      });
+
+      setEvaluaciones(ordenadas);
       } catch (err) {
         console.error("Error cargando evaluaciones:", err);
         showToast("Error cargando evaluaciones guardadas.", "error");
