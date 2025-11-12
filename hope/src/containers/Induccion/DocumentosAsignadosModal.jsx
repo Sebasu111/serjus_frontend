@@ -198,7 +198,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
         </Section>
 
         {/* === DOCUMENTOS === */}
-        <Section title="Documentos Asignados (Activos)">
+        <Section title="Documentos Asignados">
           {documentos.length === 0 ? (
             <div
               style={{
@@ -237,7 +237,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
         </Section>
 
         {/* === EMPLEADOS === */}
-        <Section title="Empleados Asignados (Activos)">
+        <Section title="Colaboradores Asignados">
           {empleados.length === 0 ? (
             <div
               style={{
@@ -249,7 +249,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
                 textAlign: "center",
               }}
             >
-              No hay empleados activos asignados.
+              No hay colaboradores activos asignados.
             </div>
           ) : (
             <div

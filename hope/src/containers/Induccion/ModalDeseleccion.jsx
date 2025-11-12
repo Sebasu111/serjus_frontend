@@ -30,7 +30,6 @@ const ModalDeseleccion = ({ empleado, onConfirm, onCancel }) => {
                         textAlign: "center",
                     }}
                 >
-                    Esta acción marcará su asignación como inactiva
                 </div>
 
                 <div style={ConfirmModalStyles.botonesContainer}>
