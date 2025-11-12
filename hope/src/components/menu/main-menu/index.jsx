@@ -63,7 +63,7 @@ const SidebarMenu = () => {
             label: "Personal",
             icon: <FaUsers className="menu-icon" />,
             submenus: [
-                { path: "/Empleados", label: "Colaboradores/as", roles: [6, 4, 5] },
+                { path: "/Empleados", label: "Colaboradores/as", roles: [1, 6, 4, 5] },
                 { path: "/Contratos", label: "Contrato", roles: [6, 4, 5] },
                 { path: "/Usuarios", label: "Usuarios", roles: [6, 5] },
                 { path: "/Equipos", label: "Equipos", roles: [6, 1, 5] }
@@ -84,7 +84,7 @@ const SidebarMenu = () => {
             label: "Integración",
             icon: <FaBook className="menu-icon" />,
             submenus: [
-                { path: "/Induccion", label: "Inducción", roles: [6, 1, 2, 4, 5] },
+                { path: "/Induccion", label: "Inducción", roles: [6, 4, 5] },
                 { path: "/Capacitacion", label: "Capacitación", roles: [6, 1, 4, 5] }
             ]
         },
@@ -93,8 +93,8 @@ const SidebarMenu = () => {
             label: "Desempeño",
             icon: <FaClipboardList className="menu-icon" />,
             submenus: [
-                { path: "/Evaluaciones", label: "Evaluaciones", roles: [6, 1, 5] },
-                { path: "/Criterios", label: "Criterios", roles: [6, 1, 5] }
+                { path: "/Evaluaciones", label: "Evaluaciones", roles: [6, 1, 5, 2, 4, 3] },
+                { path: "/Criterios", label: "Criterios", roles: [6, 5] }
             ]
         },
         {
@@ -102,7 +102,7 @@ const SidebarMenu = () => {
             label: "Control Disciplinario",
             icon: <FaUserTie className="menu-icon" />,
             submenus: [
-                { path: "/Ausencias", label: "Ausencias", roles: [6, 1, 5] },
+                { path: "/Ausencias", label: "Ausencias", roles: [6, 1, 5, 4] },
                 { path: "/Amonestaciones", label: "Amonestaciones", roles: [6, 1, 5] }
             ]
         },
@@ -121,7 +121,7 @@ const SidebarMenu = () => {
             label: "Documentos",
             icon: <FaFileAlt className="menu-icon" />,
             path: "/Documentos",
-            roles: [6, 1, 2, 4, 5]
+            roles: [6, 4, 5]
         }
     ];
 
