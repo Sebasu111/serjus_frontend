@@ -36,8 +36,8 @@ const InduccionContainer = () => {
 
     useEffect(() => {
         fetchAll();
-        const fechaActual = new Date().toISOString().split("T")[0];
-        setFechaInicio(fechaActual);
+        setFechaInicio(getFechaLocalISO());
+
     }, []);
 
     const fetchAll = async () => {
@@ -60,6 +60,15 @@ const InduccionContainer = () => {
             showToast("Error al cargar Inducciones", "error");
         }
     };
+    // ✅ Versión final de getFechaLocalISO
+const getFechaLocalISO = () => {
+  const hoy = new Date();
+  const anio = hoy.getFullYear();
+  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+  const dia = String(hoy.getDate()).padStart(2, "0");
+  return `${anio}-${mes}-${dia}`; // ⬅️ sin hora, sin toISOString (no genera UTC)
+};
+
 
     const handleSubmit = async e => {
         e.preventDefault();
@@ -74,7 +83,7 @@ const InduccionContainer = () => {
                 return;
             }
 
-            const fechaActual = new Date().toISOString().split("T")[0];
+            const fechaActual = getFechaLocalISO();
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
 
             const payload = {
@@ -117,31 +126,81 @@ const InduccionContainer = () => {
         setMostrarFormulario(true);
     };
 
-    const handleDelete = row => {
-        setSeleccionado(row);
-        setMostrarConfirmacion(true);
-    };
+    const handleDelete = async (row) => {
+  try {
+    // 🔍 Verificar si existen empleados o documentos activos vinculados
+    const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+    const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+
+    const relacionadosActivos = data.filter(
+      (d) =>
+        Number(d.idinduccion) === Number(row.idinduccion) &&
+        d.estado === true
+    );
+
+    if (relacionadosActivos.length > 0) {
+      // ❌ Tiene registros activos: advertir y salir
+      showToast(
+        "No puede desactivar esta inducción mientras tenga empleados o documentos asignados. Desasígnelos primero.",
+        "warning"
+      );
+      return;
+    }
+
+    // ✅ No hay registros activos → mostrar modal de confirmación
+    setSeleccionado(row);
+    setMostrarConfirmacion(true);
+  } catch (e) {
+    console.error("Error verificando registros antes de desactivar:", e);
+    showToast("Error al verificar relaciones de inducción", "error");
+  }
+};
+
 
     const confirmarDesactivacion = async () => {
-        if (!seleccionado) return;
-        try {
-            const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-            await axios.put(`${API}${seleccionado.idinduccion}/`, {
-                nombre: seleccionado.nombre,
-                fechainicio: seleccionado.fechainicio,
-                estado: false,
-                idusuario: idUsuario
-            });
-            showToast("Desactivado correctamente");
-            fetchAll();
-        } catch (e) {
-            console.error(e);
-            showToast("Error al desactivar", "error");
-        } finally {
-            setMostrarConfirmacion(false);
-            setSeleccionado(null);
-        }
-    };
+  if (!seleccionado) return;
+
+  try {
+    // 🔍 1️⃣ Verificar si existen documentos o empleados activos en esta inducción
+    const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+    const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+
+    const relacionadosActivos = data.filter(
+      (d) =>
+        Number(d.idinduccion) === Number(seleccionado.idinduccion) &&
+        d.estado === true
+    );
+
+    if (relacionadosActivos.length > 0) {
+      // Hay empleados o documentos activos vinculados
+      showToast(
+        "No puede desactivar esta inducción mientras tenga empleados o documentos asignados. Desasígnelos primero.",
+        "warning"
+      );
+      setMostrarConfirmacion(false);
+      setSeleccionado(null);
+      return;
+    }
+
+    // ✅ 2️⃣ Si no hay relaciones activas, permitir desactivación
+    const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+    await axios.put(`${API}${seleccionado.idinduccion}/`, {
+      nombre: seleccionado.nombre,
+      fechainicio: seleccionado.fechainicio,
+      estado: false,
+      idusuario: idUsuario,
+    });
+
+    showToast("Inducción desactivada correctamente", "success");
+    fetchAll();
+  } catch (e) {
+    console.error("Error al desactivar inducción:", e);
+    showToast("Error al desactivar la inducción", "error");
+  } finally {
+    setMostrarConfirmacion(false);
+    setSeleccionado(null);
+  }
+};
 
     const handleActivate = async id => {
         try {
@@ -179,27 +238,29 @@ const InduccionContainer = () => {
     };
 
     const filtrados = [...items]
-
+  // 🔹 Solo mostrar inducciones activas
+  .filter((i) => i.estado === true)
+  // 🔹 Ordenar por fecha de creación o inicio
   .sort((a, b) => {
-
     const fechaA =
       new Date(a.createdAt || a.created_at || a.fechainicio || "1900-01-01").getTime();
     const fechaB =
       new Date(b.createdAt || b.created_at || b.fechainicio || "1900-01-01").getTime();
 
     if (isNaN(fechaA) && isNaN(fechaB)) return 0;
-    if (isNaN(fechaA)) return 1; 
+    if (isNaN(fechaA)) return 1;
     if (isNaN(fechaB)) return -1;
 
     return fechaB > fechaA ? -1 : fechaB < fechaA ? 1 : 0;
   })
+  // 🔹 Buscador por nombre o fecha
   .filter((i) => {
     const t = busqueda.toLowerCase().trim();
     const n = i.nombre?.toLowerCase() || "";
     const fechaInicioStr = formatDateForDisplay(i.fechainicio).toLowerCase();
-    const e = i.estado ? "activo" : "inactivo";
-    return n.includes(t) || fechaInicioStr.includes(t) || e.startsWith(t);
+    return n.includes(t) || fechaInicioStr.includes(t);
   });
+
 
     const indexLast = paginaActual * elementosPorPagina;
     const indexFirst = indexLast - elementosPorPagina;
@@ -254,8 +315,7 @@ const InduccionContainer = () => {
                                 <button
                                     onClick={() => {
                                         setNombre("");
-                                        const fechaActual = new Date().toISOString().split("T")[0];
-                                        setFechaInicio(fechaActual);
+                                        setFechaInicio(getFechaLocalISO());
                                         setEditingId(null);
                                         setActivoEditando(true);
                                         setMostrarFormulario(true);

@@ -28,6 +28,21 @@ const InduccionTable = ({
         setModoModal(modo);
         setModalOpen(true);
     };
+    // 🔹 Función para mostrar la fecha correctamente (sin desfase UTC)
+// ✅ Muestra la fecha tal cual viene del backend
+const formatFechaLocal = (dateString) => {
+  if (!dateString) return "-";
+  try {
+    // Si viene con zona (p.ej. "2025-11-11T00:00:00Z"), cortamos antes de la "T"
+    const soloFecha = dateString.split("T")[0];
+    const [anio, mes, dia] = soloFecha.split("-");
+    return `${dia}/${mes}/${anio}`;
+  } catch {
+    return dateString;
+  }
+};
+
+
 
     return (
         <div
@@ -68,7 +83,7 @@ const InduccionTable = ({
                                 </td>
 
                                 <td style={{ padding: "10px", borderBottom: "1px solid #f0f0f0" }}>
-                                    {formatDateForDisplay(row.fechainicio)}
+                                    {formatFechaLocal(row.fechainicio)}
                                 </td>
 
                                 <td
@@ -118,11 +133,12 @@ const InduccionTable = ({
                                                 </div>
                                                 {row.estado ? (
                                                     <div
-                                                        style={comboBoxStyles.menu.item.desactivar.base}
-                                                        onClick={() => abrirModal(row, "desactivar")}
-                                                    >
-                                                        Desactivar
-                                                    </div>
+  style={comboBoxStyles.menu.item.desactivar.base}
+  onClick={() => handleDelete(row)}
+>
+  Desactivar
+</div>
+
                                                 ) : (
                                                     <div
                                                         style={comboBoxStyles.menu.item.activar.base}
