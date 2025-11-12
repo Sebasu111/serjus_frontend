@@ -70,6 +70,10 @@ import AmonestacionContainer from "./containers/Amonestacion/AmonestacionContain
 //   Seleccion/Contratacion
 // =============================================================
 import SeleccionContainer from "./containers/Seleccion/SeleccionContainer";
+// =============================================================
+//   DASHBOARD
+// =============================================================
+import Dashboard from "./containers/Dashboard/Dashboard";
 
 // =============================================================
 //   AUXILIAR (catálogos, tablas de apoyo, etc.)
@@ -157,6 +161,9 @@ const App = () => {
                     <Route exact path={`${base}/TiposDocumento`} component={TiposDocContainer} />
                     <Route exact path={`${base}/PuebloCultura`} component={PuebloCulturaContainer} />
                     <Route exact path={`${base}/TerminacionLaboral`} component={TerminacionLaboralContainer} />
+                    {/* DASHBOARD */}
+                    <Route exact path={`${base}/Dashboard`} component={Dashboard} />
+
 
                     {/*DOCUMENTOS*/}
                     <Route exact path={`${base}/Documentos`} component={DocumentosContainer} />

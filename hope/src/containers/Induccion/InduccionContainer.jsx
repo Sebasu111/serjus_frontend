@@ -242,17 +242,18 @@ const getFechaLocalISO = () => {
   .filter((i) => i.estado === true)
   // 🔹 Ordenar por fecha de creación o inicio
   .sort((a, b) => {
-    const fechaA =
-      new Date(a.createdAt || a.created_at || a.fechainicio || "1900-01-01").getTime();
-    const fechaB =
-      new Date(b.createdAt || b.created_at || b.fechainicio || "1900-01-01").getTime();
+  const fechaA =
+    new Date(a.createdAt || a.created_at || a.fechainicio || "1900-01-01").getTime();
+  const fechaB =
+    new Date(b.createdAt || b.created_at || b.fechainicio || "1900-01-01").getTime();
 
-    if (isNaN(fechaA) && isNaN(fechaB)) return 0;
-    if (isNaN(fechaA)) return 1;
-    if (isNaN(fechaB)) return -1;
+  if (isNaN(fechaA) && isNaN(fechaB)) return 0;
+  if (isNaN(fechaA)) return 1;
+  if (isNaN(fechaB)) return -1;
 
-    return fechaB > fechaA ? -1 : fechaB < fechaA ? 1 : 0;
-  })
+  return fechaB - fechaA;
+})
+
   // 🔹 Buscador por nombre o fecha
   .filter((i) => {
     const t = busqueda.toLowerCase().trim();

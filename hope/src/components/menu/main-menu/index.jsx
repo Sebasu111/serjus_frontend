@@ -5,7 +5,8 @@ import {
     FaUserTie,
     FaClipboardList,
     FaBook,
-    FaFileAlt
+    FaFileAlt,
+    FaTachometerAlt
 } from "react-icons/fa";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "./sidebar-menu.css";
@@ -58,6 +59,13 @@ const SidebarMenu = () => {
 
     // --- CONFIGURACIÓN DEL MENÚ ---
     const menuConfig = [
+        {
+            id: "dashboard",
+            label: "Dashboard",
+            icon: <FaTachometerAlt className="menu-icon" />,
+            path: "/Dashboard",
+            roles: [6,5] 
+        },
         {
             id: "personal",
             label: "Personal",
