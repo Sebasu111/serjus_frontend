@@ -11,6 +11,37 @@ const CapacitacionForm = ({
     handleSubmit,
     onClose
 }) => {
+    // Formateo similar a Salario Base (Q)
+    const formatearMonto = (valor) => {
+        if (!valor || valor === '') return '0.00';
+        const soloNumeros = valor.replace(/[^0-9]/g, '');
+        if (soloNumeros === '') return '0.00';
+        const centavos = parseInt(soloNumeros);
+        const decimal = (centavos / 100).toFixed(2);
+        return decimal;
+    };
+
+    const handleMontoChange = e => {
+        const valor = e.target.value;
+        if (valor === '') {
+            setFormData({ ...formData, monto: '' });
+            return;
+        }
+        const montoFormateado = formatearMonto(valor);
+        setFormData({ ...formData, monto: montoFormateado });
+    };
+
+    const handleMontoFocus = () => {
+        if (formData.monto === '0.00') {
+            setFormData({ ...formData, monto: '' });
+        }
+    };
+
+    const handleMontoBlur = () => {
+        if (formData.monto === '') {
+            setFormData({ ...formData, monto: '0.00' });
+        }
+    };
     return (
         <div
             style={{
@@ -97,11 +128,14 @@ const CapacitacionForm = ({
                 <div style={{ marginBottom: "15px" }}>
                     <label style={{ display: "block", marginBottom: "6px" }}>Monto ejecutado</label>
                     <input
-                        type="number"
+                        type="text"
                         value={formData.monto}
-                        onChange={e => setFormData({ ...formData, monto: e.target.value })}
+                        onChange={handleMontoChange}
+                        onFocus={handleMontoFocus}
+                        onBlur={handleMontoBlur}
+                        placeholder="0.00"
                         required
-                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", textAlign: "right" }}
                     />
                 </div>
 
