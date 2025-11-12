@@ -33,6 +33,27 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
 
   const tresSeleccionados = nombresEvaluados.filter((n) => n && n.nombre && n.nombre.trim() !== "").length >= 3;
   const esEvaluacionCargada = Boolean(evaluacionSeleccionada);
+  React.useEffect(() => {
+    if (
+      props.evaluacionSeleccionada &&
+      props.evaluacionSeleccionada !== evaluacionSeleccionada
+    ) {
+      const idNum = Number(props.evaluacionSeleccionada); // 👈 convertir a número
+      setEvaluacionSeleccionada(idNum);
+      showToast("Cargando evaluación seleccionada desde tabla...", "info");
+
+      // Limpieza visual momentánea
+      setCriterios([]);
+      setEvaluaciones([]);
+      setNombresEvaluados([null, null, null]);
+      setGanador(null);
+
+      // Carga la evaluación después de un pequeño delay
+      setTimeout(() => {
+        cargarEvaluacionExistente(idNum);
+      }, 200);
+    }
+  }, [props.evaluacionSeleccionada]);
   const [mostrarModal, setMostrarModal] = useState(false);
 
   // Verifica si toda la tabla está completa
@@ -93,7 +114,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
               );
 
               if (nuevaConvocatoria) {
-                showToast("Convocatoria cambiada. Tabla reiniciada.", "info");
+                showToast("Exito en cargar datos de convocatoria", "success");
               }
             }}
           >
@@ -109,62 +130,6 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
                 {c.nombreconvocatoria}
               </option>
             ))}
-          </select>
-        </div>
-        {/* 🔽 Nuevo Combo de Evaluaciones Guardadas */}
-        <div style={{ marginTop: "10px" }}>
-          <strong>Evaluaciones Guardadas:</strong>{" "}
-         <select
-            value={evaluacionSeleccionada}
-            onChange={(e) => {
-              const nueva = e.target.value;
-
-              // 1️⃣ Siempre actualiza el id de la evaluación
-              setEvaluacionSeleccionada(nueva);
-
-              // 2️⃣ Si no seleccionó nada, limpia todo y salimos
-              if (!nueva) {
-                setCriterios([]);
-                setEvaluaciones([]);
-                setNombresEvaluados([null, null, null]);
-                setGanador(null);
-                return;
-              }
-
-              // 3️⃣ Limpieza visual momentánea mientras carga
-              setCriterios([]);
-              setEvaluaciones([]);
-              setNombresEvaluados([null, null, null]);
-              setGanador(null);
-
-              // 4️⃣ Espera un instante y carga la nueva evaluación
-              showToast("Cargando evaluación seleccionada...", "info");
-              setTimeout(() => {
-                cargarEvaluacionExistente(nueva);
-              }, 150); // 🔥 un pequeño delay evita el “salto” visual
-            }}
-          >
-            <option value="">Seleccione una evaluación guardada</option>
-            {evaluacionesGuardadas.map((ev) => {
-              const fecha = new Date(ev.fechaevaluacion).toLocaleDateString("es-GT", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              });
-
-              // 🧩 Determinar el nombre que se mostrará
-              const nombreConvocatoria =
-                ev.nombreconvocatoria ||
-                ev.idpostulacion?.idconvocatoria?.nombreconvocatoria ||
-                ev.convocatoria?.nombreconvocatoria ||
-                "Sin nombre";
-
-              return (
-                <option key={ev.idevaluacion} value={ev.idevaluacion}>
-                  {`Evaluación ${nombreConvocatoria} — Fecha: ${fecha}`}
-                </option>
-              );
-            })}
           </select>
         </div>
       </div>

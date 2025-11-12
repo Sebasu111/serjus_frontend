@@ -326,10 +326,16 @@ useEffect(() => {
 });
 
 // --- Fusionar criterios base y criterios de evaluación para mantener el orden
-const criteriosCompletos = criterios.map((base) => {
-  const encontrado = nuevosCriterios.find((nc) => nc.id === base.id);
-  return encontrado || base;
-});
+let criteriosCompletos = criterios;
+if (!criterios.length) {
+  // si los criterios base están vacíos, usa directamente los criterios cargados de la evaluación
+  criteriosCompletos = [...nuevosCriterios];
+} else {
+  criteriosCompletos = criterios.map((base) => {
+    const encontrado = nuevosCriterios.find((nc) => nc.id === base.id);
+    return encontrado || base;
+  });
+}
 
 // --- Alinear evaluaciones según el orden de criteriosCompletos
 const evaluacionesAlineadas = criteriosCompletos.map((c) => {
@@ -343,12 +349,10 @@ const evaluacionesAlineadas = criteriosCompletos.map((c) => {
   );
 });
 
-
 setCriterios(criteriosCompletos);
 setEvaluaciones(evaluacionesAlineadas);
+showToast("Evaluación cargada correctamente con puntajes.", "success");
 
-
-    showToast("Evaluación cargada correctamente con puntajes.", "success");
     // 💡 Debug: confirmar que cada criterio tiene sus puntajes
     console.table(
       evaluacionesAlineadas.map((e) => ({
