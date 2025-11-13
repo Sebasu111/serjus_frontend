@@ -67,6 +67,8 @@ const CapacitacionesTable = ({
                     }
                     return emp
                         ? {
+                            idempleadocapacitacion: asig.idempleadocapacitacion,
+                            idempleado: asig.idempleado,
                             nombre: emp.nombre,
                             apellido: emp.apellido,
                             asistencia: asig.asistencia,

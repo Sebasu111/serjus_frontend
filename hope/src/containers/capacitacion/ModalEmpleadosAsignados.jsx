@@ -3,6 +3,43 @@ import React, { useState } from "react";
 const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170 }) => {
   const [documentoVisualizando, setDocumentoVisualizando] = useState(null);
   const [modalDocumentoVisible, setModalDocumentoVisible] = useState(false);
+  const [actualizandoId, setActualizandoId] = useState(null);
+  const [errorAsistencia, setErrorAsistencia] = useState(null);
+
+  // Obtener rol actual
+  const idRol = parseInt(sessionStorage.getItem("idRol"));
+  const esCoordinadorOAdmin = [4, 5].includes(idRol);
+
+  // Actualizar asistencia
+  const handleActualizarAsistencia = async (idEmpleado, nuevoEstado) => {
+    setActualizandoId(idEmpleado);
+    setErrorAsistencia(null);
+    if (!idEmpleado) {
+      setErrorAsistencia("Advertencia: El idempleadocapacitacion está ausente. No se puede actualizar la asistencia.");
+      setActualizandoId(null);
+      return;
+    }
+    try {
+      // 1. Obtener el objeto completo actual
+      const getRes = await fetch(`http://127.0.0.1:8000/api/empleadocapacitacion/${idEmpleado}/`);
+      if (!getRes.ok) throw new Error("No se pudo obtener el registro actual");
+      const data = await getRes.json();
+      // 2. Actualizar solo el campo asistencia
+      const payload = { ...data, asistencia: nuevoEstado };
+      // 3. Enviar el objeto completo por PUT
+      const putRes = await fetch(`http://127.0.0.1:8000/api/empleadocapacitacion/${idEmpleado}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!putRes.ok) throw new Error("Error al actualizar asistencia");
+      window.location.reload();
+    } catch (err) {
+      setErrorAsistencia("No se pudo actualizar la asistencia. Intente nuevamente.");
+    } finally {
+      setActualizandoId(null);
+    }
+  };
 
   if (!visible || !evento) return null;
 
@@ -205,6 +242,9 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
             </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
+              {errorAsistencia && (
+                <div style={{ color: "#dc2626", marginBottom: 8, textAlign: "center" }}>{errorAsistencia}</div>
+              )}
               <table
                 style={{
                   width: "100%",
@@ -228,45 +268,108 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
                   </tr>
                 </thead>
                 <tbody>
-                  {empleados.map((emp, idx) => (
-                    <tr key={idx}>
-                      <td style={tdStyle}>{emp.nombre} {emp.apellido}</td>
-                      <td
-                        style={{
-                          ...tdStyle,
-                          fontWeight: 600,
-                          color:
-                            emp.asistencia?.toLowerCase() === "sí" || emp.asistencia?.toLowerCase() === "si"
-                              ? "#16a34a"
-                              : "#dc2626"
-                        }}
-                      >
-                        {emp.asistencia || "No"}
-                      </td>
-                      <td style={tdStyle}>
-                        {emp.documento ? (
-                          <button
-                            onClick={() => handleVerDocumento(emp)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              color: "#2563eb",
-                              textDecoration: "underline",
-                              cursor: "pointer",
-                              fontWeight: 600,
-                              fontSize: "12px",
-                              padding: "0"
-                            }}
-                          >
-                            {emp.documento.nombrearchivo}
-                          </button>
-                        ) : (
-                          <span style={{ color: "#6b7280" }}>Sin documento</span>
-                        )}
-                      </td>
-                      <td style={tdStyle}>{emp.fechaenvio ? formatDate(emp.fechaenvio) : "-"}</td>
-                    </tr>
-                  ))}
+                  {empleados.map((emp, idx) => {
+                    const asistenciaSi = emp.asistencia?.toLowerCase() === "sí" || emp.asistencia?.toLowerCase() === "si";
+                    const asistenciaNo = emp.asistencia?.toLowerCase() === "no";
+                    // Usar idempleadocapacitacion para actualizar asistencia
+                    const idCap = emp.idempleadocapacitacion;
+                    const idCapAusente = !idCap;
+                    return (
+                      <tr key={idx}>
+                        <td style={tdStyle}>{emp.nombre} {emp.apellido}</td>
+                        <td style={{ ...tdStyle, fontWeight: 600 }}>
+                          {esCoordinadorOAdmin ? (
+                            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                              <button
+                                disabled={actualizandoId === idCap || idCapAusente}
+                                title={idCapAusente ? "Falta idempleadocapacitacion" : ""}
+                                onClick={() => handleActualizarAsistencia(idCap, "Sí")}
+                                style={{
+                                  padding: "4px 18px",
+                                  borderRadius: 8,
+                                  border: asistenciaSi ? "2px solid #16a34a" : "1px solid #e5e7eb",
+                                  background: asistenciaSi ? "#e6fbe8" : "#f3f4f6",
+                                  color: asistenciaSi ? "#16a34a" : "#374151",
+                                  fontWeight: 700,
+                                  cursor: actualizandoId === idCap || idCapAusente ? "not-allowed" : "pointer",
+                                  boxShadow: asistenciaSi ? "0 2px 8px rgba(22,163,74,.08)" : "none",
+                                  transition: "0.2s",
+                                  outline: "none",
+                                  position: "relative",
+                                  opacity: idCapAusente ? 0.5 : 1
+                                }}
+                                onMouseOver={e => { if (!asistenciaSi && !idCapAusente) e.target.style.background = "#d1fae5"; }}
+                                onMouseOut={e => { if (!asistenciaSi && !idCapAusente) e.target.style.background = "#f3f4f6"; }}
+                              >
+                                {idCapAusente ? "Sin ID" : actualizandoId === idCap ? "Actualizando..." : "Sí"}
+                              </button>
+                              <button
+                                disabled={actualizandoId === idCap || idCapAusente}
+                                title={idCapAusente ? "Falta idempleadocapacitacion" : ""}
+                                onClick={() => handleActualizarAsistencia(idCap, "No")}
+                                style={{
+                                  padding: "4px 18px",
+                                  borderRadius: 8,
+                                  border: asistenciaNo ? "2px solid #dc2626" : "1px solid #e5e7eb",
+                                  background: asistenciaNo ? "#fee2e2" : "#f3f4f6",
+                                  color: asistenciaNo ? "#dc2626" : "#374151",
+                                  fontWeight: 700,
+                                  cursor: actualizandoId === idCap || idCapAusente ? "not-allowed" : "pointer",
+                                  boxShadow: asistenciaNo ? "0 2px 8px rgba(220,38,38,.08)" : "none",
+                                  transition: "0.2s",
+                                  outline: "none",
+                                  position: "relative",
+                                  opacity: idCapAusente ? 0.5 : 1
+                                }}
+                                onMouseOver={e => { if (!asistenciaNo && !idCapAusente) e.target.style.background = "#fecaca"; }}
+                                onMouseOut={e => { if (!asistenciaNo && !idCapAusente) e.target.style.background = "#f3f4f6"; }}
+                              >
+                                {idCapAusente ? "Sin ID" : actualizandoId === idCap ? "Actualizando..." : "No"}
+                              </button>
+                              {idCapAusente && (
+                                <span style={{ color: "#dc2626", fontSize: 12, marginLeft: 8 }}>
+                                  ⚠️ Falta idempleadocapacitacion
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{
+                              color: asistenciaSi ? "#16a34a" : asistenciaNo ? "#dc2626" : "#374151",
+                              background: asistenciaSi ? "#e6fbe8" : asistenciaNo ? "#fee2e2" : "#f3f4f6",
+                              borderRadius: 8,
+                              padding: "4px 18px",
+                              fontWeight: 700,
+                              border: asistenciaSi ? "2px solid #16a34a" : asistenciaNo ? "2px solid #dc2626" : "1px solid #e5e7eb"
+                            }}>
+                              {asistenciaSi ? "Sí" : asistenciaNo ? "No" : emp.asistencia || "-"}
+                            </span>
+                          )}
+                        </td>
+                        <td style={tdStyle}>
+                          {emp.documento ? (
+                            <button
+                              onClick={() => handleVerDocumento(emp)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#2563eb",
+                                textDecoration: "underline",
+                                cursor: "pointer",
+                                fontWeight: 600,
+                                fontSize: "12px",
+                                padding: "0"
+                              }}
+                            >
+                              {emp.documento.nombrearchivo}
+                            </button>
+                          ) : (
+                            <span style={{ color: "#6b7280" }}>Sin documento</span>
+                          )}
+                        </td>
+                        <td style={tdStyle}>{emp.fechaenvio ? formatDate(emp.fechaenvio) : "-"}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
