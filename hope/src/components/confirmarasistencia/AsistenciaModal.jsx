@@ -52,8 +52,13 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
   const [modo, setModo] = useState(modoInicial); // "asistio" | "justifico" | null
 
   useEffect(() => {
-    setModo(modoInicial || null);
-  }, [modoInicial, show]);
+    // Si el modo viene definido desde el perfil, abrir directamente en ese modo
+    if (capacitacion && capacitacion.modo) {
+      setModo(capacitacion.modo);
+    } else {
+      setModo(modoInicial || null);
+    }
+  }, [modoInicial, show, capacitacion]);
 
   if (!show || !capacitacion) return null;
 
@@ -128,21 +133,8 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
-        {/* Botones de cerrar / regresar */}
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          {modo && (
-            <button
-              onClick={() => setModo(null)}
-              style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-              }}
-              title="Regresar"
-            >
-              <ArrowLeft size={22} color="#555" />
-            </button>
-          )}
+        {/* Botón de cerrar */}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button
             onClick={onClose}
             style={{
@@ -201,34 +193,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
           </div>
         </div>
 
-        {/* Selección de modo */}
-        {!modo && (
-          <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
-            <button
-              onClick={() => setModo("asistio")}
-              style={{
-                ...buttonStyle,
-                background: "#2563eb",
-                boxShadow: "0 4px 6px rgba(37, 99, 235, 0.3)",
-                border: "2px solid #2563eb"
-              }}
-            >
-              Asistió
-            </button>
-
-            <button
-              onClick={() => setModo("justifico")}
-              style={{
-                ...buttonStyle,
-                background: "#dc2626",
-                boxShadow: "0 4px 6px rgba(220, 38, 38, 0.3)",
-                border: "2px solid #dc2626"
-              }}
-            >
-              Justificar
-            </button>
-          </div>
-        )}
+        {/* El modal de selección de modo ha sido eliminado. */}
 
         {/* Modo Asistió */}
         {modo === "asistio" && (

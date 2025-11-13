@@ -44,8 +44,23 @@ const CapacitacionesSection = ({
                     </thead>
                     <tbody>
                         {capacitacionesInfo.map(c => {
-                            const asistenciaRegistrada =
-  c.asistencia === "Sí" || c.asistencia === "No" || c.iddocumento != null;
+                            const asistenciaRegistrada = c.iddocumento != null;
+                            let botonTexto = "";
+                            let botonColor = "#219ebc";
+                            let botonModo = null;
+                            if (c.asistencia === "Sí") {
+                                botonTexto = "Subir informe de asistencia";
+                                botonColor = "#219ebc";
+                                botonModo = "asistio";
+                            } else if (c.asistencia === "No") {
+                                botonTexto = "Subir justificación";
+                                botonColor = "#dc2626";
+                                botonModo = "justifico";
+                            } else {
+                                botonTexto = "Registrar asistencia";
+                                botonColor = "#6B7280";
+                                botonModo = null;
+                            }
                             return (
                                 <tr
                                     key={c.idempleadocapacitacion}
@@ -54,22 +69,21 @@ const CapacitacionesSection = ({
                                     <td style={{ padding: "14px" }}>{c.nombre}</td>
                                     <td style={{ padding: "14px" }}>{c.lugar}</td>
                                     <td style={{ padding: "14px" }}>
-    <div style={{ display: "flex", flexDirection: "column" }}>
-        <span>{formatFecha(c.fechaInicio)}</span>
-        <span>{formatFecha(c.fechaFin)}</span>
-    </div>
-</td>
-
+                                        <div style={{ display: "flex", flexDirection: "column" }}>
+                                            <span>{formatFecha(c.fechaInicio)}</span>
+                                            <span>{formatFecha(c.fechaFin)}</span>
+                                        </div>
+                                    </td>
                                     <td style={{ padding: "14px" }}>{c.observacion || "-"}</td>
                                     <td style={{ padding: "14px", textAlign: "center" }}>
                                         <button
                                             onClick={() => {
-                                                setCapacitacionSeleccionada(c);
+                                                setCapacitacionSeleccionada({ ...c, modo: botonModo });
                                                 setShowAsistenciaModal(true);
                                             }}
                                             style={{
                                                 padding: "6px 12px",
-                                                background: asistenciaRegistrada ? "#E5E7EB" : "#219ebc",
+                                                background: asistenciaRegistrada ? "#E5E7EB" : botonColor,
                                                 color: asistenciaRegistrada ? "#6B7280" : "#fff",
                                                 border: "none",
                                                 borderRadius: "6px",
@@ -80,7 +94,7 @@ const CapacitacionesSection = ({
                                             }}
                                             disabled={asistenciaRegistrada}
                                         >
-                                            Asistencia / Justificación
+                                            {botonTexto}
                                         </button>
                                     </td>
                                 </tr>

@@ -16,7 +16,7 @@ const meses = [
     "diciembre"
 ];
 
-const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, puestos = [], empleados = [], historialPuestos = [], departamentos = [] }) => {
+const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, puestos = [], empleados = [], historialPuestos = [], departamentos = [], contratos = [] }) => {
     const [pagina, setPagina] = useState(1);
     const formRef = useRef(null);
 
@@ -676,14 +676,26 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                     >
                                         <option value="">Seleccione un colaborador...</option>
                                         {(() => {
-                                            // Filtrar para mostrar solo el puesto más reciente/actual de cada empleado
-                                            const empleadosUnicos = new Map();
+                                            // DEBUG: Mostrar datos en consola
+                                            console.log('CONTRATOS:', contratos);
+                                            console.log('HISTORIAL PUESTOS:', historialPuestos);
+                                            // Obtener IDs de historial de puesto con contrato activo (estado: true y fechafin: null)
+                                            const historialConContratoActivo = new Set();
+                                            if (Array.isArray(contratos)) {
+                                                contratos.forEach(contrato => {
+                                                    if ((contrato.estado === true || contrato.estado === 1) && contrato.fechafin == null) {
+                                                        if (contrato.idhistorialpuesto) historialConContratoActivo.add(contrato.idhistorialpuesto);
+                                                    }
+                                                });
+                                            }
 
-                                            // Agrupar por empleado y encontrar el registro más reciente
+                                            // Filtrar para mostrar solo el puesto más reciente/actual de cada empleado que NO tenga contrato activo por historial
+                                            const empleadosUnicos = new Map();
                                             historialPuestos.forEach(historial => {
                                                 const empleadoId = historial.idempleado || historial.empleado_id || historial.empleado;
+                                                const historialId = historial.idhistorialpuesto || historial.id;
+                                                if (historialConContratoActivo.has(historialId)) return; // Excluir si su historial está en contrato activo
 
-                                                // Determinar si este historial es más reciente
                                                 const fechaCreacion = new Date(historial.createdat || historial.created_at || historial.fecha_creacion || '1900-01-01');
                                                 const esActivo = historial.estado === true || historial.estado === 1 || historial.activo === true;
 
@@ -692,17 +704,13 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                                 } else {
                                                     const historialExistente = empleadosUnicos.get(empleadoId);
                                                     const fechaExistente = new Date(historialExistente.createdat || historialExistente.created_at || historialExistente.fecha_creacion || '1900-01-01');
-
-                                                    // Priorizar: 1) Estado activo, 2) Fecha más reciente
                                                     const existenteActivo = historialExistente.estado === true || historialExistente.estado === 1 || historialExistente.activo === true;
-
                                                     if ((!existenteActivo && esActivo) || (esActivo === existenteActivo && fechaCreacion > fechaExistente)) {
                                                         empleadosUnicos.set(empleadoId, historial);
                                                     }
                                                 }
                                             });
 
-                                            // Convertir a array y renderizar opciones
                                             return Array.from(empleadosUnicos.values()).map(historial => {
                                                 const empleadoId = historial.idempleado || historial.empleado_id || historial.empleado;
                                                 const empleado = empleados.find(emp =>
@@ -710,22 +718,17 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                                     emp.empleado_id == empleadoId ||
                                                     emp.id == empleadoId
                                                 );
-
                                                 const puestoId = historial.idpuesto || historial.puesto_id || historial.puesto;
                                                 const puesto = puestos.find(p =>
                                                     p.idpuesto == puestoId ||
                                                     p.puesto_id == puestoId ||
                                                     p.id == puestoId
                                                 );
-
                                                 const nombreEmpleado = empleado
                                                     ? `${empleado.nombre || empleado.primernombre || ''} ${empleado.apellido || empleado.primerapellido || ''}`.trim()
                                                     : `Empleado ID: ${empleadoId}`;
-
                                                 const nombrePuesto = puesto?.nombrepuesto || puesto?.nombrePuesto || puesto?.nombre_puesto || puesto?.nombre || `Puesto ID: ${puestoId}`;
-
                                                 const historialId = historial.idhistorialpuesto || historial.id;
-
                                                 return (
                                                     <option key={historialId} value={historialId}>
                                                         {nombreEmpleado} - {nombrePuesto}
