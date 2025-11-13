@@ -42,6 +42,7 @@ const ContratosContainer = () => {
     const [puestos, setPuestos] = useState([]);
     const [empleados, setEmpleados] = useState([]);
     const [historialPuestos, setHistorialPuestos] = useState([]);
+    const [contratos, setContratos] = useState([]);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(document.body.classList.contains('sidebar-collapsed'));
     const [vistaActual, setVistaActual] = useState('crear'); // 'crear' o 'listar'
@@ -82,6 +83,7 @@ const ContratosContainer = () => {
         fetchPuestos();
         fetchEmpleados();
         fetchHistorialPuestos();
+        fetchContratos();
 
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768);
@@ -106,6 +108,20 @@ const ContratosContainer = () => {
             observer.disconnect();
         };
     }, []);
+
+    // Nueva función para cargar contratos
+    const fetchContratos = async () => {
+        try {
+            const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.CONTRATOS);
+            console.log("Cargando contratos desde:", apiUrl);
+            const response = await axios.get(apiUrl);
+            const contratosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
+            setContratos(contratosData);
+        } catch (error) {
+            console.error("Error al cargar contratos:", error);
+            setContratos([]);
+        }
+    };
 
     const fetchPuestos = async () => {
         try {
@@ -305,12 +321,8 @@ const ContratosContainer = () => {
             setGenerandoPDF(false);
             showPDFToasts.descargado();
 
-            // Preguntar si desea limpiar el formulario para crear un nuevo contrato
-            setTimeout(() => {
-                if (window.confirm('¿Desea limpiar el formulario para crear un nuevo contrato?')) {
-                    limpiarFormulario();
-                }
-            }, 2000);
+            // Limpiar el formulario automáticamente
+            limpiarFormulario();
 
         } catch (error) {
             console.error("Error al generar/guardar contrato:", error);
@@ -427,6 +439,7 @@ const ContratosContainer = () => {
                                         historialPuestos={historialPuestos}
                                         departamentos={DEPARTAMENTOS_GT}
                                         limpiarFormulario={limpiarFormulario}
+                                        contratos={contratos}
                                     />
                                 </div>
                             </div>
