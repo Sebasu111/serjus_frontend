@@ -24,6 +24,26 @@ const ContratosTable = () => {
         ]);
     };
 
+    // Función para descartar contrato
+    const descartarContrato = async (contrato) => {
+        try {
+            let baseUrl = buildApiUrl(API_CONFIG.ENDPOINTS.CONTRATOS);
+            if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+            const apiUrl = `${baseUrl}/${contrato.idcontrato}/`;
+            const contratoActualizado = {
+                ...contrato,
+                estado: false,
+                fechafin: new Date().toISOString().slice(0, 10)
+            };
+            await axios.put(apiUrl, contratoActualizado);
+            showToast('Contrato descartado correctamente', 'success');
+            fetchContratos();
+        } catch (error) {
+            showToast('Error al descartar el contrato', 'error');
+            console.error('❌ Error al descartar contrato:', error);
+        }
+    };
+
     const fetchContratos = async () => {
         try {
             setLoading(true);
@@ -332,11 +352,28 @@ const ContratosTable = () => {
                                                     color: 'white',
                                                     cursor: 'pointer',
                                                     fontSize: '12px',
-                                                    fontWeight: '500'
+                                                    fontWeight: '500',
+                                                    marginRight: '6px'
                                                 }}
                                                 title="Descargar contrato PDF"
                                             >
                                                 Descargar Contrato
+                                            </button>
+                                            <button
+                                                onClick={() => descartarContrato(contrato)}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: '#dc3545',
+                                                    color: 'white',
+                                                    cursor: 'pointer',
+                                                    fontSize: '12px',
+                                                    fontWeight: '500'
+                                                }}
+                                                title="Descartar/Inactivar contrato"
+                                            >
+                                                Descartar Contrato
                                             </button>
                                         </td>
                                     </tr>
