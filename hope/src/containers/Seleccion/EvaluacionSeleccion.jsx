@@ -31,7 +31,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
   cargarEvaluacionExistente,
 } = useEvaluacionSeleccion();
 
-  const tresSeleccionados = nombresEvaluados.filter((n) => n && n.nombre && n.nombre.trim() !== "").length >= 3;
+  const tresSeleccionados = nombresEvaluados.filter((n) => n && n.nombre && n.nombre.trim() !== "").length >= 2;
   const esEvaluacionCargada = Boolean(evaluacionSeleccionada);
   React.useEffect(() => {
     if (
@@ -61,13 +61,26 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
     criterios.length > 0 &&
     criterios.every((c, idx) => {
       const ev = evaluaciones[idx];
+
+      if (!ev) return false;
+
+      // Aspirantes existentes (2 o 3)
+      const personasActivas = nombresEvaluados
+        .map((n, i) => (n ? ["p1", "p2", "p3"][i] : null))
+        .filter(Boolean);
+
+      // Verifica nombre + descripcion + puntajes SOLO de personas reales
       return (
         c.nombre.trim() !== "" &&
         c.descripcion.trim() !== "" &&
-        ev &&
-        ["p1", "p2", "p3"].every((p) => ev.puntajes[p] && ev.puntajes[p] !== "")
+        personasActivas.every((p) => ev.puntajes[p] && ev.puntajes[p] !== "")
       );
     });
+
+  const puedeGuardar =
+    convocatoriaSeleccionada &&
+    nombresEvaluados.filter((n) => n && n.nombre && n.nombre.trim() !== "").length >= 2 &&
+    tablaCompleta;
 
   // 🔹 Cuando el usuario agrega desde el modal
   const handleAgregarCriterioDesdeModal = (criterio) => {
@@ -79,6 +92,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
     ]);
     setMostrarModal(false);
   };
+  
 
   return (
     <div id="printable" ref={ref}>
@@ -134,7 +148,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
         </div>
       </div>
 
-      <h1>Evaluación de Candidatos - Selección de 3 Personas</h1>
+      <h1>Evaluación de Candidatos - Selección de 2 a 3 Personas</h1>
 
       <div className="aspirantes-seleccionados">
         <strong>Aspirantes seleccionados:</strong>
@@ -185,21 +199,21 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
           }
           handleGuardarCriterios();
         }}
-        disabled={!tablaCompleta || esEvaluacionCargada}
+        disabled={!puedeGuardar || esEvaluacionCargada}
         title={
           esEvaluacionCargada
             ? "Deshabilitado: evaluación cargada"
-            : !tablaCompleta
+            : !puedeGuardar
             ? "Completa todos los puntajes antes de guardar"
             : "Guardar los criterios y evaluaciones"
         }
         style={{
           backgroundColor:
-            !tablaCompleta || esEvaluacionCargada ? "#ccc" : "#219ebc",
+            !puedeGuardar || esEvaluacionCargada ? "#ccc" : "#219ebc",
           color:
-            !tablaCompleta || esEvaluacionCargada ? "#666" : "#fff",
+            !puedeGuardar || esEvaluacionCargada ? "#666" : "#fff",
           cursor:
-            !tablaCompleta || esEvaluacionCargada
+            !puedeGuardar || esEvaluacionCargada
               ? "not-allowed"
               : "pointer",
           border: "none",
@@ -406,6 +420,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
         <CriterioModal
           onClose={() => setMostrarModal(false)}
           onAdd={handleAgregarCriterioDesdeModal}
+          criteriosUsados={criterios}
         />
       )}
 
@@ -446,7 +461,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
                 <button
                   key={p}
                   disabled={!nombresEvaluados[i]}
-                  onClick={() => handleGuardarEvaluacion(i)}
+                  onClick={() => handleGuardarCriterios()}
                   style={{
                     backgroundColor: color,
                     color: "#000000ff",

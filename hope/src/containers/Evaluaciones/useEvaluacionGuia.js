@@ -17,6 +17,26 @@ export const useEvaluacionGuia = () => {
   // 🔹 Obtener ID del usuario logueado desde sessionStorage
   const idUsuarioLogueado = Number(sessionStorage.getItem("idUsuario"));
 
+  const autoevaluacionCompleta = () => {
+    // Obtener todas las variables del tipo seleccionado
+    const todasLasVariables = variables.filter(
+      (v) => v.idtipoevaluacion === Number(tipoSeleccionado)
+    );
+
+    // Obtener todos los criterios de todas las variables
+    const todosLosCriterios = criterios.filter(
+      (c) =>
+        todasLasVariables.some((v) => v.idvariable === c.idvariable) &&
+        c.estado !== false
+    );
+
+    // Revisar cada criterio si tiene autoevaluación
+    return todosLosCriterios.every((c) => {
+      const ev = evaluaciones[c.idcriterio];
+      return ev && ev.auto && ev.auto !== "";
+    });
+  };
+
   // 🔹 Cargar datos base y usuario
   useEffect(() => {
     const fetchAll = async () => {
@@ -247,10 +267,8 @@ const siguienteVariable = () => {
   } catch (err) {
     console.error("Error guardando autoevaluación:", err);
     showToast("Error al guardar autoevaluación.", "error");
-  }
+  };
 };
-
-
   return {
     tipos,
     tipoSeleccionado,
@@ -271,5 +289,6 @@ const siguienteVariable = () => {
     guardarAutoevaluacion,
     usuario,
     showToast,
+    autoevaluacionCompleta,
   };
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import ModalDetalle from "./ModalDetalle";
-import ModalEliminarAspirante from "./ModalEliminar";
+import ModalEliminarPostulacion from "./ModalEliminar";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import { showToast } from "../../utils/toast";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
@@ -521,10 +521,52 @@ const PostulacionesTable = ({
                                   {/* 🔹 Opción Eliminar */}
                                   <div
                                     style={comboBoxStyles.menu.item.desactivar.base}
-                                    onClick={() => {
-                                      setPostulacionSeleccionada(p);
-                                      setMostrarModalEliminar(true);
+                                    onClick={async () => {
                                       setOpenCombo(null);
+
+                                      try {
+                                        const idPost = p.idpostulacion;
+
+                                        // 1️⃣ Consultar evaluaciones criterio ligadas a esta postulación
+                                        const evalCritRes = await axios.get(
+                                          `${API}/evaluacioncriterio/?idpostulacion=${idPost}`
+                                        );
+                                        const evalCriterios = evalCritRes.data.results || [];
+
+                                        let evaluacionesIds = [];
+
+                                        if (evalCriterios.length > 0) {
+                                          evaluacionesIds = [...new Set(evalCriterios.map(e => e.idevaluacion))];
+                                        }
+
+                                        // 2️⃣ Verificar evaluaciones principales
+                                        let hayActiva = false;
+
+                                        for (let idEval of evaluacionesIds) {
+                                          const evalRes = await axios.get(`${API}/evaluacion/${idEval}/`);
+                                          if (evalRes.data.estado === true) {
+                                            hayActiva = true;
+                                            break;
+                                          }
+                                        }
+
+                                        // 3️⃣ Si hay activa → bloquear
+                                        if (hayActiva) {
+                                          showToast(
+                                            "No se puede eliminar esta postulación porque tiene una evaluación activa.",
+                                            "error"
+                                          );
+                                          return;
+                                        }
+
+                                        // 4️⃣ SI todo ok → abrir modal
+                                        setPostulacionSeleccionada(p);
+                                        setMostrarModalEliminar(true);
+
+                                      } catch (e) {
+                                        console.error(e);
+                                        showToast("Error validando evaluaciones.", "error");
+                                      }
                                     }}
                                   >
                                     Eliminar
@@ -593,15 +635,11 @@ const PostulacionesTable = ({
       )}
 
       {mostrarModalEliminar && postulacionSeleccionada && (
-        <ModalEliminarAspirante
-          aspiranteSeleccionado={postulacionSeleccionada}
+        <ModalEliminarPostulacion
+          postulacionSeleccionada={postulacionSeleccionada}
           mostrarModal={mostrarModalEliminar}
-          setMostrarModal={(mostrar) => {
-            setMostrarModalEliminar(mostrar);
-            if (!mostrar) eliminarPostulacion(postulacionSeleccionada.idpostulacion);
-          }}
-          setAspirantes={setPostulaciones}
-          recargarAspirantes={() => {}}
+          setMostrarModal={setMostrarModalEliminar}
+          setPostulaciones={setPostulaciones}
         />
       )}
     </>

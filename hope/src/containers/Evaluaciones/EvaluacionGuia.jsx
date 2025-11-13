@@ -38,6 +38,7 @@ const EvaluacionGuia = () => {
     anteriorVariable,
     usuario,
     showToast,
+    autoevaluacionCompleta,
   } = useEvaluacionGuia();
 
   // 🔹 Roles
@@ -93,29 +94,34 @@ const EvaluacionGuia = () => {
 
           {/* 🔹 Botones según rol */}
           {esRolSoloAuto ? (
-            // 👉 Acompañante o Contador: solo guardan su autoevaluación
             <button
-              style={miniButton}
+              style={{
+                ...miniButton,
+                opacity: autoevaluacionCompleta() ? 1 : 0.5,
+                cursor: autoevaluacionCompleta() ? "pointer" : "not-allowed"
+              }}
               onClick={guardarAutoevaluacion}
-              disabled={!tipoSeleccionado}
+              disabled={!autoevaluacionCompleta()}
             >
               Guardar Autoevaluación
             </button>
           ) : (
-            // 👉 Otros roles (admin, coordinador, administrativo)
             <>
               <button
-                style={miniButton}
+                style={{
+                  ...miniButton,
+                  opacity: autoevaluacionCompleta() ? 1 : 0.5,
+                  cursor: autoevaluacionCompleta() ? "pointer" : "not-allowed"
+                }}
                 onClick={guardarAutoevaluacion}
-                disabled={!tipoSeleccionado}
+                disabled={!autoevaluacionCompleta()}
               >
                 Guardar Autoevaluación
               </button>
+
               <button
                 style={{ ...miniButton, backgroundColor: "#3B82F6" }}
-                onClick={(guardarAutoevaluacion) =>
-                  showToast("Evaluación del coordinador guardada", "success")
-                }
+                onClick={() => showToast("Evaluación del coordinador guardada", "success")}
                 disabled={!tipoSeleccionado}
               >
                 Guardar Evaluación

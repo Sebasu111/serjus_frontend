@@ -4,7 +4,7 @@ import { showToast } from "../../utils/toast.js";
 
 const API = "http://127.0.0.1:8000/api";
 
-const CriterioModal = ({ onClose, onAdd }) => {
+const CriterioModal = ({ onClose, onAdd, criteriosUsados = [] }) => {
   const [criterios, setCriterios] = useState([]);
   const [seleccionados, setSeleccionados] = useState([]);
   const [busqueda, setBusqueda] = useState("");
@@ -16,16 +16,23 @@ const CriterioModal = ({ onClose, onAdd }) => {
       try {
         const res = await fetch(`${API}/criterio/`);
         const data = (await res.json()).results || [];
-        const filtrados = data.filter(
-          (c) => c.idcriterio > 12 && c.idusuario !== 1
+
+        const filtrados = data.filter((c) =>
+          c.idcriterio > 12 &&
+          c.idvariable == 1 &&
+          c.estado !== false && 
+          !criteriosUsados.some(u => u.id === c.idcriterio), // 🔥 NO MOSTRAR USADOS
         );
+
         setCriterios(filtrados);
       } catch (err) {
         console.error("Error cargando criterios:", err);
       }
     };
+
     cargarCriterios();
-  }, []);
+  }, [criteriosUsados]);
+
 
   const criteriosFiltrados = useMemo(() => {
     const texto = busqueda.toLowerCase().trim();

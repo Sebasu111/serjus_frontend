@@ -1,22 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 
 const API = "http://127.0.0.1:8000/api";
 
-const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
+const CriterioForm = ({ onClose, variables, tipos, onSuccess, criterioEditar }) => {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [idTipo, setIdTipo] = useState("");
   const [idVariable, setIdVariable] = useState("");
-  const [estado] = useState(true); // activo por defecto, oculto
+  const [estado, setEstado] = useState(true);
   const [cargando, setCargando] = useState(false);
 
-  // 🔹 Filtrar variables asociadas al tipo seleccionado
+  // 🔹 Cargar datos si es modo edición
+  useEffect(() => {
+    if (criterioEditar) {
+      setNombre(criterioEditar.nombrecriterio);
+      setDescripcion(criterioEditar.descripcioncriterio);
+      setIdVariable(criterioEditar.idvariable);
+      setEstado(criterioEditar.estado);
+
+      const variableEncontrada = variables.find(
+        (v) => v.idvariable === criterioEditar.idvariable
+      );
+
+      if (variableEncontrada) {
+        setIdTipo(variableEncontrada.idtipoevaluacion);
+      }
+    }
+  }, [criterioEditar, variables]);
+
+  // 🔹 Variables filtradas según tipo
   const variablesFiltradas = variables.filter(
     (v) => !idTipo || v.idtipoevaluacion === Number(idTipo)
   );
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -29,21 +46,35 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
       setCargando(true);
       const idUsuario = Number(sessionStorage.getItem("idUsuario")) || 1;
 
-      const payload = {
+      // 🔥 Crear payload base
+      let payload = {
         nombrecriterio: nombre,
         descripcioncriterio: descripcion,
-        estado,
         idusuario: idUsuario,
         idvariable: Number(idVariable),
       };
 
-      await axios.post(`${API}/criterio/`, payload);
-      showToast("Criterio creado correctamente ");
-      onSuccess();
+      // 🔥 Solo agregar estado si es nuevo
+      if (!criterioEditar) {
+        payload.estado = true;
+      }
+
+      // 🔥 UPDATE
+      if (criterioEditar) {
+        await axios.put(`${API}/criterio/${criterioEditar.idcriterio}/`, payload);
+        showToast("Criterio actualizado correctamente", "success");
+      } 
+      // 🔥 CREATE
+      else {
+        await axios.post(`${API}/criterio/`, payload);
+        showToast("Criterio creado correctamente", "success");
+      }
+
+      await onSuccess();
       onClose();
     } catch (error) {
       console.error(error);
-      showToast("Error al crear el criterio", "error");
+      showToast("Error al guardar el criterio", "error");
     } finally {
       setCargando(false);
     }
@@ -53,20 +84,16 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <h3 style={{ textAlign: "center", marginBottom: "15px" }}>
-          Nuevo Criterio de Evaluación
+          {criterioEditar ? "Editar Criterio" : "Nuevo Criterio de Evaluación"}
         </h3>
 
         <form
           onSubmit={handleSubmit}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-          }}
+          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
         >
           {/* Nombre */}
           <label style={labelStyle}>
-            Nombre del Criterio  
+            Nombre del Criterio
             <input
               type="text"
               value={nombre}
@@ -87,9 +114,9 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
             />
           </label>
 
-          {/* Tipo de Evaluación */}
+          {/* Tipo */}
           <label style={labelStyle}>
-            Tipo de Evaluación  
+            Tipo de Evaluación
             <select
               value={idTipo}
               onChange={(e) => {
@@ -108,9 +135,9 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
             </select>
           </label>
 
-          {/* Variables dependientes */}
+          {/* Variable */}
           <label style={labelStyle}>
-            Variable Asociada  
+            Variable Asociada
             <select
               value={idVariable}
               onChange={(e) => setIdVariable(e.target.value)}
@@ -119,9 +146,7 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
               disabled={!idTipo}
             >
               <option value="">
-                {idTipo
-                  ? "Seleccione una variable"
-                  : "Primero seleccione un tipo"}
+                {idTipo ? "Seleccione una variable" : "Primero seleccione un tipo"}
               </option>
               {variablesFiltradas.map((v) => (
                 <option key={v.idvariable} value={v.idvariable}>
@@ -132,13 +157,7 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
           </label>
 
           {/* Botones */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: "20px",
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
             <button
               type="submit"
               disabled={cargando}
@@ -155,7 +174,7 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
                 opacity: cargando ? 0.6 : 1,
               }}
             >
-              {cargando ? "Guardando..." : "Guardar"}
+              {cargando ? "Guardando..." : criterioEditar ? "Actualizar" : "Guardar"}
             </button>
 
             <button
@@ -163,7 +182,7 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
               onClick={onClose}
               style={{
                 background: "#919191ff",
-                color: "#ffffffff",
+                color: "#fff",
                 border: "none",
                 borderRadius: "6px",
                 padding: "10px 18px",
@@ -181,7 +200,7 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess }) => {
   );
 };
 
-// Estilos
+/* --- ESTILOS IGUALES --- */
 const overlayStyle = {
   position: "fixed",
   top: 0,

@@ -5,8 +5,8 @@ import { comboBoxStyles } from "../../stylesGenerales/combobox";
 const CriterioTable = ({
   criterios,
   handleEdit,
-  handleDelete,
-  handleActivate,
+  solicitarDesactivar,
+  solicitarActivar,
   paginaActual,
   totalPaginas,
   setPaginaActual,
@@ -36,33 +36,45 @@ const CriterioTable = ({
 
   // 🔹 Generar botones de paginación (máximo 7 visibles)
   const generarBotones = () => {
-    const botones = [];
-    const maxVisible = 7; // máximo de botones visibles
+  const botones = [];
+  const maxVisible = 7;
 
-    if (totalPaginas <= maxVisible) {
-      for (let i = 1; i <= totalPaginas; i++) botones.push(i);
-    } else {
-      botones.push(1);
-      if (paginaActual > 4) {
-        botones.push("...");
-      }
-
-      const inicio = Math.max(2, paginaActual - 2);
-      const fin = Math.min(totalPaginas - 1, paginaActual + 2);
-
-      for (let i = inicio; i <= fin; i++) {
-        botones.push(i);
-      }
-
-      if (paginaActual < totalPaginas - 3) {
-        botones.push("...");
-      }
-
-      botones.push(totalPaginas);
-    }
-
+  // Si la cantidad total de páginas es 7 o menos, mostrar todas
+  if (totalPaginas <= 7) {
+    for (let i = 1; i <= totalPaginas; i++) botones.push(i);
     return botones;
-  };
+  }
+
+  // 🔹 Si estamos en las primeras páginas (1–4)
+  if (paginaActual <= 4) {
+    for (let i = 1; i <= 7; i++) botones.push(i);
+    botones.push("...");
+    botones.push(totalPaginas);
+    return botones;
+  }
+
+  // 🔹 Si estamos en las últimas páginas (total-3 hasta total)
+  if (paginaActual >= totalPaginas - 3) {
+    botones.push(1);
+    botones.push("...");
+    for (let i = totalPaginas - 6; i <= totalPaginas; i++) botones.push(i);
+    return botones;
+  }
+
+  // 🔹 Si estamos en páginas intermedias
+  botones.push(1);
+  botones.push("...");
+
+  for (let i = paginaActual - 2; i <= paginaActual + 2; i++) {
+    botones.push(i);
+  }
+
+  botones.push("...");
+  botones.push(totalPaginas);
+
+  return botones;
+};
+
 
 
   return (
@@ -244,14 +256,14 @@ const CriterioTable = ({
 
                               {criterio.estado ? (
                                 <button
-                                  onClick={() => handleDelete(criterio)}
+                                  onClick={() => solicitarDesactivar(criterio)}
                                   style={comboBoxStyles.menu.item.desactivar.base}
                                 >
                                   Desactivar
                                 </button>
                               ) : (
                                 <button
-                                  onClick={() => handleActivate(criterio)}
+                                  onClick={() => solicitarActivar(criterio)}
                                   style={comboBoxStyles.menu.item.activar.base}
                                 >
                                   Activar
@@ -279,19 +291,6 @@ const CriterioTable = ({
       {/* 🔹 Paginación */}
       {totalPaginas > 1 && (
         <div style={{ marginTop: "25px", textAlign: "center" }}>
-          <button
-            onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
-            disabled={paginaActual === 1}
-            style={{
-              ...buttonStyles.paginacion.base,
-              opacity: paginaActual === 1 ? 0.5 : 1,
-              cursor: paginaActual === 1 ? "not-allowed" : "pointer",
-              marginRight: "5px",
-            }}
-          >
-            ← Anterior
-          </button>
-
           {generarBotones().map((num, index) =>
             num === "..." ? (
               <span key={`ellipsis-${index}`} style={{ margin: "0 6px", color: "#888" }}>
@@ -312,19 +311,6 @@ const CriterioTable = ({
               </button>
             )
           )}
-
-          <button
-            onClick={() => setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))}
-            disabled={paginaActual === totalPaginas}
-            style={{
-              ...buttonStyles.paginacion.base,
-              opacity: paginaActual === totalPaginas ? 0.5 : 1,
-              cursor: paginaActual === totalPaginas ? "not-allowed" : "pointer",
-              marginLeft: "5px",
-            }}
-          >
-            Siguiente →
-          </button>
         </div>
       )}
     </div>
