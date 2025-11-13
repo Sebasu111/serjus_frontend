@@ -98,85 +98,85 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
 
   // --- Submit ---
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!idEmpleado || !tipo || !fechaInicio || !fechaFin) {
-    showToast("Complete todos los campos obligatorios", "warning");
-    return;
-  }
-
-  if (tipo !== "Personal" && !esIGSS && !otro.trim()) {
-    showToast("Si no es IGSS, especifique la clínica u otro lugar", "warning");
-    return;
-  }
-
-  setSubiendo(true);
-
-  try {
-    let idDocumento = editingAusencia?.iddocumento || null;
-
-    if (archivo) {
-      const formData = new FormData();
-      formData.append("archivo", archivo);
-      formData.append("nombrearchivo", archivo.name);
-      formData.append("mimearchivo", archivo.name.split(".").pop().toLowerCase());
-      formData.append("fechasubida", new Date().toISOString().slice(0, 10));
-      formData.append("idusuario", usuario.idusuario);
-      formData.append("idtipodocumento", 3);
-      formData.append("idempleado", idEmpleado);
-      formData.append("estado", true);
-
-      if (editingAusencia?.iddocumento) {
-        const respDoc = await axios.put(`${API}/documentos/${editingAusencia.iddocumento}/`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        idDocumento = respDoc.data.iddocumento;
-      } else {
-        const respDoc = await axios.post(`${API}/documentos/`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        idDocumento = respDoc.data.iddocumento;
-      }
+    if (!idEmpleado || !tipo || !fechaInicio || !fechaFin) {
+      showToast("Complete todos los campos obligatorios", "warning");
+      return;
     }
 
-    const dataAusencia = {
-      idempleado: Number(idEmpleado),
-      tipo,
-      diagnostico,
-      es_iggs: esIGSS,
-      otro: !esIGSS && tipo !== "Personal" ? otro || null : null,
-      cantidad_dias: cantidadDias,
-      fechainicio: fechaInicio,
-      fechafin: fechaFin,
-      iddocumento: idDocumento,
-      estado: true,
-      idusuario: usuario.idusuario,
-    };
+    if (tipo !== "Personal" && !esIGSS && !otro.trim()) {
+      showToast("Si no es IGSS, especifique la clínica u otro lugar", "warning");
+      return;
+    }
 
-    let guardadoExitoso = false;
+    setSubiendo(true);
 
     try {
-      await onSubmit(dataAusencia, editingAusencia?.idausencia);
-      guardadoExitoso = true;
-    } catch (error) {
-      // 👇 Ya no mostramos toast aquí, lo maneja el contenedor
-      console.warn("onSubmit rechazó la operación (por conflicto o error):", error?.message || error);
-    }
+      let idDocumento = editingAusencia?.iddocumento || null;
 
-    if (guardadoExitoso) {
-      resetForm();
-      showToast(
-        editingAusencia ? "Ausencia actualizada correctamente" : "Ausencia registrada correctamente",
-        "success"
-      );
+      if (archivo) {
+        const formData = new FormData();
+        formData.append("archivo", archivo);
+        formData.append("nombrearchivo", archivo.name);
+        formData.append("mimearchivo", archivo.name.split(".").pop().toLowerCase());
+        formData.append("fechasubida", new Date().toISOString().slice(0, 10));
+        formData.append("idusuario", usuario.idusuario);
+        formData.append("idtipodocumento", 3);
+        formData.append("idempleado", idEmpleado);
+        formData.append("estado", true);
+
+        if (editingAusencia?.iddocumento) {
+          const respDoc = await axios.put(`${API}/documentos/${editingAusencia.iddocumento}/`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          idDocumento = respDoc.data.iddocumento;
+        } else {
+          const respDoc = await axios.post(`${API}/documentos/`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          idDocumento = respDoc.data.iddocumento;
+        }
+      }
+
+      const dataAusencia = {
+        idempleado: Number(idEmpleado),
+        tipo,
+        diagnostico,
+        es_iggs: esIGSS,
+        otro: !esIGSS && tipo !== "Personal" ? otro || null : null,
+        cantidad_dias: cantidadDias,
+        fechainicio: fechaInicio,
+        fechafin: fechaFin,
+        iddocumento: idDocumento,
+        estado: true,
+        idusuario: usuario.idusuario,
+      };
+
+      let guardadoExitoso = false;
+
+      try {
+        await onSubmit(dataAusencia, editingAusencia?.idausencia);
+        guardadoExitoso = true;
+      } catch (error) {
+        // 👇 Ya no mostramos toast aquí, lo maneja el contenedor
+        console.warn("onSubmit rechazó la operación (por conflicto o error):", error?.message || error);
+      }
+
+      if (guardadoExitoso) {
+        resetForm();
+        showToast(
+          editingAusencia ? "Ausencia actualizada correctamente" : "Ausencia registrada correctamente",
+          "success"
+        );
+      }
+    } catch (error) {
+      console.error("Error al registrar o actualizar la ausencia:", error);
+      showToast("Error al registrar o actualizar la ausencia", "error");
+    } finally {
+      setSubiendo(false);
     }
-  } catch (error) {
-    console.error("Error al registrar o actualizar la ausencia:", error);
-    showToast("Error al registrar o actualizar la ausencia", "error");
-  } finally {
-    setSubiendo(false);
-  }
-};
+  };
 
 
   // --- Filtrado de empleados ---

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+// import axios from "axios"; // Eliminado duplicado
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
@@ -11,6 +11,8 @@ import CapacitacionesSection from "./CapacitacionesSection.jsx";
 import InduccionesSection from "./InduccionesSection.jsx";
 import ModalDocumentos from "./ModalDocumentos.jsx";
 import AsistenciaModal from "../../components/confirmarasistencia/AsistenciaModal.jsx";
+import AusenciaForm from "../Ausencia/AusenciaForm.jsx";
+import axios from "axios";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -20,6 +22,8 @@ const PerfilContainer = () => {
   const [induccionesAsignadas, setInduccionesAsignadas] = useState([]);
   const [showAsistenciaModal, setShowAsistenciaModal] = useState(false);
   const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
+  const [showAusenciaForm, setShowAusenciaForm] = useState(false);
+  const [ausenciaData, setAusenciaData] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [documentosModal, setDocumentosModal] = useState([]);
   const [induccionSeleccionada, setInduccionSeleccionada] = useState(null);
@@ -45,11 +49,11 @@ const PerfilContainer = () => {
         const resEmpleados = await axios.get(`${API}/empleados/`);
         const empleadoActual = resEmpleados.data.results
           ? resEmpleados.data.results.find(
-              (e) => e.idempleado === usuarioActual.idempleado
-            )
+            (e) => e.idempleado === usuarioActual.idempleado
+          )
           : resEmpleados.data.find(
-              (e) => e.idempleado === usuarioActual.idempleado
-            );
+            (e) => e.idempleado === usuarioActual.idempleado
+          );
 
         if (!empleadoActual) {
           showToast("No se encontró el colaborador asociado al usuario", "error");
@@ -130,8 +134,8 @@ const PerfilContainer = () => {
             typeof doc.idinduccion === "object"
               ? doc.idinduccion
               : listaInducciones.find(
-                  (i) => i.idinduccion === doc.idinduccion
-                );
+                (i) => i.idinduccion === doc.idinduccion
+              );
           return induccion;
         })
         .filter(
@@ -217,42 +221,15 @@ const PerfilContainer = () => {
     return `${day}-${month}-${year}`;
   };
 
-  // 🔹 Actualizar asistencia (capacitaciones)
-  const actualizarCapacitacion = async (
-    id,
-    asistenciaBool,
-    observacion = "",
-    idDocumento = null
-  ) => {
+  // 🔹 Guardar ausencia desde el formulario
+  const guardarAusencia = async (dataAusencia) => {
     try {
-      const cap = capacitacionesInfo.find(
-        (c) => c.idempleadocapacitacion === id
-      );
-      if (!cap) return;
-
-      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-      const payload = {
-        idempleado: cap.idempleado,
-        idcapacitacion: cap.idcapacitacion,
-        asistencia: asistenciaBool ? "Sí" : "No",
-        observacion:
-          observacion || (asistenciaBool ? "Asistió" : "Inasistencia Justificada"),
-        fechaenvio: new Date().toISOString().split("T")[0],
-        estado: true,
-        idusuario: idUsuario,
-        iddocumento: idDocumento,
-      };
-
-      await axios.put(`${API}/empleadocapacitacion/${id}/`, payload);
-      showToast(
-        asistenciaBool ? "Asistencia registrada" : "Inasistencia justificada",
-        "success"
-      );
-
-      if (empleado) await cargarCapacitaciones(empleado.idempleado);
+      await axios.post(`${API}/ausencias/`, dataAusencia);
+      showToast("Ausencia registrada correctamente", "success");
+      setShowAusenciaForm(false);
     } catch (error) {
-      console.error(error.response?.data || error);
-      showToast("Error al actualizar asistencia", "error");
+      console.error(error);
+      showToast("Error al registrar ausencia", "error");
     }
   };
 
@@ -293,7 +270,23 @@ const PerfilContainer = () => {
                   <CapacitacionesSection
                     capacitacionesInfo={capacitacionesInfo}
                     formatFecha={formatFecha}
-                    setCapacitacionSeleccionada={setCapacitacionSeleccionada}
+                    setCapacitacionSeleccionada={(c) => {
+                      if (c.modo === "justifico") {
+                        setAusenciaData({
+                          idempleado: empleado.idempleado,
+                          tipo: "Personal", // o puedes dejar que el usuario seleccione
+                          fechainicio: c.fechaInicio,
+                          fechafin: c.fechaFin,
+                          idcapacitacion: c.idcapacitacion,
+                          observacion: c.observacion,
+                          idusuario: empleado.idusuario,
+                        });
+                        setShowAusenciaForm(true);
+                      } else {
+                        setCapacitacionSeleccionada(c);
+                        setShowAsistenciaModal(true);
+                      }
+                    }}
                     setShowAsistenciaModal={setShowAsistenciaModal}
                   />
 
@@ -325,8 +318,17 @@ const PerfilContainer = () => {
           show={showAsistenciaModal}
           onClose={() => setShowAsistenciaModal(false)}
           capacitacion={capacitacionSeleccionada}
-          onGuardar={actualizarCapacitacion}
+          onGuardar={() => { }}
         />
+        {showAusenciaForm && (
+          <AusenciaForm
+            usuario={empleado}
+            empleados={[empleado]}
+            editingAusencia={ausenciaData}
+            onSubmit={guardarAusencia}
+            onClose={() => setShowAusenciaForm(false)}
+          />
+        )}
       </div>
     </Layout>
   );
