@@ -679,26 +679,22 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                             // DEBUG: Mostrar datos en consola
                                             console.log('CONTRATOS:', contratos);
                                             console.log('HISTORIAL PUESTOS:', historialPuestos);
-                                            // Obtener IDs de historial de puesto y empleados con contrato activo
+                                            // Obtener IDs de historial de puesto con contrato activo (estado: true y fechafin: null)
                                             const historialConContratoActivo = new Set();
-                                            const empleadosConContratoActivo = new Set();
                                             if (Array.isArray(contratos)) {
                                                 contratos.forEach(contrato => {
-                                                    if (contrato.estado === true || contrato.estado === 1 || contrato.activo === true) {
+                                                    if ((contrato.estado === true || contrato.estado === 1) && contrato.fechafin == null) {
                                                         if (contrato.idhistorialpuesto) historialConContratoActivo.add(contrato.idhistorialpuesto);
-                                                        if (contrato.idempleado) empleadosConContratoActivo.add(contrato.idempleado);
-                                                        if (contrato.empleado_id) empleadosConContratoActivo.add(contrato.empleado_id);
                                                     }
                                                 });
                                             }
 
-                                            // Filtrar para mostrar solo el puesto más reciente/actual de cada empleado que NO tenga contrato activo por historial o empleado
+                                            // Filtrar para mostrar solo el puesto más reciente/actual de cada empleado que NO tenga contrato activo por historial
                                             const empleadosUnicos = new Map();
                                             historialPuestos.forEach(historial => {
                                                 const empleadoId = historial.idempleado || historial.empleado_id || historial.empleado;
                                                 const historialId = historial.idhistorialpuesto || historial.id;
                                                 if (historialConContratoActivo.has(historialId)) return; // Excluir si su historial está en contrato activo
-                                                if (empleadosConContratoActivo.has(empleadoId)) return; // Excluir si el empleado tiene contrato activo
 
                                                 const fechaCreacion = new Date(historial.createdat || historial.created_at || historial.fecha_creacion || '1900-01-01');
                                                 const esActivo = historial.estado === true || historial.estado === 1 || historial.activo === true;
