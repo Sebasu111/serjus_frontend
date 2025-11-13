@@ -5,16 +5,23 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
+import { FaMale, FaFemale, FaUser } from "react-icons/fa";
+import { FaUsers, FaBullhorn } from "react-icons/fa";
 
 import {
   fetchEmpleados,
   fetchAusencias,
-  fetchCatalogos, // ✅ NUEVO IMPORT
+  fetchCatalogos,
   getEmpleadosPorGenero,
   getEmpleadosPorRangoEdad,
   getEmpleadosPorPuesto,
   getEmpleadosPorIdioma,
   getEmpleadosPorPuebloCultura,
+  fetchCapacitaciones,
+  fetchEmpleadoCapacitacion,
+  getDataCapacitaciones,
+  fetchEquipos,
+  fetchConvocatorias,
 } from "./DashboardData";
 
 import {
@@ -31,7 +38,21 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const COLORS = ["#2563eb", "#f97316", "#10b981", "#e11d48", "#9333ea"];
+const COLORS = ["#5d88e4ff", "#ee853aff", "#3daf89ff", "#d6526fff", "#a662e6ff"];
+
+const ChartDescription = ({ text }) => (
+  <p
+    style={{
+      marginTop: "10px",
+      fontSize: "0.85rem",
+      color: "#6b7280",
+      textAlign: "center",
+      fontStyle: "italic",
+    }}
+  >
+    {text}
+  </p>
+);
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -43,17 +64,17 @@ const Dashboard = () => {
   const [porPueblo, setPorPueblo] = useState([]);
   const [ausencias, setAusencias] = useState([]);
 
-  // KPIs principales
   const [totalActivos, setTotalActivos] = useState(0);
   const [totalHombres, setTotalHombres] = useState(0);
   const [totalMujeres, setTotalMujeres] = useState(0);
+  const [dataCapacitaciones, setDataCapacitaciones] = useState([]);
+  
+  const [equiposActivos, setEquiposActivos] = useState(0);
+  const [convocatoriasActivas, setConvocatoriasActivas] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log("📡 Cargando datos del dashboard...");
-
-        // 🔹 Cargamos empleados y catálogos en paralelo
         const [empleadosData, catalogos] = await Promise.all([
           fetchEmpleados(),
           fetchCatalogos(),
@@ -61,10 +82,6 @@ const Dashboard = () => {
 
         const { mapPuestos, mapIdiomas, mapPueblos } = catalogos;
 
-        console.log("🧩 Empleados obtenidos:", empleadosData);
-        console.log("🗂️ Catálogos:", catalogos);
-
-        // 🔹 Agrupar empleados
         setEmpleados(empleadosData);
         setPorGenero(getEmpleadosPorGenero(empleadosData));
         setPorEdad(getEmpleadosPorRangoEdad(empleadosData));
@@ -72,12 +89,22 @@ const Dashboard = () => {
         setPorIdioma(getEmpleadosPorIdioma(empleadosData, mapIdiomas));
         setPorPueblo(getEmpleadosPorPuebloCultura(empleadosData, mapPueblos));
 
-        // 🔹 Cargar ausencias
         const aus = await fetchAusencias();
-        console.log("📋 Ausencias obtenidas:", aus);
         setAusencias(aus);
+        // Equipos activos
+const equipos = await fetchEquipos();
+setEquiposActivos(equipos.length);
 
-        // 🔹 KPIs
+// Convocatorias activas
+const convocatorias = await fetchConvocatorias();
+setConvocatoriasActivas(convocatorias.length);
+
+        // === CAPACITACIONES ACTIVAS Y EMPLEADOS ASIGNADOS ===
+const caps = await fetchCapacitaciones();
+const asignaciones = await fetchEmpleadoCapacitacion();
+setDataCapacitaciones(getDataCapacitaciones(caps, asignaciones));
+
+
         const activos = empleadosData.filter((e) => e.estado === true);
         setTotalActivos(activos.length);
         setTotalHombres(
@@ -87,7 +114,6 @@ const Dashboard = () => {
           activos.filter((e) => e.genero?.toLowerCase().startsWith("f")).length
         );
       } catch (err) {
-        console.error("❌ Error cargando Dashboard:", err);
         showToast("Error al cargar los datos del Dashboard", "error");
       } finally {
         setLoading(false);
@@ -96,16 +122,12 @@ const Dashboard = () => {
 
     loadData();
   }, []);
-  // 🔹 Formatear fecha al estilo DD-MM-YYYY sin desfase horario
-const formatDate = (dateStr) => {
-  if (!dateStr) return "";
-  const [year, month, day] = dateStr.split("-");
-  return `${day}-${month}-${year}`;
-};
 
-  /* =====================================================
-     🔸 COMPONENTES VISUALES
-     ===================================================== */
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    return `${day}-${month}-${year}`;
+  };
 
   const Card = ({ title, color, children }) => (
     <div
@@ -158,10 +180,6 @@ const formatDate = (dateStr) => {
       chart
     );
 
-  /* =====================================================
-     🔸 RENDER PRINCIPAL
-     ===================================================== */
-
   return (
     <Layout>
       <SEO title="Dashboard" />
@@ -174,7 +192,6 @@ const formatDate = (dateStr) => {
               flex: 1,
               backgroundColor: "#F4F6FA",
               padding: "48px 20px 8rem",
-              transition: "margin-left 0.3s ease",
             }}
           >
             <div style={{ width: "min(1300px, 96vw)", margin: "0 auto" }}>
@@ -195,195 +212,561 @@ const formatDate = (dateStr) => {
                 <p style={{ textAlign: "center" }}>Cargando datos...</p>
               ) : (
                 <>
-                  {/* === SECCIÓN SUPERIOR === */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "2fr 1fr",
-                      gap: "28px",
-                      marginBottom: "36px",
-                    }}
-                  >
-                    {/* 🔹 Pueblo Cultura */}
-                    <Card title="Pueblo / Cultura" color="#e11d48">
-                      {renderDataOrEmpty(
-                        porPueblo,
-                        <ResponsiveContainer width="100%" height={260}>
-                          <BarChart layout="vertical" data={porPueblo}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis type="number" />
-                            <YAxis dataKey="name" type="category" />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#e11d48" barSize={22} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      )}
-                    </Card>
-
-                    {/* 🔹 KPIs + Edades */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-                      <Card title="Colaboradores" color="#1e293b">
-                        {totalActivos === 0 ? (
-                          <p
-                            style={{
-                              textAlign: "center",
-                              color: "#6b7280",
-                              fontStyle: "italic",
-                            }}
-                          >
-                            No hay datos registrados.
-                          </p>
-                        ) : (
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "repeat(2, 1fr)",
-                              rowGap: "10px",
-                              fontSize: "0.95rem",
-                              color: "#374151",
-                            }}
-                          >
-                            <p>
-                              <strong>Total:</strong> {totalActivos}
-                            </p>
-                            <p>
-                              <strong>Hombres:</strong> {totalHombres}
-                            </p>
-                            <p>
-                              <strong>Mujeres:</strong> {totalMujeres}
-                            </p>
-                            <p>
-                              <strong>Otro:</strong>{" "}
-                              {totalActivos - (totalHombres + totalMujeres)}
-                            </p>
-                          </div>
-                        )}
-                      </Card>
-
-                      <Card title="Distribución por Edad" color="#f97316">
-                        {renderDataOrEmpty(
-                          porEdad,
-                          <ResponsiveContainer width="100%" height={180}>
-                            <BarChart data={porEdad}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                              <XAxis dataKey="name" />
-                              <YAxis />
-                              <Tooltip />
-                              <Bar dataKey="value" fill="#f97316" barSize={28} />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        )}
-                      </Card>
-                    </div>
-                  </div>
-
-                  {/* === FILA 2 === */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "2fr 1fr",
-                      gap: "28px",
-                      marginBottom: "36px",
-                    }}
-                  >
-                    {/* 🔹 Idioma */}
-                    <Card title="Idiomas" color="#2563eb">
-                      {renderDataOrEmpty(
-                        porIdioma,
-                        <ResponsiveContainer width="100%" height={250}>
-                          <BarChart data={porIdioma}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#2563eb" barSize={30} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      )}
-                    </Card>
-
-                    {/* 🔹 Puestos */}
-                    <Card title="Puestos" color="#10b981">
-                      {renderDataOrEmpty(
-                        porPuesto,
-                        <ResponsiveContainer width="100%" height={250}>
-  <PieChart>
-    <Pie
-      data={porPuesto}
-      dataKey="value"
-      nameKey="name"
-      innerRadius={60}
-      outerRadius={90}
-      // 🔸 Quitar etiquetas alrededor del círculo
-      label={false}
-      labelLine={false}
-    >
-      {porPuesto.map((_, i) => (
-        <Cell key={`puesto-${i}`} fill={COLORS[i % COLORS.length]} />
-      ))}
-    </Pie>
-    {/* 🔸 Mantener leyenda abajo */}
-    <Legend
-      layout="horizontal"
-      verticalAlign="bottom"
-      align="center"
-      wrapperStyle={{
-        fontSize: "0.85rem",
-        marginTop: "10px",
-      }}
-    />
-    <Tooltip />
-  </PieChart>
-</ResponsiveContainer>
-
-                      )}
-                    </Card>
-                  </div>
-
-                  {/* === FILA 3: AUSENCIAS === */}
-                  <Card title="Ausencias Activas" color="#9333ea">
-                    {ausencias.length === 0 ? (
-                      <p
-                        style={{
-                          textAlign: "center",
-                          color: "#6b7280",
-                          fontStyle: "italic",
-                        }}
-                      >
-                        No hay ausencias activas registradas.
-                      </p>
-                    ) : (
-                      <ul
-                        style={{
-                          listStyle: "none",
-                          paddingLeft: 0,
-                          marginTop: 10,
-                        }}
-                      >
-                        {ausencias.slice(0, 6).map((a, index) => (
-  <li
-    key={a.idausencia || index}
+                  {/* === SECCIÓN 1: KPIs === */}
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "26px",
+    marginBottom: "40px",
+  }}
+>
+  {/* Colaboradores activos */}
+  <div
     style={{
-      background: "#f9fafb",
-      borderRadius: "8px",
-      padding: "10px 14px",
-      marginBottom: "8px",
-      boxShadow: "inset 0 0 0 1px #e5e7eb",
+      background: "#ffffff",
+      padding: "26px 20px",
+      borderRadius: "14px",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+      textAlign: "center",
+      transition: "0.2s ease",
     }}
   >
-    <strong style={{ color: "#1e293b" }}>
-      {a.empleado?.nombreempleado || "Empleado"}
-    </strong>{" "}
-    — {a.diagnostico || a.tipo || "Sin diagnóstico"}{" "}
-    <span style={{ color: "#6b7280" }}>
-      ({formatDate(a.fechainicio)} a {formatDate(a.fechafin)})
-    </span>
-  </li>
-))}
+    <h4
+      style={{
+        color: "#3daf89ff", 
+        fontSize: "1.15rem",
+        fontWeight: "700",
+        marginBottom: "10px",
+      }}
+    >
+      Colaboradores Activos
+    </h4>
 
-                      </ul>
-                    )}
-                  </Card>
+    <FaUser
+      size={48}
+      color="#3daf89ff"
+      style={{ marginBottom: "10px", opacity: 0.9 }}
+    />
+
+    <p style={{ fontSize: "2rem", fontWeight: "800", color: "#3daf89ff" }}>
+      {totalActivos}
+    </p>
+  </div>
+
+  {/* Equipos activos */}
+  <div
+    style={{
+      background: "#ffffff",
+      padding: "26px 20px",
+      borderRadius: "14px",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+      textAlign: "center",
+      transition: "0.2s ease",
+    }}
+  >
+    <h4
+      style={{
+        color: "#3daf89ff",
+        fontSize: "1.15rem",
+        fontWeight: "700",
+        marginBottom: "10px",
+      }}
+    >
+      Equipos Activos
+    </h4>
+
+    <FaUsers
+      size={48}
+      color="#3daf89ff"
+      style={{ marginBottom: "10px", opacity: 0.9 }}
+    />
+
+    <p style={{ fontSize: "2rem", fontWeight: "800", color: "#3daf89ff" }}>
+      {equiposActivos}
+    </p>
+  </div>
+
+  {/* Convocatorias activas */}
+  <div
+    style={{
+      background: "#ffffff",
+      padding: "26px 20px",
+      borderRadius: "14px",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+      textAlign: "center",
+      transition: "0.2s ease",
+    }}
+  >
+    <h4
+      style={{
+        color: "#3daf89ff",
+        fontSize: "1.15rem",
+        fontWeight: "700",
+        marginBottom: "10px",
+      }}
+    >
+      Convocatorias Activas
+    </h4>
+
+    <FaBullhorn
+      size={48}
+      color="#3daf89ff"
+      style={{ marginBottom: "10px", opacity: 0.9 }}
+    />
+
+    <p style={{ fontSize: "2rem", fontWeight: "800", color: "#3daf89ff" }}>
+      {convocatoriasActivas}
+    </p>
+  </div>
+</div>
+{/* === SECCIÓN 2 === */}
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 2fr", 
+    gap: "28px",
+    marginBottom: "36px",
+  }}
+>
+
+  {/* 🔹 Colaboradores por género (tabla) */}
+  <Card title="Género" color="#5d88e4ff">
+  {totalActivos === 0 ? (
+    <p style={{ textAlign: "center", color: "#6b7280", fontStyle: "italic" }}>
+      No hay datos registrados.
+    </p>
+  ) : (
+    <>
+      {/* TABLA */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.6fr 0.7fr 0.7fr",
+          gap: "8px",
+          marginTop: "10px",
+          fontSize: "0.95rem",
+          color: "#1e293b",
+        }}
+      >
+        {/* ENCABEZADOS */}
+        <div style={{ fontWeight: "700" }}></div>
+        <div style={{ fontWeight: "700", textAlign: "center" }}>Cantidad</div>
+        <div style={{ fontWeight: "700", textAlign: "center" }}>Porcentaje</div>
+
+        {/* --- HOMBRES --- */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+          }}
+        >
+          <FaMale size={22} color="#5080e7ff" />
+          <span>Hombres</span>
+        </div>
+        <div
+          style={{
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            textAlign: "center",
+            fontWeight: "700",
+          }}
+        >
+          {totalHombres}
+        </div>
+        <div
+          style={{
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            textAlign: "center",
+            fontWeight: "700",
+            color: "#2563eb",
+          }}
+        >
+          {((totalHombres / totalActivos) * 100).toFixed(1)}%
+        </div>
+
+        {/* --- MUJERES --- */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+          }}
+        >
+          <FaFemale size={22} color="#e04d6dff" />
+          <span>Mujeres</span>
+        </div>
+        <div
+          style={{
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            textAlign: "center",
+            fontWeight: "700",
+          }}
+        >
+          {totalMujeres}
+        </div>
+        <div
+          style={{
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            textAlign: "center",
+            fontWeight: "700",
+            color: "#e11d48",
+          }}
+        >
+          {((totalMujeres / totalActivos) * 100).toFixed(1)}%
+        </div>
+
+        {/* --- OTRO --- */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+          }}
+        >
+          <FaUser size={22} color="#6b7280" />
+          <span>Otro</span>
+        </div>
+        <div
+          style={{
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            textAlign: "center",
+            fontWeight: "700",
+          }}
+        >
+          {totalActivos - (totalHombres + totalMujeres)}
+        </div>
+        <div
+          style={{
+            background: "#f2f4f7",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            textAlign: "center",
+            fontWeight: "700",
+            color: "#6b7280",
+          }}
+        >
+          {(
+            ((totalActivos - (totalHombres + totalMujeres)) / totalActivos) *
+            100
+          ).toFixed(1)}
+          %
+        </div>
+      </div>
+      <ChartDescription text="Distribución del personal según género." />
+    </>
+  )}
+</Card>
+
+
+  {/*Distribución por Edad  */}
+  <Card title="Distribución por Edad" color="#ee853aff">
+    {renderDataOrEmpty(
+      porEdad,
+      <>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={porEdad}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis dataKey="name" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Bar dataKey="value" fill="#ee853aff" barSize={28} />
+          </BarChart>
+        </ResponsiveContainer>
+        <ChartDescription text="Cantidad de colaboradores agrupados por edad." />
+      </>
+    )}
+  </Card>
+</div>
+
+
+{/* === SECCIÓN 3 === */}
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "28px",
+    marginBottom: "36px",
+  }}
+>
+{/*Puestos  */}
+<Card title="Puestos" color="#10b981">
+  {renderDataOrEmpty(
+    porPuesto,
+    <>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "20px",
+        }}
+      >
+        <div style={{ width: "55%", position: "relative", height: 280 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={porPuesto}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={70}
+                outerRadius={110}
+                paddingAngle={3}
+                label={({ cx, cy, midAngle, outerRadius, value }) => {
+                  const RADIAN = Math.PI / 180;
+                  const radius = outerRadius + 25; 
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      fill="#1e293b"
+                      fontSize="0.9rem"
+                      fontWeight="700"
+                      textAnchor={x > cx ? "start" : "end"}
+                      dominantBaseline="central"
+                    >
+                      {value}
+                    </text>
+                  );
+                }}
+              >
+                {porPuesto.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Pie>
+
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+
+          {(() => {
+            const total = porPuesto.reduce((s, p) => s + p.value, 0);
+            const mayor = Math.max(...porPuesto.map((p) => p.value));
+            const porcentaje = ((mayor / total) * 100).toFixed(0);
+
+            return (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  fontSize: "2.1rem",
+                  fontWeight: "800",
+                  color: "#1e293b",
+                }}
+              >
+              </div>
+            );
+          })()}
+        </div>
+
+        <div style={{ width: "40%" }}>
+          {porPuesto.map((item, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: "10px",
+                fontSize: "0.9rem",
+              }}
+            >
+              <div
+                style={{
+                  width: 14,
+                  height: 14,
+                  backgroundColor: COLORS[i % COLORS.length],
+                  borderRadius: "4px",
+                  marginRight: "10px",
+                }}
+              ></div>
+
+              <span style={{ fontWeight: "600", color: "#1e293b" }}>
+                {item.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <ChartDescription text="Distribución del personal según su puesto." />
+    </>
+  )}
+</Card>
+
+
+  {/*Capacitaciones Activas */}
+  <Card title="Capacitaciones Activas" color="#9333ea">
+  {dataCapacitaciones.length === 0 ? (
+    <p
+      style={{
+        textAlign: "center",
+        color: "#6b7280",
+        fontStyle: "italic",
+      }}
+    >
+      No hay capacitaciones activas registradas.
+    </p>
+  ) : (
+    <>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "2fr 1fr",
+          gap: "10px",
+          marginTop: "10px",
+          fontSize: "0.95rem",
+          color: "#1e293b",
+        }}
+      >
+        {/* ENCABEZADOS */}
+        <div style={{ fontWeight: "700" }}>Capacitación</div>
+        <div style={{ fontWeight: "700", textAlign: "center" }}>Asignados</div>
+
+        
+        {dataCapacitaciones
+          .slice(-5) 
+          .map((cap, i) => (
+            <React.Fragment key={i}>
+              {/* COLUMNA NOMBRE */}
+              <div
+                style={{
+                  background: "#f4f3ff",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  fontWeight: "600",
+                }}
+              >
+                {cap.name}
+              </div>
+
+              {/* COLUMNA CANTIDAD */}
+              <div
+                style={{
+                  background: "#f4f3ff",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  fontWeight: "700",
+                  textAlign: "center",
+                  color: "#9333ea",
+                }}
+              >
+                {cap.value}
+              </div>
+            </React.Fragment>
+          ))}
+      </div>
+
+      <ChartDescription text="Últimas capacitaciones activas y cantidad de colaboradores asignados." />
+    </>
+  )}
+</Card>
+</div>
+
+{/* === SECCIÓN 4 === */}
+<Card title="Ausencias Activas" color="#9333ea">
+  {ausencias.length === 0 ? (
+    <p style={{ textAlign: "center", color: "#6b7280", fontStyle: "italic" }}>
+      No hay ausencias activas registradas.
+    </p>
+  ) : (
+    <>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "2fr 1.2fr 1fr",
+          gap: "10px",
+          marginTop: "10px",
+          fontSize: "0.95rem",
+          color: "#1e293b",
+        }}
+      >
+        {/* ENCABEZADOS */}
+        <div style={{ fontWeight: "700" }}>Colaborador</div>
+        <div style={{ fontWeight: "700", textAlign: "center" }}>Motivo</div>
+        <div style={{ fontWeight: "700", textAlign: "center" }}>Fechas</div>
+
+        {/* FILAS */}
+        {ausencias.slice(0, 8).map((a, index) => (
+          <React.Fragment key={index}>
+            {/* Nombre */}
+            <div
+              style={{
+                background: "#f4f3ff",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {a.empleado
+                ? `${a.empleado.nombre || ""} ${a.empleado.apellido || ""}`.trim()
+                : "Empleado"}
+            </div>
+
+            {/* Diagnóstico / Tipo */}
+            <div
+              style={{
+                background: "#f4f3ff",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                textAlign: "center",
+                fontWeight: "600",
+                color: "#9333ea",
+              }}
+            >
+              {a.diagnostico || a.tipo || "Sin diagnóstico"}
+            </div>
+
+            {/* Fechas */}
+            <div
+              style={{
+                background: "#f4f3ff",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                textAlign: "center",
+                color: "#6b7280",
+                fontWeight: "600",
+              }}
+            >
+              {formatDate(a.fechainicio)} – {formatDate(a.fechafin)}
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
+
+      <ChartDescription text="Listado de ausencias activas más recientes." />
+    </>
+  )}
+</Card>
+
+
                 </>
               )}
             </div>
