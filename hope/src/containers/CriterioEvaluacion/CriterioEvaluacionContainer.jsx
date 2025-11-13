@@ -9,6 +9,7 @@ import { showToast } from "../../utils/toast.js";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
 import CriterioTable from "./CriterioTable.jsx";
 import CriterioForm from "./CriterioForm.jsx";
+import ConfirmModalCriterio from "./ConfirmModalCriterio.jsx";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -18,12 +19,17 @@ const CriterioEvaluacionContainer = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const [elementosPorPagina, setElementosPorPagina] = useState(5);
   const [loading, setLoading] = useState(true);
-
+  const [soloNuevos, setSoloNuevos] = useState(false);
   const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroVariable, setFiltroVariable] = useState("");
   const [variables, setVariables] = useState([]);
   const [tipos, setTipos] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [criterioEditar, setCriterioEditar] = useState(null);
+  const [criterioConfirmar, setCriterioConfirmar] = useState(null);
+  const [mostrarConfirmModal, setMostrarConfirmModal] = useState(false);
+  const [modoAccion, setModoAccion] = useState("desactivar");
+
 
   // 🔹 Cargar todos los datos
   useEffect(() => {
@@ -53,6 +59,16 @@ const CriterioEvaluacionContainer = () => {
     fetchData();
   }, []);
 
+  const actualizarLista = async () => {
+    try {
+      const res = await axios.get(`${API}/criterio/`);
+      const criteriosData = res.data.results || res.data || [];
+      setCriterios(criteriosData);
+    } catch (error) {
+      console.error("Error recargando criterios", error);
+    }
+  };
+
   // 🔹 Filtrado principal basado en IDs
   const criteriosFiltrados = criterios.filter((c) => {
     const variable = variables.find((v) => v.idvariable === c.idvariable);
@@ -61,7 +77,15 @@ const CriterioEvaluacionContainer = () => {
     if (filtroTipo && tipoId !== Number(filtroTipo)) return false;
     if (filtroVariable && c.idvariable !== Number(filtroVariable)) return false;
 
+    if (soloNuevos && c.idcriterio <= 98) return false;
+
     const texto = busqueda.toLowerCase().trim();
+
+    // 🔍 Buscar por estado
+    if (texto === "act") return c.estado === true;
+    if (texto === "inac") return c.estado === false;
+
+    // 🔍 Búsqueda normal por texto
     return (
       c.nombrecriterio?.toLowerCase().includes(texto) ||
       c.descripcioncriterio?.toLowerCase().includes(texto)
@@ -86,7 +110,7 @@ const CriterioEvaluacionContainer = () => {
         idvariable: criterio.idvariable,
       });
       showToast("Criterio activado correctamente");
-      window.location.reload();
+      actualizarLista();
     } catch (error) {
       console.error(error);
       showToast("Error al activar el criterio", "error");
@@ -104,7 +128,7 @@ const CriterioEvaluacionContainer = () => {
         idvariable: criterio.idvariable,
       });
       showToast("Criterio desactivado correctamente");
-      window.location.reload();
+      actualizarLista();
     } catch (error) {
       console.error(error);
       showToast("Error al desactivar el criterio", "error");
@@ -112,12 +136,36 @@ const CriterioEvaluacionContainer = () => {
   };
 
   const handleEdit = (criterio) => {
-    showToast("Función de edición disponible próximamente", "info");
-    console.log("Editar criterio:", criterio);
+    setCriterioEditar(criterio);
+    setMostrarFormulario(true);
   };
 
-  const handleNuevoCriterio = () => {
-    showToast("Formulario para crear un nuevo criterio próximamente 🛠️", "info");
+  const solicitarDesactivar = (criterio) => {
+      setModoAccion("desactivar");
+      setCriterioConfirmar(criterio);
+      setMostrarConfirmModal(true);
+  };
+
+  const solicitarActivar = (criterio) => {
+      setModoAccion("activar");
+      setCriterioConfirmar(criterio);
+      setMostrarConfirmModal(true);
+  };
+
+  const confirmarAccion = async () => {
+      if (modoAccion === "desactivar") {
+          await handleDelete(criterioConfirmar);
+      } else {
+          await handleActivate(criterioConfirmar);
+      }
+
+      setMostrarConfirmModal(false);
+      setCriterioConfirmar(null);
+  };
+
+  const cancelarAccion = () => {
+      setMostrarConfirmModal(false);
+      setCriterioConfirmar(null);
   };
 
   return (
@@ -178,8 +226,8 @@ const CriterioEvaluacionContainer = () => {
                 <CriterioTable
                   criterios={criteriosPaginados}
                   handleEdit={handleEdit}
-                  handleDelete={handleDelete}
-                  handleActivate={handleActivate}
+                  solicitarDesactivar={solicitarDesactivar}
+                  solicitarActivar={solicitarActivar}
                   paginaActual={paginaActual}
                   totalPaginas={totalPaginas}
                   setPaginaActual={setPaginaActual}
@@ -191,14 +239,24 @@ const CriterioEvaluacionContainer = () => {
                   setFiltroVariable={setFiltroVariable}
                   variables={variables}
                   tipos={tipos}
-                />
+              />
               )}
 
               {/* Config de paginación */}
-              <div style={{ marginTop: "20px", textAlign: "center" }}>
-                <label style={{ marginRight: "10px", fontWeight: "600" }}>
+              <div 
+                style={{ 
+                  marginTop: "20px", 
+                  textAlign: "center",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "20px"
+                }}
+              >
+                <label style={{ fontWeight: "600" }}>
                   Mostrar:
                 </label>
+
                 <input
                   type="number"
                   min="1"
@@ -218,19 +276,44 @@ const CriterioEvaluacionContainer = () => {
                     textAlign: "center",
                   }}
                 />
+
+                {/* 🔥 CHECKBOX SOLO NUEVOS */}
+                <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <input
+                    type="checkbox"
+                    checked={soloNuevos}
+                    onChange={(e) => {
+                      setSoloNuevos(e.target.checked);
+                      setPaginaActual(1);
+                    }}
+                  />
+                  Solo nuevos
+                </label>
               </div>
             </div>
           </main>
           <Footer />
         </div>
 
-        {mostrarFormulario && (
+        {(mostrarFormulario || criterioEditar) && (
           <CriterioForm
-            onClose={() => setMostrarFormulario(false)}
+            onClose={() => {
+              setMostrarFormulario(false);
+              setCriterioEditar(null);
+            }}
             variables={variables}
             tipos={tipos}
-            onSuccess={() => window.location.reload()}
+            onSuccess={actualizarLista}
+            criterioEditar={criterioEditar}
           />
+        )}
+        {mostrarConfirmModal && (
+            <ConfirmModalCriterio
+                criterio={criterioConfirmar}
+                modo={modoAccion}
+                onConfirm={confirmarAccion}
+                onCancel={cancelarAccion}
+            />
         )}
         <ScrollToTop />
       </div>

@@ -19,71 +19,72 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
 
   // 🔹 Cargar evaluaciones
   useEffect(() => {
-    const cargarEvaluaciones = async () => {
-      setCargando(true);
-      try {
-        const evalRes = await fetch(`${API}/evaluacion/`);
-        const evalData = (await evalRes.json()).results || [];
+  const cargarEvaluaciones = async () => {
+    setCargando(true);
+    try {
+      const evalRes = await fetch(`${API}/evaluacion/`);
+      const evalData = (await evalRes.json()).results || [];
 
-        const [postRes, convRes] = await Promise.all([
-          fetch(`${API}/postulaciones/`),
-          fetch(`${API}/convocatorias/`),
-        ]);
+      const [postRes, convRes] = await Promise.all([
+        fetch(`${API}/postulaciones/`),
+        fetch(`${API}/convocatorias/`)
+      ]);
 
-        const postulaciones = (await postRes.json()).results || [];
-        const convocatorias = (await convRes.json()).results || [];
+      const postulaciones = (await postRes.json()).results || [];
+      const convocatorias = (await convRes.json()).results || [];
 
-        const enriquecidas = evalData.map((ev) => {
-          const post = postulaciones.find(
-            (p) => p.idpostulacion === ev.idpostulacion
-          );
-          const conv = post
-            ? convocatorias.find(
-                (c) => c.idconvocatoria === post.idconvocatoria
-              )
-            : null;
+      const enriquecidas = evalData.map((ev) => {
+        const post = postulaciones.find(
+          (p) => p.idpostulacion === ev.idpostulacion
+        );
+        const conv = post
+          ? convocatorias.find((c) => c.idconvocatoria === post.idconvocatoria)
+          : null;
 
-          return {
-            ...ev,
-            nombreconvocatoria: conv ? conv.nombreconvocatoria : "—",
-            fechaevaluacion: ev.fechaevaluacion
-              ? new Date(ev.fechaevaluacion).toLocaleDateString("es-GT", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "—",
-          };
-        });
+        return {
+          ...ev,
+          nombreconvocatoria: conv ? conv.nombreconvocatoria : "—",
 
-       // 🔹 Filtrar solo evaluaciones de tipo "Entrevista" con postulacion válida
+          // 🔹 Guardamos fecha cruda PARA ORDENAR
+          fechaRaw: ev.fechaevaluacion ? new Date(ev.fechaevaluacion) : null,
+
+          // 🔹 Formateada SOLO PARA MOSTRAR
+          fechaevaluacion: ev.fechaevaluacion
+            ? new Date(ev.fechaevaluacion).toLocaleDateString("es-GT", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+              })
+            : "—"
+        };
+      });
+
+      // 🔹 Filtro
       const filtradas = enriquecidas.filter(
         (e) =>
-          e.modalidad === "Entrevista" && 
-          e.idpostulacion !== null && 
+          e.modalidad === "Entrevista" &&
+          e.idpostulacion !== null &&
           e.idpostulacion !== undefined
       );
 
-      // 🔹 (Opcional) mostrar solo las activas, si lo deseas
       const activas = filtradas.filter((e) => e.estado !== false);
 
-      // 🔹 Ordenar por fecha descendente
+      // 🔹 ORDENAR CORRECTO (descendente)
       const ordenadas = [...activas].sort((a, b) => {
-        const fechaA = new Date(a.fechaevaluacion || a.created_at || 0);
-        const fechaB = new Date(b.fechaevaluacion || b.created_at || 0);
-        return fechaB - fechaA;
+        return (b.fechaRaw || 0) - (a.fechaRaw || 0);
       });
 
       setEvaluaciones(ordenadas);
-      } catch (err) {
-        console.error("Error cargando evaluaciones:", err);
-        showToast("Error cargando evaluaciones guardadas.", "error");
-      } finally {
-        setCargando(false);
-      }
-    };
-    cargarEvaluaciones();
-  }, []);
+    } catch (err) {
+      console.error("Error cargando evaluaciones:", err);
+      showToast("Error cargando evaluaciones guardadas.", "error");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  cargarEvaluaciones();
+}, []);
 
   // 🔹 PUT → marcar como inactivo y eliminar de la lista
   const eliminarEvaluacion = async (id) => {
@@ -269,7 +270,7 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
               }
               setEvaluacionSeleccionada(ev.idevaluacion);
               showToast(
-                "Evaluación cargada. Cambia a la pestaña 'Realizar Evaluación'.",
+                "Evaluación cargada. Cambie a la pestaña 'Realizar Evaluación'.",
                 "info"
               );
               setMenuAbierto(null);

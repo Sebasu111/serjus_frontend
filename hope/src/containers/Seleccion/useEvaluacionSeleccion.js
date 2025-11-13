@@ -133,7 +133,7 @@ useEffect(() => {
             p.idestado === 2
         );
 
-        const seleccionados = postulacionesFiltradas
+        let seleccionados = postulacionesFiltradas
           .map((p) => {
             const aspirante = aspirantes.find((a) => a.idaspirante === p.idaspirante);
             if (!aspirante) return null;
@@ -143,8 +143,18 @@ useEffect(() => {
               nombre: `${aspirante.nombreaspirante} ${aspirante.apellidoaspirante}`,
             };
           })
-          .filter(Boolean)
-          .slice(0, 3);
+          .filter(Boolean);
+
+        // 👉 máximo 3
+        seleccionados = seleccionados.slice(0, 3);
+
+        // ❗ mínimo 2 requeridos
+        if (seleccionados.length < 2) {
+          showToast(
+            "Debe haber al menos 2 postulaciones seleccionadas en esta convocatoria.",
+            "warning"
+          );
+        }
 
         const final = [
           ...seleccionados,
@@ -178,15 +188,20 @@ useEffect(() => {
       evaluaciones.reduce((acc, e) => acc + (Number(e.puntajes[persona]) || 0), 0);
 
     useEffect(() => {
+      const activos = nombresEvaluados.filter((n) => n !== null);
+
       const totales = {
-        p1: totalPorPersona("p1"),
-        p2: totalPorPersona("p2"),
-        p3: totalPorPersona("p3"),
+        p1: activos[0] ? totalPorPersona("p1") : -1,
+        p2: activos[1] ? totalPorPersona("p2") : -1,
+        p3: activos[2] ? totalPorPersona("p3") : -1,
       };
-      const max = Math.max(totales.p1, totales.p2, totales.p3);
+
+      const max = Math.max(...Object.values(totales));
       const keys = Object.keys(totales).filter((k) => totales[k] === max);
+
       setGanador(keys.length === 1 ? keys[0] : null);
-    }, [evaluaciones]);
+    }, [evaluaciones, nombresEvaluados]);
+
 
     // === Handlers de campos ===
     const handleChange = (index, field, value, persona) => {
@@ -204,8 +219,8 @@ useEffect(() => {
         (n) => n && n.nombre && n.nombre.trim() !== ""
       ).length;
 
-      if (selCount < 3) {
-        showToast("Debes tener 3 postulaciones seleccionadas antes de agregar criterios.", "warning");
+      if (selCount < 2) {
+        showToast("Debes tener 2 postulaciones seleccionadas antes de agregar criterios.", "warning");
         return;
       }
 
@@ -241,6 +256,7 @@ useEffect(() => {
       const res = await fetch(`${API}/criterio/${id}/`);
       if (res.ok) {
         const data = await res.json();
+        if (data.idvariable !== 1) continue;
         criteriosDetalle.push({
           id: data.idcriterio,
           nombre: data.nombrecriterio,
@@ -398,10 +414,12 @@ showToast("Evaluación cargada correctamente con puntajes.", "success");
         return;
       }
 
-      if (!nombresEvaluados.some((n) => n)) {
-        showToast("No hay aspirantes seleccionados.", "warning");
+      const seleccionadosReales = nombresEvaluados.filter((n) => n !== null);
+      if (seleccionadosReales.length < 2) {
+        showToast("Debe haber al menos 2 aspirantes para evaluar.", "warning");
         return;
       }
+
 
       //  Obtener variable
       const variableRes = await fetch(`${API}/variables/?idtipoevaluacion=4`);

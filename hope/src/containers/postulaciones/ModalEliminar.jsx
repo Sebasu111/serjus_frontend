@@ -5,43 +5,45 @@ import { showToast } from "../../utils/toast";
 
 const API = "http://127.0.0.1:8000/api";
 
-const ModalEliminarAspirante = ({
-  aspiranteSeleccionado,
+const ModalEliminarPostulacion = ({
+  postulacionSeleccionada,
   mostrarModal,
   setMostrarModal,
-  setAspirantes,
+  setPostulaciones,
 }) => {
-  if (!mostrarModal || !aspiranteSeleccionado) return null;
+  if (!mostrarModal || !postulacionSeleccionada) return null;
 
   const handleEliminar = async () => {
-  try {
-    await axios.delete(`${API}/aspirantes/${aspiranteSeleccionado.idaspirante}/`);
+    try {
+      await axios.delete(`${API}/postulaciones/${postulacionSeleccionada.idpostulacion}/`);
 
-    showToast(`Aspirante eliminado correctamente.`, "success");
+      showToast("Postulación eliminada correctamente.", "success");
 
-    // 🔹 Actualización inmediata del frontend
-    if (setAspirantes) {
-      setAspirantes(prev =>
-        prev.filter(a => a.idaspirante !== aspiranteSeleccionado.idaspirante)
+      setPostulaciones((prev) =>
+        prev.filter((p) => p.idpostulacion !== postulacionSeleccionada.idpostulacion)
       );
-    }
 
-    setMostrarModal(false);
-  } catch (err) {
-    showToast("Error al eliminar el aspirante.", "error");
-  }
-};
+      setMostrarModal(false);
+
+    } catch (err) {
+      console.error("Error al eliminar:", err.response?.data || err);
+      showToast("Error al eliminar. La postulación tiene datos dependientes.", "error");
+    }
+  };
 
   return (
     <div style={ModalConfirmacionStyles.overlay}>
       <div style={ModalConfirmacionStyles.modal}>
         <h3 style={ModalConfirmacionStyles.titulo}>Confirmar eliminación</h3>
+
         <p style={ModalConfirmacionStyles.mensaje}>
-          ¿Seguro que desea eliminar al aspirante{" "}
+          ¿Seguro que desea eliminar la postulación de{" "}
           <strong>
-            {aspiranteSeleccionado.nombreaspirante} {aspiranteSeleccionado.apellidoaspirante}
+            {postulacionSeleccionada.aspiranteData?.nombreaspirante}{" "}
+            {postulacionSeleccionada.aspiranteData?.apellidoaspirante}
           </strong>
-          ? <br />Se eliminarán también sus postulaciones y documentos.
+          ?<br />
+          Esta acción no se puede deshacer.
         </p>
 
         <div style={ModalConfirmacionStyles.botonesContainer}>
@@ -73,4 +75,4 @@ const ModalEliminarAspirante = ({
   );
 };
 
-export default ModalEliminarAspirante;
+export default ModalEliminarPostulacion;
