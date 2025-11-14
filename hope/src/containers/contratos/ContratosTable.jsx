@@ -134,7 +134,7 @@ const ContratosTable = () => {
             console.log("📋 Documento contrato encontrado:", documentoContrato);
 
             if (!documentoContrato) {
-                showToast("No se encontró documento PDF para este contrato. Puede subir uno desde la gestión de empleados.", "info");
+                showToast("No se encontró documento PDF para este contrato. Puede subir uno desde la gestión de colaboradores.", "info");
                 return;
             }
 
@@ -225,8 +225,12 @@ const ContratosTable = () => {
             puesto?.toLowerCase().includes(filtro.toLowerCase()) ||
             contrato.tipocontrato?.toLowerCase().includes(filtro.toLowerCase())
         );
-        const coincideEstado = mostrarInactivos ? true : contrato.estado;
-        return coincideFiltro && coincideEstado;
+        // Si el check está marcado, solo mostrar inactivos
+        if (mostrarInactivos) {
+            return coincideFiltro && !contrato.estado;
+        } else {
+            return coincideFiltro && contrato.estado;
+        }
     });
 
     const contratosMostrados = contratosFiltrados.slice(0, mostrarCantidad);
@@ -401,7 +405,7 @@ const ContratosTable = () => {
                                                         onMouseOver={e => e.target.style.backgroundColor = '#d1d5db'}
                                                         onMouseOut={e => e.target.style.backgroundColor = '#e5e7eb'}
                                                     >
-                                                        Descargar Contrato
+                                                        Descargar
                                                     </button>
                                                     <button
                                                         onClick={() => { descartarContrato(contrato); document.getElementById(`menu-opciones-${contrato.idcontrato}`).style.display = 'none'; }}
@@ -419,7 +423,7 @@ const ContratosTable = () => {
                                                         onMouseOver={e => e.target.style.backgroundColor = '#d1d5db'}
                                                         onMouseOut={e => e.target.style.backgroundColor = '#e5e7eb'}
                                                     >
-                                                        Descartar Contrato
+                                                        Descartar
                                                     </button>
                                                 </div>
                                             </div>
@@ -481,7 +485,6 @@ const ContratosTable = () => {
                         Mostrar colaboradores inactivos
                     </label>
                 </div>
-                <p>Total de contratos: {contratosFiltrados.length} {filtro && `(filtrados de ${contratos.length})`}</p>
                 {historialPuestos.length === 0 && (
                     <div style={{
                         marginTop: '10px',

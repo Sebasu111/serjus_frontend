@@ -343,12 +343,13 @@ const ContratosContainer = () => {
                             flex: 1,
                             backgroundColor: "#fff",
                             padding: "0",
-                            minHeight: "calc(100vh - 80px)",
                             marginLeft: isMobile ? "0" : (sidebarCollapsed ? "90px" : "300px"),
                             transition: "margin-left 0.3s ease",
                             width: "calc(100vw - " + (isMobile ? "0px" : (sidebarCollapsed ? "90px" : "300px")) + ")",
                             maxWidth: "none",
-                            overflow: "hidden"
+                            overflow: "hidden",
+                            display: "flex",
+                            flexDirection: "column"
                         }}
                     >
                         {/* Pestañas de navegación */}
@@ -397,7 +398,6 @@ const ContratosContainer = () => {
                         {vistaActual === 'crear' ? (
                             <div style={{
                                 display: "flex",
-                                height: "calc(100vh - 130px)", // Ajustado por la altura de las pestañas
                                 gap: "2px",
                                 maxWidth: sidebarCollapsed ? "calc(100vw - 90px)" : "calc(100vw - 300px)",
                                 width: "100%",
@@ -445,13 +445,14 @@ const ContratosContainer = () => {
                             </div>
                         ) : (
                             <div style={{
-                                height: "calc(100vh - 130px)", // Ajustado por la altura de las pestañas
-                                overflow: "auto",
-                                backgroundColor: "#fff",
+                                background: "#fff",
                                 margin: "0",
                                 padding: "0",
                                 width: "100%",
-                                maxWidth: "none"
+                                maxWidth: "none",
+                                boxShadow: "none",
+                                borderRadius: "0",
+                                border: "none"
                             }}>
                                 <ContratosTable />
                             </div>
