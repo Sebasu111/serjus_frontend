@@ -5,6 +5,8 @@ import { buildApiUrl, buildApiUrlWithId, API_CONFIG } from '../../config/api.js'
 
 const ContratosTable = () => {
     const [contratos, setContratos] = useState([]);
+    const [mostrarCantidad, setMostrarCantidad] = useState(5);
+    const [mostrarInactivos, setMostrarInactivos] = useState(false);
     const [empleados, setEmpleados] = useState([]);
     const [puestos, setPuestos] = useState([]);
     const [historialPuestos, setHistorialPuestos] = useState([]);
@@ -218,12 +220,16 @@ const ContratosTable = () => {
 
     const contratosFiltrados = contratos.filter(contrato => {
         const { nombre, puesto } = getEmpleadoData(contrato);
-        return (
+        const coincideFiltro = (
             nombre?.toLowerCase().includes(filtro.toLowerCase()) ||
             puesto?.toLowerCase().includes(filtro.toLowerCase()) ||
             contrato.tipocontrato?.toLowerCase().includes(filtro.toLowerCase())
         );
+        const coincideEstado = mostrarInactivos ? true : contrato.estado;
+        return coincideFiltro && coincideEstado;
     });
+
+    const contratosMostrados = contratosFiltrados.slice(0, mostrarCantidad);
 
     const tableStyle = {
         width: '100%',
@@ -279,7 +285,7 @@ const ContratosTable = () => {
     }
 
     return (
-        <div style={{ fontFamily: '"Inter", sans-serif' }}>
+        <div style={{ fontFamily: '"Inter", sans-serif', margin: 0, padding: 0 }}>
             <div style={{ marginBottom: '20px', padding: '20px 20px 0px 20px' }}>
                 <h2 style={{ margin: 0, color: '#023047' }}>Contratos Registrados</h2>
             </div>
@@ -290,11 +296,11 @@ const ContratosTable = () => {
                     placeholder="Buscar por nombre del colaborador, puesto o tipo de contrato..."
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}
-                    style={{ ...inputStyle, width: 'calc(100% - 24px)' }}
+                    style={{ ...inputStyle, width: 'calc(100% - 24px)', borderRadius: '0px' }}
                 />
             </div>
 
-            {contratosFiltrados.length === 0 ? (
+            {contratosMostrados.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
                     <p>{contratos.length === 0 ? 'No hay contratos registrados' : 'No se encontraron contratos que coincidan con el filtro'}</p>
                 </div>
@@ -308,11 +314,11 @@ const ContratosTable = () => {
                                 <th style={thStyle}>Tipo Contrato</th>
                                 <th style={thStyle}>Salario</th>
                                 <th style={thStyle}>Estado</th>
-                                <th style={thStyle}>Descargar</th>
+                                <th style={thStyle}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {contratosFiltrados.map((contrato) => {
+                            {contratosMostrados.map((contrato) => {
                                 const { nombre, puesto, salario } = getEmpleadoData(contrato);
                                 return (
                                     <tr key={contrato.idcontrato} style={{ backgroundColor: contrato.estado ? 'white' : '#f8f9fa' }}>
@@ -342,39 +348,81 @@ const ContratosTable = () => {
                                             </span>
                                         </td>
                                         <td style={tdStyle}>
-                                            <button
-                                                onClick={() => descargarContrato(contrato)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    backgroundColor: '#007bff',
-                                                    color: 'white',
-                                                    cursor: 'pointer',
-                                                    fontSize: '12px',
-                                                    fontWeight: '500',
-                                                    marginRight: '6px'
-                                                }}
-                                                title="Descargar contrato PDF"
-                                            >
-                                                Descargar Contrato
-                                            </button>
-                                            <button
-                                                onClick={() => descartarContrato(contrato)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    backgroundColor: '#dc3545',
-                                                    color: 'white',
-                                                    cursor: 'pointer',
-                                                    fontSize: '12px',
-                                                    fontWeight: '500'
-                                                }}
-                                                title="Descartar/Inactivar contrato"
-                                            >
-                                                Descartar Contrato
-                                            </button>
+                                            <div style={{ position: 'relative', display: 'inline-block' }}>
+                                                <button
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        backgroundColor: '#d1d5db', // gris claro
+                                                        color: '#212529',
+                                                        cursor: 'pointer',
+                                                        fontSize: '15px',
+                                                        fontWeight: '600',
+                                                        minWidth: '120px',
+                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                                                    }}
+                                                    onClick={() => {
+                                                        const menu = document.getElementById(`menu-opciones-${contrato.idcontrato}`);
+                                                        if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                                                    }}
+                                                >
+                                                    Opciones
+                                                </button>
+                                                <div
+                                                    id={`menu-opciones-${contrato.idcontrato}`}
+                                                    style={{
+                                                        display: 'none',
+                                                        position: 'absolute',
+                                                        top: '110%',
+                                                        left: 0,
+                                                        backgroundColor: '#e5e7eb', // gris menú
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                                        borderRadius: '6px',
+                                                        zIndex: 10,
+                                                        minWidth: '160px',
+                                                        border: '1px solid #d1d5db',
+                                                        padding: '4px 0',
+                                                    }}
+                                                >
+                                                    <button
+                                                        onClick={() => { descargarContrato(contrato); document.getElementById(`menu-opciones-${contrato.idcontrato}`).style.display = 'none'; }}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '12px 0',
+                                                            border: 'none',
+                                                            backgroundColor: '#e5e7eb',
+                                                            color: '#212529',
+                                                            textAlign: 'center',
+                                                            cursor: 'pointer',
+                                                            fontSize: '15px',
+                                                            fontWeight: '500',
+                                                        }}
+                                                        onMouseOver={e => e.target.style.backgroundColor = '#d1d5db'}
+                                                        onMouseOut={e => e.target.style.backgroundColor = '#e5e7eb'}
+                                                    >
+                                                        Descargar Contrato
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { descartarContrato(contrato); document.getElementById(`menu-opciones-${contrato.idcontrato}`).style.display = 'none'; }}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '12px 0',
+                                                            border: 'none',
+                                                            backgroundColor: '#e5e7eb',
+                                                            color: '#212529',
+                                                            textAlign: 'center',
+                                                            cursor: 'pointer',
+                                                            fontSize: '15px',
+                                                            fontWeight: '500',
+                                                        }}
+                                                        onMouseOver={e => e.target.style.backgroundColor = '#d1d5db'}
+                                                        onMouseOut={e => e.target.style.backgroundColor = '#e5e7eb'}
+                                                    >
+                                                        Descartar Contrato
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -384,7 +432,55 @@ const ContratosTable = () => {
                 </div>
             )}
 
-            <div style={{ marginTop: '20px', padding: '20px', color: '#666', fontSize: '13px' }}>
+            <div style={{ margin: '0px', padding: '0px', color: '#666', fontSize: '13px' }}>
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '24px',
+                    background: '#e5e7eb',
+                    padding: '18px 0px',
+                    borderRadius: '0px',
+                    marginBottom: '0px',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '13px',
+                }}>
+                    <label style={{ fontSize: '13px', color: '#444', fontWeight: 500, marginRight: '8px' }}>
+                        Mostrar:
+                        <input
+                            type="number"
+                            min={1}
+                            max={contratosFiltrados.length}
+                            value={mostrarCantidad}
+                            onChange={e => setMostrarCantidad(Math.max(1, Math.min(Number(e.target.value), contratosFiltrados.length)))}
+                            style={{
+                                marginLeft: '10px',
+                                padding: '2px 10px',
+                                borderRadius: '0px',
+                                border: '1px solid #ccc',
+                                fontSize: '13px',
+                                width: '45px',
+                                background: '#fff',
+                                textAlign: 'center',
+                                fontFamily: 'Inter, sans-serif',
+                            }}
+                        />
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', fontSize: '13px', color: '#444', fontWeight: 500 }}>
+                        <input
+                            type="checkbox"
+                            checked={mostrarInactivos}
+                            onChange={e => setMostrarInactivos(e.target.checked)}
+                            style={{
+                                marginRight: '8px',
+                                width: '15px',
+                                height: '15px',
+                                fontFamily: 'Inter, sans-serif',
+                            }}
+                        />
+                        Mostrar colaboradores inactivos
+                    </label>
+                </div>
                 <p>Total de contratos: {contratosFiltrados.length} {filtro && `(filtrados de ${contratos.length})`}</p>
                 {historialPuestos.length === 0 && (
                     <div style={{
