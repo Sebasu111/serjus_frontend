@@ -87,9 +87,9 @@ import PuebloCulturaContainer from "./containers/PuebloCultura/PuebloCulturaCont
 import TerminacionLaboralContainer from "./containers/TerminacionLaboral/TerminacionLaboralContainer";
 
 // =============================================================
-//   INFORMES (pendiente)
+//   Reportes 
 // =============================================================
-// import InformesContainer from "./containers/informes";
+import ReportesContainer from "./containers/Reportes/ReportesContainer";
 
 // =============================================================
 //   DOCUMENTOS
@@ -161,6 +161,8 @@ const App = () => {
                     <Route exact path={`${base}/TiposDocumento`} component={TiposDocContainer} />
                     <Route exact path={`${base}/PuebloCultura`} component={PuebloCulturaContainer} />
                     <Route exact path={`${base}/TerminacionLaboral`} component={TerminacionLaboralContainer} />
+                    <Route exact path={`${base}/Reportes`} component={ReportesContainer} />
+
                     {/* DASHBOARD */}
                     <Route exact path={`${base}/Dashboard`} component={Dashboard} />
 

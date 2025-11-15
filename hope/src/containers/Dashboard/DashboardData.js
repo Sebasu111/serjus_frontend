@@ -47,14 +47,18 @@ export const fetchAusencias = async () => {
   });
 
   const activas = ausencias
-    .filter(a => a.estado === true || a.estado === "true")
+    .filter(a =>
+      (a.estado === true || a.estado === "true") &&   // debe estar activa
+      (a.idestado === null || a.idestado !== 6)        // no debe estar finalizada
+    )
     .map(a => ({
       ...a,
-      empleado: empleadosMap[a.idempleado] || null,  
+      empleado: empleadosMap[a.idempleado] || null,
     }));
 
   return activas;
 };
+
 
 export const fetchCatalogos = async () => {
   const [puestos, idiomas, pueblos] = await Promise.all([
