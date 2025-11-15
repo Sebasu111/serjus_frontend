@@ -120,11 +120,14 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess, criterioEditar }) 
             <select
               value={idTipo}
               onChange={(e) => {
-                setIdTipo(e.target.value);
-                setIdVariable("");
+                if (!criterioEditar) {       // ⛔ No permitir cambiar en edición
+                  setIdTipo(e.target.value);
+                  setIdVariable("");
+                }
               }}
               style={inputStyle}
               required
+              disabled={!!criterioEditar}
             >
               <option value="">Seleccione un tipo</option>
               {tipos.map((t) => (
@@ -140,10 +143,14 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess, criterioEditar }) 
             Variable Asociada
             <select
               value={idVariable}
-              onChange={(e) => setIdVariable(e.target.value)}
+              onChange={(e) => {
+                if (!criterioEditar) {       // ⛔ No permitir cambiar en edición
+                  setIdVariable(e.target.value);
+                }
+              }}
               style={inputStyle}
               required
-              disabled={!idTipo}
+              disabled={!!criterioEditar}
             >
               <option value="">
                 {idTipo ? "Seleccione una variable" : "Primero seleccione un tipo"}

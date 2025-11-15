@@ -17,7 +17,7 @@ import {
 } from "./EvaluacionGuiaStyles.js";
 import { useEvaluacionGuia } from "./useEvaluacionGuia.js";
 
-const EvaluacionGuia = () => {
+const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
   const {
     tipos,
     tipoSeleccionado,
@@ -29,38 +29,65 @@ const EvaluacionGuia = () => {
     paginaActual,
     setPaginaActual,
     guardarAutoevaluacion,
+    guardarEvaluacionCoordinador,
     evaluaciones,
     handleInputChange,
-    totalAuto,
-    totalCoord,
-    promedioConsenso,
     siguienteVariable,
     anteriorVariable,
     usuario,
-    showToast,
     autoevaluacionCompleta,
-  } = useEvaluacionGuia();
+    evaluacionCoordinadorCompleta,
+  } = useEvaluacionGuia(evaluacionSeleccionada);
 
-  // 🔹 Roles
+  // ---- ROLES ----
   const esAcompanante = usuario?.idrol === 2;
   const esContador = usuario?.idrol === 3;
+  const esSoloAuto = esAcompanante || esContador;
+
+  const esCoordinador = usuario?.idrol === 1;
   const esAdmin = usuario?.idrol === 5;
 
-  // 🔹 Los acompañantes y contadores comparten el mismo comportamiento limitado
-  const esRolSoloAuto = esAcompanante || esContador;
+  // 🔥 ADMIN puede evaluar igual que COORDINADOR, pero NO autoevaluarse
+  const esEvaluador = esCoordinador || esAdmin;
+
+  // 🟢 Corrigiendo (cuando evalúa a un empleado desde la tabla)
+  const esCorrigiendo = evaluacionSeleccionada && esEvaluador;
+  const esVistaFinal = esAdmin && evaluacionSeleccionada?.modo === "final";
+
+  // ---- REGLAS DE VISUALIZACIÓN ----
+  const mostrarAuto = !esCorrigiendo; // si está corrigiendo ya no muestra auto
+  const mostrarCoord = esCorrigiendo; // cuando corrige muestra evaluación del coordinador
 
   return (
     <div style={pageContainer}>
       <div style={cardContainer}>
         <h2 style={title}>Evaluación</h2>
 
-        {/* 🔹 Selector y botones */}
+        {evaluacionSeleccionada && (
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: "18px",
+              fontWeight: "600",
+              marginTop: "-10px",
+              marginBottom: "20px",
+              color: "#374151",
+            }}
+          >
+            Evaluando a:{" "}
+            <span style={{ color: "#023047", fontWeight: "700" }}>
+              {evaluacionSeleccionada.nombreEmpleado}
+            </span>
+          </p>
+        )}
+
+        {/* ---------------- SELECTOR & BOTONES ---------------- */}
         <div style={selectRow}>
           <label style={{ fontWeight: 600, fontSize: "16px" }}>
             Tipo de Evaluación:
           </label>
 
-          {/* 🔹 Solo admin puede seleccionar tipo */}
+          {/* 🔥 ADMIN puede elegir tipo pero no autoevaluarse */}
           {esAdmin ? (
             <select
               value={tipoSeleccionado}
@@ -92,45 +119,58 @@ const EvaluacionGuia = () => {
             </span>
           )}
 
-          {/* 🔹 Botones según rol */}
-          {esRolSoloAuto ? (
+          {/* ---- BOTONES ---- */}
+
+          {/* SOLO acompañante y contador pueden guardar autoevaluación */}
+          {esSoloAuto && (
             <button
               style={{
                 ...miniButton,
                 opacity: autoevaluacionCompleta() ? 1 : 0.5,
-                cursor: autoevaluacionCompleta() ? "pointer" : "not-allowed"
+                cursor: autoevaluacionCompleta() ? "pointer" : "not-allowed",
               }}
               onClick={guardarAutoevaluacion}
               disabled={!autoevaluacionCompleta()}
             >
               Guardar Autoevaluación
             </button>
-          ) : (
-            <>
-              <button
-                style={{
-                  ...miniButton,
-                  opacity: autoevaluacionCompleta() ? 1 : 0.5,
-                  cursor: autoevaluacionCompleta() ? "pointer" : "not-allowed"
-                }}
-                onClick={guardarAutoevaluacion}
-                disabled={!autoevaluacionCompleta()}
-              >
-                Guardar Autoevaluación
-              </button>
+          )}
 
-              <button
-                style={{ ...miniButton, backgroundColor: "#3B82F6" }}
-                onClick={() => showToast("Evaluación del coordinador guardada", "success")}
-                disabled={!tipoSeleccionado}
-              >
-                Guardar Evaluación
-              </button>
-            </>
+          {/* coordinador puede autoevaluarse solo cuando NO está corrigiendo */}
+          {esCoordinador && !esCorrigiendo && (
+            <button
+              style={{
+                ...miniButton,
+                opacity: autoevaluacionCompleta() ? 1 : 0.5,
+                cursor: autoevaluacionCompleta() ? "pointer" : "not-allowed",
+              }}
+              onClick={guardarAutoevaluacion}
+              disabled={!autoevaluacionCompleta()}
+            >
+              Guardar Autoevaluación
+            </button>
+          )}
+
+          {/* 🔥 ADMIN / COORDINADOR guardan evaluación del supervisor */}
+          {esCorrigiendo && (
+            <button
+              style={{
+                ...miniButton,
+                backgroundColor: "#3B82F6",
+                opacity: evaluacionCoordinadorCompleta() ? 1 : 0.5,
+                cursor: evaluacionCoordinadorCompleta()
+                  ? "pointer"
+                  : "not-allowed",
+              }}
+              onClick={guardarEvaluacionCoordinador}
+              disabled={!evaluacionCoordinadorCompleta()}
+            >
+              Guardar Evaluación
+            </button>
           )}
         </div>
 
-        {/* 🔹 Contenido dinámico */}
+        {/* ---------------- CONTENIDO ---------------- */}
         {loading ? (
           <p style={{ textAlign: "center", color: "#666" }}>
             Cargando información...
@@ -157,7 +197,7 @@ const EvaluacionGuia = () => {
               {variableActual?.nombrevariable}
             </h3>
 
-            {/* 🔹 Tabla principal */}
+            {/* ---------------- TABLA PRINCIPAL ---------------- */}
             <table
               style={{
                 width: "100%",
@@ -168,87 +208,75 @@ const EvaluacionGuia = () => {
               <thead>
                 <tr style={{ backgroundColor: "#023047", color: "white" }}>
                   <th style={thStyle}>CRITERIO</th>
-                  <th style={thStyle}>AUTOEVALUACIÓN</th>
-
-                  {/* 🔹 Solo si NO es acompañante o contador */}
-                  {!esRolSoloAuto && (
-                    <>
-                      <th style={thStyle}>EVALUACIÓN COORDINADOR</th>
-                      <th style={thStyle}>CONSENSO</th>
-                    </>
-                  )}
-
+                  {mostrarAuto && <th style={thStyle}>AUTOEVALUACIÓN</th>}
+                  {mostrarCoord && <th style={thStyle}>EVALUACIÓN COORD.</th>}
                   <th style={thStyle}>OBSERVACIONES</th>
                 </tr>
               </thead>
+
               <tbody>
                 {criteriosActuales.length > 0 ? (
                   criteriosActuales.map((c) => {
                     const ev = evaluaciones[c.idcriterio] || {};
+
                     return (
                       <tr key={c.idcriterio}>
                         <td style={tdStyle}>{c.nombrecriterio}</td>
 
-                        {/* Autoevaluación */}
-                        <td style={{ ...tdStyle, textAlign: "center" }}>
-                          <select
-                            value={ev.auto || ""}
-                            onChange={(e) =>
-                              handleInputChange(
-                                c.idcriterio,
-                                "auto",
-                                e.target.value
-                              )
-                            }
-                            style={selectStyle}
-                          >
-                            <option value="">-</option>
-                            {[1, 2, 3, 4, 5].map((n) => (
-                              <option key={n} value={n}>
-                                {n}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-
-                        {/* 🔹 Ocultar coord/consenso si es acompañante o contador */}
-                        {!esRolSoloAuto && (
-                          <>
-                            <td style={{ ...tdStyle, textAlign: "center" }}>
-                              <select
-                                value={ev.coord || ""}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    c.idcriterio,
-                                    "coord",
-                                    e.target.value
-                                  )
-                                }
-                                style={selectStyle}
-                              >
-                                <option value="">-</option>
-                                {[1, 2, 3, 4, 5].map((n) => (
-                                  <option key={n} value={n}>
-                                    {n}
-                                  </option>
-                                ))}
-                              </select>
-                            </td>
-
-                            <td
+                        {/* AUTOEVALUACIÓN */}
+                        {mostrarAuto && (
+                          <td style={{ ...tdStyle, textAlign: "center" }}>
+                            <select
+                              value={ev.auto || ""}
+                              disabled={!!evaluacionSeleccionada}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  c.idcriterio,
+                                  "auto",
+                                  e.target.value
+                                )
+                              }
                               style={{
-                                ...tdStyle,
-                                background: "#f1f5f9",
-                                textAlign: "center",
-                                fontWeight: "600",
+                                ...selectStyle,
+                                backgroundColor: evaluacionSeleccionada
+                                  ? "#e5e7eb"
+                                  : "white",
                               }}
                             >
-                              {ev.consenso || ""}
-                            </td>
-                          </>
+                              <option value="">-</option>
+                              {[1, 2, 3, 4, 5].map((n) => (
+                                <option key={n} value={n}>
+                                  {n}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
                         )}
 
-                        {/* Observaciones */}
+                        {/* COORDINADOR / ADMIN */}
+                        {mostrarCoord && (
+                          <td style={{ ...tdStyle, textAlign: "center" }}>
+                            <select
+                              value={ev.coord || ""}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  c.idcriterio,
+                                  "coord",
+                                  e.target.value
+                                )
+                              }
+                              style={selectStyle}
+                            >
+                              <option value="">-</option>
+                              {[1, 2, 3, 4, 5].map((n) => (
+                                <option key={n} value={n}>
+                                  {n}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        )}
+
                         <td style={tdStyle}>
                           <input
                             type="text"
@@ -274,32 +302,10 @@ const EvaluacionGuia = () => {
                     </td>
                   </tr>
                 )}
-
-                {/* 🔹 Totales visibles solo para roles con permisos completos */}
-                {!esRolSoloAuto &&
-                  paginaActual === variablesFiltradas.length - 1 && (
-                    <tr
-                      style={{ backgroundColor: "#FACC15", fontWeight: "bold" }}
-                    >
-                      <td style={{ ...tdStyle, textAlign: "center" }}>
-                        TOTAL GLOBAL
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: "center" }}>
-                        {totalAuto}
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: "center" }}>
-                        {totalCoord}
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: "center" }}>
-                        {promedioConsenso}
-                      </td>
-                      <td style={tdStyle}></td>
-                    </tr>
-                  )}
               </tbody>
             </table>
 
-            {/* 🔹 Paginación */}
+            {/* ---------------- PAGINACIÓN ---------------- */}
             <div style={pagerRow}>
               <button
                 onClick={anteriorVariable}

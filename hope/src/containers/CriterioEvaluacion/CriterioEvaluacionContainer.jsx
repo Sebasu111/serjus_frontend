@@ -45,7 +45,7 @@ const CriterioEvaluacionContainer = () => {
         const varsData = resVars.data.results || resVars.data || [];
         const tiposData = resTipos.data.results || resTipos.data || [];
 
-        setCriterios(criteriosData);
+        setCriterios([...criteriosData].sort((a, b) => b.idcriterio - a.idcriterio));
         setVariables(varsData);
         setTipos(tiposData);
       } catch (error) {
@@ -63,7 +63,7 @@ const CriterioEvaluacionContainer = () => {
     try {
       const res = await axios.get(`${API}/criterio/`);
       const criteriosData = res.data.results || res.data || [];
-      setCriterios(criteriosData);
+      setCriterios([...criteriosData].sort((a, b) => b.idcriterio - a.idcriterio));
     } catch (error) {
       console.error("Error recargando criterios", error);
     }

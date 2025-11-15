@@ -3,40 +3,30 @@ import axios from "axios";
 
 const API_BASE = "http://127.0.0.1:8000/api";
 
-const EvaluacionesTable = () => {
+const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [empleados, setEmpleados] = useState([]);
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
   const [qEmpleado, setQEmpleado] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const [usuario, setUsuario] = useState(null);
 
   const wrapperRef = useRef(null);
 
   const displayName = (e) => `${e.nombre} ${e.apellido}`;
   const empId = (e) => e.idempleado ?? e.idEmpleado;
 
-  // --- Acción del botón ---
-const cargarCriterios = async (ev) => {
-  try {
-    console.log("🔍 Buscando criterios de la evaluación:", ev.idevaluacion);
+  const idUsuarioLogueado = Number(sessionStorage.getItem("idUsuario"));
 
-    // Trae todo (porque tu backend no filtra)
-    const res = await axios.get(`${API_BASE}/evaluacioncriterio/`);
-
-    const data = res.data.results || res.data || [];
-
-    // 🔥 FILTRAR EN REACT (solución inmediata)
-    const criterios = data.filter(
-      (c) => c.idevaluacion === ev.idevaluacion
-    );
-
-    console.log("✅ Criterios filtrados correctamente:", criterios);
-  } catch (err) {
-    console.error("❌ Error cargando criterios:", err);
-  }
-};
-
+  // 🔹 Cargar usuario logueado
+  useEffect(() => {
+    if (!idUsuarioLogueado) return;
+    axios
+      .get(`${API_BASE}/usuarios/${idUsuarioLogueado}/`)
+      .then((res) => setUsuario(res.data))
+      .catch((err) => console.error("Error cargando usuario:", err));
+  }, [idUsuarioLogueado]);
 
   // -------- Cargar data inicial --------
   useEffect(() => {
@@ -54,11 +44,6 @@ const cargarCriterios = async (ev) => {
 
         setEmpleados(empData);
 
-        if (!empleadoSeleccionado && empData.length > 0) {
-          setEmpleadoSeleccionado(empData[0].idempleado);
-          setQEmpleado(displayName(empData[0]));
-        }
-
         const puestosMap = new Map(
           puestosData.map((p) => [p.idpuesto, p.nombrepuesto])
         );
@@ -68,15 +53,14 @@ const cargarCriterios = async (ev) => {
         );
 
         filtradas.sort(
-          (a, b) =>
-            new Date(b.fechaevaluacion) - new Date(a.fechaevaluacion)
+          (a, b) => new Date(b.fechaevaluacion) - new Date(a.fechaevaluacion)
         );
 
         const extendidas = filtradas.map((ev) => {
           const emp = empData.find((e) => e.idempleado === ev.idempleado);
-
           return {
             ...ev,
+            empleado: emp,
             nombreEmpleado: emp ? displayName(emp) : "Sin empleado",
             nombrePuesto: emp
               ? puestosMap.get(emp.idpuesto) || "Sin puesto"
@@ -95,21 +79,31 @@ const cargarCriterios = async (ev) => {
     loadData();
   }, []);
 
-  // --- Filtro del combobox ---
+  // 🔥 FILTRO DEL COMBOBOX POR PUESTO
   const empleadosFiltrados = useMemo(() => {
-    const q = qEmpleado.toLowerCase().trim();
-    return empleados.filter((e) => displayName(e).toLowerCase().includes(q));
-  }, [qEmpleado, empleados]);
+    let filtrados = [...empleados];
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        setOpenMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+    const empLog = empleados.find((e) => e.idempleado === usuario?.idempleado);
+    const equipoUsuario = empLog?.idequipo;
+
+    filtrados = filtrados.filter((e) => e.idempleado !== usuario?.idempleado);
+    filtrados = filtrados.filter(
+      (e) => !(e.nombre === "Empleado" && e.apellido === "Default")
+    );
+
+    if (usuario?.idrol === 5) {
+      // Admin → ve todos
+    } else if (usuario?.idrol === 4) {
+      filtrados = filtrados.filter((e) => [2, 3, 4].includes(e.idpuesto));
+    } else {
+      filtrados = filtrados.filter(
+        (e) => e.idequipo !== null && e.idequipo === equipoUsuario
+      );
+    }
+
+    const q = qEmpleado.toLowerCase().trim();
+    return filtrados.filter((e) => displayName(e).toLowerCase().includes(q));
+  }, [qEmpleado, empleados, usuario]);
 
   const seleccionarEmpleado = (emp) => {
     setEmpleadoSeleccionado(empId(emp));
@@ -117,18 +111,36 @@ const cargarCriterios = async (ev) => {
     setOpenMenu(false);
   };
 
-  const evaluacionesFiltradas = evaluaciones.filter(
-    (ev) => ev.idempleado === Number(empleadoSeleccionado)
-  );
+  // 🔥 Aquí agrupamos evaluaciones: auto + supervisor por empleado
+  const evaluacionesFiltradas = useMemo(() => {
+    const delEmpleado = evaluaciones.filter(
+      (ev) => ev.idempleado === Number(empleadoSeleccionado)
+    );
 
-  if (cargando) {
+    const auto = delEmpleado.find((e) => e.modalidad === "Autoevaluación") || null;
+    const coord = delEmpleado.find((e) => e.modalidad === "Evaluacion") || null;
+
+    // SI NO HAY AUTOEVALUACIÓN → NO SE DEBE MOSTRAR NADA
+    if (!auto) return [];
+
+    return [
+      {
+        auto,
+        coord,
+        puedeEvaluarse: !!auto && !coord,   // Auto ✔ y NO hay Evaluacion → Evaluar
+        puedeConsultarse: !!auto && !!coord // Auto + Evaluacion → Ver Evaluación Final
+      }
+    ];
+  }, [evaluaciones, empleadoSeleccionado]);
+
+
+  if (cargando || !usuario) {
     return (
       <p style={{ textAlign: "center", padding: "20px" }}>
         Cargando evaluaciones...
       </p>
     );
   }
-  
 
   return (
     <div style={{ padding: "30px" }}>
@@ -136,7 +148,7 @@ const cargarCriterios = async (ev) => {
         Evaluaciones Guardadas
       </h2>
 
-      {/* ---- ComboBox de empleado ---- */}
+      {/* ---- ComboBox ---- */}
       <div style={{ marginBottom: "20px", width: "350px" }} ref={wrapperRef}>
         <label
           style={{
@@ -197,12 +209,6 @@ const cargarCriterios = async (ev) => {
                     background: "transparent",
                     cursor: "pointer",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#f3f4f6")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
                 >
                   {displayName(emp)}
                 </button>
@@ -225,48 +231,62 @@ const cargarCriterios = async (ev) => {
       >
         <thead>
           <tr style={{ background: "#023047", color: "white" }}>
-            <th style={th}>Modalidad</th>
-            <th style={th}>Fecha</th>
-            <th style={th}>Empleado</th>
-            <th style={th}>Puesto</th>
+            <th style={th}>Estado</th>
             <th style={th}>Acciones</th>
           </tr>
         </thead>
 
         <tbody>
-          {evaluacionesFiltradas.length === 0 ? (
+          {evaluacionesFiltradas.length === 0 ||
+          (!evaluacionesFiltradas[0].auto &&
+            !evaluacionesFiltradas[0].coord) ? (
             <tr>
               <td colSpan="5" style={tdEmpty}>
-                No hay evaluaciones para este empleado.
+                El empleado aún no tiene autoevaluación.
               </td>
             </tr>
           ) : (
-            evaluacionesFiltradas.map((ev) => (
-              <tr key={ev.idevaluacion}>
-                <td style={td}>{ev.modalidad}</td>
+            evaluacionesFiltradas.map((item, i) => (
+              <tr key={i}>
                 <td style={td}>
-                  {new Date(ev.fechaevaluacion).toLocaleDateString()}
+                  {item.puedeEvaluarse && (
+                    <span style={{ color: "green", fontWeight: "600" }}>
+                      Autoevaluado - Falta Evaluación
+                    </span>
+                  )}
+                  {item.puedeConsultarse && (
+                    <span style={{ color: "#023047", fontWeight: "600" }}>
+                      Evaluación Finalizada
+                    </span>
+                  )}
                 </td>
-                <td style={td}>{ev.nombreEmpleado}</td>
-                <td style={td}>{ev.nombrePuesto}</td>
 
-                {/* --- Botón de acción --- */}
                 <td style={td}>
-                  <button
-                        onClick={() => cargarCriterios(ev)}
+                 <td style={td}>
+                    {/* Autoevaluado y NO tiene evaluación final → ADMIN puede evaluar */}
+                    {item.puedeEvaluarse && (
+                      <button
+                        onClick={() => onSeleccionarEvaluacion(item.auto)}
+                        style={btnPrimary}
+                      >
+                        Evaluar
+                      </button>
+                    )}
+
+                    {/* Si ya tiene evaluación final → NO mostrar botones */}
+                    {item.puedeConsultarse && (
+                      <span
                         style={{
-                        padding: "8px 12px",
-                        background: "#219ebc",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        fontSize: "13px",
-                        fontWeight: "600",
+                          fontWeight: 600,
+                          fontSize: "13px",
+                          color: "#6c757d",
+                          opacity: 0.8,
                         }}
-                    >
-                        Cargar Criterios
-                    </button>
+                      >
+                        (Evaluacion Finalizada)
+                      </span>
+                    )}
+                  </td>
                 </td>
               </tr>
             ))
@@ -293,6 +313,29 @@ const tdEmpty = {
   padding: "20px",
   textAlign: "center",
   color: "#666",
+};
+
+const btnPrimary = {
+  padding: "8px 12px",
+  background: "#219ebc",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  fontSize: "13px",
+  fontWeight: "600",
+  marginRight: "6px",
+};
+
+const btnGray = {
+  padding: "8px 12px",
+  background: "#6c757d",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  fontSize: "13px",
+  fontWeight: "600",
 };
 
 export default EvaluacionesTable;
