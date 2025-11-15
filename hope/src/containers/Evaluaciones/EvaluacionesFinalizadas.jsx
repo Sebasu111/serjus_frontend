@@ -32,7 +32,11 @@ const EvaluacionesFinalizadas = () => {
           axios.get(`${API_BASE}/variables/`)
         ]);
 
-        const evalData = resEval.data.results || resEval.data || [];
+        const evalDataRaw = resEval.data.results || resEval.data || [];
+        const evalData = evalDataRaw.filter(ev =>
+          ev.idempleado !== null && 
+          (ev.modalidad === "Autoevaluación" || ev.modalidad === "Evaluacion")
+        );
         const empData = resEmp.data.results || resEmp.data || [];
         const usersData = resUsers.data.results || resUsers.data || [];
         const critEvalData = resCritEval.data.results || resCritEval.data || [];
