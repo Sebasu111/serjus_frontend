@@ -72,6 +72,9 @@ const Dashboard = () => {
   const [equiposActivos, setEquiposActivos] = useState(0);
   const [convocatoriasActivas, setConvocatoriasActivas] = useState(0);
 
+  const [filtroDemografico, setFiltroDemografico] = useState("idiomas");
+  const dataset = filtroDemografico === "idiomas" ? porIdioma : porPueblo;
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -688,83 +691,168 @@ setDataCapacitaciones(getDataCapacitaciones(caps, asignaciones));
 </Card>
 </div>
 
-{/* === SECCIÓN 4 === */}
-<Card title="Ausencias Activas" color="#9333ea">
-  {ausencias.length === 0 ? (
-    <p style={{ textAlign: "center", color: "#6b7280", fontStyle: "italic" }}>
-      No hay ausencias activas registradas.
-    </p>
-  ) : (
-    <>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1.2fr 1fr",
-          gap: "10px",
-          marginTop: "10px",
-          fontSize: "0.95rem",
-          color: "#1e293b",
-        }}
-      >
-        {/* ENCABEZADOS */}
-        <div style={{ fontWeight: "700" }}>Colaborador</div>
-        <div style={{ fontWeight: "700", textAlign: "center" }}>Motivo</div>
-        <div style={{ fontWeight: "700", textAlign: "center" }}>Fechas</div>
+{/* === SECCIÓN 4 — Dos cards a la par === */}
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "28px",
+    marginBottom: "36px",
+  }}
+>
 
-        {/* FILAS */}
-        {ausencias.slice(0, 8).map((a, index) => (
-          <React.Fragment key={index}>
-            {/* Nombre */}
-            <div
-              style={{
-                background: "#f4f3ff",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                fontWeight: "600",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              {a.empleado
-                ? `${a.empleado.nombre || ""} ${a.empleado.apellido || ""}`.trim()
-                : "Empleado"}
-            </div>
+  {/* 🔹 AUSENCIAS ACTIVAS — Card más pequeña */}
+  <Card title="Ausencias Activas" color="#9333ea">
+    {ausencias.length === 0 ? (
+      <p style={{ textAlign: "center", color: "#6b7280", fontStyle: "italic" }}>
+        No hay ausencias activas registradas.
+      </p>
+    ) : (
+      <>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1.2fr 1fr",
+            gap: "8px",
+            marginTop: "8px",
+            fontSize: "0.9rem",
+            color: "#1e293b",
+          }}
+        >
+          {/* ENCABEZADOS */}
+          <div style={{ fontWeight: "700" }}>Colaborador</div>
+          <div style={{ fontWeight: "700", textAlign: "center" }}>Motivo</div>
+          <div style={{ fontWeight: "700", textAlign: "center" }}>Fechas</div>
 
-            {/* Diagnóstico / Tipo */}
-            <div
-              style={{
-                background: "#f4f3ff",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                textAlign: "center",
-                fontWeight: "600",
-                color: "#9333ea",
-              }}
-            >
-              {a.diagnostico || a.tipo || "Sin diagnóstico"}
-            </div>
+          {/* FILAS */}
+          {ausencias.slice(0, 6).map((a, index) => (
+            <React.Fragment key={index}>
+              <div
+                style={{
+                  background: "#f4f3ff",
+                  padding: "8px 10px",
+                  borderRadius: "7px",
+                  fontWeight: "600",
+                }}
+              >
+                {a.empleado
+                  ? `${a.empleado.nombre || ""} ${a.empleado.apellido || ""}`
+                  : "Empleado"}
+              </div>
+              <div
+                style={{
+                  background: "#f4f3ff",
+                  padding: "8px 10px",
+                  borderRadius: "7px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  color: "#9333ea",
+                }}
+              >
+                {a.diagnostico || a.tipo || "Sin diagnóstico"}
+              </div>
+              <div
+                style={{
+                  background: "#f4f3ff",
+                  padding: "8px 10px",
+                  borderRadius: "7px",
+                  textAlign: "center",
+                  color: "#6b7280",
+                  fontWeight: "600",
+                }}
+              >
+                {formatDate(a.fechainicio)} – {formatDate(a.fechafin)}
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
 
-            {/* Fechas */}
-            <div
-              style={{
-                background: "#f4f3ff",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                textAlign: "center",
-                color: "#6b7280",
-                fontWeight: "600",
-              }}
-            >
-              {formatDate(a.fechainicio)} – {formatDate(a.fechafin)}
-            </div>
-          </React.Fragment>
-        ))}
-      </div>
+        <ChartDescription text="Listado de ausencias activas más recientes." />
+      </>
+    )}
+  </Card>
 
-      <ChartDescription text="Listado de ausencias activas más recientes." />
-    </>
+  {/* 🔹 Segunda card disponible */}
+  <Card title="Idiomas / Pueblos" color="#d6526fff">
+  {/* Selector */}
+  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+    <select
+      value={filtroDemografico}
+      onChange={(e) => setFiltroDemografico(e.target.value)}
+      style={{
+        padding: "6px 10px",
+        borderRadius: "6px",
+        border: "1px solid #cccc",
+        fontSize: "0.9rem",
+        cursor: "pointer",
+      }}
+    >
+      <option value="idiomas">Idiomas</option>
+      <option value="pueblos">Pueblo / Cultura</option>
+    </select>
+  </div>
+
+  {/* Contenido */}
+  {dataset.length === 0 ? (
+  <p
+    style={{
+      textAlign: "center",
+      color: "#6b7280",
+      fontStyle: "italic",
+      marginTop: "20px",
+    }}
+  >
+    No hay datos registrados.
+  </p>
+) : (
+  <div
+    style={{
+      width: "100%",
+      marginTop: "6px",
+      display: "flex",
+      justifyContent: "center",
+    }}
+  >
+    <div style={{ width: "95%" }}> {/* ocupa casi todo el card */}
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart
+          data={dataset}
+          layout="vertical"
+          margin={{ top: 10, right: 20, bottom: 10, left: 20 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis type="number" allowDecimals={false} />
+          <YAxis
+            dataKey="name"
+            type="category"
+            width={70}                // suficiente para etiquetas sin desperdiciar espacio
+            tick={{ fontSize: 12 }}
+          />
+          <Tooltip />
+          <Bar dataKey="value" fill="#d6526fff" barSize={24} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+
   )}
+
+  {/* Descripción */}
+  <p
+    style={{
+      marginTop: "10px",
+      fontSize: "0.85rem",
+      color: "#6b7280",
+      textAlign: "center",
+      fontStyle: "italic",
+    }}
+  >
+    Distribución de colaboradores por {filtroDemografico === "idiomas" ? "idioma" : "pueblo / cultura"}.
+  </p>
 </Card>
+
+
+</div>
 
 
                 </>

@@ -130,7 +130,15 @@ const SidebarMenu = () => {
             icon: <FaFileAlt className="menu-icon" />,
             path: "/Documentos",
             roles: [6, 4, 5]
+        },
+        {
+            id: "reportes",
+            label: "Reportes",
+            icon: <FaFileAlt className="menu-icon" />,
+            path: "/Reportes",
+            roles: [6, 5]
         }
+        
     ];
 
     // --- AUTO-ABRIR SUBMENÚ ACTUAL ---
