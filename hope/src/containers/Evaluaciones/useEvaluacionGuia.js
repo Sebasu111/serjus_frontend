@@ -4,7 +4,7 @@ import { showToast } from "../../utils/toast.js";
 
 const API = "http://127.0.0.1:8000/api";
 
-export const useEvaluacionGuia = () => {
+export const useEvaluacionGuia = (evaluacionSeleccionada) => {
   const [tipos, setTipos] = useState([]);
   const [variables, setVariables] = useState([]);
   const [criterios, setCriterios] = useState([]);
@@ -13,40 +13,44 @@ export const useEvaluacionGuia = () => {
   const [evaluaciones, setEvaluaciones] = useState({});
   const [paginaActual, setPaginaActual] = useState(0);
   const [usuario, setUsuario] = useState(null);
+  const [evaluacionAuto, setEvaluacionAuto] = useState(null);
+  const [evaluacionCoord, setEvaluacionCoord] = useState(null);
 
-  // 🔹 Obtener ID del usuario logueado desde sessionStorage
+  const [totalAuto, setTotalAuto] = useState(0);
+  const [totalCoord, setTotalCoord] = useState(0);
+  const [promedioFinal, setPromedioFinal] = useState(0);
+
   const idUsuarioLogueado = Number(sessionStorage.getItem("idUsuario"));
 
+  // ---------------------- COMPLETAR AUTOEVALUACIÓN ----------------------
   const autoevaluacionCompleta = () => {
-    // Obtener todas las variables del tipo seleccionado
     const todasLasVariables = variables.filter(
       (v) => v.idtipoevaluacion === Number(tipoSeleccionado)
     );
 
-    // Obtener todos los criterios de todas las variables
     const todosLosCriterios = criterios.filter(
       (c) =>
         todasLasVariables.some((v) => v.idvariable === c.idvariable) &&
         c.estado !== false
     );
 
-    // Revisar cada criterio si tiene autoevaluación
     return todosLosCriterios.every((c) => {
       const ev = evaluaciones[c.idcriterio];
       return ev && ev.auto && ev.auto !== "";
     });
   };
 
-  // 🔹 Cargar datos base y usuario
+  // 🔹 Carga inicial
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        // Peticiones simultáneas
         const [resTipos, resVars, resCriterios, resUsuario] = await Promise.all([
           axios.get(`${API}/tipoevaluacion/`),
           axios.get(`${API}/variables/`),
           axios.get(`${API}/criterio/`),
-          idUsuarioLogueado ? axios.get(`${API}/usuarios/${idUsuarioLogueado}/`) : Promise.resolve({ data: null }),
+          idUsuarioLogueado
+            ? axios.get(`${API}/usuarios/${idUsuarioLogueado}/`)
+            : Promise.resolve({ data: null }),
         ]);
 
         setTipos(resTipos.data.results || resTipos.data || []);
@@ -55,7 +59,7 @@ export const useEvaluacionGuia = () => {
         setUsuario(resUsuario.data);
       } catch (err) {
         console.error("Error al cargar datos:", err);
-        showToast("Error al cargar datos de evaluación", "error");
+        showToast("Error al cargar los datos iniciales", "error");
       } finally {
         setLoading(false);
       }
@@ -63,212 +67,215 @@ export const useEvaluacionGuia = () => {
     fetchAll();
   }, [idUsuarioLogueado]);
 
-  // 🔹 Asignar tipo según el rol del usuario
+  // 🔹 Cargar criterios guardados al corregir evaluación
   useEffect(() => {
-    if (!usuario || tipos.length === 0) return;
+    if (!evaluacionSeleccionada) return;
 
-    let tipoAuto = "";
+    axios
+      .get(`${API}/evaluacioncriterio/`)
+      .then(async (res) => {
+        const data = res.data.results || res.data || [];
+        const criteriosEval = data.filter(
+          (c) => c.idevaluacion === evaluacionSeleccionada.idevaluacion
+        );
 
-    switch (usuario.idrol) {
-      case 1: // Coordinador
-        tipoAuto = tipos.find((t) => t.nombretipo === "Coordinador")?.idtipoevaluacion;
-        break;
-      case 2: // Acompañante
-        tipoAuto = tipos.find((t) => t.nombretipo === "Acompañante")?.idtipoevaluacion;
-        break;
-      case 3: // Contador
-        tipoAuto = tipos.find((t) => t.nombretipo === "Acompañante")?.idtipoevaluacion;
-        break;
-      case 4: // Secretaria
-        tipoAuto = tipos.find((t) => t.nombretipo === "Administrativo")?.idtipoevaluacion;
-        break;
-      case 5: // Administrador
-      default:
-        tipoAuto = ""; // libre
-        break;
-    }
+        const evaluacionesMap = {};
+        criteriosEval.forEach((c) => {
+          evaluacionesMap[c.idcriterio] = {
+            auto: c.puntajecriterio || "",
+            coord: c.puntajecoord || "",
+            consenso: c.consenso || "",
+            obs: c.observacion || "",
+            idregistro: c.idevaluacioncriterio,
+          };
+        });
 
-    if (tipoAuto) {
-      setTipoSeleccionado(String(tipoAuto));
-    }
+        setEvaluaciones(evaluacionesMap);
+
+        if (criteriosEval.length === 0) return;
+
+        const criterioBase = await axios.get(
+          `${API}/criterio/${criteriosEval[0].idcriterio}/`
+        );
+        const idVariable = criterioBase.data.idvariable;
+        const variable = variables.find((v) => v.idvariable === idVariable);
+
+        if (variable) {
+          setTipoSeleccionado(String(variable.idtipoevaluacion));
+          setPaginaActual(0);
+        }
+      })
+      .catch((err) => console.error("Error:", err));
+  }, [evaluacionSeleccionada, variables]);
+
+  // 🔹 Autoasignar el TIPO DE EVALUACIÓN según rol cuando NO están corrigiendo
+  useEffect(() => {
+    if (evaluacionSeleccionada || !usuario || tipos.length === 0) return;
+
+    const mapRolToTipo = {
+      1: "Coordinador",     // Coordinador
+      2: "Acompañante",     // Acompañante
+      3: "Acompañante",     // Contador usa misma rúbrica
+      4: "Administrativo",  // Secretaria
+      5: "Coordinador",     // Administrador se evalúa como jefe
+    };
+
+    const nombreTipo = mapRolToTipo[usuario.idrol];
+    const tipoMatch = tipos.find((t) => t.nombretipo === nombreTipo);
+    if (tipoMatch) setTipoSeleccionado(String(tipoMatch.idtipoevaluacion));
   }, [tipos, usuario]);
 
-  // 🔹 Filtrar variables
   const variablesFiltradas = variables.filter(
     (v) => v.idtipoevaluacion === Number(tipoSeleccionado)
   );
 
-  useEffect(() => {
-    setPaginaActual(0);
-  }, [tipoSeleccionado]);
+  useEffect(() => setPaginaActual(0), [tipoSeleccionado]);
 
   const variableActual = variablesFiltradas[paginaActual] || null;
 
   const criteriosPorVariable = (idVariable) =>
     criterios.filter((c) => c.idvariable === idVariable && c.estado !== false);
 
+  const criteriosActuales = variableActual
+    ? criteriosPorVariable(variableActual.idvariable)
+    : [];
+
   const handleInputChange = (idCriterio, campo, valor) => {
     setEvaluaciones((prev) => {
-      const anterior = prev[idCriterio] || {
+      const ant = prev[idCriterio] || {
         auto: "",
         coord: "",
         consenso: "",
         obs: "",
       };
-      const nuevo = { ...anterior, [campo]: valor };
-
-      if (campo === "auto" || campo === "coord") {
-        const autoNum = parseFloat(nuevo.auto) || 0;
-        const coordNum = parseFloat(nuevo.coord) || 0;
-        nuevo.consenso =
-          autoNum > 0 && coordNum > 0
-            ? ((autoNum + coordNum) / 2).toFixed(1)
-            : "";
-      }
+      const nuevo = { ...ant, [campo]: valor };
+      const autoNum = parseFloat(nuevo.auto) || 0;
+      const coordNum = parseFloat(nuevo.coord) || 0;
+      nuevo.consenso =
+        autoNum > 0 && coordNum > 0
+          ? ((autoNum + coordNum) / 2).toFixed(1)
+          : "";
       return { ...prev, [idCriterio]: nuevo };
     });
   };
 
-  const calcularTotalesGlobales = () => {
-    let totalAuto = 0,
-      totalCoord = 0,
-      totalConsenso = 0,
-      count = 0;
-
-    criterios
-      .filter((c) => c.estado !== false)
-      .forEach((c) => {
-        const ev = evaluaciones[c.idcriterio] || {};
-        if (ev.auto) totalAuto += Number(ev.auto);
-        if (ev.coord) totalCoord += Number(ev.coord);
-        if (ev.consenso) {
-          totalConsenso += Number(ev.consenso);
-          count++;
-        }
-      });
-
-    const promedioConsenso = count > 0 ? (totalConsenso / count).toFixed(1) : 0;
-    return { totalAuto, totalCoord, promedioConsenso };
-  };
-
-  const variableCompleta = (criteriosVar) =>
-    criteriosVar.every((c) => {
-      const ev = evaluaciones[c.idcriterio];
-      return ev && ev.auto && ev.coord;
-    });
-
-const siguienteVariable = () => {
-  if (!variableActual) return;
-  const criteriosActuales = criteriosPorVariable(variableActual.idvariable);
-
-  // 🧩 Determinar si el rol actual debe validar ambos campos
-  const esRolSoloAuto = [2, 3].includes(usuario?.idrol);
-
-  if (!esRolSoloAuto) {
-    // Solo para roles completos (no acompañantes ni contadores)
-    const incompletos = criteriosActuales.filter((c) => {
-      const ev = evaluaciones[c.idcriterio];
-      return !ev || !ev.auto || !ev.coord;
-    });
-
-    if (incompletos.length > 0) {
-      showToast(
-        "Debe completar Autoevaluación y Coordinador en todos los criterios antes de continuar.",
-        "warning"
-      );
-      return;
-    }
-  }
-
-  // Si pasa la validación (o es acompañante/contador), cambia de página
-  if (paginaActual < variablesFiltradas.length - 1) {
+  const siguienteVariable = () =>
+    paginaActual < variablesFiltradas.length - 1 &&
     setPaginaActual((p) => p + 1);
-  }
-};
 
+  const anteriorVariable = () =>
+    paginaActual > 0 && setPaginaActual((p) => p - 1);
 
-  const anteriorVariable = () => {
-    if (paginaActual > 0) setPaginaActual((p) => p - 1);
+  // ---------------------- 💾 GUARDAR AUTOEVALUACIÓN ----------------------
+  const guardarAutoevaluacion = async () => {
+    try {
+      const payloadEval = {
+        idempleado: usuario.idempleado,
+        modalidad: "Autoevaluación",
+        fechaevaluacion: new Date().toISOString(),
+        puntajetotal: criterios.reduce((acc, c) => {
+          const ev = evaluaciones[c.idcriterio];
+          return ev?.auto ? acc + Number(ev.auto) : acc;
+        }, 0),
+        observacion: "Autoevaluación del usuario",
+        estado: true,
+        idusuario: usuario.idusuario,
+        idpostulacion: null,
+      };
+
+      const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval);
+      const idevaluacion = evalRes.data.idevaluacion;
+
+      for (const c of criterios.filter((c) => c.estado !== false)) {
+        const ev = evaluaciones[c.idcriterio];
+        if (!ev || !ev.auto) continue;
+
+        await axios.post(`${API}/evaluacioncriterio/`, {
+          idevaluacion,
+          idcriterio: c.idcriterio,
+          puntajecriterio: Number(ev.auto),
+          observacion: ev.obs || "",
+          estado: true,
+          idusuario: usuario.idusuario,
+        });
+      }
+
+      showToast("Autoevaluación guardada correctamente", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Error al guardar autoevaluación", "error");
+    }
   };
 
-  const criteriosActuales = variableActual
-    ? criteriosPorVariable(variableActual.idvariable)
-    : [];
+  // ---------------------- 💾 GUARDAR EVALUACIÓN DE SUPERVISOR ----------------------
+  const guardarEvaluacionCoordinador = async () => {
+    try {
+      if (!evaluacionSeleccionada) {
+        return showToast("Error: no se recibió información del empleado a evaluar", "error");
+      }
 
-  const { totalAuto, totalCoord, promedioConsenso } = calcularTotalesGlobales();
+      // 1️⃣ Crear nueva evaluación del coordinador
+      const payloadEval = {
+        idempleado: evaluacionSeleccionada.idempleado,
+        modalidad: "Evaluacion",
+        fechaevaluacion: new Date().toISOString(),
+        puntajetotal: criterios.reduce((acc, c) => {
+          const ev = evaluaciones[c.idcriterio];
+          return ev?.coord ? acc + Number(ev.coord) : acc;
+        }, 0),
+        observacion: "Evaluación del coordinador",
+        estado: true,
+        idusuario: usuario.idusuario,
+        idpostulacion: null,
+      };
+      console.log("📌 evaluacionSeleccionada en guardarEvaluacionCoordinador:", evaluacionSeleccionada);
 
- const guardarAutoevaluacion = async () => {
-  try {
-    if (!usuario || !tipoSeleccionado) {
-      showToast("No se puede guardar: usuario o tipo no definido.", "error");
-      return;
+      const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval);
+      const idevaluacion = evalRes.data.idevaluacion;
+
+      // 2️⃣ Guardar criterios asociados a esta nueva evaluación
+      for (const c of criterios.filter((c) => c.estado !== false)) {
+        const ev = evaluaciones[c.idcriterio];
+        if (!ev || !ev.coord) continue;
+
+        await axios.post(`${API}/evaluacioncriterio/`, {
+          idevaluacion,
+          idcriterio: c.idcriterio,
+          puntajecriterio: Number(ev.coord),
+          observacion: ev.obs || "",
+          idusuario: usuario.idusuario,
+          estado: true,
+        });
+      }
+
+      showToast("Evaluación del coordinador creada correctamente", "success");
+    } catch (err) {
+      console.error("❌ ERROR BACKEND guardarEvaluacionCoordinador:", err.response?.data);
+      showToast("Error al guardar evaluación del coordinador", "error");
     }
+  };
 
-    // 🔹 Filtrar todas las variables del tipo seleccionado
+
+  // ---------------------- VALIDAR QUE SUPERVISOR COMPLETÓ ----------------------
+  const evaluacionCoordinadorCompleta = () => {
     const todasLasVariables = variables.filter(
       (v) => v.idtipoevaluacion === Number(tipoSeleccionado)
     );
 
-    if (!todasLasVariables.length) {
-      showToast("No hay variables para guardar.", "warning");
-      return;
-    }
-
-    // 🔹 Crear evaluación principal (una sola vez)
-    const evalPayload = {
-      idempleado: usuario.idempleado || null,
-      modalidad: "Autoevaluación",
-      fechaevaluacion: new Date().toISOString(),
-      puntajetotal: totalAuto,
-      observacion: "Autoevaluación del usuario",
-      estado: true,
-      idusuario: usuario.idusuario,
-      idpostulacion: null,
-    };
-
-    const evalRes = await fetch(`${API}/evaluacion/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(evalPayload),
-    });
-
-    if (!evalRes.ok) throw new Error("Error al crear evaluación principal");
-    const evalData = await evalRes.json();
-    const idevaluacion = evalData.idevaluacion;
-
-    // 🔹 Recorrer todas las variables y sus criterios
     for (const variable of todasLasVariables) {
       const criteriosDeVariable = criterios.filter(
         (c) => c.idvariable === variable.idvariable && c.estado !== false
       );
-
-      for (const c of criteriosDeVariable) {
+      const paginaLlena = criteriosDeVariable.every((c) => {
         const ev = evaluaciones[c.idcriterio];
-        if (!ev || !ev.auto) continue;
-
-        const payload = {
-          idevaluacion,
-          idcriterio: c.idcriterio,
-          puntajecriterio: parseFloat(ev.auto) || 0,
-          observacion: ev.obs || "",
-          estado: true,
-          idusuario: usuario.idusuario,
-        };
-
-        await fetch(`${API}/evaluacioncriterio/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      }
+        return ev && ev.coord && ev.coord !== "";
+      });
+      if (!paginaLlena) return false;
     }
-
-    showToast("Autoevaluación completa guardada correctamente.", "success");
-  } catch (err) {
-    console.error("Error guardando autoevaluación:", err);
-    showToast("Error al guardar autoevaluación.", "error");
+    return true;
   };
-};
+
+
   return {
     tipos,
     tipoSeleccionado,
@@ -279,16 +286,15 @@ const siguienteVariable = () => {
     loading,
     paginaActual,
     setPaginaActual,
+    guardarAutoevaluacion,
+    guardarEvaluacionCoordinador,
     evaluaciones,
     handleInputChange,
-    totalAuto,
-    totalCoord,
-    promedioConsenso,
     siguienteVariable,
     anteriorVariable,
-    guardarAutoevaluacion,
     usuario,
     showToast,
     autoevaluacionCompleta,
+    evaluacionCoordinadorCompleta,
   };
 };
