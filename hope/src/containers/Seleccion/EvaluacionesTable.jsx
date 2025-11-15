@@ -88,42 +88,56 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
 
   // 🔹 PUT → marcar como inactivo y eliminar de la lista
   const eliminarEvaluacion = async (id) => {
-    try {
-      const evaluacion = evaluaciones.find((e) => e.idevaluacion === id);
-      if (!evaluacion) throw new Error("Evaluación no encontrada");
+  try {
+    const evaluacion = evaluaciones.find((e) => e.idevaluacion === id);
+    if (!evaluacion) throw new Error("Evaluación no encontrada");
 
-      const payload = {
-        modalidad: evaluacion.modalidad || "Presencial",
-        fechaevaluacion: evaluacion.fechaevaluacion
-          ? new Date(evaluacion.fechaevaluacion).toISOString()
-          : new Date().toISOString(),
-        puntajetotal: Number(evaluacion.puntajetotal) || 0,
-        observacion: evaluacion.observacion || "Sin observaciones",
-        estado: false,
-        idusuario: evaluacion.idusuario || 1,
-        idempleado: null,
-        idpostulacion: evaluacion.idpostulacion || 0,
-      };
-
-      const res = await fetch(`${API}/evaluacion/${id}/`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("Respuesta del servidor:", text);
-        throw new Error("Error al actualizar evaluación");
-      }
-
-      showToast("Evaluación eliminada.", "success");
-      setEvaluaciones((prev) => prev.filter((e) => e.idevaluacion !== id));
-    } catch (err) {
-      console.error(err);
-      showToast("Error eliminando evaluación.", "error");
+    // ✅ Usar la fecha cruda (Date) que guardaste en fechaRaw
+    let fechaIso;
+    if (evaluacion.fechaRaw instanceof Date && !isNaN(evaluacion.fechaRaw)) {
+      fechaIso = evaluacion.fechaRaw.toISOString();
+    } else if (
+      evaluacion.fechaevaluacion &&
+      !isNaN(new Date(evaluacion.fechaevaluacion))
+    ) {
+      // fallback por si acaso
+      fechaIso = new Date(evaluacion.fechaevaluacion).toISOString();
+    } else {
+      // último recurso: ahora mismo
+      fechaIso = new Date().toISOString();
     }
-  };
+
+    const payload = {
+      modalidad: evaluacion.modalidad || "Presencial",
+      fechaevaluacion: fechaIso,
+      puntajetotal: Number(evaluacion.puntajetotal) || 0,
+      observacion: evaluacion.observacion || "Sin observaciones",
+      estado: false,
+      idusuario: evaluacion.idusuario || 1,
+      idempleado: null,
+      idpostulacion: evaluacion.idpostulacion || 0,
+    };
+
+    const res = await fetch(`${API}/evaluacion/${id}/`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Respuesta del servidor:", text);
+      throw new Error("Error al actualizar evaluación");
+    }
+
+    showToast("Evaluación eliminada.", "success");
+    setEvaluaciones((prev) => prev.filter((e) => e.idevaluacion !== id));
+  } catch (err) {
+    console.error(err);
+    showToast("Error eliminando evaluación.", "error");
+  }
+};
+
 
   // 🔹 Mostrar menú flotante
   const handleAbrirMenu = (event, id) => {

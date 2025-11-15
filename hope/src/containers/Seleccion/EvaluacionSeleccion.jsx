@@ -11,6 +11,7 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
   convocatorias,
   setConvocatoriaSeleccionada,
   convocatoriaSeleccionada,
+  convocatoriasConEvaluacionActiva,
   nombresEvaluados,
   setNombresEvaluados,
   criterios,
@@ -133,11 +134,9 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
             }}
           >
             <option value="">Seleccione una convocatoria</option>
-            {convocatorias
-            .filter(
-              (c) =>
-                c.idestado?.idestado !== 6 &&
-                c.idestado?.nombreestado?.toLowerCase() !== "finalizada"
+           {convocatorias
+            .filter((c) =>
+              !convocatoriasConEvaluacionActiva.includes(c.idconvocatoria)
             )
             .map((c) => (
               <option key={c.idconvocatoria} value={c.idconvocatoria}>
@@ -461,7 +460,6 @@ const EvaluacionSeleccion = forwardRef((props, ref) => {
                 <button
                   key={p}
                   disabled={!nombresEvaluados[i]}
-                  onClick={() => handleGuardarCriterios()}
                   style={{
                     backgroundColor: color,
                     color: "#000000ff",

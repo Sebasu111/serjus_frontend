@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { showToast } from "../../utils/toast";
+import { useMemo } from "react";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -14,6 +15,12 @@ const useEvaluacionSeleccion = () => {
   const [ganador, setGanador] = useState(null);
   const [evaluacionesGuardadas, setEvaluacionesGuardadas] = useState([]);
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState("");
+
+  const convocatoriasConEvaluacionActiva = useMemo(() => {
+    return evaluacionesGuardadas
+      .filter((ev) => ev.estado === true && ev.idconvocatoria) // solo activas
+      .map((ev) => ev.idconvocatoria);
+  }, [evaluacionesGuardadas]);
 
   // Cargar evaluaciones existentes
   useEffect(() => {
@@ -40,7 +47,10 @@ const useEvaluacionSeleccion = () => {
         const conv = post ? convocatorias.find((c) => c.idconvocatoria === post.idconvocatoria) : null;
 
         return {
-          ...ev,
+           ...ev,
+          idconvocatoria: post ? post.idconvocatoria : null,   // 🔥 IMPORTANTE
+          idpostulacion: post ? post.idpostulacion : null,
+          estado: ev.estado,                                   // estado de la evaluación
           nombreaspirante: asp
             ? `${asp.nombreaspirante} ${asp.apellidoaspirante}`
             : null,
@@ -365,8 +375,25 @@ const evaluacionesAlineadas = criteriosCompletos.map((c) => {
   );
 });
 
-setCriterios(criteriosCompletos);
-setEvaluaciones(evaluacionesAlineadas);
+// 🧹 Filtrar criterios que NO tienen ningún puntaje (nunca usados)
+const criteriosFiltrados = [];
+const evaluacionesFiltradas = [];
+
+evaluacionesAlineadas.forEach((ev, index) => {
+  const sinPuntaje =
+    (!ev.puntajes.p1 || ev.puntajes.p1 === "") &&
+    (!ev.puntajes.p2 || ev.puntajes.p2 === "") &&
+    (!ev.puntajes.p3 || ev.puntajes.p3 === "");
+
+  // Si todos los puntajes están vacíos, NO se agrega ese criterio
+  if (!sinPuntaje) {
+    criteriosFiltrados.push(criteriosCompletos[index]);
+    evaluacionesFiltradas.push(ev);
+  }
+});
+
+setCriterios(criteriosFiltrados);
+setEvaluaciones(evaluacionesFiltradas);
 showToast("Evaluación cargada correctamente con puntajes.", "success");
 
     // 💡 Debug: confirmar que cada criterio tiene sus puntajes
@@ -508,6 +535,7 @@ showToast("Evaluación cargada correctamente con puntajes.", "success");
   return {
   convocatorias,
   setConvocatoriaSeleccionada,
+  convocatoriasConEvaluacionActiva,
   convocatoriaSeleccionada,
   nombresEvaluados,
   setNombresEvaluados,   //   agregar
