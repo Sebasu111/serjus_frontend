@@ -112,26 +112,70 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
   };
 
   // 🔥 Aquí agrupamos evaluaciones: auto + supervisor por empleado
+  // 🔥 Aquí agrupamos evaluaciones: auto + supervisor por empleado
   const evaluacionesFiltradas = useMemo(() => {
+    if (!empleadoSeleccionado) return [];
+
     const delEmpleado = evaluaciones.filter(
-      (ev) => ev.idempleado === Number(empleadoSeleccionado)
+      (ev) => Number(ev.idempleado) === Number(empleadoSeleccionado)
     );
 
-    const auto = delEmpleado.find((e) => e.modalidad === "Autoevaluación") || null;
-    const coord = delEmpleado.find((e) => e.modalidad === "Evaluacion") || null;
+    if (delEmpleado.length === 0) return [];
 
-    // SI NO HAY AUTOEVALUACIÓN → NO SE DEBE MOSTRAR NADA
-    if (!auto) return [];
+    // 🔹 todas las autoevaluaciones del empleado (ordenadas de más reciente a más vieja)
+    const autos = delEmpleado
+      .filter((e) => e.modalidad === "Autoevaluación")
+      .sort(
+        (a, b) =>
+          new Date(b.fechaevaluacion) - new Date(a.fechaevaluacion)
+      );
+
+    // 🔹 todas las evaluaciones del coordinador (ordenadas de más reciente a más vieja)
+    const coords = delEmpleado
+      .filter((e) => e.modalidad === "Evaluacion")
+      .sort(
+        (a, b) =>
+          new Date(b.fechaevaluacion) - new Date(a.fechaevaluacion)
+      );
+
+    const ultimoAuto = autos[0] || null;
+    const ultimoCoord = coords[0] || null;
+
+    if (!ultimoAuto && !ultimoCoord) return [];
+
+    let puedeEvaluarse = false;
+    let puedeConsultarse = false;
+    let auto = ultimoAuto;
+    let coord = null;
+
+    // 🧠 Regla:
+    // - Si la última acción fue AUTO (o no hay coord) → puedeEvaluarse
+    // - Si la última acción fue COORD → evaluación finalizada
+    if (
+      ultimoAuto &&
+      (!ultimoCoord ||
+        new Date(ultimoAuto.fechaevaluacion) >=
+          new Date(ultimoCoord.fechaevaluacion))
+    ) {
+      // última acción fue autoevaluación → falta evaluación
+      puedeEvaluarse = true;
+      coord = null;
+    } else if (ultimoAuto && ultimoCoord) {
+      // última acción fue evaluación del coordinador → finalizada
+      puedeConsultarse = true;
+      coord = ultimoCoord;
+    }
 
     return [
       {
         auto,
         coord,
-        puedeEvaluarse: !!auto && !coord,   // Auto ✔ y NO hay Evaluacion → Evaluar
-        puedeConsultarse: !!auto && !!coord // Auto + Evaluacion → Ver Evaluación Final
-      }
+        puedeEvaluarse,
+        puedeConsultarse,
+      },
     ];
   }, [evaluaciones, empleadoSeleccionado]);
+
 
 
   if (cargando || !usuario) {

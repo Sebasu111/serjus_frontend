@@ -214,7 +214,7 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
         return showToast("Error: no se recibió información del empleado a evaluar", "error");
       }
 
-      // 1️⃣ Crear nueva evaluación del coordinador
+      // 1️⃣ Crear evaluación del coordinador
       const payloadEval = {
         idempleado: evaluacionSeleccionada.idempleado,
         modalidad: "Evaluacion",
@@ -228,12 +228,11 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
         idusuario: usuario.idusuario,
         idpostulacion: null,
       };
-      console.log("📌 evaluacionSeleccionada en guardarEvaluacionCoordinador:", evaluacionSeleccionada);
 
       const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval);
       const idevaluacion = evalRes.data.idevaluacion;
 
-      // 2️⃣ Guardar criterios asociados a esta nueva evaluación
+      // Guardar criterios evaluados
       for (const c of criterios.filter((c) => c.estado !== false)) {
         const ev = evaluaciones[c.idcriterio];
         if (!ev || !ev.coord) continue;
@@ -248,13 +247,46 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
         });
       }
 
+      // 🚨 2️⃣ Detectar criterios con puntaje bajo
+      const criteriosBajos = criterios.filter((c) => {
+        const ev = evaluaciones[c.idcriterio];
+        return ev?.coord && Number(ev.coord) <= 2;  // ≤3 se considera bajo desempeño
+      });
+
+      if (criteriosBajos.length > 0) {
+        // 3️⃣ Crear seguimiento general ligado a esta evaluación
+        const seguimientoRes = await axios.post(`${API}/seguimientos/`, {
+          idevaluacion,
+          idresponsable: usuario.idusuario,                        // responsable de la mejora
+          fechaproximarev: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(), // revisión a 1 mes
+          estado: true,
+          idusuario: usuario.idusuario,
+        });
+
+        const idseguimiento = seguimientoRes.data.idseguimiento;
+
+        // 4️⃣ Registrar acciones de mejora por cada variable con bajo puntaje
+        for (const c of criteriosBajos) {
+          await axios.post(`${API}/seguimientovariable/`, {
+            idseguimiento,
+            idvariable: c.idvariable,
+            accionmejora: `Mejorar desempeño en la variable ${c.nombrecriterio || ""}`,
+            estado: true,
+            idusuario: usuario.idusuario,
+          });
+        }
+      }
+
       showToast("Evaluación del coordinador creada correctamente", "success");
+      if (criteriosBajos.length > 0) {
+        showToast("⚠ Se generó un plan de seguimiento por criterios de bajo puntaje", "warning");
+      }
+
     } catch (err) {
       console.error("❌ ERROR BACKEND guardarEvaluacionCoordinador:", err.response?.data);
       showToast("Error al guardar evaluación del coordinador", "error");
     }
   };
-
 
   // ---------------------- VALIDAR QUE SUPERVISOR COMPLETÓ ----------------------
   const evaluacionCoordinadorCompleta = () => {
