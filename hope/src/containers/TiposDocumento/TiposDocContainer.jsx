@@ -6,6 +6,7 @@ import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
+const API = process.env.REACT_APP_API_URL;
 
 const TiposDocumentoContainer = () => {
     const [nombreTipo, setNombreTipo] = useState("");
@@ -22,7 +23,7 @@ const TiposDocumentoContainer = () => {
 
     const fetchTipos = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/tipodocumento/");
+            const res = await axios.get(`${API}/tipodocumento/`);
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setTipos(data);
         } catch (error) {
@@ -44,10 +45,10 @@ const TiposDocumentoContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${editingId}/`, data);
+                await axios.put(`${API}/tipodocumento/${editingId}/`, data);
                 setMensaje("Tipo de documento actualizado correctamente");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/tipodocumento/", data);
+                await axios.post(`${API}/tipodocumento/`, data);
                 setMensaje("Tipo de documento registrado correctamente");
             }
 
@@ -78,7 +79,7 @@ const TiposDocumentoContainer = () => {
             const tipo = tipos.find(t => t.idtipodocumento === id);
             if (!tipo) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${id}/`, {
+            await axios.put(`${API}/tipodocumento/${id}/`, {
                 nombretipo: tipo.nombretipo,
                 cantidadrepetir: tipo.cantidadrepetir,
                 descripcion: tipo.descripcion,
@@ -99,7 +100,7 @@ const TiposDocumentoContainer = () => {
             const tipo = tipos.find(t => t.idtipodocumento === id);
             if (!tipo) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/tipodocumento/${id}/`, {
+            await axios.put(`${API}/tipodocumento/${id}/`, {
                 nombretipo: tipo.nombretipo,
                 cantidadrepetir: tipo.cantidadrepetir,
                 descripcion: tipo.descripcion,

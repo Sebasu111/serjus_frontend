@@ -13,6 +13,8 @@ import axios from "axios";
 import { showToast, showPDFToasts } from "../../utils/toast.js";
 import { crearAmonestacion } from "../Amonestacion/AmonestaciónService.js";
 
+const API = process.env.REACT_APP_API_URL;
+
 const AmonestacionesContainer = () => {
   const [generandoPDF, setGenerandoPDF] = useState(false);
   const [vistaActual, setVistaActual] = useState("crear");
@@ -84,7 +86,7 @@ useEffect(() => {
   // 🔹 Obtener amonestaciones
   const fetchAmonestaciones = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/amonestaciones/");
+      const res = await axios.get(`${API}/amonestaciones/`);
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setAmonestaciones(data);
     } catch (error) {
@@ -97,7 +99,7 @@ useEffect(() => {
   if (amonestacionSeleccionada) {
     // vuelve a abrir el modal actualizado para ver el nuevo archivo
     const actualizada = await axios.get(
-      `http://127.0.0.1:8000/api/amonestaciones/${amonestacionSeleccionada.idamonestacion}/`
+      `${API}/amonestaciones/${amonestacionSeleccionada.idamonestacion}/`
     );
     setAmonestacionSeleccionada(actualizada.data);
   }
@@ -107,8 +109,8 @@ useEffect(() => {
   const fetchEmpleadosPorRol = async (rolesPermitidos = [1, 5]) => {
     try {
       const [resEmpleados, resUsuarios] = await Promise.all([
-        axios.get("http://127.0.0.1:8000/api/empleados/"),
-        axios.get("http://127.0.0.1:8000/api/usuarios/"),
+        axios.get(`${API}/empleados/`),
+        axios.get(`${API}/usuarios/`),
       ]);
 
       const empleadosData = Array.isArray(resEmpleados.data.results)

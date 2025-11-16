@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const Seguimiento = () => {
   const [seguimientos, setSeguimientos] = useState([]);

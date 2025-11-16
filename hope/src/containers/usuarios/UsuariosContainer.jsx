@@ -13,9 +13,10 @@ import TableUsuarios from "../../containers/usuarios/TableUsuarios";
 import ModalConfirmacion from "../../containers/usuarios/ModalConfirmacion";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
-const API = "http://127.0.0.1:8000/api/usuarios/";
-const API_ROLES = "http://127.0.0.1:8000/api/roles/";
-const API_COLABORADORES = "http://127.0.0.1:8000/api/empleados/";
+const API2 = process.env.REACT_APP_API_URL;
+const API = `${API2}/usuarios/`;
+const API_ROLES = `${API2}/roles/`;
+const API_COLABORADORES = `${API2}/empleados/`;
 
 const UsuariosContainer = () => {
     const [form, setForm] = useState({

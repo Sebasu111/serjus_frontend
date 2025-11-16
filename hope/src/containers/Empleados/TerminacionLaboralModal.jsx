@@ -3,6 +3,7 @@ import axios from "axios";
 import { X } from "lucide-react";
 import { showToast } from "../../utils/toast";
 import { generarConstanciaTrabajo } from "./constanciaTrabajoPdf";
+const API = process.env.REACT_APP_API_URL;
 
 const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -57,7 +58,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                 formDataDoc.append('idempleado', empleado.id || empleado.idempleado || empleado.idEmpleado);
                 formDataDoc.append('estado', true); // Asegura que el documento esté activo
 
-                const responseDoc = await axios.post("http://127.0.0.1:8000/api/documentos/", formDataDoc, {
+                const responseDoc = await axios.post(`${API}/documentos/`, formDataDoc, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
@@ -77,16 +78,16 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                 idusuario: 1 // TODO: Reemplazar con el usuario logueado real
             };
 
-            const response = await axios.post("http://127.0.0.1:8000/api/terminacionlaboral/", dataToSend);
+            const response = await axios.post(`${API}/terminacionlaboral/`, dataToSend);
 
             // 3. Finalizar contrato del empleado automáticamente
             try {
                 // Buscar contratos activos del empleado
-                const contratosResponse = await axios.get("http://127.0.0.1:8000/api/contratos/");
+                const contratosResponse = await axios.get(`${API}/contratos/`);
                 const contratosData = Array.isArray(contratosResponse.data) ? contratosResponse.data : contratosResponse.data?.results || [];
 
                 // Buscar contratos del empleado usando el historial de puestos
-                const historialResponse = await axios.get("http://127.0.0.1:8000/api/historialpuestos/");
+                const historialResponse = await axios.get(`${API}/historialpuestos/`);
                 const historialData = Array.isArray(historialResponse.data) ? historialResponse.data : historialResponse.data?.results || [];
 
                 const contratosDelEmpleado = contratosData.filter(contrato => {
@@ -99,7 +100,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
 
                 // Inactivar todos los contratos activos del empleado
                 for (const contrato of contratosDelEmpleado) {
-                    await axios.put(`http://127.0.0.1:8000/api/contratos/${contrato.idcontrato}/`, {
+                    await axios.put(`${API}/contratos/${contrato.idcontrato}/`, {
                         ...contrato,
                         estado: false
                     });
@@ -117,7 +118,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
             try {
                 if (empleado && (empleado.id || empleado.idempleado || empleado.idEmpleado)) {
                     const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
-                    await axios.put(`http://127.0.0.1:8000/api/empleados/${empleadoId}/`, {
+                    await axios.put(`${API}/empleados/${empleadoId}/`, {
                         ...empleado,
                         estado: false
                     });

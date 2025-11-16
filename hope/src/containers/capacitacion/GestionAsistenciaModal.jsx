@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsignados, onActualizar }) => {
     const [empleados, setEmpleados] = useState([]);

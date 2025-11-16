@@ -12,8 +12,8 @@ import ConfirmModal from "./ConfirmModal";
 import InduccionTable from "./InduccionTable";
 import GestionarDocumentosModal from "./GestionarDocumentosModal";
 import DocumentosAsignadosModal from "./DocumentosAsignadosModal";
-
-const API = "http://127.0.0.1:8000/api/inducciones/";
+const API2 = process.env.REACT_APP_API_URL;
+const API = `${API2}/inducciones/`;
 
 const InduccionContainer = () => {
     const [nombre, setNombre] = useState("");
@@ -129,7 +129,7 @@ const getFechaLocalISO = () => {
     const handleDelete = async (row) => {
   try {
     // 🔍 Verificar si existen empleados o documentos activos vinculados
-    const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+    const res = await axios.get(`${API}/inducciondocumentos/`);
     const data = Array.isArray(res.data) ? res.data : res.data.results || [];
 
     const relacionadosActivos = data.filter(
@@ -162,7 +162,7 @@ const getFechaLocalISO = () => {
 
   try {
     // 🔍 1️⃣ Verificar si existen documentos o empleados activos en esta inducción
-    const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+    const res = await axios.get(`${API}/inducciondocumentos/`);
     const data = Array.isArray(res.data) ? res.data : res.data.results || [];
 
     const relacionadosActivos = data.filter(

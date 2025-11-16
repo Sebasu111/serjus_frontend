@@ -3,7 +3,7 @@ import ModalConfirmacionStyles from "../../stylesGenerales/ConfirmModalStyles";
 import axios from "axios";
 import { showToast } from "../../utils/toast";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const ModalEliminarPostulacion = ({
   postulacionSeleccionada,

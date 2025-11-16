@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { X } from "lucide-react";
 import { showToast } from "../../utils/toast.js";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const CriterioModal = ({ onClose, onAdd, criteriosUsados = [] }) => {
   const [criterios, setCriterios] = useState([]);

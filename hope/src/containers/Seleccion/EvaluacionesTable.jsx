@@ -3,7 +3,7 @@ import { showToast } from "../../utils/toast";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import ConfirmModal from "./ConfirmModal"; // ✅ Importa el modal
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
   const [evaluaciones, setEvaluaciones] = useState([]);

@@ -14,7 +14,8 @@ import AsistenciaModal from "../../components/confirmarasistencia/AsistenciaModa
 import AusenciaForm from "../Ausencia/AusenciaForm.jsx";
 import axios from "axios";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const API2 = process.env.REACT_APP_API_DOCS;
 
 const PerfilContainer = () => {
   const [empleado, setEmpleado] = useState(null);
@@ -185,7 +186,7 @@ const PerfilContainer = () => {
         ...doc,
         descargar: async () => {
           try {
-            const response = await fetch(`http://127.0.0.1:8000${doc.archivo}`);
+            const response = await fetch(`${API2}${doc.archivo}`);
             if (!response.ok) throw new Error("Error al descargar el archivo");
 
             const blob = await response.blob();

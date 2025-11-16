@@ -5,6 +5,7 @@ import SEO from "../components/seo";
 import axios from "axios";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { showToast } from "../utils/toast.js";
+const API = process.env.REACT_APP_API_URL;
 
 const LoginPage = () => {
     const history = useHistory();
@@ -16,7 +17,7 @@ const LoginPage = () => {
     const handleLogin = async e => {
         e.preventDefault();
         try {
-            const res = await axios.post("http://127.0.0.1:8000/api/login/", {
+            const res = await axios.post(`${API}/login/`, {
                 nombreusuario: username,
                 contrasena: password
             });

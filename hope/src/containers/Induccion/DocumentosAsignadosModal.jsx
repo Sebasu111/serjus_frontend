@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+const API = process.env.REACT_APP_API_URL;
 
 const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
   const [documentos, setDocumentos] = useState([]);
@@ -10,7 +11,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
 
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+        const res = await axios.get(`${API}/inducciondocumentos/`);
         const raw = Array.isArray(res.data) ? res.data : res.data.results || [];
 
         const filtrados = raw.filter(
@@ -20,7 +21,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
         const empleadosIds = [...new Set(filtrados.map(f => Number(f.idempleado)).filter(Boolean))];
         const documentosIds = [...new Set(filtrados.map(f => Number(f.iddocumento)).filter(Boolean))];
 
-        const resEmp = await axios.get("http://127.0.0.1:8000/api/empleados/");
+        const resEmp = await axios.get(`${API}/empleados/`);
         const allEmps = Array.isArray(resEmp.data) ? resEmp.data : resEmp.data.results || [];
         const empleadosFiltrados = allEmps.filter(e => {
           const empId = Number(e.idempleado ?? e.id ?? e.pk);
@@ -28,7 +29,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
         });
         setEmpleados(empleadosFiltrados);
 
-        const resDocs = await axios.get("http://127.0.0.1:8000/api/documentos/");
+        const resDocs = await axios.get(`${API}/documentos/`);
         const allDocs = Array.isArray(resDocs.data) ? resDocs.data : resDocs.data.results || [];
         const documentosFiltrados = allDocs.filter(d => {
           const docId = Number(d.iddocumento ?? d.id);

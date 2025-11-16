@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { showToast } from "../utils/toast";
+const API = process.env.REACT_APP_API_URL;
 
 const pick = (obj, ...keys) => {
   for (const k of keys)
@@ -44,12 +45,12 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
   });
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/idiomas/")
+    fetch(`${API}/idiomas/`)
       .then((res) => res.json())
       .then((data) => setIdiomas(data.results))
       .catch((err) => console.error("Error cargando idiomas:", err));
 
-    fetch("http://127.0.0.1:8000/api/pueblocultura/")
+    fetch(`${API}/pueblocultura/`)
       .then((res) => res.json())
       .then((data) => setPueblos(data.results))
       .catch((err) => console.error("Error cargando pueblos:", err));
@@ -132,14 +133,14 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
       // 1️⃣ Revisar si existe el aspirante por DPI
       if (!idAspirante) {
         const resAspi = await fetch(
-          `http://127.0.0.1:8000/api/aspirantes/?dpi=${formData.dpi}`
+          `${API}/aspirantes/?dpi=${formData.dpi}`
         );
         const aspirantes = await resAspi.json();
 
         if (aspirantes.length > 0) {
           idAspirante = aspirantes[0].idaspirante;
         } else {
-          const resCreate = await fetch("http://127.0.0.1:8000/api/aspirantes/", {
+          const resCreate = await fetch(`${API}/aspirantes/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -167,14 +168,14 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
       }
 
       // 2️⃣ Obtener el estado "Postulado"
-      const estadoRes = await fetch("http://127.0.0.1:8000/api/estados/");
+      const estadoRes = await fetch(`${API}/estados/`);
       const estadosData = await estadoRes.json();
       const estadoPostulado = estadosData.results.find(e => e.nombreestado === "Postulado");
 
       if (!estadoPostulado) throw new Error("No se encontró el estado 'Postulado'");
 
       // 3️⃣ Crear la postulación con el idestado correcto
-      const postRes = await fetch("http://127.0.0.1:8000/api/postulaciones/", {
+      const postRes = await fetch(`${API}/postulaciones/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -208,7 +209,7 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
       fd.append("idtipodocumento", 1);
       fd.append("idaspirante", Number(idAspirante));
 
-      const docRes = await fetch("http://127.0.0.1:8000/api/documentos/", {
+      const docRes = await fetch(`${API}/documentos/`, {
         method: "POST",
         body: fd,
       });

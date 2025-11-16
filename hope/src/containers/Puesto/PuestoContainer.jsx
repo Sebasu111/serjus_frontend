@@ -10,6 +10,7 @@ import { buttonStyles } from "../../stylesGenerales/buttons.js";
 import PuestoForm from "./PuestoForm";
 import PuestosTable from "./PuestosTable";
 import ConfirmModal from "./ConfirmModal";
+const API = process.env.REACT_APP_API_URL;
 
 const PuestosContainer = () => {
     const [puestos, setPuestos] = useState([]);
@@ -27,7 +28,7 @@ const PuestosContainer = () => {
 
     const fetchPuestos = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/puestos/");
+            const res = await axios.get(`${API}/puestos/`);
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setPuestos(data);
         } catch (error) {
@@ -52,7 +53,7 @@ const PuestosContainer = () => {
             });
 
             // Actualizar el puesto
-            await axios.put(`http://127.0.0.1:8000/api/puestos/${idpuesto}/`, payload);
+            await axios.put(`${API}/puestos/${idpuesto}/`, payload);
 
             // Si el salario cambió, crear registros de historial para colaboradores con este puesto
             if (salarioAnterior !== salarioNuevo && salarioNuevo > 0) {
@@ -79,12 +80,12 @@ const PuestosContainer = () => {
             console.log("🔄 Iniciando crearHistorialCambioSalario para puesto:", idPuesto, "con salario:", nuevoSalario);
 
             // Obtener todos los colaboradores
-            const resEmpleados = await axios.get("http://127.0.0.1:8000/api/empleados/");
+            const resEmpleados = await axios.get(`${API}/empleados/`);
             const empleados = Array.isArray(resEmpleados.data) ? resEmpleados.data : resEmpleados.data?.results || [];
             console.log("👥 Colaboradores encontrados:", empleados.length);
 
             // Obtener historial actual
-            const resHistorial = await axios.get("http://127.0.0.1:8000/api/historialpuestos/");
+            const resHistorial = await axios.get(`${API}/historialpuestos/`);
             const historiales = Array.isArray(resHistorial.data) ? resHistorial.data : resHistorial.data?.results || [];
             console.log("📋 Registros de historial encontrados:", historiales.length);
 
@@ -137,7 +138,7 @@ const PuestosContainer = () => {
                     console.log("📅 Fecha fin para registro anterior:", fechaActual);
 
                     // Finalizar el historial anterior (poner fecha fin)
-                    await axios.put(`http://127.0.0.1:8000/api/historialpuestos/${historialActivo.idhistorialpuesto}/`, {
+                    await axios.put(`${API}/historialpuestos/${historialActivo.idhistorialpuesto}/`, {
                         ...historialActivo,
                         fechafin: fechaActual,
                         idusuario: idUsuario
@@ -157,7 +158,7 @@ const PuestosContainer = () => {
                 };
 
                 console.log("➕ Creando nuevo historial:", nuevoHistorial);
-                await axios.post("http://127.0.0.1:8000/api/historialpuestos/", nuevoHistorial);
+                await axios.post(`${API}/historialpuestos/`, nuevoHistorial);
                 console.log("   Historial creado exitosamente para colaborador:", empleadoId);
             }
 
@@ -173,7 +174,7 @@ const PuestosContainer = () => {
         if (!registroSeleccionado) return;
         try {
             await axios.put(
-                `http://127.0.0.1:8000/api/puestos/${registroSeleccionado.idpuesto}/`,
+                `${API}/puestos/${registroSeleccionado.idpuesto}/`,
                 { ...registroSeleccionado, estado: false } // solo desactivar desde el modal
             );
             showToast(`Puesto desactivado correctamente`);
@@ -194,7 +195,7 @@ const PuestosContainer = () => {
         } else {
             // Si está inactivo → activar directamente sin modal
             try {
-                await axios.put(`http://127.0.0.1:8000/api/puestos/${registro.idpuesto}/`, {
+                await axios.put(`${API}/puestos/${registro.idpuesto}/`, {
                     ...registro,
                     estado: true
                 });

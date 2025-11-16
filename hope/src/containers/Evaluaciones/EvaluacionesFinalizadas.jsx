@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = process.env.REACT_APP_API_URL;
 
 const ELEMENTOS_POR_PAGINA_GENERAL = 8;
 const CRITERIOS_POR_PAGINA = 5;

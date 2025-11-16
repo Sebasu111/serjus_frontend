@@ -1,6 +1,7 @@
 import React from "react";
 import axios from "axios";
 import { X } from "lucide-react";
+const API = process.env.REACT_APP_API_DOCS;
 
 const overlayStyle = {
   position: "fixed",
@@ -63,7 +64,7 @@ const ModalDocumentos = ({ visible, onClose, documentos, induccionNombre }) => {
     const esAbsoluta = archivoUrl.startsWith("http");
     const urlCompleta = esAbsoluta
       ? archivoUrl
-      : `http://127.0.0.1:8000${archivoUrl}`;
+      : `${API}${archivoUrl}`;
 
     // Descargar archivo binario
     const response = await axios.get(urlCompleta, { responseType: "blob" });

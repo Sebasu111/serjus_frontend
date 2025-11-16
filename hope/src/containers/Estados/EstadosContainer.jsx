@@ -6,6 +6,7 @@ import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
+const API = process.env.REACT_APP_API_URL;
 
 const EstadosContainer = () => {
     const [nombreEstado, setNombreEstado] = useState("");
@@ -21,7 +22,7 @@ const EstadosContainer = () => {
 
     const fetchEstados = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/estados/");
+            const res = await axios.get(`${API}/estados/`);
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setEstados(data);
         } catch (error) {
@@ -41,10 +42,10 @@ const EstadosContainer = () => {
                 idusuario: 1
             };
             if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/estados/${editingId}/`, data);
+                await axios.put(`${API}/estados/${editingId}/`, data);
                 setMensaje("Estado actualizado correctamente");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/estados/", data);
+                await axios.post(`${API}/estados/`, data);
                 setMensaje("Estado registrado correctamente");
             }
             setNombreEstado("");
@@ -73,7 +74,7 @@ const EstadosContainer = () => {
             const estado = estados.find(e => e.idestado === id);
             if (!estado) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/estados/${id}/`, {
+            await axios.put(`${API}/estados/${id}/`, {
                 nombreestado: estado.nombreestado,
                 descripcion: estado.descripcion,
                 estado: false,
@@ -94,7 +95,7 @@ const EstadosContainer = () => {
             const estado = estados.find(e => e.idestado === id);
             if (!estado) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/estados/${id}/`, {
+            await axios.put(`${API}/estados/${id}/`, {
                 nombreestado: estado.nombreestado,
                 descripcion: estado.descripcion,
                 estado: true,

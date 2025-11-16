@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
-
-const API_HISTORIAL = "http://127.0.0.1:8000/api/historialpuestos/";
-const API_PUESTOS = "http://127.0.0.1:8000/api/puestos/";
+const API = process.env.REACT_APP_API_URL;
+const API_HISTORIAL = `${API}/historialpuestos/`;
+const API_PUESTOS = `${API}/puestos/`;
 
 const HistorialPuestosModal = ({ empleado, onClose, mostrar }) => {
     const [historial, setHistorial] = useState([]);

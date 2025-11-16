@@ -11,7 +11,7 @@ import AusenciaTable from "./AusenciaTable.jsx";
 import { useHistory } from "react-router-dom";
 import ModalAusencia from "./AusenciaModal.jsx";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const displayName = (emp) =>
   [emp?.nombre, emp?.apellido].filter(Boolean).join(" ");
