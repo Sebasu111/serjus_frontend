@@ -15,6 +15,12 @@ const ReporteCapacitacionesPDF = ({
 }) => {
   useEffect(() => generarPDF(), []);
 
+  const formatearFecha = (fecha) => {
+  if (!fecha) return "";
+  const partes = fecha.split("-"); // yyyy-mm-dd
+  return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
+  };
+
   const generarPDF = () => {
     // 🔔 Notificación al iniciar
     showToast("Generando archivo PDF...", "info");
@@ -38,9 +44,9 @@ const ReporteCapacitacionesPDF = ({
     let contexto = "";
     if (fechaDesde || fechaHasta || estado) {
       contexto = "Cobertura:";
-      if (fechaDesde) contexto += ` desde ${fechaDesde}`;
-      if (fechaHasta) contexto += ` hasta ${fechaHasta}`;
-      if (estado) contexto += ` | Estado: ${estado === "true" ? "Activas" : "Finalizadas"}`;
+      if (fechaDesde) contexto += ` desde ${formatearFecha(fechaDesde)}`;
+      if (fechaHasta) contexto += ` hasta ${formatearFecha(fechaHasta)}`;
+      if (estado) contexto += ` | Estado: ${estado === "true" ? "Activas" : "Finalizado"}`;
     }
     if (contexto) doc.text(contexto, 14, 56);
 
@@ -69,8 +75,8 @@ const ReporteCapacitacionesPDF = ({
         body: [
           ["Institución facilitadora", c.institucionfacilitadora],
           ["Lugar", c.lugar],
-          ["Fecha de inicio", c.fechainicio],
-          ["Fecha de fin", c.fechafin],
+          ["Fecha de inicio", formatearFecha(c.fechainicio)],
+          ["Fecha de fin", formatearFecha(c.fechafin)],
           ["Monto ejecutado", `Q. ${c.montoejecutado}`],
           ["Observación", c.observacion || "No registrada"],
         ],

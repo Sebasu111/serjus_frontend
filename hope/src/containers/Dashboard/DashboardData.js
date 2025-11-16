@@ -95,8 +95,19 @@ export const getEmpleadosPorGenero = (empleados) => {
 export const getDataCapacitaciones = (capacitaciones, asignaciones) => {
   if (!capacitaciones?.length) return [];
 
-  // Agrupar por idcapacitacion
-  const result = capacitaciones.map(cap => {
+  const hoy = new Date();
+
+  // Filtrar solo capacitaciones activas (no finalizadas)
+  const activas = capacitaciones.filter(cap => {
+    if (!cap.estado) return false; // inactiva manualmente
+    const inicio = new Date(cap.fechainicio);
+    const fin = new Date(cap.fechafin);
+    // excluir finalizadas
+    return fin >= hoy; 
+  });
+
+  // Agrupar para el gráfico
+  const result = activas.map(cap => {
     const count = asignaciones.filter(
       a => a.idcapacitacion === cap.idcapacitacion
     ).length;
@@ -106,8 +117,10 @@ export const getDataCapacitaciones = (capacitaciones, asignaciones) => {
       value: count,
     };
   });
+
   return result;
 };
+
 
 
 /**  Por rango de edad */

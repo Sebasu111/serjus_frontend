@@ -7,6 +7,12 @@ import serjusHeader from "../../assets/header-contrato/header-contrato.png";
 const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo }) => {
   useEffect(() => generarPDF(), []);
 
+  const formatearFecha = (fecha) => {
+  if (!fecha) return "";
+  const partes = fecha.split("-"); // yyyy-mm-dd
+  return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
+  };
+
   const generarPDF = () => {
     // 🔔 Notificación de inicio
     showToast("Generando archivo PDF...", "info");
@@ -33,8 +39,9 @@ const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo 
     let contexto = "";
     if (fechaDesde || fechaHasta || tipo) {
       contexto = "Cobertura:";
-      if (fechaDesde) contexto += ` desde ${fechaDesde}`;
-      if (fechaHasta) contexto += ` hasta ${fechaHasta}`;
+      if (fechaDesde) contexto += ` desde ${formatearFecha(fechaDesde)}`;
+      if (fechaHasta) contexto += ` hasta ${formatearFecha(fechaHasta)}`;
+
       if (tipo) contexto += ` | Tipo: ${tipo}`;
     }
     if (contexto) doc.text(contexto, 14, 72);
@@ -83,8 +90,9 @@ const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo 
       diagnostico: a.diagnostico,
       dias: a.cantidad_dias,
       lugar: a.es_iggs ? "IGGS" : a.otro ?? "No registrado",
-      inicio: a.fechainicio,
-      fin: a.fechafin,
+      inicio: formatearFecha(a.fechainicio),
+      fin: formatearFecha(a.fechafin),
+
     }));
 
     autoTable(doc, {
