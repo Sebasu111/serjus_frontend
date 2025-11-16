@@ -10,7 +10,7 @@ import { useHistory } from "react-router-dom";
 
 const thStyle = { borderBottom: "2px solid #eee", padding: 12, textAlign: "left", fontSize: 15 };
 const tdStyle = { padding: 12, borderBottom: "1px solid #f0f0f0", fontSize: 15 };
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const PostulacionesTable = ({
   postulaciones,

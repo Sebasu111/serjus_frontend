@@ -21,8 +21,8 @@ import HistorialPuestosModal from "./HistorialPuestosModal.jsx";
 import { showToast, showPDFToasts } from "../../utils/toast.js";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
-const API = "http://127.0.0.1:8000/api";
-const API_HISTORIAL = "http://127.0.0.1:8000/api/historialpuestos/";
+const API = process.env.REACT_APP_API_URL;
+const API_HISTORIAL = "${API}/historialpuestos/";
 const empId = row => row?.id ?? row?.idempleado ?? row?.idEmpleado;
 
 const pick = (o, ...keys) => {
@@ -347,7 +347,7 @@ const EmpleadosContainer = () => {
         const cargarDesdeAspirante = async () => {
             try {
                 // 🔹 Cargar datos del aspirante
-                const aspRes = await axios.get(`http://127.0.0.1:8000/api/aspirantes/${aspiranteParam}/`);
+                const aspRes = await axios.get(`${API}/aspirantes/${aspiranteParam}/`);
                 const aspirante = aspRes.data;
 
                 // 🔹 Cargar convocatoria asociada

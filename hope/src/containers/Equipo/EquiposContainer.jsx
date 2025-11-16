@@ -12,7 +12,7 @@ import { } from "react-toastify"; import { buttonStyles } from "../../stylesGene
 import EquipoFormNuevo from "./EquipoFormNuevo";
 import EquiposTable from "./EquiposTable";
 
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = process.env.REACT_APP_API_URL;
 const toNum = v => (v === null || v === undefined || v === "" ? null : Number(v));
 
 // ---------- UI helpers para la vista de detalle ----------

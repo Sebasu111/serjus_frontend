@@ -9,7 +9,7 @@ import ConvocatoriasTable from "./ConvocatoriasTable.jsx";
 import ConvocatoriasForm from "./ConvocatoriasForm.jsx";
 import { showToast } from "../../utils/toast.js";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const ConvocatoriasContainer = () => {
     const [form, setForm] = useState({

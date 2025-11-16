@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { showToast } from "../../utils/toast";
 import { useMemo } from "react";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const useEvaluacionSeleccion = () => {
   const [convocatorias, setConvocatorias] = useState([]);

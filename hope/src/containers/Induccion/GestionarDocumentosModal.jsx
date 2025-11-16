@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 import ModalDeseleccion from "../Induccion/ModalDeseleccion.jsx"; 
+const API = process.env.REACT_APP_API_URL;
 
 const displayName = (emp) => {
   const candidates = [
@@ -90,7 +91,7 @@ const getFechaLocalISO = () => {
     const empId = Number(empleadoAEliminar.idempleado || empleadoAEliminar.id);
 
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+      const res = await axios.get(`${API}/inducciondocumentos/`);
       const raw = Array.isArray(res.data) ? res.data : res.data.results || [];
 
       const registro = raw.find(
@@ -102,7 +103,7 @@ const getFechaLocalISO = () => {
 
       if (registro) {
         await axios.put(
-          `http://127.0.0.1:8000/api/inducciondocumentos/${registro.idinducciondocumento}/`,
+          `${API}/inducciondocumentos/${registro.idinducciondocumento}/`,
           { ...registro, estado: false }
         );
         showToast("Empleado desasignado de la inducción", "info");
@@ -139,7 +140,7 @@ const getFechaLocalISO = () => {
   const cargarDocumentosExistentes = async () => {
     try {
       const resInduccionDocs = await axios.get(
-        `http://127.0.0.1:8000/api/inducciondocumentos/`
+        `${API}/inducciondocumentos/`
       );
       const induccionDocsRaw = Array.isArray(resInduccionDocs.data)
         ? resInduccionDocs.data
@@ -162,7 +163,7 @@ const getFechaLocalISO = () => {
         ];
 
         if (documentosIds.length > 0) {
-          const resDocumentos = await axios.get("http://127.0.0.1:8000/api/documentos/");
+          const resDocumentos = await axios.get(`${API}/documentos/`);
           const todosDocumentos = Array.isArray(resDocumentos.data)
             ? resDocumentos.data
             : resDocumentos.data.results || [];
@@ -189,7 +190,7 @@ const getFechaLocalISO = () => {
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
+      const res = await axios.get(`${API}/empleados/`);
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setEmpleados(data.filter((item) => item.estado));
     } catch (e) {
@@ -203,7 +204,7 @@ const getFechaLocalISO = () => {
       // ✅ Si no hay documentos ni empleados, desactiva todos los registros existentes
 if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
   try {
-    const res = await axios.get(`http://127.0.0.1:8000/api/inducciondocumentos/`);
+    const res = await axios.get(`${API}/inducciondocumentos/`);
     const todos = Array.isArray(res.data) ? res.data : res.data.results || [];
     const activos = todos.filter(
       (r) =>
@@ -213,7 +214,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
 
     for (const reg of activos) {
       await axios.put(
-        `http://127.0.0.1:8000/api/inducciondocumentos/${reg.idinducciondocumento}/`,
+        `${API}/inducciondocumentos/${reg.idinducciondocumento}/`,
         { ...reg, estado: false }
       );
     }
@@ -245,7 +246,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
         formDataDocumento.append("idtipodocumento", 5);
 
         const responseDocumento = await axios.post(
-          "http://127.0.0.1:8000/api/documentos/",
+          `${API}/documentos/`,
           formDataDocumento,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -265,7 +266,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
             idusuario: idUsuario,
           };
           return axios.post(
-            "http://127.0.0.1:8000/api/inducciondocumentos/",
+            `${API}/inducciondocumentos/`,
             asignacionData
           );
         });
@@ -278,7 +279,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
           const idDocumento = doc.iddocumento || doc.id;
 
           const resAsignaciones = await axios.get(
-            `http://127.0.0.1:8000/api/inducciondocumentos/?idinduccion=${induccion.idinduccion}`
+            `${API}/inducciondocumentos/?idinduccion=${induccion.idinduccion}`
           );
           const existentes = Array.isArray(resAsignaciones.data)
             ? resAsignaciones.data
@@ -302,7 +303,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
               idusuario: idUsuario,
             };
             await axios.post(
-              "http://127.0.0.1:8000/api/inducciondocumentos/",
+              `${API}/inducciondocumentos/`,
               asignacionData
             );
           }

@@ -12,9 +12,9 @@ import HistorialPuestoForm from "./HistorialPuestoForm";
 import ConfirmModal from "./ConfirmModal";
 import HistorialPuestoTable from "./HistorialPuestoTable";
 
-const API = "http://127.0.0.1:8000/api/historialpuestos/";
-const API_EMPLEADOS = "http://127.0.0.1:8000/api/empleados/";
-const API_PUESTOS = "http://127.0.0.1:8000/api/puestos/";
+const API = process.env.REACT_APP_API_URL;
+const API_EMPLEADOS = `${API}/empleados/`;
+const API_PUESTOS = `${API}/puestos/`;
 
 const HistorialPuestoContainer = () => {
     const [form, setForm] = useState({

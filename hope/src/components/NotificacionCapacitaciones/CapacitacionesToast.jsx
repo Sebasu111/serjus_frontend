@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast"; // tu función de toast
+const API = process.env.REACT_APP_API_URL;
 
 const CapacitacionesToast = () => {
     useEffect(() => {
@@ -10,7 +11,7 @@ const CapacitacionesToast = () => {
 
             try {
                 // Traer asignaciones
-                const resAsignaciones = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
+                const resAsignaciones = await axios.get(`${API}/empleadocapacitacion/`);
                 const asignaciones = resAsignaciones.data.results || resAsignaciones.data;
 
                 // Filtrar solo las asignaciones activas del usuario
@@ -21,7 +22,7 @@ const CapacitacionesToast = () => {
                 if (asignacionesActivas.length === 0) return;
 
                 // Traer empleados
-                const resEmpleados = await axios.get("http://127.0.0.1:8000/api/empleados/");
+                const resEmpleados = await axios.get(`${API}/empleados/`);;
                 const empleados = resEmpleados.data.results || resEmpleados.data;
 
                 // Buscar el nombre del empleado relacionado con este usuario

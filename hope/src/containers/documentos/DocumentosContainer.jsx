@@ -10,7 +10,7 @@ import { } from "react-toastify"; import DocumentosTable from "./DocumentosTable
 import DocumentosForm from "./DocumentosForm.jsx";
 import ModalEliminarArchivo from "./ModalEliminarArchivo.jsx";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const DocumentosContainer = () => {
     const [form, setForm] = useState({

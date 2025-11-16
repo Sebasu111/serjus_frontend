@@ -10,8 +10,8 @@ import { showToast } from "../../utils/toast.js";
 import {  } from "react-toastify";import PuebloCulturaForm from "./PuebloCulturaForm";
 import ConfirmModal from "./ConfirmModal";
 import PuebloCulturaTable from "./PuebloCulturaTable";
-
-const API = "http://127.0.0.1:8000/api/pueblocultura/";
+const API2 = process.env.REACT_APP_API_URL;
+const API = `${API2}/pueblocultura/`;
 
 const PuebloCulturaContainer = () => {
     const [nombrePueblo, setNombrePueblo] = useState("");

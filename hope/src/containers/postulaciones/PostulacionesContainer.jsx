@@ -9,7 +9,7 @@ import SEO from "../../components/seo/index.jsx";
 
 import PostulacionesTable from "./PostulacionesTable.jsx";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
 
 const PostulacionesContainer = () => {
   const [postulaciones, setPostulaciones] = useState([]);

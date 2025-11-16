@@ -11,6 +11,7 @@ import {
 } from "./ReportesFiltros";
 
 import ReporteConvocatoriasPDF from "./ReporteConvocatoriasPDF"; // (se implementará después)
+const API = process.env.REACT_APP_API_URL;
 
 const ReportesConvocatorias = () => {
   const [convocatorias, setConvocatorias] = useState([]);
@@ -42,7 +43,7 @@ const ReportesConvocatorias = () => {
 
   const fetchConvocatorias = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/convocatorias/");
+      const res = await axios.get(`${API}/convocatorias/`);
       setConvocatorias(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar convocatorias", "error");
@@ -51,7 +52,7 @@ const ReportesConvocatorias = () => {
 
   const fetchPostulaciones = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/postulaciones/");
+      const res = await axios.get(`${API}/postulaciones/`);
       setPostulaciones(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar postulaciones", "error");
@@ -60,7 +61,7 @@ const ReportesConvocatorias = () => {
 
   const fetchAspirantes = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/aspirantes/");
+      const res = await axios.get(`${API}/aspirantes/`);
       setAspirantes(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar aspirantes", "error");
