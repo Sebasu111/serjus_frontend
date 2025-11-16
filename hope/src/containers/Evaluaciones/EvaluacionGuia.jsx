@@ -16,6 +16,7 @@ import {
   pagerInfo,
 } from "./EvaluacionGuiaStyles.js";
 import { useEvaluacionGuia } from "./useEvaluacionGuia.js";
+import { toast } from "react-toastify";
 
 const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
   const {
@@ -42,13 +43,14 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
   // ---- ROLES ----
   const esAcompanante = usuario?.idrol === 2;
   const esContador = usuario?.idrol === 3;
-  const esSoloAuto = esAcompanante || esContador;
-
+  const esSecretaria = usuario?.idrol === 4;
   const esCoordinador = usuario?.idrol === 1;
   const esAdmin = usuario?.idrol === 5;
 
   // 🔥 ADMIN puede evaluar igual que COORDINADOR, pero NO autoevaluarse
   const esEvaluador = esCoordinador || esAdmin;
+
+  const esSoloAuto = esAcompanante || esContador || esSecretaria;
 
   // 🟢 Corrigiendo (cuando evalúa a un empleado desde la tabla)
   const esCorrigiendo = evaluacionSeleccionada && esEvaluador;
@@ -57,6 +59,15 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
   // ---- REGLAS DE VISUALIZACIÓN ----
   const mostrarAuto = !esCorrigiendo; // si está corrigiendo ya no muestra auto
   const mostrarCoord = esCorrigiendo; // cuando corrige muestra evaluación del coordinador
+
+  // 🟢 Verificar si todos los criterios de la página actual tienen puntaje
+  const paginaActualCompleta = criteriosActuales.every((c) => {
+    const ev = evaluaciones[c.idcriterio];
+    if (mostrarAuto) return ev?.auto > 0;     // En autoevaluación
+    if (mostrarCoord) return ev?.coord > 0;   // En evaluación del coordinador
+    return true;
+  });
+
 
   return (
     <div style={pageContainer}>
@@ -318,9 +329,27 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
                 Página {paginaActual + 1} de {variablesFiltradas.length}
               </span>
               <button
-                onClick={siguienteVariable}
-                disabled={paginaActual === variablesFiltradas.length - 1}
-                style={buttonStyle}
+                onClick={() => {
+                  if (!paginaActualCompleta) {
+                    toast.warning("Debe asignar puntaje a todos los criterios antes de continuar.");
+                    return;
+                  }
+                  siguienteVariable();
+                }}
+                disabled={
+                  paginaActual === variablesFiltradas.length - 1 || !paginaActualCompleta
+                }
+                style={{
+                  ...buttonStyle,
+                  backgroundColor:
+                    paginaActual === variablesFiltradas.length - 1 || !paginaActualCompleta
+                      ? "#9ca3af"
+                      : "#2563EB",
+                  cursor:
+                    paginaActual === variablesFiltradas.length - 1 || !paginaActualCompleta
+                      ? "not-allowed"
+                      : "pointer",
+                }}
               >
                 Siguiente ➡
               </button>

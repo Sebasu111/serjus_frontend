@@ -6,7 +6,8 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import EvaluacionGuia from "./EvaluacionGuia";
 import EvaluacionesTable from "./EvaluacionesTable";
-import EvaluacionesFinalizadas from "./EvaluacionesFinalizadas"; // ⬅ nuevo componente
+import EvaluacionesFinalizadas from "./EvaluacionesFinalizadas";
+import Seguimiento from "./Seguimiento"; // ⬅
 
 const EvaluacionContainer = () => {
   const [vistaActual, setVistaActual] = useState("evaluar");
@@ -17,7 +18,7 @@ const EvaluacionContainer = () => {
   const [usuario, setUsuario] = useState(null);
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState(null);
 
-  // 🔹 Obtener usuario logueado
+  // Obtener usuario logueado
   useEffect(() => {
     try {
       const userStr = localStorage.getItem("usuarioLogueado");
@@ -27,13 +28,13 @@ const EvaluacionContainer = () => {
     }
   }, []);
 
-  // 🔹 Validación de roles
+  // Roles
   const esAcompanante = usuario?.idrol === 2;
   const esContador = usuario?.idrol === 3;
   const esAdmin = usuario?.idrol === 5;
   const esRolLimitado = esAcompanante || esContador;
 
-  // 🔹 Manejo de UI igual que contratos
+  // UI responsive
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     const observer = new MutationObserver(() => {
@@ -76,8 +77,54 @@ const EvaluacionContainer = () => {
               overflow: "hidden",
             }}
           >
-            {/* 🔹 Si es CONTADOR o ACOMPAÑANTE → SIN NAVEGACIÓN */}
-            {esRolLimitado ? (
+            {/* NAV VISIBLE PARA TODOS */}
+            <div
+              style={{
+                borderBottom: "2px solid #e0e0e0",
+                backgroundColor: "#f8f9fa",
+                padding: "0 20px",
+              }}
+            >
+              <div style={{ display: "flex", gap: 0 }}>
+                <button
+                  onClick={() => setVistaActual("evaluar")}
+                  style={navBtn(vistaActual === "evaluar")}
+                >
+                  Evaluar
+                </button>
+
+                {/* Ver Evaluaciones → NO para roles limitados */}
+                {!esRolLimitado && (
+                  <button
+                    onClick={() => setVistaActual("listar")}
+                    style={navBtn(vistaActual === "listar")}
+                  >
+                    Ver Evaluaciones
+                  </button>
+                )}
+
+                {/* Finalizadas → solo ADMIN */}
+                {esAdmin && (
+                  <button
+                    onClick={() => setVistaActual("finalizadas")}
+                    style={navBtn(vistaActual === "finalizadas")}
+                  >
+                    Evaluaciones Finalizadas
+                  </button>
+                )}
+
+                {/* Seguimiento → PARA TODOS */}
+                <button
+                  onClick={() => setVistaActual("seguimiento")}
+                  style={navBtn(vistaActual === "seguimiento")}
+                >
+                  Seguimiento
+                </button>
+              </div>
+            </div>
+
+            {/* CONTENIDO DINÁMICO */}
+            {vistaActual === "evaluar" && (
               <div
                 style={{
                   display: "flex",
@@ -87,92 +134,53 @@ const EvaluacionContainer = () => {
                   backgroundColor: "#EEF2F7",
                 }}
               >
-                <EvaluacionGuia />
+                <EvaluacionGuia evaluacionSeleccionada={evaluacionSeleccionada} />
               </div>
-            ) : (
-              <>
-                {/* 🔹 NAV */}
-                <div
-                  style={{
-                    borderBottom: "2px solid #e0e0e0",
-                    backgroundColor: "#f8f9fa",
-                    padding: "0 20px",
+            )}
+
+            {vistaActual === "listar" && !esRolLimitado && (
+              <div
+                style={{
+                  height: "calc(100vh - 130px)",
+                  overflow: "auto",
+                  backgroundColor: "#fff",
+                  padding: "0 20px 40px",
+                }}
+              >
+                <EvaluacionesTable
+                  onSeleccionarEvaluacion={(ev) => {
+                    setEvaluacionSeleccionada(ev);
+                    setVistaActual("evaluar");
                   }}
-                >
-                  <div style={{ display: "flex", gap: 0 }}>
-                    <button
-                      onClick={() => setVistaActual("evaluar")}
-                      style={navBtn(vistaActual === "evaluar")}
-                    >
-                      Evaluar
-                    </button>
+                />
+              </div>
+            )}
 
-                    <button
-                      onClick={() => setVistaActual("listar")}
-                      style={navBtn(vistaActual === "listar")}
-                    >
-                      Ver Evaluaciones
-                    </button>
+            {vistaActual === "finalizadas" && esAdmin && (
+              <div
+                style={{
+                  height: "calc(100vh - 130px)",
+                  overflow: "auto",
+                  backgroundColor: "#fff",
+                  padding: "0 20px 40px",
+                }}
+              >
+                <EvaluacionesFinalizadas />
+              </div>
+            )}
 
-                    {/* ⭐ Nueva pestaña — SOLO ADMIN */}
-                    {esAdmin && (
-                      <button
-                        onClick={() => setVistaActual("finalizadas")}
-                        style={navBtn(vistaActual === "finalizadas")}
-                      >
-                        Evaluaciones Finalizadas
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 🔹 Contenido dinámico */}
-                {vistaActual === "evaluar" && (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      width: "100%",
-                      paddingTop: "20px",
-                      backgroundColor: "#EEF2F7",
-                    }}
-                  >
-                    <EvaluacionGuia evaluacionSeleccionada={evaluacionSeleccionada} />
-                  </div>
-                )}
-
-                {vistaActual === "listar" && (
-                  <div
-                    style={{
-                      height: "calc(100vh - 130px)",
-                      overflow: "auto",
-                      backgroundColor: "#fff",
-                      padding: "0 20px 40px",
-                    }}
-                  >
-                    <EvaluacionesTable
-                      onSeleccionarEvaluacion={(ev) => {
-                        setEvaluacionSeleccionada(ev);
-                        setVistaActual("evaluar");
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* 🔥 NUEVA VISTA PARA ADMIN */}
-                {vistaActual === "finalizadas" && esAdmin && (
-                  <div
-                    style={{
-                      height: "calc(100vh - 130px)",
-                      overflow: "auto",
-                      backgroundColor: "#fff",
-                      padding: "0 20px 40px",
-                    }}
-                  >
-                    <EvaluacionesFinalizadas />
-                  </div>
-                )}
-              </>
+            {/* Seguimiento → SIEMPRE DISPONIBLE */}
+            {vistaActual === "seguimiento" && (
+              <div
+                style={{
+                  height: "calc(100vh - 130px)",
+                  overflow: "auto",
+                  backgroundColor: "#fff",
+                  padding: "0 20px 40px",
+                }}
+              >
+                <Seguimiento />
+              </div>
             )}
           </main>
 
