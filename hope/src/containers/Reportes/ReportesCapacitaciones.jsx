@@ -34,6 +34,12 @@ const ReportesCapacitaciones = () => {
     fetchEmpleados();
   }, []);
 
+  const formatearFecha = (fecha) => {
+  if (!fecha) return "";
+  const partes = fecha.split("-"); // yyyy-mm-dd
+  return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
+  };
+  
   const fetchCapacitaciones = async () => {
     try {
       const res = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
@@ -62,17 +68,39 @@ const ReportesCapacitaciones = () => {
   };
 
   // 📌 Obtener cuántos empleados tiene una capacitación
-  const getParticipantes = (id) =>
-    empleadoCap.filter((e) => e.idcapacitacion === id).length;
+  // 📌 Obtener SOLO los empleados activos asignados a una capacitación
+const getParticipantes = (id) =>
+  empleadoCap.filter(
+    (e) => e.idcapacitacion === id && e.estado === true
+  ).length;
+
 
   // 📌 FILTROS
-  const filtradas = capacitaciones.filter((c) => {
-    let pasa = true;
-    if (fechaDesde && c.fechainicio < fechaDesde) pasa = false;
-    if (fechaHasta && c.fechafin > fechaHasta) pasa = false;
-    if (estado && String(c.estado) !== estado) pasa = false;
-    return pasa;
-  });
+  const getEstadoCapacitacion = (c) => {
+  const hoy = new Date();
+  const inicio = new Date(c.fechainicio);
+  const fin = new Date(c.fechafin);
+
+  if (!c.estado) return "inactiva";
+  if (fin < hoy) return "finalizada";
+  if (inicio <= hoy && hoy <= fin) return "en_proceso";
+  return "activa"; // aun no comienza
+};
+
+// 📌 FILTROS
+const filtradas = capacitaciones.filter((c) => {
+  const estadoReal = getEstadoCapacitacion(c);
+
+  // --> Filtro por estado del usuario
+  if (estado && estadoReal !== estado) return false;
+
+  // --> Filtro por fechas
+  if (fechaDesde && c.fechainicio < fechaDesde) return false;
+  if (fechaHasta && c.fechafin > fechaHasta) return false;
+
+  return true;
+});
+
 
   // 📌 PAGINACIÓN
   const indexLast = paginaActual * porPagina;
@@ -103,15 +131,16 @@ const ReportesCapacitaciones = () => {
         />
 
         <FiltroSelect
-          label="Estado"
-          value={estado}
-          onChange={(v) => { setEstado(v); setPaginaActual(1); }}
-          options={[
-            { value: "true", label: "Activas" },
-            { value: "false", label: "Cerradas" },
-          ]}
-          placeholder="Todas"
-        />
+  label="Estado"
+  value={estado}
+  onChange={(v) => { setEstado(v); setPaginaActual(1); }}
+  options={[
+    { value: "activa", label: "Activas" },
+    { value: "en_proceso", label: "En proceso" },
+    { value: "finalizada", label: "Finalizadas" },
+  ]}
+  placeholder="Todas"
+/>
 
         <button type="button" onClick={limpiar}
           style={{
@@ -164,8 +193,7 @@ const ReportesCapacitaciones = () => {
                   <td style={{ padding: "10px" }}>{c.nombreevento}</td>
                   <td style={{ padding: "10px" }}>{c.lugar}</td>
                   <td style={{ textAlign: "center", padding: "10px" }}>
-                    {c.fechainicio} → {c.fechafin}
-                  </td>
+                    {formatearFecha(c.fechainicio)} → {formatearFecha(c.fechafin)}                  </td>
                   <td style={{ textAlign: "center", padding: "10px" }}>
                     {getParticipantes(c.idcapacitacion)}
                   </td>

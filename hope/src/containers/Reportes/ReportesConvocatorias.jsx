@@ -34,6 +34,12 @@ const ReportesConvocatorias = () => {
     fetchAspirantes();
   }, []);
 
+  const formatearFecha = (fecha) => {
+  if (!fecha) return "";
+  const partes = fecha.split("-"); // yyyy-mm-dd
+  return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
+  };
+
   const fetchConvocatorias = async () => {
     try {
       const res = await axios.get("http://127.0.0.1:8000/api/convocatorias/");
@@ -148,7 +154,7 @@ const ReportesConvocatorias = () => {
                   <td style={{ padding: "10px" }}>{c.nombreconvocatoria}</td>
                   <td style={{ padding: "10px" }}>{c.nombrepuesto}</td>
                   <td style={{ textAlign: "center", padding: "10px" }}>
-                    {c.fechainicio} → {c.fechafin}
+                    {formatearFecha(c.fechainicio)} → {formatearFecha(c.fechafin)}
                   </td>
                   <td style={{ textAlign: "center", padding: "10px" }}>
                     {getPostulacionesPorConvocatoria(c.idconvocatoria)}

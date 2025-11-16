@@ -15,6 +15,12 @@ const ReporteConvocatoriasPDF = ({
 }) => {
   useEffect(() => generarPDF(), []);
 
+  const formatearFecha = (fecha) => {
+  if (!fecha) return "";
+  const partes = fecha.split("-"); // yyyy-mm-dd
+  return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
+  };
+
   const generarPDF = () => {
     // 🔔 Notificación de inicio
     showToast("Generando archivo PDF...", "info");
@@ -41,9 +47,9 @@ const ReporteConvocatoriasPDF = ({
     doc.setFontSize(10);
 
     let contexto = "";
-    if (fechaDesde) contexto += `Desde ${fechaDesde} `;
-    if (fechaHasta) contexto += `Hasta ${fechaHasta} `;
-    if (estado) contexto += `| Estado: ${estado === "true" ? "Activas" : "Cerradas"}`;
+    if (fechaDesde) contexto += ` desde ${formatearFecha(fechaDesde)}`;
+    if (fechaHasta) contexto += ` hasta ${formatearFecha(fechaHasta)}`;
+    if (estado) contexto += `| Estado: ${estado === "true" ? "Activas" : "Finalizadas"}`;
 
     if (contexto.trim() !== "") {
       doc.text(`Cobertura: ${contexto.trim()}`, 14, 56);
@@ -78,8 +84,8 @@ const ReporteConvocatoriasPDF = ({
         head: [["Campo", "Detalle"]],
         body: [
           ["Puesto", convocatoria.nombrepuesto],
-          ["Fecha de inicio", convocatoria.fechainicio],
-          ["Fecha de finalización", convocatoria.fechafin],
+          ["Fecha de inicio", formatearFecha(convocatoria.fechainicio)],
+          ["Fecha de finalización", formatearFecha(convocatoria.fechafin)],
           ["Descripción", convocatoria.descripcion || "No registrada"],
           ["Total de postulaciones recibidas", totalPostulacionesConv],
         ],

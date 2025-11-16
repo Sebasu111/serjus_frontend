@@ -27,6 +27,12 @@ const ReportesAusencias = () => {
     fetchEmpleados();
   }, []);
 
+  const formatearFecha = (fecha) => {
+  if (!fecha) return "";
+  const partes = fecha.split("-"); // yyyy-mm-dd
+  return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
+  };
+
   const fetchAusencias = async () => {
     try {
       const res = await axios.get("http://127.0.0.1:8000/api/ausencias/");
@@ -115,7 +121,7 @@ const ReportesAusencias = () => {
           }}
           options={[
             { value: "Enfermedad", label: "Enfermedad" },
-            { value: "Exámenes", label: "Exámenes" },
+            { value: "Examen", label: "Exámenes" },
             { value: "Personal", label: "Asunto Personal" },
           ]}
           placeholder="Todos"
@@ -198,7 +204,7 @@ const ReportesAusencias = () => {
                     {a.es_iggs ? "IGGS" : a.otro ?? "No registrado"}
                   </td>
                   <td style={{ textAlign: "center", padding: "10px" }}>
-                    {a.fechainicio} → {a.fechafin}
+                   {formatearFecha(a.fechainicio)} → {formatearFecha(a.fechafin)}
                   </td>
                 </tr>
               ))

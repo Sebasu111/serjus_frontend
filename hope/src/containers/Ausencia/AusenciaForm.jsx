@@ -29,31 +29,26 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
 
   // --- Inicialización ---
   useEffect(() => {
-    if (editingAusencia) {
-      setTipo(editingAusencia.tipo || "");
-      setDiagnostico(editingAusencia.diagnostico || "");
-      setEsIGSS(editingAusencia.es_iggs || false);
-      setOtro(editingAusencia.otro || "");
-      setPrevOtro(editingAusencia.otro || "");
-      setFechaInicio(editingAusencia.fechainicio || "");
-      setFechaFin(editingAusencia.fechafin || "");
-      setCantidadDias(editingAusencia.cantidad_dias || 0);
-      setIdEmpleado(editingAusencia.idempleado || "");
+  if (editingAusencia) {
+    setTipo(editingAusencia.tipo || "");
+    setDiagnostico(editingAusencia.diagnostico || "");
+    setEsIGSS(editingAusencia.es_iggs || false);
+    setOtro(editingAusencia.otro || "");
+    setPrevOtro(editingAusencia.otro || "");
+    setFechaInicio(editingAusencia.fechainicio || "");
+    setFechaFin(editingAusencia.fechafin || "");
+    setCantidadDias(editingAusencia.cantidad_dias || 0);
+    setIdEmpleado(editingAusencia.idempleado || "");
 
-      if (editingAusencia.iddocumento) {
-        axios
-          .get(`${API}/documentos/${editingAusencia.iddocumento}/`)
-          .then((res) => setArchivoActual(res.data.nombrearchivo || ""))
-          .catch(() => setArchivoActual("Sin archivo"));
-      }
-    } else if (!editingAusencia && !idEmpleado && usuario && empleados?.length > 0) {
-      const encontrado = empleados.find((e) => e.idusuario === usuario.idusuario);
-      if (encontrado) {
-        setIdEmpleado(encontrado.idempleado);
-        setQEmpleado(displayName(encontrado));
-      }
+    if (editingAusencia.iddocumento) {
+      axios
+        .get(`${API}/documentos/${editingAusencia.iddocumento}/`)
+        .then((res) => setArchivoActual(res.data.nombrearchivo || ""))
+        .catch(() => setArchivoActual("Sin archivo"));
     }
-  }, [editingAusencia, empleados, usuario]);
+  }
+}, [editingAusencia, empleados]);
+
 
   // --- Calcular cantidad de días ---
   useEffect(() => {
@@ -181,9 +176,12 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
 
   // --- Filtrado de empleados ---
   const empleadosFiltrados = useMemo(() => {
-    const t = qEmpleado.toLowerCase().trim();
-    return empleados.filter((e) => displayName(e).toLowerCase().includes(t));
-  }, [qEmpleado, empleados]);
+  const t = qEmpleado.toLowerCase().trim();
+  return empleados
+    .filter((e) => e.estado === true) // 🔥 solo empleados activos
+    .filter((e) => displayName(e).toLowerCase().includes(t));
+}, [qEmpleado, empleados]);
+
 
   const seleccionarEmpleado = (emp) => {
     setIdEmpleado(empId(emp));
