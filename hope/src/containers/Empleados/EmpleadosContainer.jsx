@@ -2271,79 +2271,104 @@ const EmpleadosContainer = () => {
                             </h3>
 
                             {/* Mostrar contrato existente si lo hay */}
-                            {contratoExistente && (
-                                <div style={{
-                                    marginBottom: 20,
-                                    padding: 16,
-                                    backgroundColor: "#f8f9fa",
-                                    border: "1px solid #dee2e6",
-                                    borderRadius: 8,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between"
-                                }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                        <div style={{
-                                            width: 24,
-                                            height: 24,
-                                            backgroundColor: "#198754",
-                                            borderRadius: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            color: "white",
-                                            fontSize: 12,
-                                            fontWeight: "bold"
-                                        }}>
-                                            PDF
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 600, fontSize: 15 }}>
-                                                {contratoExistente.nombrearchivo || 'Contrato Actual'}
+                            {contratoExistente ? (
+                                <>
+                                    <div style={{
+                                        marginBottom: 20,
+                                        padding: 16,
+                                        backgroundColor: "#f8f9fa",
+                                        border: "1px solid #dee2e6",
+                                        borderRadius: 8,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between"
+                                    }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                            <div style={{
+                                                width: 24,
+                                                height: 24,
+                                                backgroundColor: "#198754",
+                                                borderRadius: 4,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                color: "white",
+                                                fontSize: 12,
+                                                fontWeight: "bold"
+                                            }}>
+                                                PDF
                                             </div>
-                                            <div style={{ fontSize: 13, color: "#6b7280" }}>
-                                                Subido el {new Date(contratoExistente.fechasubida).toLocaleDateString()}
+                                            <div>
+                                                <div style={{ fontWeight: 600, fontSize: 15 }}>
+                                                    {contratoExistente.nombrearchivo || 'Contrato Actual'}
+                                                </div>
+                                                <div style={{ fontSize: 13, color: "#6b7280" }}>
+                                                    Subido el {new Date(contratoExistente.fechasubida).toLocaleDateString()}
+                                                </div>
                                             </div>
                                         </div>
+                                        <button
+                                            onClick={eliminarContratoExistente}
+                                            style={{
+                                                background: "#dc3545",
+                                                color: "white",
+                                                border: "none",
+                                                borderRadius: 4,
+                                                padding: "8px 12px",
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                cursor: "pointer"
+                                            }}
+                                        >
+                                            Eliminar
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={eliminarContratoExistente}
+                                    {/* Solo mostrar input para subir nuevo contrato si el actual fue eliminado */}
+                                    {!contratoExistente && (
+                                        <div style={{ marginBottom: 20 }}>
+                                            <label style={{ display: "block", fontWeight: 600, marginBottom: 8 }}>
+                                                Nuevo Contrato (reemplazará el actual)
+                                            </label>
+                                            <input
+                                                type="file"
+                                                accept=".pdf"
+                                                onChange={handleContratoUpload}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "12px",
+                                                    border: "1px solid #d1d5db",
+                                                    borderRadius: 8,
+                                                    fontSize: 14
+                                                }}
+                                            />
+                                            <small style={{ color: "#666", fontSize: 13, marginTop: 4, display: "block" }}>
+                                                Solo archivos PDF, máximo 5MB
+                                            </small>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <div style={{ marginBottom: 20 }}>
+                                    <label style={{ display: "block", fontWeight: 600, marginBottom: 8 }}>
+                                        Contrato del Colaborador
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept=".pdf"
+                                        onChange={handleContratoUpload}
                                         style={{
-                                            background: "#dc3545",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: 4,
-                                            padding: "8px 12px",
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            cursor: "pointer"
+                                            width: "100%",
+                                            padding: "12px",
+                                            border: "1px solid #d1d5db",
+                                            borderRadius: 8,
+                                            fontSize: 14
                                         }}
-                                    >
-                                        Eliminar
-                                    </button>
+                                    />
+                                    <small style={{ color: "#666", fontSize: 13, marginTop: 4, display: "block" }}>
+                                        Solo archivos PDF, máximo 5MB
+                                    </small>
                                 </div>
                             )}
-
-                            <div style={{ marginBottom: 20 }}>
-                                <label style={{ display: "block", fontWeight: 600, marginBottom: 8 }}>
-                                    {contratoExistente ? "Nuevo Contrato (reemplazará el actual)" : "Contrato del Colaborador"}
-                                </label>
-                                <input
-                                    type="file"
-                                    accept=".pdf"
-                                    onChange={handleContratoUpload}
-                                    style={{
-                                        width: "100%",
-                                        padding: "12px",
-                                        border: "1px solid #d1d5db",
-                                        borderRadius: 8,
-                                        fontSize: 14
-                                    }}
-                                />
-                                <small style={{ color: "#666", fontSize: 13, marginTop: 4, display: "block" }}>
-                                    Solo archivos PDF, máximo 5MB
-                                </small>
-                            </div>
 
                             {contratoFile && (
                                 <div style={{

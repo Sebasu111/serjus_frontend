@@ -694,96 +694,119 @@ const EmpleadoForm = ({
                                             <label style={labelStyle}>
                                                 CV del Colaborador
                                                 {!editingId && <span style={{ color: '#dc3545' }}>*</span>}
-                                                {editingId && <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 'normal' }}> (opcional - para actualizar)</span>}
+                                                {editingId && <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 'normal' }}></span>}
                                             </label>
 
                                             {/* Mostrar CV existente si está editando */}
-                                            {editingId && cvExistente && (
-                                                <div style={{
-                                                    marginBottom: "12px",
-                                                    padding: "12px",
-                                                    backgroundColor: "#f8f9fa",
-                                                    border: "1px solid #dee2e6",
-                                                    borderRadius: "8px",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "space-between"
-                                                }}>
+                                            {editingId && cvExistente ? (
+                                                <>
                                                     <div style={{
+                                                        marginBottom: "12px",
+                                                        padding: "12px",
+                                                        backgroundColor: "#f8f9fa",
+                                                        border: "1px solid #dee2e6",
+                                                        borderRadius: "8px",
                                                         display: "flex",
                                                         alignItems: "center",
-                                                        gap: "8px"
+                                                        justifyContent: "space-between"
                                                     }}>
                                                         <div style={{
-                                                            width: "20px",
-                                                            height: "20px",
-                                                            backgroundColor: "#dc3545",
-                                                            borderRadius: "3px",
                                                             display: "flex",
                                                             alignItems: "center",
-                                                            justifyContent: "center",
-                                                            color: "white",
-                                                            fontSize: "12px",
-                                                            fontWeight: "bold"
+                                                            gap: "8px"
                                                         }}>
-                                                            PDF
-                                                        </div>
-                                                        <div>
-                                                            <div style={{ fontWeight: "600", fontSize: "14px" }}>
-                                                                {cvExistente.nombrearchivo || 'CV Actual'}
+                                                            <div style={{
+                                                                width: "20px",
+                                                                height: "20px",
+                                                                backgroundColor: "#dc3545",
+                                                                borderRadius: "3px",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                color: "white",
+                                                                fontSize: "12px",
+                                                                fontWeight: "bold"
+                                                            }}>
+                                                                PDF
                                                             </div>
-                                                            <div style={{ fontSize: "12px", color: "#6b7280" }}>
-                                                                Subido el {new Date(cvExistente.fechasubida).toLocaleDateString()}
+                                                            <div>
+                                                                <div style={{ fontWeight: "600", fontSize: "14px" }}>
+                                                                    {cvExistente.nombrearchivo || 'CV Actual'}
+                                                                </div>
+                                                                <div style={{ fontSize: "12px", color: "#6b7280" }}>
+                                                                    Subido el {new Date(cvExistente.fechasubida).toLocaleDateString()}
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={onEliminarCv}
+                                                            style={{
+                                                                background: "#dc3545",
+                                                                color: "white",
+                                                                border: "none",
+                                                                borderRadius: "4px",
+                                                                padding: "6px 8px",
+                                                                fontSize: "12px",
+                                                                fontWeight: "600",
+                                                                cursor: "pointer",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                gap: "4px"
+                                                            }}
+                                                            title="Eliminar CV actual"
+                                                        >
+                                                            ✕ Eliminar
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={onEliminarCv}
+                                                    {/* Solo mostrar input para subir nuevo CV si el actual fue eliminado */}
+                                                    {!cvExistente && (
+                                                        <>
+                                                            <input
+                                                                type="file"
+                                                                name="cvFile"
+                                                                accept=".pdf"
+                                                                onChange={onCvUpload}
+                                                                required={!editingId && !cvExistente}
+                                                                style={{
+                                                                    ...inputStyle,
+                                                                    padding: "8px 12px"
+                                                                }}
+                                                            />
+                                                            <small style={{
+                                                                color: "#666",
+                                                                fontSize: "13px",
+                                                                display: "block",
+                                                                marginTop: "4px"
+                                                            }}>
+                                                                Selecciona un nuevo CV para reemplazar el actual (Solo PDF, máx. 5MB)
+                                                            </small>
+                                                        </>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <input
+                                                        type="file"
+                                                        name="cvFile"
+                                                        accept=".pdf"
+                                                        onChange={onCvUpload}
+                                                        required={!editingId && !cvExistente}
                                                         style={{
-                                                            background: "#dc3545",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "4px",
-                                                            padding: "6px 8px",
-                                                            fontSize: "12px",
-                                                            fontWeight: "600",
-                                                            cursor: "pointer",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            gap: "4px"
+                                                            ...inputStyle,
+                                                            padding: "8px 12px"
                                                         }}
-                                                        title="Eliminar CV actual"
-                                                    >
-                                                        ✕ Eliminar
-                                                    </button>
-                                                </div>
+                                                    />
+                                                    <small style={{
+                                                        color: "#666",
+                                                        fontSize: "13px",
+                                                        display: "block",
+                                                        marginTop: "4px"
+                                                    }}>
+                                                        Sube el CV del colaborador (Solo PDF, máx. 5MB)
+                                                    </small>
+                                                </>
                                             )}
-
-                                            <input
-                                                type="file"
-                                                name="cvFile"
-                                                accept=".pdf"
-                                                onChange={onCvUpload}
-                                                required={!editingId && !cvExistente}
-                                                style={{
-                                                    ...inputStyle,
-                                                    padding: "8px 12px"
-                                                }}
-                                            />
-                                            <small style={{
-                                                color: "#666",
-                                                fontSize: "13px",
-                                                display: "block",
-                                                marginTop: "4px"
-                                            }}>
-                                                {editingId
-                                                    ? cvExistente
-                                                        ? "Selecciona un nuevo CV para reemplazar el actual (Solo PDF, máx. 5MB)"
-                                                        : "Sube un CV para este colaborador (Solo PDF, máx. 5MB)"
-                                                    : "Sube el CV del colaborador (Solo PDF, máx. 5MB)"
-                                                }
-                                            </small>
                                             {form.cvFile && (
                                                 <div style={{
                                                     marginTop: "8px",
