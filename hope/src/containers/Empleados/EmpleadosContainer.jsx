@@ -399,7 +399,17 @@ const EmpleadosContainer = () => {
         try {
             const res = await axios.get(`${API}/empleados/`);
             const rows = Array.isArray(res.data) ? res.data : res.data?.results || [];
-            setData(rows);
+
+            // Obtener todos los documentos (contratos)
+            const docRes = await axios.get(`${API}/documentos/`);
+            const documentos = Array.isArray(docRes.data) ? docRes.data : docRes.data?.results || [];
+
+            // Asociar contrato a cada empleado
+            const empleadosConContrato = rows.map(emp => {
+                const contrato = documentos.find(doc => doc.idempleado == (emp.id || emp.idempleado || emp.idEmpleado) && doc.idtipodocumento == 2 && doc.estado !== false);
+                return { ...emp, contrato: contrato ? contrato : null };
+            });
+            setData(empleadosConContrato);
         } catch (e) {
             console.error("Error al cargar colaboradores:", e);
             showToast("Error al cargar los colaboradores", "error");
@@ -1278,106 +1288,105 @@ const EmpleadosContainer = () => {
                 // 🔹 ACTUALIZAR ESTADOS DE CONVOCATORIA, POSTULACIONES Y EVALUACIONES
                 // ========================================================
                 try {
-                const aspiranteParam = new URLSearchParams(window.location.search).get("aspirante");
-                const convocatoriaParam = new URLSearchParams(window.location.search).get("convocatoria");
+                    const aspiranteParam = new URLSearchParams(window.location.search).get("aspirante");
+                    const convocatoriaParam = new URLSearchParams(window.location.search).get("convocatoria");
 
-                if (aspiranteParam && convocatoriaParam) {
-                    // 1️⃣ Obtener la convocatoria actual
-                    const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`);
-                    const convocatoriaActual = convRes.data;
+                    if (aspiranteParam && convocatoriaParam) {
+                        // 1️⃣ Obtener la convocatoria actual
+                        const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`);
+                        const convocatoriaActual = convRes.data;
 
-                    // 2️⃣ Actualizar convocatoria a FINALIZADA (idestado_id = 6)
-                    const payloadConv = {
-                    fechainicio: convocatoriaActual.fechainicio,
-                    fechafin: new Date().toISOString().slice(0, 10),
-                    idestado_id: 6, // Finalizada
-                    nombreconvocatoria: convocatoriaActual.nombreconvocatoria,
-                    descripcion: convocatoriaActual.descripcion,
-                    estado: false,
-                    idusuario: getIdUsuario(),
-                    idpuesto: convocatoriaActual.idpuesto,
-                    };
-
-                    await axios.put(`${API}/convocatorias/${convocatoriaParam}/`, payloadConv);
-                    console.log("✅ Convocatoria finalizada correctamente");
-
-                    // 3️⃣ Obtener todas las postulaciones de esa convocatoria
-                    const postRes = await axios.get(`${API}/postulaciones/`);
-                    const todasPostulaciones = Array.isArray(postRes.data)
-                    ? postRes.data
-                    : postRes.data?.results || [];
-
-                    const postulacionesDeConv = todasPostulaciones.filter(
-                    (p) => String(p.idconvocatoria) === String(convocatoriaParam)
-                    );
-
-                    // 4️⃣ Actualizar estados de postulaciones
-                    for (const post of postulacionesDeConv) {
-                    const payloadPost = {
-                        fechapostulacion: post.fechapostulacion || new Date().toISOString().slice(0, 10),
-                        observacion: post.observacion || "",
-                        idusuario: getIdUsuario(),
-                        idaspirante: post.idaspirante,
-                        idconvocatoria: post.idconvocatoria,
-                        estado: true,
-                        idestado:
-                        String(post.idaspirante) === String(aspiranteParam)
-                            ? 7 // ✅ Contratado
-                            : 3, // ❌ Rechazado
-                    };
-
-                    await axios.put(`${API}/postulaciones/${post.idpostulacion}/`, payloadPost);
-                    console.log(
-                        `Postulación ${post.idpostulacion} actualizada a ${
-                        payloadPost.idestado === 7 ? "✅ Contratado" : "❌ Rechazado"
-                        }`
-                    );
-                    }
-
-                    // ========================================================
-                    // 🔹 DESACTIVAR TODAS LAS EVALUACIONES ASOCIADAS A LA CONVOCATORIA
-                    // ========================================================
-                    try {
-                    const evalRes = await axios.get(`${API}/evaluacion/`);
-                    const todasEvaluaciones = Array.isArray(evalRes.data)
-                        ? evalRes.data
-                        : evalRes.data?.results || [];
-
-                    // Filtrar las evaluaciones vinculadas a las postulaciones de esta convocatoria
-                    const evaluacionesDeConv = todasEvaluaciones.filter((e) =>
-                        postulacionesDeConv.some((p) => String(p.idpostulacion) === String(e.idpostulacion))
-                    );
-
-                    for (const ev of evaluacionesDeConv) {
-                        const payloadEval = {
-                        modalidad: ev.modalidad || "Presencial",
-                        fechaevaluacion: ev.fechaevaluacion
-                            ? new Date(ev.fechaevaluacion).toISOString()
-                            : new Date().toISOString(),
-                        puntajetotal: Number(ev.puntajetotal) || 0,
-                        observacion: ev.observacion || "Evaluación desactivada al finalizar convocatoria.",
-                        estado: false, // 🔴 Desactivamos
-                        idusuario: ev.idusuario || getIdUsuario(),
-                        idempleado: ev.idempleado || null,
-                        idpostulacion: ev.idpostulacion || 0,
+                        // 2️⃣ Actualizar convocatoria a FINALIZADA (idestado_id = 6)
+                        const payloadConv = {
+                            fechainicio: convocatoriaActual.fechainicio,
+                            fechafin: new Date().toISOString().slice(0, 10),
+                            idestado_id: 6, // Finalizada
+                            nombreconvocatoria: convocatoriaActual.nombreconvocatoria,
+                            descripcion: convocatoriaActual.descripcion,
+                            estado: false,
+                            idusuario: getIdUsuario(),
+                            idpuesto: convocatoriaActual.idpuesto,
                         };
 
-                        await axios.put(`${API}/evaluacion/${ev.idevaluacion}/`, payloadEval);
-                        console.log(`🟡 Evaluación ${ev.idevaluacion} marcada como inactiva`);
-                    }
+                        await axios.put(`${API}/convocatorias/${convocatoriaParam}/`, payloadConv);
+                        console.log("✅ Convocatoria finalizada correctamente");
 
-                    if (evaluacionesDeConv.length > 0)
-                        console.log(`🟢 ${evaluacionesDeConv.length} evaluaciones desactivadas correctamente.`);
-                    } catch (errEval) {
-                    console.error("Error al desactivar evaluaciones:", errEval);
-                    showToast("Advertencia: la convocatoria se cerró, pero no se pudieron desactivar las evaluaciones.", "warning");
-                    }
+                        // 3️⃣ Obtener todas las postulaciones de esa convocatoria
+                        const postRes = await axios.get(`${API}/postulaciones/`);
+                        const todasPostulaciones = Array.isArray(postRes.data)
+                            ? postRes.data
+                            : postRes.data?.results || [];
 
-                    showToast("Convocatoria, postulaciones y evaluaciones actualizadas correctamente.", "success");
-                }
+                        const postulacionesDeConv = todasPostulaciones.filter(
+                            (p) => String(p.idconvocatoria) === String(convocatoriaParam)
+                        );
+
+                        // 4️⃣ Actualizar estados de postulaciones
+                        for (const post of postulacionesDeConv) {
+                            const payloadPost = {
+                                fechapostulacion: post.fechapostulacion || new Date().toISOString().slice(0, 10),
+                                observacion: post.observacion || "",
+                                idusuario: getIdUsuario(),
+                                idaspirante: post.idaspirante,
+                                idconvocatoria: post.idconvocatoria,
+                                estado: true,
+                                idestado:
+                                    String(post.idaspirante) === String(aspiranteParam)
+                                        ? 7 // ✅ Contratado
+                                        : 3, // ❌ Rechazado
+                            };
+
+                            await axios.put(`${API}/postulaciones/${post.idpostulacion}/`, payloadPost);
+                            console.log(
+                                `Postulación ${post.idpostulacion} actualizada a ${payloadPost.idestado === 7 ? "✅ Contratado" : "❌ Rechazado"
+                                }`
+                            );
+                        }
+
+                        // ========================================================
+                        // 🔹 DESACTIVAR TODAS LAS EVALUACIONES ASOCIADAS A LA CONVOCATORIA
+                        // ========================================================
+                        try {
+                            const evalRes = await axios.get(`${API}/evaluacion/`);
+                            const todasEvaluaciones = Array.isArray(evalRes.data)
+                                ? evalRes.data
+                                : evalRes.data?.results || [];
+
+                            // Filtrar las evaluaciones vinculadas a las postulaciones de esta convocatoria
+                            const evaluacionesDeConv = todasEvaluaciones.filter((e) =>
+                                postulacionesDeConv.some((p) => String(p.idpostulacion) === String(e.idpostulacion))
+                            );
+
+                            for (const ev of evaluacionesDeConv) {
+                                const payloadEval = {
+                                    modalidad: ev.modalidad || "Presencial",
+                                    fechaevaluacion: ev.fechaevaluacion
+                                        ? new Date(ev.fechaevaluacion).toISOString()
+                                        : new Date().toISOString(),
+                                    puntajetotal: Number(ev.puntajetotal) || 0,
+                                    observacion: ev.observacion || "Evaluación desactivada al finalizar convocatoria.",
+                                    estado: false, // 🔴 Desactivamos
+                                    idusuario: ev.idusuario || getIdUsuario(),
+                                    idempleado: ev.idempleado || null,
+                                    idpostulacion: ev.idpostulacion || 0,
+                                };
+
+                                await axios.put(`${API}/evaluacion/${ev.idevaluacion}/`, payloadEval);
+                                console.log(`🟡 Evaluación ${ev.idevaluacion} marcada como inactiva`);
+                            }
+
+                            if (evaluacionesDeConv.length > 0)
+                                console.log(`🟢 ${evaluacionesDeConv.length} evaluaciones desactivadas correctamente.`);
+                        } catch (errEval) {
+                            console.error("Error al desactivar evaluaciones:", errEval);
+                            showToast("Advertencia: la convocatoria se cerró, pero no se pudieron desactivar las evaluaciones.", "warning");
+                        }
+
+                        showToast("Convocatoria, postulaciones y evaluaciones actualizadas correctamente.", "success");
+                    }
                 } catch (error) {
-                console.error("Error al actualizar estados de convocatoria/postulaciones:", error);
-                showToast("Empleado creado, pero hubo un error al actualizar los estados.", "warning");
+                    console.error("Error al actualizar estados de convocatoria/postulaciones:", error);
+                    showToast("Empleado creado, pero hubo un error al actualizar los estados.", "warning");
                 }
             }
 
@@ -1508,6 +1517,7 @@ const EmpleadosContainer = () => {
         setMostrarTerminacionLaboral(false);
         setEmpleadoParaTerminacion(null);
         fetchList(); // Refrescar la lista de empleados
+        window.location.reload(); // Refrescar la vista de documentos
     };
 
     // BÚSQUEDA TOTAL (incluye casos "activo"/"inactivo")

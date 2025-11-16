@@ -8,8 +8,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
         tipoterminacion: "",
         causa: "",
-        observacion: "",
-        finalizarContrato: true
+        observacion: ""
     });
 
     const [archivoDocumento, setArchivoDocumento] = useState(null);
@@ -21,8 +20,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
             setFormData({
                 tipoterminacion: "",
                 causa: "",
-                observacion: "",
-                finalizarContrato: true
+                observacion: ""
             });
             setArchivoDocumento(null);
         }
@@ -42,15 +40,22 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
         e.preventDefault();
         setLoading(true);
 
+        e.preventDefault();
+        setLoading(true);
+
         try {
             // 1. Primero subir el documento si existe
             let documentoId = null;
             if (archivoDocumento) {
                 const formDataDoc = new FormData();
-                formDataDoc.append('archivo', archivoDocumento);
-                formDataDoc.append('nombredocumento', `Documento_Terminacion_${empleado.dpi}_${Date.now()}`);
-                formDataDoc.append('estado', true);
+                formDataDoc.append('archivo', archivoDocumento); // campo correcto para el archivo
+                formDataDoc.append('nombrearchivo', `Documento_Terminacion_${empleado.dpi}_${Date.now()}`);
+                formDataDoc.append('mimearchivo', 'pdf');
+                formDataDoc.append('fechasubida', new Date().toISOString().split('T')[0]);
                 formDataDoc.append('idusuario', 1); // TODO: Usuario logueado
+                formDataDoc.append('idtipodocumento', 8); // 8 = Terminación laboral según tu BD
+                formDataDoc.append('idempleado', empleado.id || empleado.idempleado || empleado.idEmpleado);
+                formDataDoc.append('estado', true); // Asegura que el documento esté activo
 
                 const responseDoc = await axios.post("http://127.0.0.1:8000/api/documentos/", formDataDoc, {
                     headers: {
@@ -65,7 +70,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                 tipoterminacion: formData.tipoterminacion,
                 fechaterminacion: new Date().toISOString().split('T')[0], // Fecha actual
                 causa: formData.causa,
-                observacion: formData.observacion || null,
+                observacion: formData.observacion && formData.observacion.trim() !== "" ? formData.observacion : "Sin observaciones",
                 iddocumento: documentoId,
                 idcontrato: null, // Se maneja automáticamente por el empleado
                 estado: true,
@@ -74,39 +79,52 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
 
             const response = await axios.post("http://127.0.0.1:8000/api/terminacionlaboral/", dataToSend);
 
-            // 3. Finalizar contrato del empleado si está marcado
-            if (formData.finalizarContrato) {
-                try {
-                    // Buscar contratos activos del empleado
-                    const contratosResponse = await axios.get("http://127.0.0.1:8000/api/contratos/");
-                    const contratosData = Array.isArray(contratosResponse.data) ? contratosResponse.data : contratosResponse.data?.results || [];
+            // 3. Finalizar contrato del empleado automáticamente
+            try {
+                // Buscar contratos activos del empleado
+                const contratosResponse = await axios.get("http://127.0.0.1:8000/api/contratos/");
+                const contratosData = Array.isArray(contratosResponse.data) ? contratosResponse.data : contratosResponse.data?.results || [];
 
-                    // Buscar contratos del empleado usando el historial de puestos
-                    const historialResponse = await axios.get("http://127.0.0.1:8000/api/historialpuestos/");
-                    const historialData = Array.isArray(historialResponse.data) ? historialResponse.data : historialResponse.data?.results || [];
+                // Buscar contratos del empleado usando el historial de puestos
+                const historialResponse = await axios.get("http://127.0.0.1:8000/api/historialpuestos/");
+                const historialData = Array.isArray(historialResponse.data) ? historialResponse.data : historialResponse.data?.results || [];
 
-                    const contratosDelEmpleado = contratosData.filter(contrato => {
-                        if (contrato.estado) { // Solo contratos activos
-                            const historial = historialData.find(h => h.idhistorialpuesto === contrato.idhistorialpuesto);
-                            return historial && historial.idempleado === empleado.idempleado;
-                        }
-                        return false;
+                const contratosDelEmpleado = contratosData.filter(contrato => {
+                    if (contrato.estado) { // Solo contratos activos
+                        const historial = historialData.find(h => h.idhistorialpuesto === contrato.idhistorialpuesto);
+                        return historial && historial.idempleado === empleado.idempleado;
+                    }
+                    return false;
+                });
+
+                // Inactivar todos los contratos activos del empleado
+                for (const contrato of contratosDelEmpleado) {
+                    await axios.put(`http://127.0.0.1:8000/api/contratos/${contrato.idcontrato}/`, {
+                        ...contrato,
+                        estado: false
                     });
-
-                    // Inactivar todos los contratos activos del empleado
-                    for (const contrato of contratosDelEmpleado) {
-                        await axios.patch(`http://127.0.0.1:8000/api/contratos/${contrato.idcontrato}/`, {
-                            estado: false
-                        });
-                    }
-
-                    if (contratosDelEmpleado.length > 0) {
-                        showToast(`${contratosDelEmpleado.length} contrato(s) finalizados correctamente`, "success");
-                    }
-                } catch (contractError) {
-                    console.error("Error al finalizar contratos:", contractError);
-                    showToast("Terminación registrada, pero hubo un error al finalizar los contratos", "warning");
                 }
+
+                if (contratosDelEmpleado.length > 0) {
+                    showToast(`${contratosDelEmpleado.length} contrato(s) finalizados correctamente`, "success");
+                }
+            } catch (contractError) {
+                console.error("Error al finalizar contratos:", contractError);
+                showToast("Terminación registrada, pero hubo un error al finalizar los contratos", "warning");
+            }
+
+            // 4. Desactivar al colaborador (empleado)
+            try {
+                if (empleado && (empleado.id || empleado.idempleado || empleado.idEmpleado)) {
+                    const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
+                    await axios.put(`http://127.0.0.1:8000/api/empleados/${empleadoId}/`, {
+                        ...empleado,
+                        estado: false
+                    });
+                }
+            } catch (empleadoError) {
+                console.error("Error al desactivar colaborador:", empleadoError);
+                showToast("Terminación registrada, pero hubo un error al desactivar el colaborador", "warning");
             }
 
             showToast("Terminación laboral registrada correctamente", "success");
@@ -124,7 +142,11 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
             onClose();
         } catch (error) {
             console.error("Error al registrar terminación laboral:", error);
-            showToast("Error al registrar la terminación laboral", "error");
+            let msg = "Error al registrar la terminación laboral";
+            if (error.response && error.response.data) {
+                msg += ": " + JSON.stringify(error.response.data);
+            }
+            showToast(msg, "error");
         } finally {
             setLoading(false);
         }
@@ -372,18 +394,6 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                         <p style={{ margin: "0 0 10px 0", fontSize: "14px", color: "#856404" }}>
                             Al procesar esta terminación laboral, se finalizará automáticamente el contrato activo del empleado.
                         </p>
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                            <input
-                                type="checkbox"
-                                id="finalizarContrato"
-                                checked={formData.finalizarContrato || true}
-                                onChange={(e) => setFormData(prev => ({ ...prev, finalizarContrato: e.target.checked }))}
-                                style={{ marginRight: "8px" }}
-                            />
-                            <label htmlFor="finalizarContrato" style={{ fontSize: "14px", color: "#856404" }}>
-                                Finalizar contrato del empleado
-                            </label>
-                        </div>
                     </div>
 
                     {/* Botón de envío */}

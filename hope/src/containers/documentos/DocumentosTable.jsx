@@ -30,6 +30,15 @@ const DocumentosTable = ({
         return `${day}-${month}-${year}`;
     };
 
+    // Mostrar tipo especial para terminación laboral
+    const getTipoDocumento = d => {
+        if (d.idtipodocumento === 2) return "CONTRATO";
+        if (d.idtipodocumento === 1) return "CURRICULUM";
+        if (d.idtipodocumento === 3) return "TERMINACIÓN LABORAL";
+        const tipoDoc = tiposDocumento.find(t => t.idtipodocumento === d.idtipodocumento);
+        return tipoDoc ? tipoDoc.nombretipo : "-";
+    };
+
     return (
         <div
             style={{
@@ -65,21 +74,10 @@ const DocumentosTable = ({
                                 <td style={tdStyle}>{formatDate(d.fechasubida)}</td>
                                 <td style={tdStyle}>
                                     {empleados.find(e => e.idempleado === d.idempleado)
-                                        ? `${empleados.find(e => e.idempleado === d.idempleado).nombre} ${empleados.find(e => e.idempleado === d.idempleado).apellido
-                                        }`
+                                        ? `${empleados.find(e => e.idempleado === d.idempleado).nombre} ${empleados.find(e => e.idempleado === d.idempleado).apellido}`
                                         : "-"}
                                 </td>
-                                <td style={tdStyle}>
-                                    {(() => {
-                                        const tipoDoc = tiposDocumento.find(t => t.idtipodocumento === d.idtipodocumento);
-                                        if (!tipoDoc) return "-";
-
-                                        // Mapeo especial para contratos (tipo 2)
-                                        if (d.idtipodocumento === 2) return "CONTRATO";
-
-                                        return tipoDoc.nombretipo;
-                                    })()}
-                                </td>
+                                <td style={tdStyle}>{getTipoDocumento(d)}</td>
                                 <td style={{ ...tdStyle, textAlign: "center" }}>
                                     {d.archivo_url && (
                                         <div

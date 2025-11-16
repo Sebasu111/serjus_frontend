@@ -170,8 +170,8 @@ const EmpleadosTable = ({
                                                         </button>
                                                     )}
 
-                                                    {/* Terminación Laboral - solo para empleados activos */}
-                                                    {estado && (
+                                                    {/* Terminación Laboral - solo para empleados activos y con contrato */}
+                                                    {estado && r.contrato && (
                                                         <button
                                                             onClick={() => onTerminacionLaboral && onTerminacionLaboral(r)}
                                                             style={comboBoxStyles.menu.item.editar.base}

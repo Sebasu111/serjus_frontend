@@ -50,7 +50,7 @@ const DocumentosContainer = () => {
 
             // Filtrar solo documentos activos (estado != false)
             const documentosActivos = data.filter(doc => doc.estado !== false);
-            
+
             setDocumentos(documentosActivos);
         } catch (error) {
             console.error("Error al cargar documentos:", "error");
@@ -271,16 +271,11 @@ const DocumentosContainer = () => {
         .sort((a, b) => (b.iddocumento || 0) - (a.iddocumento || 0))
         .filter(d => {
             const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
-
-            // Buscar el empleado correspondiente
             const empleado = empleados.find(emp => emp.idempleado === d.idempleado);
             const nombreEmpleado = empleado ? empleado.nombre.toLowerCase() : "";
             const apellidoEmpleado = empleado ? empleado.apellido.toLowerCase() : "";
             const nombreCompletoEmpleado = `${nombreEmpleado} ${apellidoEmpleado}`;
-
             const terminoBusqueda = busqueda.toLowerCase();
-
-            // Filtro por texto de búsqueda
             const coincideTexto = (
                 nombreDocumento.includes(terminoBusqueda) ||
                 nombreEmpleado.includes(terminoBusqueda) ||
@@ -288,13 +283,15 @@ const DocumentosContainer = () => {
                 nombreCompletoEmpleado.includes(terminoBusqueda)
             );
 
-            // Filtro por estado de archivo
+            // Mostrar todos los documentos con archivo_url, incluyendo terminación laboral
             if (mostrarSinArchivo) {
-                // Solo mostrar los que NO tienen archivo
                 return coincideTexto && !d.archivo_url;
             } else {
-                // Solo mostrar los que SÍ tienen archivo
-                return coincideTexto && d.archivo_url;
+                return coincideTexto && d.archivo_url && (
+                    d.idtipodocumento === 1 ||
+                    d.idtipodocumento === 2 ||
+                    d.idtipodocumento === 8 // Mostrar también terminación laboral
+                );
             }
         });
 
