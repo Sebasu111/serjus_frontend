@@ -10,7 +10,8 @@ import { } from "react-toastify"; import DocumentosTable from "./DocumentosTable
 import DocumentosForm from "./DocumentosForm.jsx";
 import ModalEliminarArchivo from "./ModalEliminarArchivo.jsx";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const DocumentosContainer = () => {
     const [form, setForm] = useState({
@@ -45,7 +46,9 @@ const DocumentosContainer = () => {
 
     const fetchDocumentos = async () => {
         try {
-            const r = await axios.get(`${API}/documentos/`);
+            const r = await axios.get(`${API}/documentos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
 
             // Filtrar solo documentos activos (estado != false)
@@ -61,7 +64,9 @@ const DocumentosContainer = () => {
 
     const fetchTiposDocumento = async () => {
         try {
-            const r = await axios.get(`${API}/tipodocumento/`);
+            const r = await axios.get(`${API}/tipodocumento/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setTiposDocumento(data);
         } catch (error) {
@@ -73,7 +78,9 @@ const DocumentosContainer = () => {
 
     const fetchEmpleados = async () => {
         try {
-            const r = await axios.get(`${API}/empleados/`);
+            const r = await axios.get(`${API}/empleados/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setEmpleados(data);
         } catch (error) {
@@ -144,12 +151,12 @@ const DocumentosContainer = () => {
         try {
             if (editingId) {
                 await axios.put(`${API}/documentos/${editingId}/`, formData, {
-                    headers: { "Content-Type": "multipart/form-data" }
+                    headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` }
                 });
                 showToast("Documento actualizado correctamente");
             } else {
                 await axios.post(`${API}/documentos/`, formData, {
-                    headers: { "Content-Type": "multipart/form-data" }
+                    headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` }
                 });
                 showToast("Documento registrado correctamente");
             }
@@ -198,7 +205,7 @@ const DocumentosContainer = () => {
             formData.append("mimearchivo", "-----");
 
             await axios.put(`${API}/documentos/${id}/`, formData, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` }
             });
 
             showToast("Archivo eliminado correctamente");
@@ -224,7 +231,9 @@ const DocumentosContainer = () => {
     const handleDelete = async id => {
         try {
             // Obtener primero el documento para mantener sus datos
-            const response = await axios.get(`${API}/documentos/${id}/`);
+            const response = await axios.get(`${API}/documentos/${id}/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const documento = response.data;
 
             const formData = new FormData();
@@ -237,7 +246,7 @@ const DocumentosContainer = () => {
             formData.append("idempleado", documento.idempleado || "");
 
             await axios.put(`${API}/documentos/${id}/`, formData, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` }
             });
 
             showToast("Documento eliminado correctamente");

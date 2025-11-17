@@ -12,8 +12,9 @@ import ConfirmModal from "./ConfirmModal";
 import InduccionTable from "./InduccionTable";
 import GestionarDocumentosModal from "./GestionarDocumentosModal";
 import DocumentosAsignadosModal from "./DocumentosAsignadosModal";
-
-const API = "http://127.0.0.1:8000/api/inducciones/";
+const API2 = process.env.REACT_APP_API_URL;
+const API = `${API2}/inducciones/`;
+const token = sessionStorage.getItem("token");
 
 const InduccionContainer = () => {
     const [nombre, setNombre] = useState("");
@@ -42,7 +43,9 @@ const InduccionContainer = () => {
 
     const fetchAll = async () => {
         try {
-            const res = await axios.get(API);
+            const res = await axios.get(API, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const raw = Array.isArray(res.data)
                 ? res.data
                 : Array.isArray(res.data.results)
@@ -94,9 +97,13 @@ const getFechaLocalISO = () => {
             };
 
             if (editingId) {
-                await axios.put(`${API}${editingId}/`, payload);
+                await axios.put(`${API}${editingId}/`, payload, {
+                  headers: { Authorization: `Bearer ${token}` }
+              });
             } else {
-                await axios.post(API, payload);
+                await axios.post(API, payload, {
+                  headers: { Authorization: `Bearer ${token}` }
+              });
             }
 
             showToast(editingId ? "Actualizado correctamente" : "Registrado correctamente");
@@ -129,7 +136,9 @@ const getFechaLocalISO = () => {
     const handleDelete = async (row) => {
   try {
     // 🔍 Verificar si existen empleados o documentos activos vinculados
-    const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+    const res = await axios.get(`${API}/inducciondocumentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     const data = Array.isArray(res.data) ? res.data : res.data.results || [];
 
     const relacionadosActivos = data.filter(
@@ -162,7 +171,9 @@ const getFechaLocalISO = () => {
 
   try {
     // 🔍 1️⃣ Verificar si existen documentos o empleados activos en esta inducción
-    const res = await axios.get("http://127.0.0.1:8000/api/inducciondocumentos/");
+    const res = await axios.get(`${API}/inducciondocumentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     const data = Array.isArray(res.data) ? res.data : res.data.results || [];
 
     const relacionadosActivos = data.filter(
@@ -189,6 +200,8 @@ const getFechaLocalISO = () => {
       fechainicio: seleccionado.fechainicio,
       estado: false,
       idusuario: idUsuario,
+    }, {
+        headers: { Authorization: `Bearer ${token}` }
     });
 
     showToast("Inducción desactivada correctamente", "success");
@@ -212,6 +225,8 @@ const getFechaLocalISO = () => {
                 fechainicio: row.fechainicio,
                 estado: true,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Activado correctamente");
             fetchAll();

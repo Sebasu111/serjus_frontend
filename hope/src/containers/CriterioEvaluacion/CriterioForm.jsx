@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const CriterioForm = ({ onClose, variables, tipos, onSuccess, criterioEditar }) => {
   const [nombre, setNombre] = useState("");
@@ -61,12 +62,16 @@ const CriterioForm = ({ onClose, variables, tipos, onSuccess, criterioEditar }) 
 
       // 🔥 UPDATE
       if (criterioEditar) {
-        await axios.put(`${API}/criterio/${criterioEditar.idcriterio}/`, payload);
+        await axios.put(`${API}/criterio/${criterioEditar.idcriterio}/`, payload, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         showToast("Criterio actualizado correctamente", "success");
       } 
       // 🔥 CREATE
       else {
-        await axios.post(`${API}/criterio/`, payload);
+        await axios.post(`${API}/criterio/`, payload, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         showToast("Criterio creado correctamente", "success");
       }
 

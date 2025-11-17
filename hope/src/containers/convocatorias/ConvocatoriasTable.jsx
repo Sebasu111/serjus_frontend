@@ -3,6 +3,8 @@ import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import { showToast } from "../../utils/toast";
 import ConfirmModal from "./ConfirmModal";
 import axios from "axios";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const ConvocatoriasTable = ({
   mensaje,
@@ -391,7 +393,9 @@ const ConvocatoriasTable = ({
                   showToast("Convocatoria reabierta correctamente", "success");
                 } else if (modo === "limpiar") {
                   try {
-                    await axios.put(`http://127.0.0.1:8000/api/postulaciones/limpiar/${row.idconvocatoria}/`);
+                    await axios.put(`${API}/postulaciones/limpiar/${row.idconvocatoria}/`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
                     showToast("Postulaciones borradas correctamente", "success");
                   } catch (error) {
                     if (error.response && error.response.data && error.response.data.error) {

@@ -7,11 +7,12 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
 import { } from "react-toastify"; import { buttonStyles } from "../../stylesGenerales/buttons.js";
-
 import CapacitacionForm from "./CapacitacionForm";
 import CapacitacionesTable from "./CapacitacionTable.jsx";
 import AsignarCapacitacion from "./AsignarCapacitacion.jsx";
 import ConfirmModal from "./ConfirmModal";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const CapacitacionContainer = () => {
     const [capacitaciones, setCapacitaciones] = useState([]);
@@ -46,7 +47,9 @@ const CapacitacionContainer = () => {
 
     const fetchCapacitaciones = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
+            const res = await axios.get(`${API}/capacitaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
 
             // Verificar capacitaciones que deberían estar finalizadas automáticamente
@@ -77,11 +80,13 @@ const CapacitacionContainer = () => {
         for (const cap of capacitacionesAFinalizar) {
             try {
                 const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-                await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${cap.idcapacitacion || cap.id}/`, {
+                await axios.put(`${API}/capacitaciones/${cap.idcapacitacion || cap.id}/`, {
                     ...cap,
                     estado: true, // Mantener como true, el estado se determina por fechas
                     idestado_id: 3, // Finalizada
                     idusuario: idUsuario
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 console.log(`Capacitación "${cap.nombreevento}" finalizada automáticamente`);
             } catch (error) {
@@ -127,10 +132,14 @@ const CapacitacionContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${editingId}/`, payload);
+                await axios.put(`${API}/capacitaciones/${editingId}/`, payload,{
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 showToast("Capacitación actualizada correctamente", "success");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/capacitaciones/", payload);
+                await axios.post(`${API}/capacitaciones/`, payload,{
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 showToast("Capacitación registrada correctamente", "success");
             }
 
@@ -206,7 +215,9 @@ const CapacitacionContainer = () => {
         // Si es desactivar, primero verificar si tiene personas asignadas
         if (tipo === "desactivar") {
             try {
-                const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/?capacitacion=" + (data.idcapacitacion || data.id));
+                const res = await axios.get(`${API}/empleadocapacitacion/?capacitacion=` + (data.idcapacitacion || data.id),{
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 const asignados = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
                 // Solo considerar asignaciones activas de esta capacitación
                 const asignadosActivos = asignados.filter(a => a.estado === true && Number(a.idcapacitacion) === Number(data.idcapacitacion || data.id));
@@ -242,11 +253,13 @@ const CapacitacionContainer = () => {
                     return;
             }
 
-            await axios.put(`http://127.0.0.1:8000/api/capacitaciones/${data.idcapacitacion || data.id}/`, {
+            await axios.put(`${API}/capacitaciones/${data.idcapacitacion || data.id}/`, {
                 ...data,
                 estado: nuevoEstado,
                 idestado_id: nuevoEstadoId,
                 idusuario: idUsuario
+            },{
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             const mensaje = tipo === "activar" ? "activada" : "desactivada";

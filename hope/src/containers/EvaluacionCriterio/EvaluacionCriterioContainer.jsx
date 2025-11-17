@@ -6,6 +6,8 @@ import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const EvaluacionCriterioContainer = () => {
     const [idEvaluacion, setIdEvaluacion] = useState("");
@@ -22,7 +24,9 @@ const EvaluacionCriterioContainer = () => {
 
     const fetchEvaluaciones = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/evaluacioncriterio/");
+            const res = await axios.get(`${API}/evaluacioncriterio/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setEvaluaciones(data);
         } catch (error) {
@@ -44,10 +48,14 @@ const EvaluacionCriterioContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/evaluacioncriterio/${editingId}/`, data);
+                await axios.put(`${API}/evaluacioncriterio/${editingId}/`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 setMensaje("Evaluación actualizada correctamente");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/evaluacioncriterio/", data);
+                await axios.post(`${API}/evaluacioncriterio/`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 setMensaje("Evaluación registrada correctamente");
             }
 
@@ -80,9 +88,11 @@ const EvaluacionCriterioContainer = () => {
             const evaluacion = evaluaciones.find(e => e.idevaluacioncriterio === id);
             if (!evaluacion) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/evaluacioncriterio/${id}/`, {
+            await axios.put(`${API}/evaluacioncriterio/${id}/`, {
                 ...evaluacion,
                 estado: false
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMensaje("Evaluación desactivada correctamente");
@@ -98,9 +108,11 @@ const EvaluacionCriterioContainer = () => {
             const evaluacion = evaluaciones.find(e => e.idevaluacioncriterio === id);
             if (!evaluacion) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/evaluacioncriterio/${id}/`, {
+            await axios.put(`${API}/evaluacioncriterio/${id}/`, {
                 ...evaluacion,
                 estado: true
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMensaje("Evaluación activada correctamente");

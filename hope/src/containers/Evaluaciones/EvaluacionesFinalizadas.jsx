@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const ELEMENTOS_POR_PAGINA_GENERAL = 8;
 const CRITERIOS_POR_PAGINA = 5;
@@ -29,12 +30,24 @@ const EvaluacionesFinalizadas = () => {
       try {
         const [resEval, resEmp, resUsers, resCritEval, resCrit, resVars] =
           await Promise.all([
-            axios.get(`${API_BASE}/evaluacion/`),
-            axios.get(`${API_BASE}/empleados/`),
-            axios.get(`${API_BASE}/usuarios/`),
-            axios.get(`${API_BASE}/evaluacioncriterio/`),
-            axios.get(`${API_BASE}/criterio/`),
-            axios.get(`${API_BASE}/variables/`)
+            axios.get(`${API_BASE}/evaluacion/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+            axios.get(`${API_BASE}/empleados/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+            axios.get(`${API_BASE}/usuarios/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+            axios.get(`${API_BASE}/evaluacioncriterio/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+            axios.get(`${API_BASE}/criterio/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+            axios.get(`${API_BASE}/variables/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
           ]);
 
         const evalDataRaw = resEval.data.results || resEval.data || [];
@@ -500,12 +513,10 @@ const modalOverlay = {
   left: 0,
   width: "100%",
   height: "100%",
-  background: "rgba(0,0,0,0.6)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
+  background: "rgba(0, 0, 0, 0.6)",
   zIndex: 1000
 };
+
 const modalContent = {
   background: "white",
   borderRadius: "10px",
@@ -514,8 +525,12 @@ const modalContent = {
   maxHeight: "85vh",
   overflowY: "auto",
   boxShadow: "0 0 20px rgba(0,0,0,0.4)",
-  position: "relative"
+  position: "absolute",
+  top: "50%",
+  right: "150px",      // 👉 distancia desde la derecha
+  transform: "translateY(-50%)" // 👉 lo centra verticalmente
 };
+
 const modalCerrar = {
   position: "absolute",
   top: "12px",

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const Seguimiento = () => {
   const [seguimientos, setSeguimientos] = useState([]);
@@ -22,11 +23,21 @@ const Seguimiento = () => {
   const cargarTodo = async () => {
     try {
       const [resSeg, resSegVar, resUsers, resEmp, resEval] = await Promise.all([
-        axios.get(`${API}/seguimientos/`),
-        axios.get(`${API}/seguimientovariable/`),
-        axios.get(`${API}/usuarios/`),
-        axios.get(`${API}/empleados/`),
-        axios.get(`${API}/evaluacion/`),
+        axios.get(`${API}/seguimientos/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/seguimientovariable/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/usuarios/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/empleados/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/evaluacion/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        }),
       ]);
 
       setSeguimientos(resSeg.data.results || resSeg.data || []);
@@ -73,7 +84,9 @@ const Seguimiento = () => {
 
     const payload = { ...seg, fechaproximarev: nuevaFecha };
     try {
-      await axios.put(`${API}/seguimientos/${seg.idseguimiento}/`, payload);
+      await axios.put(`${API}/seguimientos/${seg.idseguimiento}/`, payload, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
       await cargarTodo();
       showToast("Fecha actualizada", "success");
     } catch (err) {
@@ -89,7 +102,9 @@ const Seguimiento = () => {
 
     const payload = { ...accion, estado: false };
     try {
-      await axios.put(`${API}/seguimientovariable/${accion.idseguimientovariable}/`, payload);
+      await axios.put(`${API}/seguimientovariable/${accion.idseguimientovariable}/`, payload, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
       setAcciones((prev) =>
         prev.filter((a) => a.idseguimientovariable !== accion.idseguimientovariable)
       );
@@ -111,7 +126,9 @@ const Seguimiento = () => {
 
     const payload = { ...seg, estado: false };
     try {
-      await axios.put(`${API}/seguimientos/${idSeguimiento}/`, payload);
+      await axios.put(`${API}/seguimientos/${idSeguimiento}/`, payload, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
       await cargarTodo();
       showToast("Seguimiento finalizado", "success");
     } catch (err) {

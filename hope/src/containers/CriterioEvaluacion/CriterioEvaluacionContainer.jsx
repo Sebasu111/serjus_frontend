@@ -11,7 +11,8 @@ import CriterioTable from "./CriterioTable.jsx";
 import CriterioForm from "./CriterioForm.jsx";
 import ConfirmModalCriterio from "./ConfirmModalCriterio.jsx";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const CriterioEvaluacionContainer = () => {
   const [criterios, setCriterios] = useState([]);
@@ -36,9 +37,15 @@ const CriterioEvaluacionContainer = () => {
     const fetchData = async () => {
       try {
         const [resCriterios, resVars, resTipos] = await Promise.all([
-          axios.get(`${API}/criterio/`),
-          axios.get(`${API}/variables/`),
-          axios.get(`${API}/tipoevaluacion/`),
+          axios.get(`${API}/criterio/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API}/variables/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API}/tipoevaluacion/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
         ]);
 
         const criteriosData = resCriterios.data.results || resCriterios.data || [];
@@ -61,7 +68,9 @@ const CriterioEvaluacionContainer = () => {
 
   const actualizarLista = async () => {
     try {
-      const res = await axios.get(`${API}/criterio/`);
+      const res = await axios.get(`${API}/criterio/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const criteriosData = res.data.results || res.data || [];
       setCriterios([...criteriosData].sort((a, b) => b.idcriterio - a.idcriterio));
     } catch (error) {
@@ -108,6 +117,8 @@ const CriterioEvaluacionContainer = () => {
         estado: true,
         idusuario: idUsuario,
         idvariable: criterio.idvariable,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       showToast("Criterio activado correctamente");
       actualizarLista();
@@ -126,6 +137,8 @@ const CriterioEvaluacionContainer = () => {
         estado: false,
         idusuario: idUsuario,
         idvariable: criterio.idvariable,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       showToast("Criterio desactivado correctamente");
       actualizarLista();

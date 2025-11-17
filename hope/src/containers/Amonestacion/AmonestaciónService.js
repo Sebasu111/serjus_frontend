@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 export const crearAmonestacion = async ({
   idEmpleado,
@@ -23,7 +24,7 @@ export const crearAmonestacion = async ({
 
     const response = await axios.post(`${API}/amonestaciones/`, payload, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json", Authorization: `Bearer ${token}`,
       },
     });
 

@@ -6,6 +6,8 @@ import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const RolesContainer = () => {
     const [nombreRol, setNombreRol] = useState("");
@@ -21,7 +23,7 @@ const RolesContainer = () => {
 
     const fetchRoles = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/roles/");
+            const res = await axios.get(`${API}/roles/`);
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setRoles(data);
         } catch (error) {
@@ -41,10 +43,14 @@ const RolesContainer = () => {
                 idusuario: 1 // puedes reemplazar con usuario logueado
             };
             if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/roles/${editingId}/`, data);
+                await axios.put(`${API}/roles/${editingId}/`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
                 setMensaje("Rol actualizado correctamente");
             } else {
-                await axios.post("http://127.0.0.1:8000/api/roles/", data);
+                await axios.post(`${API}/roles/`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
                 setMensaje("Rol registrado correctamente");
             }
             setNombreRol("");
@@ -72,11 +78,13 @@ const RolesContainer = () => {
             const rol = roles.find(r => r.idrol === id);
             if (!rol) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/roles/${id}/`, {
+            await axios.put(`${API}/roles/${id}/`, {
                 nombrerol: rol.nombrerol,
                 descripcion: rol.descripcion,
                 estado: false,
                 idusuario: rol.idusuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMensaje("Rol desactivado correctamente");
@@ -92,11 +100,13 @@ const RolesContainer = () => {
             const rol = roles.find(r => r.idrol === id);
             if (!rol) return;
 
-            await axios.put(`http://127.0.0.1:8000/api/roles/${id}/`, {
+            await axios.put(`${API}/roles/${id}/`, {
                 nombrerol: rol.nombrerol,
                 descripcion: rol.descripcion,
                 estado: true,
                 idusuario: rol.idusuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMensaje("Rol activado correctamente");

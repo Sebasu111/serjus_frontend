@@ -11,6 +11,8 @@ import {
 } from "./ReportesFiltros";
 
 import ReporteCapacitacionesPDF from "./ReporteCapacitacionesPDF"; // ⬅️ Luego lo implementaremos
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const ReportesCapacitaciones = () => {
   const [capacitaciones, setCapacitaciones] = useState([]);
@@ -42,7 +44,9 @@ const ReportesCapacitaciones = () => {
   
   const fetchCapacitaciones = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/capacitaciones/");
+      const res = await axios.get(`${API}/capacitaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       setCapacitaciones(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar capacitaciones", "error");
@@ -51,7 +55,9 @@ const ReportesCapacitaciones = () => {
 
   const fetchEmpleadoCap = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
+      const res = await axios.get(`${API}/empleadocapacitacion/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       setEmpleadoCap(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar empleados por capacitación", "error");
@@ -60,7 +66,9 @@ const ReportesCapacitaciones = () => {
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
+      const res = await axios.get(`${API}/empleados/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       setEmpleados(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar empleados", "error");

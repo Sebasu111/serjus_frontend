@@ -3,6 +3,8 @@ import axios from "axios";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import ModalEmpleadosAsignados from "./ModalEmpleadosAsignados";
 import GestionAsistenciaModal from "./GestionAsistenciaModal";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const CapacitacionesTable = ({
     capacitaciones,
@@ -58,17 +60,23 @@ const CapacitacionesTable = ({
             setLoadingEmpleados(true);
             setModalVisible(true);
 
-            const res = await axios.get("http://127.0.0.1:8000/api/empleadocapacitacion/");
+            const res = await axios.get(`${API}/empleadocapacitacion/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = res.data.results || res.data;
 
             const asignados = data.filter(
                 item => Number(item.idcapacitacion) === Number(capacitacion.idcapacitacion || capacitacion.id) && item.estado === true
             );
 
-            const empleadosRes = await axios.get("http://127.0.0.1:8000/api/empleados/");
+            const empleadosRes = await axios.get(`${API}/empleados/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const empleados = empleadosRes.data.results || empleadosRes.data;
 
-            const resDocumentos = await axios.get("http://127.0.0.1:8000/api/documentos/");
+            const resDocumentos = await axios.get(`${API}/documentos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const documentos = resDocumentos.data.results || resDocumentos.data;
 
             const listaFinal = asignados
@@ -113,18 +121,23 @@ const CapacitacionesTable = ({
         setLoadingEmpleados(true);
 
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/api/empleadocapacitacion/?capacitacion=${capacitacion.idcapacitacion || capacitacion.id}`);
+            const response = await axios.get(`${API}/empleadocapacitacion/?capacitacion=${capacitacion.idcapacitacion || capacitacion.id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const asignacionesActivas = response.data.filter(asig => asig.estado);
 
             if (asignacionesActivas.length > 0) {
                 const listaFinal = await Promise.all(
                     asignacionesActivas.map(async asig => {
-                        const emp = await axios.get(`http://127.0.0.1:8000/api/empleados/${asig.idempleado}/`);
-
+                        const emp = await axios.get(`${API}/empleados/${asig.idempleado}/`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
                         let documento = null;
                         if (asig.iddocumento) {
                             try {
-                                const doc = await axios.get(`http://127.0.0.1:8000/api/documentos/${asig.iddocumento}/`);
+                                const doc = await axios.get(`${API}/documentos/${asig.iddocumento}/`, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                });
                                 documento = doc.data;
                             } catch (docError) {
                                 console.warn("Error al obtener documento:", docError);

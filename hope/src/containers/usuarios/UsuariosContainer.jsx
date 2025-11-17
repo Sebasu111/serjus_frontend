@@ -13,9 +13,11 @@ import TableUsuarios from "../../containers/usuarios/TableUsuarios";
 import ModalConfirmacion from "../../containers/usuarios/ModalConfirmacion";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
 
-const API = "http://127.0.0.1:8000/api/usuarios/";
-const API_ROLES = "http://127.0.0.1:8000/api/roles/";
-const API_COLABORADORES = "http://127.0.0.1:8000/api/empleados/";
+const API2 = process.env.REACT_APP_API_URL;
+const API = `${API2}/usuarios/`;
+const API_ROLES = `${API2}/roles/`;
+const API_COLABORADORES = `${API2}/empleados/`;
+const token = sessionStorage.getItem("token");
 
 const UsuariosContainer = () => {
     const [form, setForm] = useState({
@@ -52,7 +54,9 @@ const UsuariosContainer = () => {
 
     const fetchUsuarios = async () => {
         try {
-            const res = await axios.get(API);
+            const res = await axios.get(API, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setUsuarios(Array.isArray(res.data.results) ? res.data.results : []);
         } catch (error) {
             console.error("Error al cargar usuarios:", error);
@@ -62,7 +66,9 @@ const UsuariosContainer = () => {
 
     const fetchRoles = async () => {
         try {
-            const res = await axios.get(API_ROLES);
+            const res = await axios.get(API_ROLES, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setRoles(Array.isArray(res.data.results) ? res.data.results : []);
         } catch (error) {
             console.error("Error al cargar roles:", error);
@@ -72,7 +78,9 @@ const UsuariosContainer = () => {
 
     const fetchColaboradores = async () => {
         try {
-            const res = await axios.get(API_COLABORADORES);
+            const res = await axios.get(API_COLABORADORES, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setEmpleados(Array.isArray(res.data.results) ? res.data.results : []);
         } catch (error) {
             console.error("Error al cargar colaboradores:", error);
@@ -112,7 +120,9 @@ const UsuariosContainer = () => {
                 contrasena: form.contrasena
             };
 
-            await axios.put(`${API}${editingUsuario.idusuario}/`, payload);
+            await axios.put(`${API}${editingUsuario.idusuario}/`, payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             showToast("Contraseña actualizada correctamente", "success");
 
             setForm({ nombreusuario: "", contrasena: "", estado: true, idrol: "", idempleado: "" });
@@ -163,6 +173,8 @@ const UsuariosContainer = () => {
             await axios.put(`${API}${usuarioSeleccionado.idusuario}/`, {
                 ...usuarioSeleccionado,
                 estado: false
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Usuario desactivado correctamente", "success");
             fetchUsuarios();
@@ -184,7 +196,9 @@ const UsuariosContainer = () => {
         try {
             const usuario = usuarios.find(u => u.idusuario === id);
             if (!usuario) return;
-            await axios.put(`${API}${id}/`, { ...usuario, estado: true });
+            await axios.put(`${API}${id}/`, { ...usuario, estado: true }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             showToast("Usuario activado correctamente", "success");
             fetchUsuarios();
         } catch (error) {

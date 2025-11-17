@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
   const [archivo, setArchivo] = useState(null);
@@ -22,7 +23,9 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
 
   const fetchDocumento = async (idDocumento) => {
     try {
-      const res = await axios.get(`${API}/documentos/${idDocumento}/`);
+      const res = await axios.get(`${API}/documentos/${idDocumento}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setDocumentoExistente(res.data);
     } catch (error) {
       setDocumentoExistente(null);
@@ -66,7 +69,7 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
 
     // Crear documento
     const resDoc = await axios.post(`${API}/documentos/`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
     });
     const idDocumento = resDoc.data.idDocumento || resDoc.data.iddocumento;
 
@@ -77,10 +80,14 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
       fechaamonestacion: amonestacion.fechaamonestacion,
       idusuario: idUsuario,
       iddocumento: idDocumento,
+    },{
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     // 🔹 Refrescar documento actual automáticamente
-    const resDocFinal = await axios.get(`${API}/documentos/${idDocumento}/`);
+    const resDocFinal = await axios.get(`${API}/documentos/${idDocumento}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
     setDocumentoExistente(resDocFinal.data);
 
     showToast("Carta subida y actualizada correctamente", "success");
@@ -98,7 +105,9 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
   // 🔹 Descargar carta (basado en la función descargarCV)
   const descargarCarta = async () => {
     try {
-      const response = await axios.get(`${API}/documentos/`);
+      const response = await axios.get(`${API}/documentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const documentos = Array.isArray(response.data)
         ? response.data
         : response.data?.results || [];
@@ -144,7 +153,9 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
         // Fallback: descarga por endpoint del backend
         const fileResponse = await axios.get(
           `${API}/documentos/${cartaDoc.iddocumento}/archivo/`,
-          { responseType: "blob" }
+          { responseType: "blob", headers: {
+            Authorization: `Bearer ${token}`,
+          }, }
         );
         const blob = new Blob([fileResponse.data], { type: "application/pdf" });
         const url = window.URL.createObjectURL(blob);

@@ -3,7 +3,8 @@ import { showToast } from "../../utils/toast";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import ConfirmModal from "./ConfirmModal"; // ✅ Importa el modal
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
   const [evaluaciones, setEvaluaciones] = useState([]);
@@ -26,8 +27,12 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
       const evalData = (await evalRes.json()).results || [];
 
       const [postRes, convRes] = await Promise.all([
-        fetch(`${API}/postulaciones/`),
-        fetch(`${API}/convocatorias/`)
+        fetch(`${API}/postulaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+        fetch(`${API}/convocatorias/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
       ]);
 
       const postulaciones = (await postRes.json()).results || [];
@@ -120,7 +125,7 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
 
     const res = await fetch(`${API}/evaluacion/${id}/`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload),
     });
 

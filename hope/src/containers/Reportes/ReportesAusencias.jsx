@@ -3,12 +3,13 @@ import axios from "axios";
 import { showToast } from "../../utils/toast";
 import { buttonStyles } from "../../stylesGenerales/buttons";
 import ReporteAusenciasPDF from "./ReporteAusenciasPDF"; // 🆕 importar nuevo componente
-
 import {
   BarraFiltros,
   FiltroFechasRango,
   FiltroSelect,
 } from "./ReportesFiltros";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const ReportesAusencias = () => {
   const [ausencias, setAusencias] = useState([]);
@@ -35,7 +36,9 @@ const ReportesAusencias = () => {
 
   const fetchAusencias = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/ausencias/");
+      const res = await axios.get(`${API}/ausencias/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
@@ -49,7 +52,9 @@ const ReportesAusencias = () => {
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/empleados/");
+      const res = await axios.get(`${API}/empleados/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)

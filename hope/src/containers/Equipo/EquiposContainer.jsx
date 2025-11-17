@@ -12,8 +12,9 @@ import { } from "react-toastify"; import { buttonStyles } from "../../stylesGene
 import EquipoFormNuevo from "./EquipoFormNuevo";
 import EquiposTable from "./EquiposTable";
 
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = process.env.REACT_APP_API_URL;
 const toNum = v => (v === null || v === undefined || v === "" ? null : Number(v));
+const token = sessionStorage.getItem("token");
 
 // ---------- UI helpers para la vista de detalle ----------
 const Section = ({ title, children }) => (
@@ -116,7 +117,9 @@ const EquiposContainer = () => {
 
     const fetchEquipos = async () => {
         try {
-            const res = await axios.get(`${API_BASE}/equipos/`);
+            const res = await axios.get(`${API_BASE}/equipos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const raw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             const data = raw.map(e => {
                 const id = e.idEquipo ?? e.idequipo ?? e.id;
@@ -150,7 +153,9 @@ const EquiposContainer = () => {
 
     const fetchEmpleados = async () => {
         try {
-            const res = await axios.get(`${API_BASE}/empleados/`);
+            const res = await axios.get(`${API_BASE}/empleados/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             const activos = data.filter(e => e.estado !== false);
             setEmpleados(activos);
@@ -282,7 +287,9 @@ const EquiposContainer = () => {
 
     const fetchEquipoDetalle = async id => {
         try {
-            const r1 = await axios.get(`${API_BASE}/equipos/${id}/`);
+            const r1 = await axios.get(`${API_BASE}/equipos/${id}/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const idsApi = extractIdsFrom(r1.data);
             if (idsApi.length) return idsApi;
         } catch (e) {
@@ -335,6 +342,8 @@ const EquiposContainer = () => {
                         ...empleado,
                         idequipo: null, // Remover del equipo
                         idusuario: toNum(sessionStorage.getItem("idUsuario"))
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` }
                     });
                     console.log(`   Empleado ${empId} removido del equipo`);
                 }
@@ -348,6 +357,8 @@ const EquiposContainer = () => {
                         ...coordinador,
                         idequipo: equipoId,
                         idusuario: toNum(sessionStorage.getItem("idUsuario"))
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` }
                     });
                     console.log(`   Coordinador ${coordinadorId} asignado al equipo ${equipoId}`);
                 }
@@ -361,6 +372,8 @@ const EquiposContainer = () => {
                         ...miembro,
                         idequipo: equipoId,
                         idusuario: toNum(sessionStorage.getItem("idUsuario"))
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` }
                     });
                     console.log(`   Miembro ${miembroId} asignado al equipo ${equipoId}`);
                 }
@@ -425,7 +438,9 @@ const EquiposContainer = () => {
 
             console.log("Payload enviado:", payload); // Para debug
 
-            await axios.put(`${API_BASE}/equipos/${idEquipo}/`, payload);
+            await axios.put(`${API_BASE}/equipos/${idEquipo}/`, payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
             //    NUEVO: Actualizar empleados para sincronizar correctamente
             await actualizarEmpleadosDelEquipo(idEquipo, coordinadorId, miembrosArray);

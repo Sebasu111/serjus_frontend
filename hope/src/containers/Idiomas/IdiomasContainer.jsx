@@ -7,10 +7,11 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
 import {  } from "react-toastify";import { buttonStyles } from "../../stylesGenerales/buttons.js";
-
 import IdiomaForm from "./IdiomaForm";
 import ConfirmModal from "./ConfirmModal";
 import IdiomasTable from "./IdiomasTable";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const IdiomasContainer = () => {
     const [nombreIdioma, setNombreIdioma] = useState("");
@@ -30,7 +31,9 @@ const IdiomasContainer = () => {
 
     const fetchIdiomas = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/api/idiomas/");
+            const res = await axios.get(`${API}/idiomas/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setIdiomas(data);
         } catch (error) {
@@ -60,9 +63,13 @@ const IdiomasContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`http://127.0.0.1:8000/api/idiomas/${editingId}/`, payload);
+                await axios.put(`${API}/idiomas/${editingId}/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
             } else {
-                await axios.post("http://127.0.0.1:8000/api/idiomas/", payload);
+                await axios.post(`${API}/idiomas/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
             }
 
             showToast(editingId ? "Idioma actualizado correctamente" : "Idioma registrado correctamente");
@@ -106,10 +113,12 @@ const IdiomasContainer = () => {
         if (!idiomaSeleccionado) return;
         try {
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-            await axios.put(`http://127.0.0.1:8000/api/idiomas/${idiomaSeleccionado.ididioma}/`, {
+            await axios.put(`${API}/idiomas/${idiomaSeleccionado.ididioma}/`, {
                 nombreidioma: idiomaSeleccionado.nombreidioma,
                 estado: false,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Idioma desactivado correctamente");
             fetchIdiomas();
@@ -127,10 +136,12 @@ const IdiomasContainer = () => {
             const idioma = idiomas.find(i => i.ididioma === id);
             if (!idioma) return;
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-            await axios.put(`http://127.0.0.1:8000/api/idiomas/${id}/`, {
+            await axios.put(`${API}/idiomas/${id}/`, {
                 nombreidioma: idioma.nombreidioma,
                 estado: true,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Idioma activado correctamente");
             fetchIdiomas();

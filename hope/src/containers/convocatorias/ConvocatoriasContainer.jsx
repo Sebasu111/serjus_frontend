@@ -9,7 +9,8 @@ import ConvocatoriasTable from "./ConvocatoriasTable.jsx";
 import ConvocatoriasForm from "./ConvocatoriasForm.jsx";
 import { showToast } from "../../utils/toast.js";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const ConvocatoriasContainer = () => {
     const [form, setForm] = useState({
@@ -38,7 +39,9 @@ const ConvocatoriasContainer = () => {
 
     const fetchList = async () => {
         try {
-            const r = await axios.get(`${API}/convocatorias/`);
+            const r = await axios.get(`${API}/convocatorias/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(r.data)
                 ? r.data
                 : Array.isArray(r.data?.results)
@@ -58,7 +61,9 @@ const ConvocatoriasContainer = () => {
 
     const fetchPuestos = async () => {
         try {
-            const r = await axios.get(`${API}/puestos/`);
+            const r = await axios.get(`${API}/puestos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(r.data?.results) ? r.data.results : [];
             setPuestos(data.filter(p => p.estado));
         } catch (e) {
@@ -136,10 +141,14 @@ const ConvocatoriasContainer = () => {
 
     try {
         if (editingId) {
-            await axios.put(`${API}/convocatorias/${editingId}/`, payload);
+            await axios.put(`${API}/convocatorias/${editingId}/`, payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             showToast("Convocatoria actualizada correctamente", "success");
         } else {
-            await axios.post(`${API}/convocatorias/`, payload);
+            await axios.post(`${API}/convocatorias/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
             showToast("Convocatoria registrada correctamente", "success");
         }
 
@@ -216,6 +225,8 @@ const ConvocatoriasContainer = () => {
                 ...row,
                 estado: nuevo,
                 idestado_id: nuevoEstadoId,
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             fetchList();

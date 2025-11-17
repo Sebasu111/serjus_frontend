@@ -1,10 +1,13 @@
 import axios from "axios";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const fetchList = async (endpoint) => {
   try {
-    const res = await axios.get(`${API}/${endpoint}/`);
+    const res = await axios.get(`${API}/${endpoint}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     const data = Array.isArray(res.data)
       ? res.data
       : res.data.results || [];

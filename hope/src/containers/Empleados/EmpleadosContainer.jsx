@@ -20,9 +20,10 @@ import HistorialPuestosModal from "./HistorialPuestosModal.jsx";
 // 🔔 toasts y estilos compartidos
 import { showToast, showPDFToasts } from "../../utils/toast.js";
 import { buttonStyles } from "../../stylesGenerales/buttons.js";
+const token = sessionStorage.getItem("token");
 
-const API = "http://127.0.0.1:8000/api";
-const API_HISTORIAL = "http://127.0.0.1:8000/api/historialpuestos/";
+const API = process.env.REACT_APP_API_URL;
+const API_HISTORIAL = "${API}/historialpuestos/";
 const empId = row => row?.id ?? row?.idempleado ?? row?.idEmpleado;
 
 const pick = (o, ...keys) => {
@@ -252,7 +253,9 @@ const EmpleadosContainer = () => {
                 idusuario: getIdUsuario()
             };
 
-            await axios.post(API_HISTORIAL, payload);
+            await axios.post(API_HISTORIAL, payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
         } catch (error) {
             console.error("Error al crear historial de puesto:", error);
@@ -263,7 +266,9 @@ const EmpleadosContainer = () => {
     // Función para finalizar el historial anterior (poner fecha fin)
     const finalizarHistorialAnterior = async (empleadoId) => {
         try {
-            const res = await axios.get(API_HISTORIAL);
+            const res = await axios.get(API_HISTORIAL, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const todosHistoriales = Array.isArray(res.data) ? res.data : res.data?.results || [];
 
             // Buscar el historial activo (sin fecha fin) de este empleado, ordenado por fecha más reciente
@@ -283,6 +288,8 @@ const EmpleadosContainer = () => {
                     ...historialActivo,
                     fechafin: fechaFin,
                     idusuario: getIdUsuario()
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
             }
         } catch (error) {
@@ -326,7 +333,9 @@ const EmpleadosContainer = () => {
                 idempleado: empleadoId
             };
 
-            await axios.post(`${API}/usuarios/`, payloadUsuario);
+            await axios.post(`${API}/usuarios/`, payloadUsuario, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
             return {
                 usuario: nombreUsuario,
@@ -347,11 +356,15 @@ const EmpleadosContainer = () => {
         const cargarDesdeAspirante = async () => {
             try {
                 // 🔹 Cargar datos del aspirante
-                const aspRes = await axios.get(`http://127.0.0.1:8000/api/aspirantes/${aspiranteParam}/`);
+                const aspRes = await axios.get(`${API}/aspirantes/${aspiranteParam}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 const aspirante = aspRes.data;
 
                 // 🔹 Cargar convocatoria asociada
-                const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`);
+                const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 const convocatoria = convRes.data;
 
                 // 🔹 Asegurar catálogos cargados
@@ -397,11 +410,15 @@ const EmpleadosContainer = () => {
 
     const fetchList = async () => {
         try {
-            const res = await axios.get(`${API}/empleados/`);
+            const res = await axios.get(`${API}/empleados/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const rows = Array.isArray(res.data) ? res.data : res.data?.results || [];
 
             // Obtener todos los documentos (contratos)
-            const docRes = await axios.get(`${API}/documentos/`);
+            const docRes = await axios.get(`${API}/documentos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const documentos = Array.isArray(docRes.data) ? docRes.data : docRes.data?.results || [];
 
             // Asociar contrato a cada empleado
@@ -418,7 +435,9 @@ const EmpleadosContainer = () => {
     };
     const fetchIdiomas = async () => {
         try {
-            const r = await axios.get(`${API}/idiomas/`);
+            const r = await axios.get(`${API}/idiomas/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setIdiomas(Array.isArray(r.data) ? r.data : r.data?.results || []);
         } catch {
             setIdiomas([]);
@@ -426,7 +445,9 @@ const EmpleadosContainer = () => {
     };
     const fetchPueblos = async () => {
         try {
-            const r = await axios.get(`${API}/pueblocultura/`);
+            const r = await axios.get(`${API}/pueblocultura/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setPueblos(Array.isArray(r.data) ? r.data : r.data?.results || []);
         } catch {
             setPueblos([]);
@@ -434,7 +455,9 @@ const EmpleadosContainer = () => {
     };
     const fetchEquipos = async () => {
         try {
-            const r = await axios.get(`${API}/equipos/`);
+            const r = await axios.get(`${API}/equipos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setEquipos(Array.isArray(r.data) ? r.data : r.data?.results || []);
         } catch {
             setEquipos([]);
@@ -442,7 +465,9 @@ const EmpleadosContainer = () => {
     };
     const fetchPuestos = async () => {
         try {
-            const r = await axios.get(`${API}/puestos/`);
+            const r = await axios.get(`${API}/puestos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setPuestos(Array.isArray(r.data) ? r.data : r.data?.results || []);
         } catch {
             setPuestos([]);
@@ -609,7 +634,9 @@ const EmpleadosContainer = () => {
     // Función para cargar CV existente del empleado
     const cargarCvExistente = async (empleadoId) => {
         try {
-            const response = await axios.get(`${API}/documentos/`);
+            const response = await axios.get(`${API}/documentos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
 
             const cvDocumento = documentos.find(doc => {
@@ -641,6 +668,8 @@ const EmpleadosContainer = () => {
                 idtipodocumento: cvExistente.idtipodocumento,
                 idempleado: cvExistente.idempleado,
                 estado: false
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             setCvExistente(null);
             showToast("CV eliminado correctamente", "success");
@@ -653,7 +682,9 @@ const EmpleadosContainer = () => {
     // Función para cargar contrato existente del empleado
     const cargarContratoExistente = async (empleadoId) => {
         try {
-            const response = await axios.get(`${API}/documentos/`);
+            const response = await axios.get(`${API}/documentos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
 
             const contratoDocumento = documentos.find(doc => {
@@ -685,6 +716,8 @@ const EmpleadosContainer = () => {
                 idtipodocumento: contratoExistente.idtipodocumento,
                 idempleado: contratoExistente.idempleado,
                 estado: false
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             setContratoExistente(null);
             showToast("Contrato eliminado correctamente", "success");
@@ -735,7 +768,7 @@ const EmpleadosContainer = () => {
                 // Actualizar contrato existente
                 await axios.put(`${API}/documentos/${contratoExistente.iddocumento}/`, formDataContrato, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}`,
                     },
                 });
                 showToast("Contrato actualizado correctamente", "success");
@@ -743,7 +776,7 @@ const EmpleadosContainer = () => {
                 // Crear nuevo contrato
                 await axios.post(`${API}/documentos/`, formDataContrato, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}`,
                     },
                 });
                 showToast("Contrato subido correctamente", "success");
@@ -1121,7 +1154,9 @@ const EmpleadosContainer = () => {
                 const puestoNuevo = Number(form.idpuesto || 0);
 
                 // Actualizar empleado
-                await axios.put(`${API}/empleados/${editingId}/`, payload);
+                await axios.put(`${API}/empleados/${editingId}/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
 
                 // Si cambió el puesto y hay un puesto nuevo válido, manejar historial
                 if (puestoNuevo > 0 && puestoAnterior !== puestoNuevo) {
@@ -1138,7 +1173,9 @@ const EmpleadosContainer = () => {
 
                     // 🔹 Actualizar rol del usuario asociado según el mapaPuestoRol
                     try {
-                        const usuariosResponse = await axios.get(`${API}/usuarios/`);
+                        const usuariosResponse = await axios.get(`${API}/usuarios/`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
                         const usuario = usuariosResponse.data.results.find(u => u.idempleado === editingId);
 
                         if (usuario) {
@@ -1152,6 +1189,8 @@ const EmpleadosContainer = () => {
                                     updatedat: new Date().toISOString(),
                                     idrol: nuevoRol,
                                     idempleado: usuario.idempleado
+                                }, {
+                                    headers: { Authorization: `Bearer ${token}` }
                                 });
                                 showToast("Rol del usuario actualizado correctamente", "success");
                             }
@@ -1184,7 +1223,7 @@ const EmpleadosContainer = () => {
                             // Actualizar el documento existente (PUT)
                             const cvResponse = await axios.put(`${API}/documentos/${cvExistente.iddocumento}/`, formDataCV, {
                                 headers: {
-                                    'Content-Type': 'multipart/form-data',
+                                    'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}`,
                                 },
                             });
                             console.log("CV actualizado exitosamente:", cvResponse.data);
@@ -1205,7 +1244,7 @@ const EmpleadosContainer = () => {
                             // Crear nuevo documento (POST)
                             const cvResponse = await axios.post(`${API}/documentos/`, formDataCV, {
                                 headers: {
-                                    'Content-Type': 'multipart/form-data',
+                                    'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}`
                                 },
                             });
                             console.log("CV creado exitosamente:", cvResponse.data);
@@ -1224,7 +1263,9 @@ const EmpleadosContainer = () => {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
             else {
-                const response = await axios.post(`${API}/empleados/`, payload);
+                const response = await axios.post(`${API}/empleados/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 const empleadoCreado = response.data;
 
                 // Obtener el ID del empleado recién creado
@@ -1258,7 +1299,7 @@ const EmpleadosContainer = () => {
 
                         const cvResponse = await axios.post(`${API}/documentos/`, formDataCV, {
                             headers: {
-                                'Content-Type': 'multipart/form-data',
+                                'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}`,
                             },
                         });
                         console.log("CV subido exitosamente:", cvResponse.data);
@@ -1293,7 +1334,9 @@ const EmpleadosContainer = () => {
 
                     if (aspiranteParam && convocatoriaParam) {
                         // 1️⃣ Obtener la convocatoria actual
-                        const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`);
+                        const convRes = await axios.get(`${API}/convocatorias/${convocatoriaParam}/`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
                         const convocatoriaActual = convRes.data;
 
                         // 2️⃣ Actualizar convocatoria a FINALIZADA (idestado_id = 6)
@@ -1308,11 +1351,15 @@ const EmpleadosContainer = () => {
                             idpuesto: convocatoriaActual.idpuesto,
                         };
 
-                        await axios.put(`${API}/convocatorias/${convocatoriaParam}/`, payloadConv);
+                        await axios.put(`${API}/convocatorias/${convocatoriaParam}/`, payloadConv, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
                         console.log("✅ Convocatoria finalizada correctamente");
 
                         // 3️⃣ Obtener todas las postulaciones de esa convocatoria
-                        const postRes = await axios.get(`${API}/postulaciones/`);
+                        const postRes = await axios.get(`${API}/postulaciones/`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
                         const todasPostulaciones = Array.isArray(postRes.data)
                             ? postRes.data
                             : postRes.data?.results || [];
@@ -1336,7 +1383,9 @@ const EmpleadosContainer = () => {
                                         : 3, // ❌ Rechazado
                             };
 
-                            await axios.put(`${API}/postulaciones/${post.idpostulacion}/`, payloadPost);
+                            await axios.put(`${API}/postulaciones/${post.idpostulacion}/`, payloadPost, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
                             console.log(
                                 `Postulación ${post.idpostulacion} actualizada a ${payloadPost.idestado === 7 ? "✅ Contratado" : "❌ Rechazado"
                                 }`
@@ -1347,7 +1396,9 @@ const EmpleadosContainer = () => {
                         // 🔹 DESACTIVAR TODAS LAS EVALUACIONES ASOCIADAS A LA CONVOCATORIA
                         // ========================================================
                         try {
-                            const evalRes = await axios.get(`${API}/evaluacion/`);
+                            const evalRes = await axios.get(`${API}/evaluacion/`, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
                             const todasEvaluaciones = Array.isArray(evalRes.data)
                                 ? evalRes.data
                                 : evalRes.data?.results || [];
@@ -1371,7 +1422,9 @@ const EmpleadosContainer = () => {
                                     idpostulacion: ev.idpostulacion || 0,
                                 };
 
-                                await axios.put(`${API}/evaluacion/${ev.idevaluacion}/`, payloadEval);
+                                await axios.put(`${API}/evaluacion/${ev.idevaluacion}/`, payloadEval, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                });
                                 console.log(`🟡 Evaluación ${ev.idevaluacion} marcada como inactiva`);
                             }
 
@@ -1467,11 +1520,15 @@ const EmpleadosContainer = () => {
                 ...empleadoSeleccionado,
                 estado: nuevoEstado,
                 idusuario: getIdUsuario()
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             // 2. Buscar y actualizar el usuario correspondiente
             try {
-                const usuariosResponse = await axios.get(`${API}/usuarios/`);
+                const usuariosResponse = await axios.get(`${API}/usuarios/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 const usuarios = Array.isArray(usuariosResponse.data) ?
                     usuariosResponse.data :
                     usuariosResponse.data?.results || [];
@@ -1488,6 +1545,8 @@ const EmpleadosContainer = () => {
                         updatedat: new Date().toISOString(),
                         idrol: usuarioEncontrado.idrol,
                         idempleado: usuarioEncontrado.idempleado
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` }
                     });
                     console.log(`Usuario ${usuarioEncontrado.nombreusuario} ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`);
                 }
@@ -1608,7 +1667,9 @@ const EmpleadosContainer = () => {
     const verContrato = async (empleado) => {
         try {
             // Buscar el documento contrato del empleado
-            const response = await axios.get(`${API}/documentos/`);
+            const response = await axios.get(`${API}/documentos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
 
             // Buscar el contrato del empleado específico
@@ -1664,7 +1725,9 @@ const EmpleadosContainer = () => {
     const descargarCV = async (empleado) => {
         try {
             // Buscar el documento CV del empleado
-            const response = await axios.get(`${API}/documentos/`);
+            const response = await axios.get(`${API}/documentos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
 
             // Buscar el CV del empleado específico
@@ -1731,9 +1794,15 @@ const EmpleadosContainer = () => {
                 }
             } else {
                 // Fallback: intentar con el endpoint de archivo
-                const fileResponse = await axios.get(`${API}/documentos/${cvDocumento.iddocumento}/archivo/`, {
-                    responseType: 'blob'
-                });
+                const fileResponse = await axios.get(
+                `${API}/documentos/${cvDocumento.iddocumento}/archivo/`,
+                {
+                    responseType: "blob",
+                    headers: {
+                    Authorization: `Bearer ${token}`
+                    }
+                }
+                );
 
                 // Crear URL del blob y descargar
                 const blob = new Blob([fileResponse.data], { type: 'application/pdf' });

@@ -1,6 +1,6 @@
 // Configuración centralizada para la API
 const API_CONFIG = {
-    BASE_URL: "http://127.0.0.1:8000/api",
+    BASE_URL: process.env.REACT_APP_API_URL,
 
     // Endpoints específicos
     ENDPOINTS: {
@@ -63,7 +63,7 @@ export const buildApiUrlWithId = (endpoint, id) => {
 
 // Función para obtener headers comunes
 export const getApiHeaders = () => {
-    const token = localStorage.getItem('authToken'); // Si usas autenticación
+    const token = sessionStorage.getItem("token"); // Si usas autenticación
     return {
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })

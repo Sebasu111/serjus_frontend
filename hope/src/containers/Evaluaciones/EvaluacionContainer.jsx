@@ -7,7 +7,7 @@ import SEO from "../../components/seo";
 import EvaluacionGuia from "./EvaluacionGuia";
 import EvaluacionesTable from "./EvaluacionesTable";
 import EvaluacionesFinalizadas from "./EvaluacionesFinalizadas";
-import Seguimiento from "./Seguimiento"; // ⬅
+import Seguimiento from "./Seguimiento";
 
 const EvaluacionContainer = () => {
   const [vistaActual, setVistaActual] = useState("evaluar");
@@ -17,6 +17,7 @@ const EvaluacionContainer = () => {
   );
   const [usuario, setUsuario] = useState(null);
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState(null);
+  const [evaluacionesAbiertas, setEvaluacionesAbiertas] = useState(false);
 
   // Obtener usuario logueado
   useEffect(() => {
@@ -34,6 +35,19 @@ const EvaluacionContainer = () => {
   const esAdmin = usuario?.idrol === 5;
   const esRolLimitado = esAcompanante || esContador;
 
+  // ⏳ Validación de acceso semestral
+  useEffect(() => {
+    const hoy = new Date();
+    const mes = hoy.getMonth() + 1; // 1 = Enero, 6 = Junio
+    const dia = hoy.getDate();
+
+    const habilitado =
+      (mes === 1 && dia >= 1 && dia <= 14) ||
+      (mes === 6 && dia >= 1 && dia <= 14);
+
+    setEvaluacionesAbiertas(habilitado);
+  }, []);
+
   // UI responsive
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -43,6 +57,7 @@ const EvaluacionContainer = () => {
 
     observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     window.addEventListener("resize", handleResize);
+
     return () => {
       window.removeEventListener("resize", handleResize);
       observer.disconnect();
@@ -86,14 +101,15 @@ const EvaluacionContainer = () => {
               }}
             >
               <div style={{ display: "flex", gap: 0 }}>
+                {/* ⛔ Botón bloqueado si está fuera de fecha */}
                 <button
-                  onClick={() => setVistaActual("evaluar")}
-                  style={navBtn(vistaActual === "evaluar")}
+                  onClick={() => evaluacionesAbiertas && setVistaActual("evaluar")}
+                  disabled={!evaluacionesAbiertas}
+                  style={navBtn(vistaActual === "evaluar", !evaluacionesAbiertas)}
                 >
                   Evaluar
                 </button>
 
-                {/* Ver Evaluaciones → NO para roles limitados */}
                 {!esRolLimitado && (
                   <button
                     onClick={() => setVistaActual("listar")}
@@ -103,7 +119,6 @@ const EvaluacionContainer = () => {
                   </button>
                 )}
 
-                {/* Finalizadas → solo ADMIN */}
                 {esAdmin && (
                   <button
                     onClick={() => setVistaActual("finalizadas")}
@@ -113,7 +128,6 @@ const EvaluacionContainer = () => {
                   </button>
                 )}
 
-                {/* Seguimiento → PARA TODOS */}
                 <button
                   onClick={() => setVistaActual("seguimiento")}
                   style={navBtn(vistaActual === "seguimiento")}
@@ -124,7 +138,28 @@ const EvaluacionContainer = () => {
             </div>
 
             {/* CONTENIDO DINÁMICO */}
-            {vistaActual === "evaluar" && (
+            {vistaActual === "evaluar" && !evaluacionesAbiertas && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "40px",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#b91c1c",
+                  backgroundColor: "#fff",
+                }}
+              >
+                La AutoEvaluacion está cerrada actualmente.
+                <br />
+                Próximas fechas habilitadas:
+                <br />
+                1 al 14 de Enero
+                <br />
+                1 al 14 de Junio
+              </div>
+            )}
+
+            {vistaActual === "evaluar" && evaluacionesAbiertas && (
               <div
                 style={{
                   display: "flex",
@@ -169,7 +204,6 @@ const EvaluacionContainer = () => {
               </div>
             )}
 
-            {/* Seguimiento → SIEMPRE DISPONIBLE */}
             {vistaActual === "seguimiento" && (
               <div
                 style={{
@@ -192,16 +226,17 @@ const EvaluacionContainer = () => {
   );
 };
 
-const navBtn = (isActive) => ({
+const navBtn = (isActive, disabled) => ({
   padding: "12px 24px",
   border: "none",
   backgroundColor: isActive ? "#023047" : "transparent",
-  color: isActive ? "white" : "#023047",
-  cursor: "pointer",
+  color: disabled ? "#8c8c8c" : isActive ? "white" : "#023047",
+  cursor: disabled ? "not-allowed" : "pointer",
   borderBottom: isActive ? "2px solid #023047" : "2px solid transparent",
   fontFamily: '"Inter", sans-serif',
   fontWeight: "600",
   transition: "all 0.2s",
+  opacity: disabled ? 0.45 : 1,
 });
 
 export default EvaluacionContainer;

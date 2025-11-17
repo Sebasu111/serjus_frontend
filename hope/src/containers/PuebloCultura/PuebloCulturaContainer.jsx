@@ -10,8 +10,9 @@ import { showToast } from "../../utils/toast.js";
 import {  } from "react-toastify";import PuebloCulturaForm from "./PuebloCulturaForm";
 import ConfirmModal from "./ConfirmModal";
 import PuebloCulturaTable from "./PuebloCulturaTable";
-
-const API = "http://127.0.0.1:8000/api/pueblocultura/";
+const API2 = process.env.REACT_APP_API_URL;
+const API = `${API2}/pueblocultura/`;
+const token = sessionStorage.getItem("token");
 
 const PuebloCulturaContainer = () => {
     const [nombrePueblo, setNombrePueblo] = useState("");
@@ -31,7 +32,9 @@ const PuebloCulturaContainer = () => {
 
     const fetchAll = async () => {
         try {
-            const res = await axios.get(API);
+            const res = await axios.get(API, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const raw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             // Normaliza a camelCase para la UI
             const data = raw.map(r => ({
@@ -69,9 +72,13 @@ const PuebloCulturaContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`${API}${editingId}/`, payload);
+                await axios.put(`${API}${editingId}/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
             } else {
-                await axios.post(API, payload);
+                await axios.post(API, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
             }
 
             showToast(editingId ? "Actualizado correctamente" : "Registrado correctamente");
@@ -113,6 +120,8 @@ const PuebloCulturaContainer = () => {
                 nombrepueblo: seleccionado.nombrePueblo,
                 estado: false,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Desactivado correctamente");
             fetchAll();
@@ -134,6 +143,8 @@ const PuebloCulturaContainer = () => {
                 nombrepueblo: row.nombrePueblo,
                 estado: true,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Activado correctamente");
             fetchAll();

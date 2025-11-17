@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import { showToast } from "../../utils/toast";
 import { useMemo } from "react";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const useEvaluacionSeleccion = () => {
   const [convocatorias, setConvocatorias] = useState([]);
@@ -26,14 +27,22 @@ const useEvaluacionSeleccion = () => {
   useEffect(() => {
   const cargarEvaluaciones = async () => {
     try {
-      const evalRes = await fetch(`${API}/evaluacion/`);
+      const evalRes = await fetch(`${API}/evaluacion/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       const evalData = (await evalRes.json()).results || [];
 
       // 🔹 Obtenemos postulaciones y aspirantes para enriquecer los datos
       const [postRes, aspRes, convRes] = await Promise.all([
-        fetch(`${API}/postulaciones/`),
-        fetch(`${API}/aspirantes/`),
-        fetch(`${API}/convocatorias/`),
+        fetch(`${API}/postulaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+        fetch(`${API}/aspirantes/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+        fetch(`${API}/convocatorias/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
       ]);
 
       const postulaciones = (await postRes.json()).results || [];
@@ -82,7 +91,12 @@ useEffect(() => {
   const cargarCriterios = async () => {
     try {
       // 🔹 Trae todas las variables
-      const variableRes = await fetch(`${API}/variables/`);
+      const variableRes = await fetch(`${API}/variables/`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${sessionStorage.getItem("token")}`,
+        },
+      });
       const variableJson = await variableRes.json();
       const allVariables = variableJson.results || variableJson;
 
@@ -101,7 +115,9 @@ useEffect(() => {
       const idVariable = variableData[0].idvariable;
 
       // 🔹 Trae todos los criterios y filtra solo los de esa variable
-      const criteriosRes = await fetch(`${API}/criterio/`);
+      const criteriosRes = await fetch(`${API}/criterio/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       const criteriosJson = await criteriosRes.json();
       const criteriosData = (criteriosJson.results || criteriosJson)
         .filter((c) => c.idvariable === idVariable && c.idcriterio <= 12);
@@ -131,8 +147,12 @@ useEffect(() => {
 
     const cargarAspirantes = async () => {
       try {
-        const postRes = await fetch(`${API}/postulaciones/`);
-        const aspRes = await fetch(`${API}/aspirantes/`);
+        const postRes = await fetch(`${API}/postulaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        const aspRes = await fetch(`${API}/aspirantes/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
         const postulaciones = (await postRes.json()).results || [];
         const aspirantes = (await aspRes.json()).results || [];
@@ -245,12 +265,16 @@ useEffect(() => {
   
     const cargarEvaluacionExistente = async (idEval) => {
   try {
-    const evalRes = await fetch(`${API}/evaluacion/${idEval}/`);
+    const evalRes = await fetch(`${API}/evaluacion/${idEval}/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
     if (!evalRes.ok) throw new Error("Error obteniendo evaluación");
     const evalData = await evalRes.json();
 
     // --- Obtener detalle de evaluación
-    const detalleRes = await fetch(`${API}/evaluacioncriterio/?idevaluacion=${idEval}`);
+    const detalleRes = await fetch(`${API}/evaluacioncriterio/?idevaluacion=${idEval}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
     if (!detalleRes.ok) throw new Error("Error obteniendo detalles");
     const detalleData = (await detalleRes.json()).results || [];
     
@@ -263,7 +287,9 @@ useEffect(() => {
     const criterioIds = [...new Set(detalleData.map((d) => d.idcriterio))];
     const criteriosDetalle = [];
     for (const id of criterioIds) {
-      const res = await fetch(`${API}/criterio/${id}/`);
+      const res = await fetch(`${API}/criterio/${id}/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       if (res.ok) {
         const data = await res.json();
         if (data.idvariable !== 1) continue;
@@ -276,8 +302,12 @@ useEffect(() => {
     }
 
     // --- Obtener postulaciones y aspirantes
-    const postRes = await fetch(`${API}/postulaciones/`);
-    const aspRes = await fetch(`${API}/aspirantes/`);
+    const postRes = await fetch(`${API}/postulaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+    const aspRes = await fetch(`${API}/aspirantes/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
     const postulaciones = (await postRes.json()).results || [];
     const aspirantes = (await aspRes.json()).results || [];
 
@@ -449,7 +479,9 @@ showToast("Evaluación cargada correctamente con puntajes.", "success");
 
 
       //  Obtener variable
-      const variableRes = await fetch(`${API}/variables/?idtipoevaluacion=4`);
+      const variableRes = await fetch(`${API}/variables/?idtipoevaluacion=4`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       const variableData = (await variableRes.json()).results || [];
       if (!variableData.length)
         throw new Error("No existe variable para idtipoevaluacion=4");
@@ -458,7 +490,7 @@ showToast("Evaluación cargada correctamente con puntajes.", "success");
       //  Crear evaluación principal
       const evalRes = await fetch(`${API}/evaluacion/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           idempleado: null,
           modalidad: "Entrevista",
@@ -482,7 +514,7 @@ showToast("Evaluación cargada correctamente con puntajes.", "success");
         if (!c.id || String(c.id).startsWith("uuid")) {
           const res = await fetch(`${API}/criterio/`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify({
               idvariable: idVariable,
               nombrecriterio: c.nombre.trim() || "Sin nombre",
@@ -519,7 +551,7 @@ showToast("Evaluación cargada correctamente con puntajes.", "success");
 
           await fetch(`${API}/evaluacioncriterio/`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(payload),
           });
         }

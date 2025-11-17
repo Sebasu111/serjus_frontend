@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
 import { showToast } from "../../utils/toast";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const CambiarContrasenaModal = ({ onClose }) => {
     const [contrasenaActual, setContrasenaActual] = useState("");
     const [contrasenaNueva, setContrasenaNueva] = useState("");
@@ -54,16 +56,19 @@ const CambiarContrasenaModal = ({ onClose }) => {
             // Payload simplificado - solo enviamos la nueva contraseña
             const payload = {
                 nombreusuario: usuarioGuardado.nombreusuario,
-                contrasena: contrasenaNueva,
-                estado: true,
+                contrasena: contrasenaNueva,        // nueva contraseña
+                estado: usuarioGuardado.estado,
+                createdat: usuarioGuardado.createdat,
+                updatedat: new Date().toISOString(), // actualizar fecha
                 idrol: usuarioGuardado.idrol,
-                idempleado: usuarioGuardado.idempleado || null
+                idempleado: usuarioGuardado.idempleado
             };
 
-            const response = await fetch(`http://127.0.0.1:8000/api/usuarios/${idUsuario}/`, {
+            const response = await fetch(`${API_URL}/usuarios/${idUsuario}/`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${sessionStorage.getItem("token")}`
                 },
                 body: JSON.stringify(payload)
             });

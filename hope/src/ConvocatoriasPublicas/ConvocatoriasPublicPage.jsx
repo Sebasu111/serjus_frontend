@@ -4,6 +4,7 @@ import PostularModal from "./PostularModal";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+const API = process.env.REACT_APP_API_URL;
 
 const ConvocatoriasPublicPage = () => {
   const [convocatorias, setConvocatorias] = useState([]);
@@ -11,7 +12,7 @@ const ConvocatoriasPublicPage = () => {
   const [selectedConvocatoria, setSelectedConvocatoria] = useState(null);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/convocatorias/")
+    fetch(`${API}/convocatorias/`)
       .then((res) => res.json())
       .then((data) => {
         const convocatoriasOrdenadas = (data.results || []).sort((a, b) => {

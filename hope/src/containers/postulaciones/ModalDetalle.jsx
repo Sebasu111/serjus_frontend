@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { X } from "lucide-react";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const formatDate = (dateString) => {
   if (!dateString) return "—";
@@ -54,7 +55,9 @@ const ModalDetalle = ({ aspirante, onClose }) => {
     // Cargar idiomas
     const fetchIdiomas = async () => {
       try {
-        const res = await axios.get(`${API}/idiomas/`);
+        const res = await axios.get(`${API}/idiomas/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
         setIdiomas(res.data.results || []);
       } catch (err) {
         console.error("Error al cargar idiomas:", err);
@@ -65,7 +68,9 @@ const ModalDetalle = ({ aspirante, onClose }) => {
     // Cargar pueblos
     const fetchPueblos = async () => {
       try {
-        const res = await axios.get(`${API}/pueblocultura/`);
+        const res = await axios.get(`${API}/pueblocultura/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
         setPueblos(res.data.results || []);
       } catch (err) {
         console.error("Error al cargar pueblos:", err);

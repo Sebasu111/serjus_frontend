@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { X } from "lucide-react";
 import { showToast } from "../../utils/toast.js";
 
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const CriterioModal = ({ onClose, onAdd, criteriosUsados = [] }) => {
   const [criterios, setCriterios] = useState([]);
@@ -14,7 +15,9 @@ const CriterioModal = ({ onClose, onAdd, criteriosUsados = [] }) => {
   useEffect(() => {
     const cargarCriterios = async () => {
       try {
-        const res = await fetch(`${API}/criterio/`);
+        const res = await fetch(`${API}/criterio/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
         const data = (await res.json()).results || [];
 
         const filtrados = data.filter((c) =>
@@ -68,7 +71,7 @@ const CriterioModal = ({ onClose, onAdd, criteriosUsados = [] }) => {
     try {
       const res = await fetch(`${API}/criterio/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           nombrecriterio: nuevo.nombre.trim(),
           descripcioncriterio: nuevo.descripcion.trim(),
