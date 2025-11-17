@@ -215,6 +215,8 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
   };
 
   const empleadosFiltrados = empleados.filter(emp => {
+    // Solo mostrar empleados activos
+    if (!(emp.estado === true || emp.estado === 1)) return false;
     const nombreCompleto = `${emp.nombre} ${emp.apellido}`.toLowerCase();
     return nombreCompleto.includes(busqueda.toLowerCase());
   });
