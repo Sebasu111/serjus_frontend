@@ -29,7 +29,11 @@ const TableUsuarios = ({
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("click", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("click", handleClickOutside);
+        };
     }, []);
 
     const toggleMenu = id => setMenuAbierto(menuAbierto === id ? null : id);
@@ -156,37 +160,7 @@ const TableUsuarios = ({
                                                 </button>
 
                                                 {/* Activar o Desactivar */}
-                                                {usuario.estado ? (
-                                                    <button
-                                                        onClick={() => abrirModal(usuario, "desactivar")}
-                                                        style={comboBoxStyles.menu.item.desactivar.base}
-                                                        onMouseEnter={e =>
-                                                        (e.currentTarget.style.background =
-                                                            comboBoxStyles.menu.item.desactivar.hover.background)
-                                                        }
-                                                        onMouseLeave={e =>
-                                                        (e.currentTarget.style.background =
-                                                            comboBoxStyles.menu.item.desactivar.base.background)
-                                                        }
-                                                    >
-                                                        Desactivar
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => abrirModal(usuario, "activar")}
-                                                        style={comboBoxStyles.menu.item.activar.base}
-                                                        onMouseEnter={e =>
-                                                        (e.currentTarget.style.background =
-                                                            comboBoxStyles.menu.item.activar.hover.background)
-                                                        }
-                                                        onMouseLeave={e =>
-                                                        (e.currentTarget.style.background =
-                                                            comboBoxStyles.menu.item.activar.base.background)
-                                                        }
-                                                    >
-                                                        Activar
-                                                    </button>
-                                                )}
+                                                {/* Opción de desactivar usuario eliminada. El usuario se desactiva automáticamente con el colaborador. */}
                                             </div>
                                         )}
                                     </div>

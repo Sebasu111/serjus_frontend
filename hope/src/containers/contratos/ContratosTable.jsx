@@ -4,6 +4,21 @@ import { showToast } from '../../utils/toast.js';
 import { buildApiUrl, buildApiUrlWithId, API_CONFIG } from '../../config/api.js';
 
 const ContratosTable = () => {
+        useEffect(() => {
+            const handleClickOutside = (event) => {
+                document.querySelectorAll('[id^="menu-opciones-"]').forEach(menu => {
+                    if (menu.style.display === 'block' && !menu.contains(event.target)) {
+                        menu.style.display = 'none';
+                    }
+                });
+            };
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('click', handleClickOutside);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+                document.removeEventListener('click', handleClickOutside);
+            };
+        }, []);
     const [contratos, setContratos] = useState([]);
     const [mostrarCantidad, setMostrarCantidad] = useState(5);
     const [mostrarInactivos, setMostrarInactivos] = useState(false);

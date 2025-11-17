@@ -71,10 +71,14 @@ const EquipoForm = ({
     const estaOcupadoGlobal = id => ocupadosSet.has(Number(id)) && !permitidosActuales.has(Number(id));
 
     // Coordinador: combobox con búsqueda integrada
+    // Solo mostrar empleados con puesto de coordinador (idpuesto 2, 3, 4)
     const opcionesCoord = useMemo(() => {
         const t = qCoord.trim().toLowerCase();
         return empleadosOrdenados.filter(e => {
             const id = empId(e);
+            // Filtrar por puesto coordinador
+            const idPuesto = e.idpuesto ?? e.idPuesto;
+            if (![2, 3, 4].includes(Number(idPuesto))) return false;
             if (estaOcupadoGlobal(id)) return false;
             return displayName(e).toLowerCase().includes(t);
         });

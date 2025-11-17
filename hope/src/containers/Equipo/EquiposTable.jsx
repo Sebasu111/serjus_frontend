@@ -21,7 +21,11 @@ const EquiposTable = ({
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("click", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("click", handleClickOutside);
+        };
     }, []);
 
     const toggleMenu = id => setMenuAbierto(menuAbierto === id ? null : id);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 import ConfirmModal from "./ConfirmModal";
 
@@ -15,6 +15,7 @@ const InduccionTable = ({
     formatDateForDisplay
 }) => {
     const [openMenuId, setOpenMenuId] = useState(null);
+    const menuRef = React.useRef(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
     const [modoModal, setModoModal] = useState("desactivar");
@@ -41,6 +42,18 @@ const formatFechaLocal = (dateString) => {
     return dateString;
   }
 };
+
+useEffect(() => {
+    function handleClickOutside(event) {
+        if (openMenuId !== null && menuRef.current && !menuRef.current.contains(event.target)) {
+            setOpenMenuId(null);
+        }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+}, [openMenuId]);
 
 
 
@@ -108,7 +121,7 @@ const formatFechaLocal = (dateString) => {
                                         </button>
 
                                         {openMenuId === row.idinduccion && (
-                                            <div style={comboBoxStyles.menu.container}>
+                                            <div ref={menuRef} style={comboBoxStyles.menu.container}>
                                                 <div
                                                     style={{
                                                         ...comboBoxStyles.menu.item.editar.base,

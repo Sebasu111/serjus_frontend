@@ -30,12 +30,15 @@ const EquipoFormNuevo = ({
             const nombre = `${emp.nombre || ''} ${emp.apellido || ''}`.toLowerCase();
             const coincideNombre = nombre.includes(texto);
             const empId = Number(emp.idempleado || emp.id);
+            const idPuesto = emp.idpuesto ?? emp.idPuesto;
+            // Solo puestos de coordinador (2, 3, 4)
+            const esCoordinador = [2, 3, 4].includes(Number(idPuesto));
             const noOcupado = !ocupadosSet.has(empId) || originalesSet.has(empId);
             const noEsMiembro = !miembros.includes(empId);
             // Excluir el coordinador ya seleccionado de la lista
             const noEsCoordinadorSeleccionado = empId !== Number(idCoordinador);
 
-            return coincideNombre && noOcupado && noEsMiembro && noEsCoordinadorSeleccionado && emp.estado !== false;
+            return esCoordinador && coincideNombre && noOcupado && noEsMiembro && noEsCoordinadorSeleccionado && emp.estado !== false;
         });
     }, [empleados, busquedaCoordinador, ocupadosSet, miembros, idCoordinador, originales]);
 
