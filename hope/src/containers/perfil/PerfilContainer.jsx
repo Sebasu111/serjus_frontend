@@ -16,6 +16,7 @@ import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL;
 const API2 = process.env.REACT_APP_API_DOCS;
+const token = sessionStorage.getItem("token");
 
 const PerfilContainer = () => {
   const [empleado, setEmpleado] = useState(null);
@@ -36,7 +37,9 @@ const PerfilContainer = () => {
         if (!idUsuario) return;
 
         // Obtener usuario logueado
-        const resUsuarios = await axios.get(`${API}/usuarios/`);
+        const resUsuarios = await axios.get(`${API}/usuarios/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const usuarioActual = resUsuarios.data.results
           ? resUsuarios.data.results.find((u) => u.idusuario === idUsuario)
           : resUsuarios.data.find((u) => u.idusuario === idUsuario);
@@ -47,7 +50,9 @@ const PerfilContainer = () => {
         }
 
         // Obtener empleado asociado
-        const resEmpleados = await axios.get(`${API}/empleados/`);
+        const resEmpleados = await axios.get(`${API}/empleados/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const empleadoActual = resEmpleados.data.results
           ? resEmpleados.data.results.find(
             (e) => e.idempleado === usuarioActual.idempleado
@@ -78,12 +83,16 @@ const PerfilContainer = () => {
   // 🔹 Cargar capacitaciones
   const cargarCapacitaciones = async (idEmpleado) => {
     try {
-      const resCap = await axios.get(`${API}/empleadocapacitacion/`);
+      const resCap = await axios.get(`${API}/empleadocapacitacion/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const capsEmpleado = resCap.data.results
         ? resCap.data.results.filter((c) => c.idempleado === idEmpleado)
         : resCap.data.filter((c) => c.idempleado === idEmpleado);
 
-      const resCapsInfo = await axios.get(`${API}/capacitaciones/`);
+      const resCapsInfo = await axios.get(`${API}/capacitaciones/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const listaCapacitaciones = resCapsInfo.data.results || resCapsInfo.data;
 
       const info = capsEmpleado.map((c) => {
@@ -117,10 +126,14 @@ const PerfilContainer = () => {
   // 🔹 Cargar inducciones asignadas al empleado
   const cargarInduccionesEmpleado = async (idEmpleado) => {
     try {
-      const resInducciones = await axios.get(`${API}/inducciones/`);
+      const resInducciones = await axios.get(`${API}/inducciones/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const listaInducciones = resInducciones.data.results || resInducciones.data;
 
-      const resDocs = await axios.get(`${API}/inducciondocumentos/`);
+      const resDocs = await axios.get(`${API}/inducciondocumentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const listaDocs = resDocs.data.results || resDocs.data;
 
       const induccionesEmpleado = listaDocs
@@ -156,7 +169,9 @@ const PerfilContainer = () => {
     try {
       setInduccionSeleccionada(induccion);
 
-      const resDocs = await axios.get(`${API}/inducciondocumentos/`);
+      const resDocs = await axios.get(`${API}/inducciondocumentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const docsEmpleado = resDocs.data.results || resDocs.data;
 
       const documentosRelacionados = docsEmpleado.filter(
@@ -176,7 +191,9 @@ const PerfilContainer = () => {
       // Obtener metadatos de los documentos
       const docsData = await Promise.all(
         documentosRelacionados.map(async (d) => {
-          const resDoc = await axios.get(`${API}/documentos/${d.iddocumento}/`);
+          const resDoc = await axios.get(`${API}/documentos/${d.iddocumento}/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
           return resDoc.data;
         })
       );
@@ -186,7 +203,9 @@ const PerfilContainer = () => {
         ...doc,
         descargar: async () => {
           try {
-            const response = await fetch(`${API2}${doc.archivo}`);
+            const response = await fetch(`${API2}${doc.archivo}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
             if (!response.ok) throw new Error("Error al descargar el archivo");
 
             const blob = await response.blob();
@@ -225,7 +244,9 @@ const PerfilContainer = () => {
   // 🔹 Guardar ausencia desde el formulario
   const guardarAusencia = async (dataAusencia) => {
     try {
-      await axios.post(`${API}/ausencias/`, dataAusencia);
+      await axios.post(`${API}/ausencias/`, dataAusencia, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       showToast("Ausencia registrada correctamente", "success");
       setShowAusenciaForm(false);
     } catch (error) {

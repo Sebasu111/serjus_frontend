@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { showToast } from "../../utils/toast.js";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const displayName = (emp) => [emp?.nombre, emp?.apellido].filter(Boolean).join(" ");
 const empId = (emp) => emp.idempleado ?? emp.idEmpleado;
@@ -42,10 +43,14 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
 
     if (editingAusencia.iddocumento) {
       axios
-        .get(`${API}/documentos/${editingAusencia.iddocumento}/`)
-        .then((res) => setArchivoActual(res.data.nombrearchivo || ""))
-        .catch(() => setArchivoActual("Sin archivo"));
-    }
+      .get(`${API}/documentos/${editingAusencia.iddocumento}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      .then((res) => setArchivoActual(res.data.nombrearchivo || ""))
+      .catch(() => setArchivoActual("Sin archivo"));
+        }
   }
 }, [editingAusencia, empleados]);
 
@@ -123,12 +128,12 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
 
         if (editingAusencia?.iddocumento) {
           const respDoc = await axios.put(`${API}/documentos/${editingAusencia.iddocumento}/`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
+            headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}`, },
           });
           idDocumento = respDoc.data.iddocumento;
         } else {
           const respDoc = await axios.post(`${API}/documentos/`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
+            headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}`, },
           });
           idDocumento = respDoc.data.iddocumento;
         }

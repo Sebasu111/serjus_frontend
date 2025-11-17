@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const AmonestacionModal = ({
   visible,
@@ -17,7 +18,9 @@ const AmonestacionModal = ({
       try {
         const resAmonestacion = await axios.get(
           `${API}/amonestaciones/${amonestacion.idamonestacion}/`
-        );
+        , {
+            headers: { Authorization: `Bearer ${token}` }
+          });
         const amonestacionActualizada = resAmonestacion.data;
 
         const idDoc =
@@ -25,7 +28,9 @@ const AmonestacionModal = ({
           amonestacionActualizada?.idDocumento;
 
         if (idDoc) {
-          const resDoc = await axios.get(`${API}/documentos/${idDoc}/`);
+          const resDoc = await axios.get(`${API}/documentos/${idDoc}/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
           setDocumento(resDoc.data);
         } else {
           setDocumento(null);

@@ -3,6 +3,7 @@ import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 import { X } from "lucide-react";
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
   const [empleados, setEmpleados] = useState([]);
@@ -24,7 +25,9 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get(`${API}/empleados/`);
+      const res = await axios.get(`${API}/empleados/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setEmpleados(res.data.results || res.data);
     } catch (error) {
       console.error("Error al cargar colaboradores:", error);
@@ -34,7 +37,9 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
 
   const fetchCapacitaciones = async () => {
     try {
-      const res = await axios.get(`${API}/capacitaciones/`);
+      const res = await axios.get(`${API}/capacitaciones/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const activas = (res.data.results || res.data).filter(c => c.estado === true);
       setCapacitaciones(activas);
     } catch (error) {
@@ -45,7 +50,9 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
 
   const fetchEmpleadosAsignados = async (idCapacitacion) => {
     try {
-      const res = await axios.get(`${API}/empleadocapacitacion/`);
+      const res = await axios.get(`${API}/empleadocapacitacion/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const asignaciones = res.data.results || res.data;
       const empleadosIdsAsignados = asignaciones
         .filter(a => Number(a.idcapacitacion) === Number(idCapacitacion) && a.estado === true) // Solo activos
@@ -77,7 +84,9 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
       const idUsuario = Number(sessionStorage.getItem("idUsuario") || 1);
 
       // Obtener asignaciones existentes
-      const res = await axios.get(`${API}/empleadocapacitacion/`);
+      const res = await axios.get(`${API}/empleadocapacitacion/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const asignacionesExistentes = res.data.results || res.data;
 
       // Filtrar asignaciones activas de esta capacitación
@@ -138,7 +147,11 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 idusuario: idUsuario
               };
 
-              const resp = await axios.put(`${API}/empleadocapacitacion/${idAsignacion}/`, payload);
+              const resp = await axios.put(`${API}/empleadocapacitacion/${idAsignacion}/`, payload, {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              });
               console.log('Respuesta al desactivar asignación:', resp.data);
               operacionesRealizadas++;
             }
@@ -166,7 +179,11 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
               };
 
               const idAsignacion = asignacionExistente.idempleadocapacitacion || asignacionExistente.id;
-              await axios.put(`${API}/empleadocapacitacion/${idAsignacion}/`, payload);
+              await axios.put(`${API}/empleadocapacitacion/${idAsignacion}/`, payload, {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              });
               operacionesRealizadas++;
             } catch (error) {
               console.error("Error al reactivar asignación:", error);
@@ -185,7 +202,11 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
               estado: true
             };
 
-            await axios.post(`${API}/empleadocapacitacion/`, payload);
+            await axios.post(`${API}/empleadocapacitacion/`, payload, {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            });
             operacionesRealizadas++;
           } catch (error) {
             console.error("Error al crear asignación:", error);

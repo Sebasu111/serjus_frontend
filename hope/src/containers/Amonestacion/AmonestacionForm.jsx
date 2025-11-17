@@ -3,6 +3,7 @@ import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const AmonestacionForm = ({
   data,
@@ -31,7 +32,9 @@ const AmonestacionForm = ({
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get(`${API}/empleados/`);
+      const res = await axios.get(`${API}/empleados/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const empleadosData = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
@@ -45,7 +48,9 @@ const AmonestacionForm = ({
 
   const fetchPuestos = async () => {
     try {
-      const res = await axios.get(`${API}/puestos/`);
+      const res = await axios.get(`${API}/puestos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const puestosData = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)

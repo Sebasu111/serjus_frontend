@@ -64,11 +64,11 @@ const CambiarContrasenaModal = ({ onClose }) => {
                 idempleado: usuarioGuardado.idempleado
             };
 
-
             const response = await fetch(`${API_URL}/usuarios/${idUsuario}/`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${sessionStorage.getItem("token")}`
                 },
                 body: JSON.stringify(payload)
             });

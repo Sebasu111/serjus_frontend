@@ -7,6 +7,7 @@ import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const EstadosContainer = () => {
     const [nombreEstado, setNombreEstado] = useState("");
@@ -22,7 +23,9 @@ const EstadosContainer = () => {
 
     const fetchEstados = async () => {
         try {
-            const res = await axios.get(`${API}/estados/`);
+            const res = await axios.get(`${API}/estados/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setEstados(data);
         } catch (error) {
@@ -42,10 +45,14 @@ const EstadosContainer = () => {
                 idusuario: 1
             };
             if (editingId) {
-                await axios.put(`${API}/estados/${editingId}/`, data);
+                await axios.put(`${API}/estados/${editingId}/`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 setMensaje("Estado actualizado correctamente");
             } else {
-                await axios.post(`${API}/estados/`, data);
+                await axios.post(`${API}/estados/`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 setMensaje("Estado registrado correctamente");
             }
             setNombreEstado("");
@@ -79,6 +86,8 @@ const EstadosContainer = () => {
                 descripcion: estado.descripcion,
                 estado: false,
                 idusuario: estado.idusuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMensaje("Estado desactivado correctamente");
@@ -100,6 +109,8 @@ const EstadosContainer = () => {
                 descripcion: estado.descripcion,
                 estado: true,
                 idusuario: estado.idusuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMensaje("Estado activado correctamente");

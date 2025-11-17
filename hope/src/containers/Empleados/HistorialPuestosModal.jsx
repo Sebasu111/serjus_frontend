@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
+const token = sessionStorage.getItem("token");
 const API = process.env.REACT_APP_API_URL;
 const API_HISTORIAL = `${API}/historialpuestos/`;
 const API_PUESTOS = `${API}/puestos/`;
@@ -21,7 +22,9 @@ const HistorialPuestosModal = ({ empleado, onClose, mostrar }) => {
         try {
             setCargando(true);
             const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
-            const res = await axios.get(API_HISTORIAL);
+            const res = await axios.get(API_HISTORIAL, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const todosHistoriales = Array.isArray(res.data) ? res.data : res.data?.results || [];
 
             // Filtrar solo el historial de este empleado y ordenar por fecha más reciente
@@ -48,7 +51,9 @@ const HistorialPuestosModal = ({ empleado, onClose, mostrar }) => {
 
     const fetchPuestos = async () => {
         try {
-            const res = await axios.get(API_PUESTOS);
+            const res = await axios.get(API_PUESTOS, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : res.data?.results || [];
             setPuestos(data);
         } catch (error) {

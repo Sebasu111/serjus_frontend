@@ -15,6 +15,7 @@ import HistorialPuestoTable from "./HistorialPuestoTable";
 const API = process.env.REACT_APP_API_URL;
 const API_EMPLEADOS = `${API}/empleados/`;
 const API_PUESTOS = `${API}/puestos/`;
+const token = sessionStorage.getItem("token");
 
 const HistorialPuestoContainer = () => {
     const [form, setForm] = useState({
@@ -46,7 +47,9 @@ const HistorialPuestoContainer = () => {
 
     const fetchHistoriales = async () => {
         try {
-            const res = await axios.get(API);
+            const res = await axios.get(API, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setHistoriales(data);
         } catch (error) {
@@ -57,7 +60,9 @@ const HistorialPuestoContainer = () => {
 
     const fetchEmpleados = async () => {
         try {
-            const res = await axios.get(API_EMPLEADOS);
+            const res = await axios.get(API_EMPLEADOS, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setEmpleados(data);
         } catch (error) {
@@ -68,7 +73,9 @@ const HistorialPuestoContainer = () => {
 
     const fetchPuestos = async () => {
         try {
-            const res = await axios.get(API_PUESTOS);
+            const res = await axios.get(API_PUESTOS, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setPuestos(data);
         } catch (error) {
@@ -118,10 +125,14 @@ const HistorialPuestoContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`${API}${editingId}/`, payload);
+                await axios.put(`${API}${editingId}/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 showToast("Historial actualizado correctamente", "success");
             } else {
-                await axios.post(API, payload);
+                await axios.post(API, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 showToast("Historial registrado correctamente", "success");
             }
 
@@ -173,6 +184,8 @@ const HistorialPuestoContainer = () => {
                 ...historialSeleccionado,
                 estado: false,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Historial desactivado correctamente", "success");
             fetchHistoriales();
@@ -195,6 +208,8 @@ const HistorialPuestoContainer = () => {
                 ...historial,
                 estado: true,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Historial activado correctamente", "success");
             fetchHistoriales();

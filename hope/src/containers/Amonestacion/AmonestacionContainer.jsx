@@ -14,6 +14,7 @@ import { showToast, showPDFToasts } from "../../utils/toast.js";
 import { crearAmonestacion } from "../Amonestacion/AmonestaciónService.js";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const AmonestacionesContainer = () => {
   const [generandoPDF, setGenerandoPDF] = useState(false);
@@ -86,7 +87,9 @@ useEffect(() => {
   // 🔹 Obtener amonestaciones
   const fetchAmonestaciones = async () => {
     try {
-      const res = await axios.get(`${API}/amonestaciones/`);
+      const res = await axios.get(`${API}/amonestaciones/`, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setAmonestaciones(data);
     } catch (error) {
@@ -100,7 +103,9 @@ useEffect(() => {
     // vuelve a abrir el modal actualizado para ver el nuevo archivo
     const actualizada = await axios.get(
       `${API}/amonestaciones/${amonestacionSeleccionada.idamonestacion}/`
-    );
+    , {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     setAmonestacionSeleccionada(actualizada.data);
   }
 };
@@ -109,8 +114,12 @@ useEffect(() => {
   const fetchEmpleadosPorRol = async (rolesPermitidos = [1, 5]) => {
     try {
       const [resEmpleados, resUsuarios] = await Promise.all([
-        axios.get(`${API}/empleados/`),
-        axios.get(`${API}/usuarios/`),
+          axios.get(`${API}/empleados/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/usuarios/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
       ]);
 
       const empleadosData = Array.isArray(resEmpleados.data.results)

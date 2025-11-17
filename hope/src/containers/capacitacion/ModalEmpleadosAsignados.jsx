@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170 }) => {
   const [documentoVisualizando, setDocumentoVisualizando] = useState(null);
@@ -22,7 +23,9 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
     }
     try {
       // 1. Obtener el objeto completo actual
-      const getRes = await fetch(`${API}/empleadocapacitacion/${idEmpleado}/`);
+      const getRes = await fetch(`${API}/empleadocapacitacion/${idEmpleado}/`, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
       if (!getRes.ok) throw new Error("No se pudo obtener el registro actual");
       const data = await getRes.json();
       // 2. Actualizar solo el campo asistencia
@@ -30,7 +33,7 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
       // 3. Enviar el objeto completo por PUT
       const putRes = await fetch(`${API}/empleadocapacitacion/${idEmpleado}/`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload)
       });
       if (!putRes.ok) throw new Error("Error al actualizar asistencia");

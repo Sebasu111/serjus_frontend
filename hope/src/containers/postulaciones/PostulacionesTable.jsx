@@ -11,6 +11,7 @@ import { useHistory } from "react-router-dom";
 const thStyle = { borderBottom: "2px solid #eee", padding: 12, textAlign: "left", fontSize: 15 };
 const tdStyle = { padding: 12, borderBottom: "1px solid #f0f0f0", fontSize: 15 };
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const PostulacionesTable = ({
   postulaciones,
@@ -75,10 +76,15 @@ const PostulacionesTable = ({
             if (restantes.some((p) => p.idestado !== 3)) {
               await Promise.all(
                 restantes.map((p) =>
-                  axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
-                    ...p,
-                    idestado: 3,
-                  })
+                  axios.put(
+                    `${API}/postulaciones/${p.idpostulacion}/`,
+                    { ...p, idestado: 3 },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                      },
+                    }
+                  )
                 )
               );
 
@@ -179,6 +185,10 @@ const PostulacionesTable = ({
     await axios.put(`${API}/postulaciones/${idSel}/`, {
       ...postulacionParaSeleccionar,
       idestado: 2, // Seleccionada
+    },{
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
     });
 
     // 🔹 2. Rechazar todas las demás postulaciones del mismo aspirante
@@ -192,6 +202,10 @@ const PostulacionesTable = ({
           axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
             ...p,
             idestado: 3, // Rechazada
+          },{
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            },
           })
         )
       );
@@ -222,6 +236,10 @@ const PostulacionesTable = ({
           axios.put(`${API}/postulaciones/${p.idpostulacion}/`, {
             ...p,
             idestado: 3,
+          },{
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            },
           })
         )
       );
@@ -238,6 +256,10 @@ const PostulacionesTable = ({
         estado: false,
         idusuario: convocatoria.idusuario,
         idpuesto: convocatoria.idpuesto,
+      },{
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
       });
 
       showToast(
@@ -530,7 +552,11 @@ const PostulacionesTable = ({
                                         // 1️⃣ Consultar evaluaciones criterio ligadas a esta postulación
                                         const evalCritRes = await axios.get(
                                           `${API}/evaluacioncriterio/?idpostulacion=${idPost}`
-                                        );
+                                        ,{
+                                          headers: {
+                                            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                                          },
+                                        });
                                         const evalCriterios = evalCritRes.data.results || [];
 
                                         let evaluacionesIds = [];
@@ -543,7 +569,11 @@ const PostulacionesTable = ({
                                         let hayActiva = false;
 
                                         for (let idEval of evaluacionesIds) {
-                                          const evalRes = await axios.get(`${API}/evaluacion/${idEval}/`);
+                                          const evalRes = await axios.get(`${API}/evaluacion/${idEval}/`,{
+                                            headers: {
+                                              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                                            },
+                                          });
                                           if (evalRes.data.estado === true) {
                                             hayActiva = true;
                                             break;

@@ -4,6 +4,7 @@ import axios from "axios";
 import { showToast } from "../../utils/toast";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const ModalEliminarPostulacion = ({
   postulacionSeleccionada,
@@ -15,7 +16,9 @@ const ModalEliminarPostulacion = ({
 
   const handleEliminar = async () => {
     try {
-      await axios.delete(`${API}/postulaciones/${postulacionSeleccionada.idpostulacion}/`);
+      await axios.delete(`${API}/postulaciones/${postulacionSeleccionada.idpostulacion}/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
       showToast("Postulación eliminada correctamente.", "success");
 

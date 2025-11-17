@@ -4,6 +4,7 @@ import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 import ModalDeseleccion from "../Induccion/ModalDeseleccion.jsx"; 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const displayName = (emp) => {
   const candidates = [
@@ -91,7 +92,9 @@ const getFechaLocalISO = () => {
     const empId = Number(empleadoAEliminar.idempleado || empleadoAEliminar.id);
 
     try {
-      const res = await axios.get(`${API}/inducciondocumentos/`);
+      const res = await axios.get(`${API}/inducciondocumentos/`, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
       const raw = Array.isArray(res.data) ? res.data : res.data.results || [];
 
       const registro = raw.find(
@@ -104,7 +107,12 @@ const getFechaLocalISO = () => {
       if (registro) {
         await axios.put(
           `${API}/inducciondocumentos/${registro.idinducciondocumento}/`,
-          { ...registro, estado: false }
+          { ...registro, estado: false },
+          {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`
+            }
+          }
         );
         showToast("Empleado desasignado de la inducción", "info");
       }
@@ -141,7 +149,9 @@ const getFechaLocalISO = () => {
     try {
       const resInduccionDocs = await axios.get(
         `${API}/inducciondocumentos/`
-      );
+      , {
+          headers: { Authorization: `Bearer ${token}` }
+      });
       const induccionDocsRaw = Array.isArray(resInduccionDocs.data)
         ? resInduccionDocs.data
         : resInduccionDocs.data.results || [];
@@ -163,7 +173,9 @@ const getFechaLocalISO = () => {
         ];
 
         if (documentosIds.length > 0) {
-          const resDocumentos = await axios.get(`${API}/documentos/`);
+          const resDocumentos = await axios.get(`${API}/documentos/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          });
           const todosDocumentos = Array.isArray(resDocumentos.data)
             ? resDocumentos.data
             : resDocumentos.data.results || [];
@@ -190,7 +202,9 @@ const getFechaLocalISO = () => {
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get(`${API}/empleados/`);
+      const res = await axios.get(`${API}/empleados/`, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setEmpleados(data.filter((item) => item.estado));
     } catch (e) {
@@ -204,7 +218,9 @@ const getFechaLocalISO = () => {
       // ✅ Si no hay documentos ni empleados, desactiva todos los registros existentes
 if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
   try {
-    const res = await axios.get(`${API}/inducciondocumentos/`);
+    const res = await axios.get(`${API}/inducciondocumentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     const todos = Array.isArray(res.data) ? res.data : res.data.results || [];
     const activos = todos.filter(
       (r) =>
@@ -215,9 +231,15 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
     for (const reg of activos) {
       await axios.put(
         `${API}/inducciondocumentos/${reg.idinducciondocumento}/`,
-        { ...reg, estado: false }
+        { ...reg, estado: false },
+        {
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`
+          }
+        }
       );
     }
+
 
     showToast("Inducción sin asignaciones, registros desactivados", "info");
     onClose(); // ✅ Cierra modal
@@ -249,7 +271,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
           `${API}/documentos/`,
           formDataDocumento,
           {
-            headers: { "Content-Type": "multipart/form-data" },
+            headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
           }
         );
 
@@ -267,8 +289,9 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
           };
           return axios.post(
             `${API}/inducciondocumentos/`,
-            asignacionData
-          );
+            asignacionData, {
+              headers: { Authorization: `Bearer ${token}` }
+          });
         });
 
         await Promise.all(promesasAsignacion);
@@ -280,7 +303,9 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
 
           const resAsignaciones = await axios.get(
             `${API}/inducciondocumentos/?idinduccion=${induccion.idinduccion}`
-          );
+          , {
+              headers: { Authorization: `Bearer ${token}` }
+          });
           const existentes = Array.isArray(resAsignaciones.data)
             ? resAsignaciones.data
             : resAsignaciones.data.results || [];
@@ -304,8 +329,9 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
             };
             await axios.post(
               `${API}/inducciondocumentos/`,
-              asignacionData
-            );
+              asignacionData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
           }
         }
       }
