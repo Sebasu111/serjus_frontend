@@ -12,6 +12,7 @@ import CapacitacionesTable from "./CapacitacionTable.jsx";
 import AsignarCapacitacion from "./AsignarCapacitacion.jsx";
 import ConfirmModal from "./ConfirmModal";
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const CapacitacionContainer = () => {
     const [capacitaciones, setCapacitaciones] = useState([]);
@@ -46,7 +47,9 @@ const CapacitacionContainer = () => {
 
     const fetchCapacitaciones = async () => {
         try {
-            const res = await axios.get(`${API}/capacitaciones/`);
+            const res = await axios.get(`${API}/capacitaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
 
             // Verificar capacitaciones que deberían estar finalizadas automáticamente
@@ -82,6 +85,8 @@ const CapacitacionContainer = () => {
                     estado: true, // Mantener como true, el estado se determina por fechas
                     idestado_id: 3, // Finalizada
                     idusuario: idUsuario
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 console.log(`Capacitación "${cap.nombreevento}" finalizada automáticamente`);
             } catch (error) {
@@ -127,10 +132,14 @@ const CapacitacionContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`${API}/capacitaciones/${editingId}/`, payload);
+                await axios.put(`${API}/capacitaciones/${editingId}/`, payload,{
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 showToast("Capacitación actualizada correctamente", "success");
             } else {
-                await axios.post(`${API}/capacitaciones/`, payload);
+                await axios.post(`${API}/capacitaciones/`, payload,{
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 showToast("Capacitación registrada correctamente", "success");
             }
 
@@ -206,7 +215,9 @@ const CapacitacionContainer = () => {
         // Si es desactivar, primero verificar si tiene personas asignadas
         if (tipo === "desactivar") {
             try {
-                const res = await axios.get(`${API}/empleadocapacitacion/?capacitacion=` + (data.idcapacitacion || data.id));
+                const res = await axios.get(`${API}/empleadocapacitacion/?capacitacion=` + (data.idcapacitacion || data.id),{
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 const asignados = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
                 // Solo considerar asignaciones activas de esta capacitación
                 const asignadosActivos = asignados.filter(a => a.estado === true && Number(a.idcapacitacion) === Number(data.idcapacitacion || data.id));
@@ -247,6 +258,8 @@ const CapacitacionContainer = () => {
                 estado: nuevoEstado,
                 idestado_id: nuevoEstadoId,
                 idusuario: idUsuario
+            },{
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             const mensaje = tipo === "activar" ? "activada" : "desactivada";

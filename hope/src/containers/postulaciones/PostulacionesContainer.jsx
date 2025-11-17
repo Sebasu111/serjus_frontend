@@ -10,6 +10,7 @@ import SEO from "../../components/seo/index.jsx";
 import PostulacionesTable from "./PostulacionesTable.jsx";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const PostulacionesContainer = () => {
   const [postulaciones, setPostulaciones] = useState([]);
@@ -28,10 +29,18 @@ const PostulacionesContainer = () => {
   const fetchData = async () => {
     try {
       const [resPost, resAsp, resConv, resDocs] = await Promise.all([
-        axios.get(`${API}/postulaciones/`),
-        axios.get(`${API}/aspirantes/`),
-        axios.get(`${API}/convocatorias/`),
-        axios.get(`${API}/documentos/`),
+        axios.get(`${API}/postulaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+        axios.get(`${API}/aspirantes/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+        axios.get(`${API}/convocatorias/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+        axios.get(`${API}/documentos/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
       ]);
 
       setPostulaciones(resPost.data.results || resPost.data || []);

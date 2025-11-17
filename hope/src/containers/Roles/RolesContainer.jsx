@@ -7,6 +7,7 @@ import Footer from "../../layouts/footer/index.jsx";
 import ScrollToTop from "../../components/scroll-to-top/index.jsx";
 import SEO from "../../components/seo/index.jsx";
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const RolesContainer = () => {
     const [nombreRol, setNombreRol] = useState("");
@@ -42,10 +43,14 @@ const RolesContainer = () => {
                 idusuario: 1 // puedes reemplazar con usuario logueado
             };
             if (editingId) {
-                await axios.put(`${API}/roles/${editingId}/`, data);
+                await axios.put(`${API}/roles/${editingId}/`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
                 setMensaje("Rol actualizado correctamente");
             } else {
-                await axios.post(`${API}/roles/`, data);
+                await axios.post(`${API}/roles/`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
                 setMensaje("Rol registrado correctamente");
             }
             setNombreRol("");
@@ -78,6 +83,8 @@ const RolesContainer = () => {
                 descripcion: rol.descripcion,
                 estado: false,
                 idusuario: rol.idusuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMensaje("Rol desactivado correctamente");
@@ -98,6 +105,8 @@ const RolesContainer = () => {
                 descripcion: rol.descripcion,
                 estado: true,
                 idusuario: rol.idusuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMensaje("Rol activado correctamente");

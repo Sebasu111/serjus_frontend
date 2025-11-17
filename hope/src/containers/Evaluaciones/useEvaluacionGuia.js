@@ -3,6 +3,7 @@ import axios from "axios";
 import { showToast } from "../../utils/toast.js";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 export const useEvaluacionGuia = (evaluacionSeleccionada) => {
   const [tipos, setTipos] = useState([]);
@@ -45,12 +46,23 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
     const fetchAll = async () => {
       try {
         const [resTipos, resVars, resCriterios, resUsuario] = await Promise.all([
-          axios.get(`${API}/tipoevaluacion/`),
-          axios.get(`${API}/variables/`),
-          axios.get(`${API}/criterio/`),
+          axios.get(`${API}/tipoevaluacion/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API}/variables/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API}/criterio/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
           idUsuarioLogueado
-            ? axios.get(`${API}/usuarios/${idUsuarioLogueado}/`)
+            ? axios.get(`${API}/usuarios/${idUsuarioLogueado}/`, {
+                headers: {
+                  Authorization: `Bearer ${sessionStorage.getItem("token")}`
+                }
+              })
             : Promise.resolve({ data: null }),
+
         ]);
 
         setTipos(resTipos.data.results || resTipos.data || []);
@@ -72,7 +84,11 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
     if (!evaluacionSeleccionada) return;
 
     axios
-      .get(`${API}/evaluacioncriterio/`)
+      .get(`${API}/evaluacioncriterio/`, {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`
+        }
+      })
       .then(async (res) => {
         const data = res.data.results || res.data || [];
         const criteriosEval = data.filter(
@@ -96,7 +112,9 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
 
         const criterioBase = await axios.get(
           `${API}/criterio/${criteriosEval[0].idcriterio}/`
-        );
+        , {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         const idVariable = criterioBase.data.idvariable;
         const variable = variables.find((v) => v.idvariable === idVariable);
 
@@ -183,7 +201,9 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
         idpostulacion: null,
       };
 
-      const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval);
+      const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
       const idevaluacion = evalRes.data.idevaluacion;
 
       for (const c of criterios.filter((c) => c.estado !== false)) {
@@ -197,6 +217,8 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
           observacion: ev.obs || "",
           estado: true,
           idusuario: usuario.idusuario,
+        }, {
+            headers: { Authorization: `Bearer ${token}` }
         });
       }
 
@@ -229,7 +251,9 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
         idpostulacion: null,
       };
 
-      const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval);
+      const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
       const idevaluacion = evalRes.data.idevaluacion;
 
       // Guardar criterios evaluados
@@ -244,6 +268,8 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
           observacion: ev.obs || "",
           idusuario: usuario.idusuario,
           estado: true,
+        }, {
+            headers: { Authorization: `Bearer ${token}` }
         });
       }
 
@@ -261,6 +287,8 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
           fechaproximarev: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(), // revisión a 1 mes
           estado: true,
           idusuario: usuario.idusuario,
+        }, {
+            headers: { Authorization: `Bearer ${token}` }
         });
 
         const idseguimiento = seguimientoRes.data.idseguimiento;
@@ -273,6 +301,8 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
             accionmejora: `Mejorar desempeño en la variable ${c.nombrecriterio || ""}`,
             estado: true,
             idusuario: usuario.idusuario,
+          }, {
+              headers: { Authorization: `Bearer ${token}` }
           });
         }
       }

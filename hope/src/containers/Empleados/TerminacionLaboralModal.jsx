@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { showToast } from "../../utils/toast";
 import { generarConstanciaTrabajo } from "./constanciaTrabajoPdf";
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -60,7 +61,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
 
                 const responseDoc = await axios.post(`${API}/documentos/`, formDataDoc, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}`,
                     },
                 });
                 documentoId = responseDoc.data.iddocumento || responseDoc.data.id;
@@ -78,16 +79,22 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                 idusuario: 1 // TODO: Reemplazar con el usuario logueado real
             };
 
-            const response = await axios.post(`${API}/terminacionlaboral/`, dataToSend);
+            const response = await axios.post(`${API}/terminacionlaboral/`, dataToSend, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
             // 3. Finalizar contrato del empleado automáticamente
             try {
                 // Buscar contratos activos del empleado
-                const contratosResponse = await axios.get(`${API}/contratos/`);
+                const contratosResponse = await axios.get(`${API}/contratos/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 const contratosData = Array.isArray(contratosResponse.data) ? contratosResponse.data : contratosResponse.data?.results || [];
 
                 // Buscar contratos del empleado usando el historial de puestos
-                const historialResponse = await axios.get(`${API}/historialpuestos/`);
+                const historialResponse = await axios.get(`${API}/historialpuestos/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 const historialData = Array.isArray(historialResponse.data) ? historialResponse.data : historialResponse.data?.results || [];
 
                 const contratosDelEmpleado = contratosData.filter(contrato => {
@@ -103,6 +110,8 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                     await axios.put(`${API}/contratos/${contrato.idcontrato}/`, {
                         ...contrato,
                         estado: false
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` }
                     });
                 }
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import axios from "axios";
 
 const API_BASE = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
   const [evaluaciones, setEvaluaciones] = useState([]);
@@ -22,8 +23,15 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
   // 🔹 Cargar usuario logueado
   useEffect(() => {
     if (!idUsuarioLogueado) return;
+
+    const token = sessionStorage.getItem("token");
+
     axios
-      .get(`${API_BASE}/usuarios/${idUsuarioLogueado}/`)
+      .get(`${API_BASE}/usuarios/${idUsuarioLogueado}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => setUsuario(res.data))
       .catch((err) => console.error("Error cargando usuario:", err));
   }, [idUsuarioLogueado]);
@@ -33,9 +41,15 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
     const loadData = async () => {
       try {
         const [resEval, resEmp, resPuestos] = await Promise.all([
-          axios.get(`${API_BASE}/evaluacion/`),
-          axios.get(`${API_BASE}/empleados/`),
-          axios.get(`${API_BASE}/puestos/`),
+          axios.get(`${API_BASE}/evaluacion/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API_BASE}/empleados/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API_BASE}/puestos/`, {
+              headers: { Authorization: `Bearer ${token}` }
+          }),
         ]);
 
         const evalData = resEval.data.results || resEval.data || [];

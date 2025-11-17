@@ -28,6 +28,11 @@ const LoginPage = () => {
             }
 
             const usuario = res.data.usuario;
+
+            // 🔥 Guardar token de sesión
+            sessionStorage.setItem("token", res.data.token);
+
+            // Guardar usuario
             localStorage.setItem("usuarioLogueado", JSON.stringify(usuario));
             sessionStorage.setItem("idUsuario", usuario.idusuario);
             sessionStorage.setItem("idRol", usuario.idrol);

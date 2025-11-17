@@ -12,6 +12,7 @@ import { useHistory } from "react-router-dom";
 import ModalAusencia from "./AusenciaModal.jsx";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const displayName = (emp) =>
   [emp?.nombre, emp?.apellido].filter(Boolean).join(" ");
@@ -48,7 +49,9 @@ const AusenciaContainer = () => {
   //Cargar estados
   const fetchEstados = async () => {
     try {
-      const res = await axios.get(`${API}/estados/`);
+      const res = await axios.get(`${API}/estados/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
@@ -65,7 +68,9 @@ const AusenciaContainer = () => {
   // Obtener ausencias y actualizar si ya finalizó
   const fetchAusencias = async (estadosCargados = estados) => {
     try {
-      const res = await axios.get(`${API}/ausencias/`);
+      const res = await axios.get(`${API}/ausencias/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
@@ -104,7 +109,9 @@ const AusenciaContainer = () => {
               ...ausencia,
               idestado: estadoFinalizada.idestado,
             };
-            await axios.put(`${API}/ausencias/${ausencia.idausencia}/`, updated);
+            await axios.put(`${API}/ausencias/${ausencia.idausencia}/`, updated, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
             actualizadas.push({
               ...ausencia,
               idestado: { ...estadoFinalizada },
@@ -140,7 +147,9 @@ const AusenciaContainer = () => {
   // Obtener empleados
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get(`${API}/empleados/`);
+      const res = await axios.get(`${API}/empleados/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
@@ -202,9 +211,13 @@ const handleSubmit = async (dataAusencia, idAusencia) => {
       }
 
       if (idAusencia) {
-        await axios.put(`${API}/ausencias/${idAusencia}/`, dataAusencia);
+        await axios.put(`${API}/ausencias/${idAusencia}/`, dataAusencia, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       } else {
-        await axios.post(`${API}/ausencias/`, dataAusencia);
+        await axios.post(`${API}/ausencias/`, dataAusencia, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       }
 
       // 🔄 Actualizamos UI
@@ -242,6 +255,10 @@ const handleSubmit = async (dataAusencia, idAusencia) => {
       await axios.put(`${API}/ausencias/${id}/`, {
         ...aus,
         estado: !aus.estado,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
       });
 
       showToast(aus.estado ? "Ausencia desactivada" : "Ausencia activada");
@@ -261,7 +278,9 @@ const handleSubmit = async (dataAusencia, idAusencia) => {
         empleados.find((e) => e.idempleado === ausencia.idempleado) || {};
       let documento = null;
       if (ausencia.iddocumento) {
-        const res = await axios.get(`${API}/documentos/${ausencia.iddocumento}/`);
+        const res = await axios.get(`${API}/documentos/${ausencia.iddocumento}/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         documento = res.data;
       }
       setModalAusenciaData({ ...ausencia, empleado, documento });

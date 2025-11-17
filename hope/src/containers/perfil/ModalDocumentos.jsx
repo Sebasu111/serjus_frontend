@@ -2,6 +2,7 @@ import React from "react";
 import axios from "axios";
 import { X } from "lucide-react";
 const API = process.env.REACT_APP_API_DOCS;
+const token = sessionStorage.getItem("token");
 
 const overlayStyle = {
   position: "fixed",
@@ -67,7 +68,12 @@ const ModalDocumentos = ({ visible, onClose, documentos, induccionNombre }) => {
       : `${API}${archivoUrl}`;
 
     // Descargar archivo binario
-    const response = await axios.get(urlCompleta, { responseType: "blob" });
+    const response = await axios.get(urlCompleta, {
+      responseType: "blob",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`
+      }
+    });
 
     // Detectar tipo MIME real (si el backend lo envía)
     const mimeType =

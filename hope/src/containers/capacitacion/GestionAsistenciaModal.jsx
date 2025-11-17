@@ -3,6 +3,7 @@ import axios from "axios";
 import { showToast } from "../../utils/toast";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsignados, onActualizar }) => {
     const [empleados, setEmpleados] = useState([]);
@@ -47,6 +48,8 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
                 asistencia: asistio ? "Sí" : "No",
                 confirmadopor: idUsuario,
                 fechaconfirmacion: new Date().toISOString().slice(0, 10)
+            } , {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             // Actualizar el estado local
@@ -140,7 +143,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
             formData.append("idempleado", empleadoSeleccionado.idempleado);
 
             const resDoc = await axios.post(`${API}/documentos/`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
+                headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
             });
 
             // Actualizar el empleado con el documento
@@ -148,6 +151,8 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
                 iddocumento: resDoc.data.iddocumento,
                 observacion: observacion || "Documento subido",
                 fechaenvio: new Date().toISOString().slice(0, 10)
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             const tipoDocumento = empleadoSeleccionado.asistencia === "Sí" ? "informe de asistencia" : "justificación de ausencia";

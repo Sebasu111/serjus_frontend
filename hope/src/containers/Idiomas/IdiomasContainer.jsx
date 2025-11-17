@@ -11,6 +11,7 @@ import IdiomaForm from "./IdiomaForm";
 import ConfirmModal from "./ConfirmModal";
 import IdiomasTable from "./IdiomasTable";
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const IdiomasContainer = () => {
     const [nombreIdioma, setNombreIdioma] = useState("");
@@ -30,7 +31,9 @@ const IdiomasContainer = () => {
 
     const fetchIdiomas = async () => {
         try {
-            const res = await axios.get(`${API}/idiomas/`);
+            const res = await axios.get(`${API}/idiomas/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setIdiomas(data);
         } catch (error) {
@@ -60,9 +63,13 @@ const IdiomasContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`${API}/idiomas/${editingId}/`, payload);
+                await axios.put(`${API}/idiomas/${editingId}/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
             } else {
-                await axios.post(`${API}/idiomas/`, payload);
+                await axios.post(`${API}/idiomas/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
             }
 
             showToast(editingId ? "Idioma actualizado correctamente" : "Idioma registrado correctamente");
@@ -110,6 +117,8 @@ const IdiomasContainer = () => {
                 nombreidioma: idiomaSeleccionado.nombreidioma,
                 estado: false,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Idioma desactivado correctamente");
             fetchIdiomas();
@@ -131,6 +140,8 @@ const IdiomasContainer = () => {
                 nombreidioma: idioma.nombreidioma,
                 estado: true,
                 idusuario: idUsuario
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             showToast("Idioma activado correctamente");
             fetchIdiomas();

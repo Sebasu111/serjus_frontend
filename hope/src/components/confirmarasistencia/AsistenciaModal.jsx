@@ -4,6 +4,7 @@ import { X, ArrowLeft } from "lucide-react";
 import { showToast } from "../../utils/toast";
 
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const overlayStyle = {
   position: "fixed",
@@ -89,7 +90,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
     formData.append("idempleado", capacitacion.idempleado);
 
     const resDoc = await axios.post(`${API}/documentos/`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${sessionStorage.getItem("token")}` },
     });
 
     return resDoc.data.iddocumento;

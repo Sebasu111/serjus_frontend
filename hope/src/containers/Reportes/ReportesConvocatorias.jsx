@@ -12,6 +12,7 @@ import {
 
 import ReporteConvocatoriasPDF from "./ReporteConvocatoriasPDF"; // (se implementará después)
 const API = process.env.REACT_APP_API_URL;
+const token = sessionStorage.getItem("token");
 
 const ReportesConvocatorias = () => {
   const [convocatorias, setConvocatorias] = useState([]);
@@ -43,7 +44,9 @@ const ReportesConvocatorias = () => {
 
   const fetchConvocatorias = async () => {
     try {
-      const res = await axios.get(`${API}/convocatorias/`);
+      const res = await axios.get(`${API}/convocatorias/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       setConvocatorias(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar convocatorias", "error");
@@ -52,7 +55,9 @@ const ReportesConvocatorias = () => {
 
   const fetchPostulaciones = async () => {
     try {
-      const res = await axios.get(`${API}/postulaciones/`);
+      const res = await axios.get(`${API}/postulaciones/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       setPostulaciones(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar postulaciones", "error");
@@ -61,7 +66,9 @@ const ReportesConvocatorias = () => {
 
   const fetchAspirantes = async () => {
     try {
-      const res = await axios.get(`${API}/aspirantes/`);
+      const res = await axios.get(`${API}/aspirantes/`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
       setAspirantes(res.data.results || res.data || []);
     } catch {
       showToast("Error al cargar aspirantes", "error");

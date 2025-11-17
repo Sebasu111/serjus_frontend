@@ -8,6 +8,7 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
 import { buildApiUrl, buildApiUrlWithId, API_CONFIG } from "../../config/api.js";
+const token = sessionStorage.getItem("token");
 
 const TerminacionLaboralContainer = () => {
     const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState("");
@@ -51,7 +52,9 @@ const TerminacionLaboralContainer = () => {
     const fetchEmpleados = async () => {
         try {
             const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.EMPLEADOS);
-            const response = await axios.get(apiUrl);
+            const response = await axios.get(apiUrl, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const empleadosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
             setEmpleados(empleadosData);
         } catch (error) {
@@ -63,7 +66,9 @@ const TerminacionLaboralContainer = () => {
     const fetchContratos = async () => {
         try {
             const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.CONTRATOS);
-            const response = await axios.get(apiUrl);
+            const response = await axios.get(apiUrl, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const contratosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
             // Solo contratos activos
             setContratos(contratosData.filter(contrato => contrato.estado === true));
@@ -116,11 +121,15 @@ const TerminacionLaboralContainer = () => {
 
             if (editingId) {
                 const apiUrl = buildApiUrlWithId(API_CONFIG.ENDPOINTS.TERMINACIONLABORAL || 'terminacionlaboral', editingId);
-                await axios.put(apiUrl, terminacionData);
+                await axios.put(apiUrl, terminacionData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 showToast("Terminación actualizada correctamente", "success");
             } else {
                 const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.TERMINACIONLABORAL || 'terminacionlaboral');
-                const response = await axios.post(apiUrl, terminacionData);
+                const response = await axios.post(apiUrl, terminacionData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
                 terminacionCreada = response.data;
                 showToast("Terminación registrada correctamente", "success");
 
@@ -128,7 +137,12 @@ const TerminacionLaboralContainer = () => {
                 if (contratoEmpleado) {
                     try {
                         const contratoApiUrl = buildApiUrlWithId(API_CONFIG.ENDPOINTS.CONTRATOS, contratoEmpleado.idcontrato);
-                        await axios.patch(contratoApiUrl, { estado: false });
+                        await axios.patch(contratoApiUrl, { estado: false }, {
+                        headers: {
+                            Authorization: `Bearer ${sessionStorage.getItem("token")}`
+                        }
+                        });
+
                         showToast("Contrato finalizado automáticamente", "info");
                     } catch (contratoError) {
                         console.error("Error al finalizar contrato:", contratoError);
@@ -178,6 +192,8 @@ const TerminacionLaboralContainer = () => {
             await axios.put(apiUrl, {
                 ...terminacion,
                 estado: false
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             showToast("Terminación desactivada correctamente", "success");
@@ -197,6 +213,8 @@ const TerminacionLaboralContainer = () => {
             await axios.put(apiUrl, {
                 ...terminacion,
                 estado: true
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             showToast("Terminación activada correctamente", "success");

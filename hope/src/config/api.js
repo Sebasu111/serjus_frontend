@@ -63,7 +63,7 @@ export const buildApiUrlWithId = (endpoint, id) => {
 
 // Función para obtener headers comunes
 export const getApiHeaders = () => {
-    const token = localStorage.getItem('authToken'); // Si usas autenticación
+    const token = sessionStorage.getItem("token"); // Si usas autenticación
     return {
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })
