@@ -41,7 +41,7 @@ const LoginPage = () => {
             history.push("/home");
         } catch (error) {
             console.error("Error al iniciar sesión:", error);
-            showToast("Error al iniciar sesión. Intenta más tarde", "error");
+            showToast("Usuario y/o Contraseña Incorrectas", "error");
         }
     };
 
