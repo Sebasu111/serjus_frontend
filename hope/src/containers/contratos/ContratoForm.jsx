@@ -689,12 +689,20 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                                 });
                                             }
 
-                                            // Filtrar para mostrar solo el puesto más reciente/actual de cada empleado que NO tenga contrato activo por historial
+                                            // Filtrar para mostrar solo el puesto más reciente/actual de cada empleado que NO tenga contrato activo por historial y que esté activo
                                             const empleadosUnicos = new Map();
                                             historialPuestos.forEach(historial => {
                                                 const empleadoId = historial.idempleado || historial.empleado_id || historial.empleado;
                                                 const historialId = historial.idhistorialpuesto || historial.id;
                                                 if (historialConContratoActivo.has(historialId)) return; // Excluir si su historial está en contrato activo
+
+                                                // Buscar el empleado y verificar que esté activo
+                                                const empleado = empleados.find(emp =>
+                                                    emp.idempleado == empleadoId ||
+                                                    emp.empleado_id == empleadoId ||
+                                                    emp.id == empleadoId
+                                                );
+                                                if (!empleado || !(empleado.estado === true || empleado.estado === 1)) return; // Excluir desactivados
 
                                                 const fechaCreacion = new Date(historial.createdat || historial.created_at || historial.fecha_creacion || '1900-01-01');
                                                 const esActivo = historial.estado === true || historial.estado === 1 || historial.activo === true;
@@ -764,6 +772,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                     >
                                         <option value="">Seleccione un colaborador...</option>
                                         {empleados.map(empleado => {
+                                            if (!(empleado.estado === true || empleado.estado === 1)) return null; // Excluir desactivados
                                             const nombreCompleto = `${empleado.nombre || ''} ${empleado.apellido || ''}`.trim();
                                             return (
                                                 <option key={empleado.idempleado} value={empleado.idempleado}>

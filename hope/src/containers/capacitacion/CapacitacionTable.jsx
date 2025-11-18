@@ -18,6 +18,7 @@ const CapacitacionesTable = ({
     setPaginaActual
 }) => {
     const [openMenuId, setOpenMenuId] = useState(null);
+    const menuRef = React.useRef(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
     const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
@@ -31,6 +32,18 @@ const CapacitacionesTable = ({
     const toggleMenu = id => {
         setOpenMenuId(openMenuId === id ? null : id);
     };
+
+    React.useEffect(() => {
+        function handleClickOutside(event) {
+            if (openMenuId !== null && menuRef.current && !menuRef.current.contains(event.target)) {
+                setOpenMenuId(null);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openMenuId]);
 
     const formatDate = dateStr => {
         if (!dateStr) return "";
@@ -299,7 +312,7 @@ const CapacitacionesTable = ({
                                                     Opciones ▾
                                                 </button>
                                                 {openMenuId === id && (
-                                                    <div style={comboBoxStyles.menu.container}>
+                                                    <div ref={menuRef} style={comboBoxStyles.menu.container}>
                                                         {(() => {
                                                             const hoy = new Date();
                                                             const fechaInicio = new Date(c.fechainicio);

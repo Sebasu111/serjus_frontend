@@ -12,6 +12,18 @@ const PuebloCulturaTable = ({
     setPaginaActual
 }) => {
     const [openMenuId, setOpenMenuId] = useState(null);
+    const menuRef = React.useRef(null);
+        React.useEffect(() => {
+            function handleClickOutside(event) {
+                if (openMenuId !== null && menuRef.current && !menuRef.current.contains(event.target)) {
+                    setOpenMenuId(null);
+                }
+            }
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
+        }, [openMenuId]);
     const [modalOpen, setModalOpen] = useState(false);
     const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
     const [modoModal, setModoModal] = useState("desactivar"); // "desactivar" o "activar"
@@ -72,7 +84,7 @@ const PuebloCulturaTable = ({
                                             Opciones ▾
                                         </button>
                                         {openMenuId === row.idPuebloCultura && (
-                                            <div style={comboBoxStyles.menu.container}>
+                                            <div ref={menuRef} style={comboBoxStyles.menu.container}>
                                                 <div
                                                     style={{
                                                         ...comboBoxStyles.menu.item.editar.base,

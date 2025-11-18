@@ -13,6 +13,18 @@ const DocumentosTable = ({
     totalPaginas
 }) => {
     const [openComboId, setOpenComboId] = useState(null);
+    const menuRef = React.useRef(null);
+    React.useEffect(() => {
+        function handleClickOutside(event) {
+            if (openComboId !== null && menuRef.current && !menuRef.current.contains(event.target)) {
+                setOpenComboId(null);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openComboId]);
 
     const thStyle = {
         borderBottom: "2px solid #eee",
@@ -100,7 +112,7 @@ const DocumentosTable = ({
                                                     Opciones ▾
                                                 </button>
                                                 {openComboId === d.iddocumento && (
-                                                    <div style={comboBoxStyles.menu.container}>
+                                                    <div ref={menuRef} style={comboBoxStyles.menu.container}>
                                                         <div
                                                             style={comboBoxStyles.menu.item.activar.base}
                                                             onClick={() => {
