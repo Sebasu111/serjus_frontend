@@ -176,62 +176,63 @@ const HistorialPuestosModal = ({ empleado, onClose, mostrar }) => {
                     </div>
                 ) : (
                     <>
-                        {/* Puesto Actual */}
-                        <div style={{ marginBottom: 32 }}>
-                            <h4 style={{
-                                margin: "0 0 16px 0",
-                                fontSize: 20,
-                                fontWeight: 600,
-                                color: "#0f172a",
-                                borderBottom: "2px solid #e5e7eb",
-                                paddingBottom: 8
-                            }}>
-                                Puesto Actual
-                            </h4>
-                            <div style={{
-                                background: "#f0f9ff",
-                                border: "1px solid #0ea5e9",
-                                borderRadius: 12,
-                                padding: 20
-                            }}>
-                                <div style={{
-                                    fontSize: 18,
-                                    fontWeight: 700,
+                        {/* Puesto Actual solo si está activo y tiene puesto */}
+                        {(empleado?.estado !== false && (empleado?.idpuesto || empleado?.idPuesto)) && (
+                            <div style={{ marginBottom: 32 }}>
+                                <h4 style={{
+                                    margin: "0 0 16px 0",
+                                    fontSize: 20,
+                                    fontWeight: 600,
                                     color: "#0f172a",
-                                    marginBottom: 8
+                                    borderBottom: "2px solid #e5e7eb",
+                                    paddingBottom: 8
                                 }}>
-                                    {empleado?.puesto || "Sin puesto asignado"}
+                                    Puesto Actual
+                                </h4>
+                                <div style={{
+                                    background: "#f0f9ff",
+                                    border: "1px solid #0ea5e9",
+                                    borderRadius: 12,
+                                    padding: 20
+                                }}>
+                                    <div style={{
+                                        fontSize: 18,
+                                        fontWeight: 700,
+                                        color: "#0f172a",
+                                        marginBottom: 8
+                                    }}>
+                                        {empleado?.puesto || "Sin puesto asignado"}
+                                    </div>
+                                    {(() => {
+                                        // Buscar el registro de historial activo (sin fecha fin) más reciente
+                                        const historialActivo = historial.find(h =>
+                                            !h.fechafin || h.fechafin === null || h.fechafin === ""
+                                        );
+                                        return (
+                                            <>
+                                                <div style={{
+                                                    fontSize: 14,
+                                                    color: "#6b7280",
+                                                    marginBottom: 6
+                                                }}>
+                                                    Fecha de inicio: {formatearFecha(historialActivo?.fechainicio || empleado?.inicioLaboral)}
+                                                </div>
+                                                <div style={{
+                                                    fontSize: 16,
+                                                    fontWeight: 600,
+                                                    color: "#059669"
+                                                }}>
+                                                    Salario actual: {(() => {
+                                                        const salarioActual = historialActivo?.salario || obtenerSalarioPuesto(empleado?.idpuesto || empleado?.idPuesto);
+                                                        return formatearSalario(salarioActual);
+                                                    })()}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
-                                {(() => {
-                                    // Buscar el registro de historial activo (sin fecha fin) más reciente
-                                    const historialActivo = historial.find(h =>
-                                        !h.fechafin || h.fechafin === null || h.fechafin === ""
-                                    );
-                                    return (
-                                        <>
-                                            <div style={{
-                                                fontSize: 14,
-                                                color: "#6b7280",
-                                                marginBottom: 6
-                                            }}>
-                                                Fecha de inicio: {formatearFecha(historialActivo?.fechainicio || empleado?.inicioLaboral)}
-                                            </div>
-                                            <div style={{
-                                                fontSize: 16,
-                                                fontWeight: 600,
-                                                color: "#059669"
-                                            }}>
-                                                Salario actual: {(() => {
-                                                    const salarioActual = historialActivo?.salario || obtenerSalarioPuesto(empleado?.idpuesto || empleado?.idPuesto);
-                                                    return formatearSalario(salarioActual);
-                                                })()}
-                                            </div>
-                                        </>
-                                    );
-                                })()}
                             </div>
-                        </div>
-
+                        )}
                         {/* Historial */}
                         <div>
                             <h4 style={{

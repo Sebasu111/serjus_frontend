@@ -1515,12 +1515,18 @@ const EmpleadosContainer = () => {
         const id = empId(empleadoSeleccionado);
         const nuevoEstado = accionEstado === "activar";
         try {
-            // 1. Actualizar el estado del empleado
-            await axios.put(`${API}/empleados/${id}/`, {
-                ...empleadoSeleccionado,
-                estado: nuevoEstado,
-                idusuario: getIdUsuario()
-            }, {
+            // Si se desactiva, finalizar historial de puesto y quitar puesto actual
+            let updatePayload = { ...empleadoSeleccionado, estado: nuevoEstado, idusuario: getIdUsuario() };
+            if (!nuevoEstado) {
+                // Finalizar historial activo
+                await finalizarHistorialAnterior(id);
+                // Quitar puesto actual
+                updatePayload.idpuesto = null;
+            } else {
+                // Si se reactiva, NO restaurar puesto anterior
+                updatePayload.idpuesto = null;
+            }
+            await axios.put(`${API}/empleados/${id}/`, updatePayload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -1795,13 +1801,13 @@ const EmpleadosContainer = () => {
             } else {
                 // Fallback: intentar con el endpoint de archivo
                 const fileResponse = await axios.get(
-                `${API}/documentos/${cvDocumento.iddocumento}/archivo/`,
-                {
-                    responseType: "blob",
-                    headers: {
-                    Authorization: `Bearer ${token}`
+                    `${API}/documentos/${cvDocumento.iddocumento}/archivo/`,
+                    {
+                        responseType: "blob",
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
                     }
-                }
                 );
 
                 // Crear URL del blob y descargar
