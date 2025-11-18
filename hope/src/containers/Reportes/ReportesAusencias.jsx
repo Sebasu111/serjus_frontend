@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { showToast } from "../../utils/toast";
 import { buttonStyles } from "../../stylesGenerales/buttons";
-import ReporteAusenciasPDF from "./ReporteAusenciasPDF"; // 🆕 importar nuevo componente
+import ReporteAusenciasPDF from "./ReporteAusenciasPDF";
 import {
   BarraFiltros,
   FiltroFechasRango,
   FiltroSelect,
+  FiltroEmpleadoSearch,
 } from "./ReportesFiltros";
+
 const API = process.env.REACT_APP_API_URL;
 const token = sessionStorage.getItem("token");
 
@@ -19,6 +21,7 @@ const ReportesAusencias = () => {
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
   const [tipo, setTipo] = useState("");
+  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState("");
 
   const [paginaActual, setPaginaActual] = useState(1);
   const [elementosPorPagina, setElementosPorPagina] = useState(5);
@@ -29,16 +32,14 @@ const ReportesAusencias = () => {
   }, []);
 
   const formatearFecha = (fecha) => {
-  if (!fecha) return "";
-  const partes = fecha.split("-"); // yyyy-mm-dd
-  return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
+    if (!fecha) return "";
+    const partes = fecha.split("-");
+    return `${partes[2]}-${partes[1]}-${partes[0]}`;
   };
 
   const fetchAusencias = async () => {
     try {
-      const res = await axios.get(`${API}/ausencias/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+      const res = await axios.get(`${API}/ausencias/`, { headers: { Authorization: `Bearer ${token}` } });
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
@@ -52,9 +53,7 @@ const ReportesAusencias = () => {
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get(`${API}/empleados/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+      const res = await axios.get(`${API}/empleados/`, { headers: { Authorization: `Bearer ${token}` } });
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
@@ -62,14 +61,12 @@ const ReportesAusencias = () => {
         : [];
       setEmpleados(data);
     } catch (error) {
-      showToast("Error al cargar empleados", "error");
+      showToast("Error al cargar colaboradores", "error");
     }
   };
 
   const obtenerNombreEmpleado = (id) => {
-    const emp = empleados.find(
-      (e) => e.idempleado === id || e.idEmpleado === id
-    );
+    const emp = empleados.find((e) => e.idempleado === id || e.idEmpleado === id);
     return emp ? `${emp.nombre} ${emp.apellido}` : "Sin registro";
   };
 
@@ -80,6 +77,7 @@ const ReportesAusencias = () => {
     if (fechaDesde && a.fechainicio < fechaDesde) pasa = false;
     if (fechaHasta && a.fechafin > fechaHasta) pasa = false;
     if (tipo && a.tipo !== tipo) pasa = false;
+    if (empleadoSeleccionado && a.idempleado !== Number(empleadoSeleccionado)) pasa = false;
 
     return pasa;
   });
@@ -94,6 +92,7 @@ const ReportesAusencias = () => {
     setFechaDesde("");
     setFechaHasta("");
     setTipo("");
+    setEmpleadoSeleccionado("");
     setPaginaActual(1);
   };
 
@@ -104,19 +103,38 @@ const ReportesAusencias = () => {
       </h2>
 
       <BarraFiltros>
+
+        {/* FILTRO EMPLEADO */}
+        <FiltroEmpleadoSearch
+          empleados={empleados}
+          value={empleadoSeleccionado}
+          onChange={(v) => {
+            setEmpleadoSeleccionado(Number(v));  // 👈 aseguramos número
+            setPaginaActual(1);
+          }}
+        />
+
+        {/* FILTRO FECHAS */}
         <FiltroFechasRango
           fechaDesde={fechaDesde}
           fechaHasta={fechaHasta}
+          minHasta={fechaDesde}
           onChangeDesde={(v) => {
             setFechaDesde(v);
             setPaginaActual(1);
+            if (fechaHasta && v > fechaHasta) setFechaHasta(v);
           }}
           onChangeHasta={(v) => {
+            if (fechaDesde && v < fechaDesde) {
+              showToast("La fecha de fin no puede ser menor que la fecha de inicio", "warning");
+              return;
+            }
             setFechaHasta(v);
             setPaginaActual(1);
           }}
         />
 
+        {/* FILTRO TIPO */}
         <FiltroSelect
           label="Tipo"
           value={tipo}
@@ -132,6 +150,7 @@ const ReportesAusencias = () => {
           placeholder="Todos"
         />
 
+        {/* BOTONES */}
         <button
           type="button"
           onClick={limpiarFiltros}
@@ -196,20 +215,14 @@ const ReportesAusencias = () => {
                   <td style={{ padding: "10px" }}>
                     {obtenerNombreEmpleado(a.idempleado)}
                   </td>
-                  <td style={{ textAlign: "center", padding: "10px" }}>
-                    {a.tipo}
-                  </td>
-                  <td style={{ textAlign: "center", padding: "10px" }}>
-                    {a.diagnostico}
-                  </td>
-                  <td style={{ textAlign: "center", padding: "10px" }}>
-                    {a.cantidad_dias}
-                  </td>
+                  <td style={{ textAlign: "center", padding: "10px" }}>{a.tipo}</td>
+                  <td style={{ textAlign: "center", padding: "10px" }}>{a.diagnostico}</td>
+                  <td style={{ textAlign: "center", padding: "10px" }}>{a.cantidad_dias}</td>
                   <td style={{ textAlign: "center", padding: "10px" }}>
                     {a.es_iggs ? "IGGS" : a.otro ?? "No registrado"}
                   </td>
                   <td style={{ textAlign: "center", padding: "10px" }}>
-                   {formatearFecha(a.fechainicio)} → {formatearFecha(a.fechafin)}
+                    {formatearFecha(a.fechainicio)} → {formatearFecha(a.fechafin)}
                   </td>
                 </tr>
               ))
@@ -260,12 +273,13 @@ const ReportesAusencias = () => {
           }}
           onFocus={(e) => e.target.select()}
           style={{
-            width: "80px",
-            padding: "6px",
-            borderRadius: "6px",
-            border: "1px solid #ced4da",
-            textAlign: "center",
-          }}
+  width: "80px",
+  padding: "6px",
+  borderRadius: "6px",
+  border: "1px solid #ced4da",   // 🔥 FIX
+  textAlign: "center",
+}}
+
         />
       </div>
 
@@ -283,6 +297,7 @@ const ReportesAusencias = () => {
           fechaDesde={fechaDesde}
           fechaHasta={fechaHasta}
           tipo={tipo}
+          empleado={empleadoSeleccionado}
           onClose={() => setMostrarPDF(false)}
         />
       )}

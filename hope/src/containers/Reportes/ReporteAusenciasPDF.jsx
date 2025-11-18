@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import serjusHeader from "../../assets/header-contrato/header-contrato.png";
 
-const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo }) => {
+const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo, empleado }) => {
   useEffect(() => generarPDF(), []);
 
   const formatearFecha = (fecha) => {
@@ -12,6 +12,9 @@ const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo 
   const partes = fecha.split("-"); // yyyy-mm-dd
   return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
   };
+  const nombreEmpleadoPDF = ausencias.length > 0
+  ? `${ausencias[0]?.empleado?.nombre ?? ""} ${ausencias[0]?.empleado?.apellido ?? ""}`
+  : "";
 
   const generarPDF = () => {
     // 🔔 Notificación de inicio
@@ -37,14 +40,18 @@ const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo 
     doc.setTextColor("#333");
 
     let contexto = "";
-    if (fechaDesde || fechaHasta || tipo) {
-      contexto = "Cobertura:";
-      if (fechaDesde) contexto += ` desde ${formatearFecha(fechaDesde)}`;
-      if (fechaHasta) contexto += ` hasta ${formatearFecha(fechaHasta)}`;
 
-      if (tipo) contexto += ` | Tipo: ${tipo}`;
-    }
-    if (contexto) doc.text(contexto, 14, 72);
+if (fechaDesde || fechaHasta || tipo || empleado) {
+  contexto = "Filtros aplicados:";
+
+  if (fechaDesde) contexto += ` desde ${formatearFecha(fechaDesde)}`;
+  if (fechaHasta) contexto += ` hasta ${formatearFecha(fechaHasta)}`;
+  if (tipo) contexto += ` | Tipo: ${tipo}`;
+  if (empleado && nombreEmpleadoPDF) contexto += ` | Empleado: ${nombreEmpleadoPDF}`;
+}
+
+if (contexto) doc.text(contexto, 14, 72);
+
 
     doc.text(`Total de casos incluidos: ${total}`, 14, 80);
 
@@ -74,15 +81,21 @@ const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo 
     let y = doc.lastAutoTable.finalY + 12;
 
     /* ─────────── TABLA DETALLADA ─────────── */
-    const columnas = [
-      { header: "Colaborador", dataKey: "empleado" },
-      { header: "Tipo", dataKey: "tipo" },
-      { header: "Diagnóstico", dataKey: "diagnostico" },
-      { header: "Días", dataKey: "dias" },
-      { header: "Lugar", dataKey: "lugar" },
-      { header: "Inicio", dataKey: "inicio" },
-      { header: "Fin", dataKey: "fin" },
-    ];
+    const columnas = [];
+
+if (!empleado) {
+  columnas.push({ header: "Colaborador", dataKey: "empleado" });
+}
+
+columnas.push(
+  { header: "Tipo", dataKey: "tipo" },
+  { header: "Diagnóstico", dataKey: "diagnostico" },
+  { header: "Días", dataKey: "dias" },
+  { header: "Lugar", dataKey: "lugar" },
+  { header: "Inicio", dataKey: "inicio" },
+  { header: "Fin", dataKey: "fin" },
+);
+
 
     const filas = ausencias.map(a => ({
       empleado: `${a?.empleado?.nombre ?? ""} ${a?.empleado?.apellido ?? ""}`,
