@@ -38,15 +38,17 @@ const EvaluacionContainer = () => {
   // ⏳ Validación de acceso semestral
   useEffect(() => {
     const hoy = new Date();
-    const mes = hoy.getMonth() + 1; // 1 = Enero, 6 = Junio
+    const mes = hoy.getMonth() + 1; // 1 = Enero, 7 = Julio, 11 = Noviembre
     const dia = hoy.getDate();
 
     const habilitado =
-      (mes === 1 && dia >= 1 && dia <= 14) ||
-      (mes === 6 && dia >= 1 && dia <= 14);
+      (mes === 7 && dia >= 1 && dia <= 7) ||         // 1 semana en julio
+      (mes === 11 && dia >= 24 && dia <= 30);        // Última semana de noviembre
 
     setEvaluacionesAbiertas(habilitado);
   }, []);
+
+
 
   // UI responsive
   useEffect(() => {
@@ -153,9 +155,9 @@ const EvaluacionContainer = () => {
                 <br />
                 Próximas fechas habilitadas:
                 <br />
-                1 al 14 de Enero
+                1 al 7 de Julio
                 <br />
-                1 al 14 de Junio
+                24 al 30 de Noviembre
               </div>
             )}
 

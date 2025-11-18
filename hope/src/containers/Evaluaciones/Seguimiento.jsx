@@ -12,6 +12,12 @@ const Seguimiento = () => {
   const [empleados, setEmpleados] = useState([]);
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const formatearFechaDMA = (fechaISO) => {
+    if (!fechaISO) return "N/D";
+    const soloFecha = fechaISO.split("T")[0]; // 2025-11-30
+    const [anio, mes, dia] = soloFecha.split("-");
+    return `${dia}/${mes}/${anio}`;
+  };
 
   // 🔹 Usuario logueado
   const usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado") || "{}");
@@ -175,7 +181,7 @@ const Seguimiento = () => {
                     style={inputDate}
                   />
                 ) : (
-                  <span style={valor}>{seg.fechaproximarev.split("T")[0]}</span>
+                  <span style={valor}>{formatearFechaDMA(seg.fechaproximarev)}</span>
                 )}
               </div>
 
