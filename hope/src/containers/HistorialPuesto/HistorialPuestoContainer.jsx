@@ -13,6 +13,7 @@ import ConfirmModal from "./ConfirmModal";
 import HistorialPuestoTable from "./HistorialPuestoTable";
 
 const API = process.env.REACT_APP_API_URL;
+const API_HISTORIAL = `${API}/historialpuestos/`;
 const API_EMPLEADOS = `${API}/empleados/`;
 const API_PUESTOS = `${API}/puestos/`;
 const token = sessionStorage.getItem("token");
@@ -47,7 +48,7 @@ const HistorialPuestoContainer = () => {
 
     const fetchHistoriales = async () => {
         try {
-            const res = await axios.get(API, {
+            const res = await axios.get(API_HISTORIAL, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];

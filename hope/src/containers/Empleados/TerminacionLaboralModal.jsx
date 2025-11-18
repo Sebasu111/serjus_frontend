@@ -76,7 +76,8 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                 iddocumento: documentoId,
                 idcontrato: null, // Se maneja automáticamente por el empleado
                 estado: true,
-                idusuario: 1 // TODO: Reemplazar con el usuario logueado real
+                idusuario: 1, // TODO: Reemplazar con el usuario logueado real
+                idempleado: empleado.id || empleado.idempleado || empleado.idEmpleado // <-- AGREGADO
             };
 
             const response = await axios.post(`${API}/terminacionlaboral/`, dataToSend, {

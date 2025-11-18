@@ -23,7 +23,7 @@ import { buttonStyles } from "../../stylesGenerales/buttons.js";
 const token = sessionStorage.getItem("token");
 
 const API = process.env.REACT_APP_API_URL;
-const API_HISTORIAL = "${API}/historialpuestos/";
+const API_HISTORIAL = `${API}/historialpuestos/`;
 const empId = row => row?.id ?? row?.idempleado ?? row?.idEmpleado;
 
 const pick = (o, ...keys) => {
