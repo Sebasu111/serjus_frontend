@@ -4,21 +4,21 @@ import { showToast } from '../../utils/toast.js';
 import { buildApiUrl, buildApiUrlWithId, API_CONFIG } from '../../config/api.js';
 
 const ContratosTable = () => {
-        useEffect(() => {
-            const handleClickOutside = (event) => {
-                document.querySelectorAll('[id^="menu-opciones-"]').forEach(menu => {
-                    if (menu.style.display === 'block' && !menu.contains(event.target)) {
-                        menu.style.display = 'none';
-                    }
-                });
-            };
-            document.addEventListener('mousedown', handleClickOutside);
-            document.addEventListener('click', handleClickOutside);
-            return () => {
-                document.removeEventListener('mousedown', handleClickOutside);
-                document.removeEventListener('click', handleClickOutside);
-            };
-        }, []);
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            document.querySelectorAll('[id^="menu-opciones-"]').forEach(menu => {
+                if (menu.style.display === 'block' && !menu.contains(event.target)) {
+                    menu.style.display = 'none';
+                }
+            });
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, []);
     const [contratos, setContratos] = useState([]);
     const [mostrarCantidad, setMostrarCantidad] = useState(5);
     const [mostrarInactivos, setMostrarInactivos] = useState(false);
@@ -381,9 +381,22 @@ const ContratosTable = () => {
                                                         minWidth: '120px',
                                                         boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
                                                     }}
-                                                    onClick={() => {
+                                                    onClick={e => {
+                                                        e.stopPropagation();
                                                         const menu = document.getElementById(`menu-opciones-${contrato.idcontrato}`);
-                                                        if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                                                        if (menu) {
+                                                            if (menu.style.display === 'block') {
+                                                                menu.style.display = 'none';
+                                                            } else {
+                                                                // Obtener posición del botón
+                                                                const rect = e.target.getBoundingClientRect();
+                                                                menu.style.display = 'block';
+                                                                menu.style.position = 'fixed';
+                                                                menu.style.top = `${rect.bottom + 8}px`;
+                                                                menu.style.left = `${rect.left}px`;
+                                                                menu.style.zIndex = 9999;
+                                                            }
+                                                        }
                                                     }}
                                                 >
                                                     Opciones
@@ -392,13 +405,11 @@ const ContratosTable = () => {
                                                     id={`menu-opciones-${contrato.idcontrato}`}
                                                     style={{
                                                         display: 'none',
-                                                        position: 'absolute',
-                                                        top: '110%',
-                                                        left: 0,
+                                                        position: 'fixed',
                                                         backgroundColor: '#e5e7eb', // gris menú
                                                         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                                                         borderRadius: '6px',
-                                                        zIndex: 10,
+                                                        zIndex: 9999,
                                                         minWidth: '160px',
                                                         border: '1px solid #d1d5db',
                                                         padding: '4px 0',
