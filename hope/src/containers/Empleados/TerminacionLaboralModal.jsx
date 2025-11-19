@@ -85,6 +85,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
             });
 
             // 3. Finalizar contrato del empleado automáticamente
+            let historialData = [];
             try {
                 // Buscar contratos activos del empleado
                 const contratosResponse = await axios.get(`${API}/contratos/`, {
@@ -96,7 +97,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                 const historialResponse = await axios.get(`${API}/historialpuestos/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                const historialData = Array.isArray(historialResponse.data) ? historialResponse.data : historialResponse.data?.results || [];
+                historialData = Array.isArray(historialResponse.data) ? historialResponse.data : historialResponse.data?.results || [];
 
                 const contratosDelEmpleado = contratosData.filter(contrato => {
                     if (contrato.estado) { // Solo contratos activos
@@ -140,7 +141,12 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
 
             showToast("Terminación laboral registrada correctamente", "success");
 
-            // 3. Generar y descargar la constancia de trabajo
+            // 5. Agregar historial de puestos al objeto empleado antes de generar el PDF
+            if (empleado && Array.isArray(historialData)) {
+                empleado.historialPuesto = historialData.filter(h => h.idempleado === empleado.idempleado);
+            }
+
+            // 6. Generar y descargar la constancia de trabajo
             try {
                 await generarConstanciaTrabajo(empleado, formData, new Date());
                 showToast("Constancia de trabajo generada correctamente", "success");

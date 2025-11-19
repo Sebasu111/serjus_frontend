@@ -1,139 +1,245 @@
 import jsPDF from "jspdf";
-import 'jspdf/dist/jspdf.es.min.js';
 
-export const generarConstanciaTrabajo = async (empleado, terminacionData, fechaTerminacion) => {
+// 👇 Ajusta estas rutas según tu estructura de carpetas
+import lineaSerjus from "../../assets/serjus/linea-serjus.png";
+import logoSerjus from "../../assets/serjus/logo-serjus.png";
+import tituloSerjus from "../../assets/serjus/titulo-serjus.png";
+
+import articulacion from "../../assets/serjus/articulacion.png";
+import asesoria from "../../assets/serjus/asesoria.png";
+import cooperacion from "../../assets/serjus/cooperacion.png";
+import encuentro from "../../assets/serjus/encuentro.png";
+import enlace from "../../assets/serjus/enlace.png";
+import formacion from "../../assets/serjus/formacion.png";
+import organizacion from "../../assets/serjus/oganizacion.png";
+
+export const generarConstanciaTrabajo = async (
+    empleado,
+    terminacionData,
+    fechaTerminacion
+) => {
     try {
-        const doc = new jsPDF();
+        const doc = new jsPDF(); // A4 210 x 297 mm
 
-        // Configuración de fuentes y colores
-        const primaryColor = [33, 47, 71]; // #023047
-        const secondaryColor = [33, 158, 188]; // #219ebc
-        const textColor = [74, 74, 74];
-
-        // Función auxiliar para centrar texto
-        const centerText = (text, y, fontSize = 12) => {
+        // ========= HELPERS =========
+        const centerText = (text, y, fontSize = 11) => {
             doc.setFontSize(fontSize);
-            const textWidth = doc.getStringUnitWidth(text) * fontSize / doc.internal.scaleFactor;
+            const textWidth =
+                (doc.getStringUnitWidth(text) * fontSize) / doc.internal.scaleFactor;
             const textOffset = (doc.internal.pageSize.width - textWidth) / 2;
             doc.text(text, textOffset, y);
         };
 
-        // Función auxiliar para texto justificado
         const justifyText = (text, x, y, maxWidth, lineHeight = 6) => {
             const lines = doc.splitTextToSize(text, maxWidth);
             lines.forEach((line, index) => {
-                doc.text(line, x, y + (index * lineHeight));
+                doc.text(line, x, y + index * lineHeight);
             });
-            return y + (lines.length * lineHeight);
+            return y + lines.length * lineHeight;
         };
 
-        // Header con logo y título
-        doc.setTextColor(...primaryColor);
-        doc.setFontSize(20);
-        doc.setFont("helvetica", "bold");
-        centerText("ASOCIACIÓN SERVICIOS JURÍDICOS Y SOCIALES", 30, 20);
+        const formatoFechaLarga = (fecha) => {
+            if (!fecha) return "";
+            return new Date(fecha).toLocaleDateString("es-GT", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            });
+        };
 
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "normal");
-        centerText("ASJERJUS", 40, 16);
+        // ========= ENCABEZADO GRÁFICO SUPERIOR =========
+        try {
+            // Logo pequeño a la izquierda
+            doc.addImage(logoSerjus, "PNG", 15, 10, 35, 35);
 
-        // Línea divisoria
-        doc.setDrawColor(...secondaryColor);
-        doc.setLineWidth(1);
-        doc.line(20, 50, 190, 50);
-
-        // Título del documento
-        doc.setTextColor(...primaryColor);
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        centerText("CONSTANCIA DE TRABAJO", 70, 18);
-
-        // Contenido principal
-        doc.setTextColor(...textColor);
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-
-        let currentY = 90;
-        const leftMargin = 25;
-        const maxWidth = 160;
-
-        // Párrafo 1
-        const parrafo1 = `La infrascrita Coordinadora de Recursos Humanos de la Asociación Servicios Jurídicos y Sociales ASJERJUS, hace constar que:`;
-        currentY = justifyText(parrafo1, leftMargin, currentY, maxWidth) + 10;
-
-        // Información del empleado
-        doc.setFont("helvetica", "bold");
-        doc.text(`${empleado.nombre} ${empleado.apellido}`, leftMargin, currentY);
-        doc.setFont("helvetica", "normal");
-        currentY += 8;
-
-        doc.text(`DPI: ${empleado.dpi}`, leftMargin, currentY);
-        currentY += 15;
-
-        // Párrafo principal
-        const parrafoPrincipal = `Trabajó en esta institución desde el ${empleado.iniciolaboral ? new Date(empleado.iniciolaboral).toLocaleDateString('es-ES', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        }) : '[fecha de inicio]'} hasta el ${fechaTerminacion.toLocaleDateString('es-ES', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        })}, desempeñando el cargo de [CARGO], con responsabilidad, honradez y eficiencia.`;
-
-        currentY = justifyText(parrafoPrincipal, leftMargin, currentY, maxWidth) + 15;
-
-        // Motivo de terminación
-        let motivoTexto = "";
-        switch (terminacionData.tipoterminacion) {
-            case "Renuncia":
-                motivoTexto = "Su relación laboral finalizó por renuncia voluntaria presentada por el trabajador.";
-                break;
-            case "Despido":
-                motivoTexto = "Su relación laboral finalizó por decisión de la institución.";
-                break;
-            case "Despido Justificado":
-                motivoTexto = "Su relación laboral finalizó por despido justificado según las causales establecidas en el Código de Trabajo.";
-                break;
-            default:
-                motivoTexto = "Su relación laboral finalizó según las condiciones establecidas.";
+            // Título grande SERJUS en el centro
+            doc.addImage(tituloSerjus, "PNG", 65, 12, 120, 30);
+        } catch (e) {
+            console.warn("No se pudieron cargar algunas imágenes del encabezado:", e);
         }
 
-        currentY = justifyText(motivoTexto, leftMargin, currentY, maxWidth) + 15;
+        // ========= PALABRAS EN LA COLUMNA IZQUIERDA =========
+        try {
+            const sideX = 18;
+            let sideY = 80; // altura inicial
 
-        // Párrafo final
-        const parrafoFinal = `Se extiende la presente constancia a solicitud del interesado para los usos que estime conveniente.`;
-        currentY = justifyText(parrafoFinal, leftMargin, currentY, maxWidth) + 20;
+            const sideWidth = 32;
+            const sideHeight = 8;
+            const gap = 18;
 
-        // Lugar y fecha
-        const fechaActual = new Date().toLocaleDateString('es-ES', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
+            doc.addImage(enlace, "PNG", sideX, sideY, sideWidth, sideHeight);
+            sideY += gap;
 
-        doc.text(`Guatemala, ${fechaActual}`, leftMargin, currentY + 20);
+            doc.addImage(organizacion, "PNG", sideX, sideY, sideWidth, sideHeight);
+            sideY += gap;
 
-        // Espacio para firma
-        currentY += 50;
-        doc.setDrawColor(...textColor);
-        doc.line(leftMargin, currentY, leftMargin + 80, currentY);
-        doc.setFontSize(10);
-        doc.text("Coordinadora de Recursos Humanos", leftMargin, currentY + 8);
-        doc.text("ASJERJUS", leftMargin, currentY + 16);
+            doc.addImage(asesoria, "PNG", sideX, sideY, sideWidth, sideHeight);
+            sideY += gap;
 
-        // Pie de página
+            doc.addImage(formacion, "PNG", sideX, sideY, sideWidth, sideHeight);
+            sideY += gap;
+
+            doc.addImage(articulacion, "PNG", sideX, sideY, sideWidth, sideHeight);
+            sideY += gap;
+
+            doc.addImage(cooperacion, "PNG", sideX, sideY, sideWidth, sideHeight);
+            sideY += gap;
+
+            doc.addImage(encuentro, "PNG", sideX, sideY, sideWidth, sideHeight);
+        } catch (e) {
+            console.warn("No se pudieron cargar los iconos de la columna izquierda:", e);
+        }
+
+        // ========= TÍTULO "A QUIEN INTERESE" =========
+        doc.setFont("helvetica", "bold");
+        centerText("A QUIEN INTERESE", 70, 13);
+
+        // ========= CUERPO DEL DOCUMENTO =========
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+
+        // Dejamos margen izquierdo amplio para no chocar con los iconos
+        let currentY = 90;
+        const leftMargin = 60;
+        const maxWidth = 130;
+
+
+        // ===== DATOS DEL EMPLEADO USANDO HISTORIAL DE PUESTO SI EXISTE =====
+        let historial = null;
+        // Buscar el historial que tiene el salario mostrado
+        if (Array.isArray(empleado?.historialPuesto) && empleado.historialPuesto.length > 0) {
+            const salarioMostrado = empleado?.historialPuesto[empleado.historialPuesto.length - 1]?.salario || empleado?.salario || empleado?.salario_base || empleado?.sueldo;
+            historial = empleado.historialPuesto.find(h => String(h.salario) === String(salarioMostrado)) || empleado.historialPuesto[empleado.historialPuesto.length - 1];
+        }
+
+        const nombreCompleto =
+            `${empleado?.nombre || ""} ${empleado?.apellido || ""}`.trim() ||
+            "…………………";
+
+        const dpi = empleado?.dpi || "…………………";
+
+        // Ciudad de expedición SIEMPRE Guatemala
+        const ciudadDocumento = "Guatemala";
+
+        // Período laboral: inicio y fin del historial del puesto del salario
+        let periodoTexto = "…………………";
+        // Buscar variantes de campo para fecha de inicio y fin
+        const inicioLaboral = historial?.fechaInicio || historial?.fechainicio || historial?.fecha_ingreso || historial?.fecha_inicio || empleado?.iniciolaboral || empleado?.fecha_ingreso || empleado?.fecha_inicio;
+        const finLaboral = fechaTerminacion || historial?.fechaFin || historial?.fechafin || historial?.fecha_baja || empleado?.fechaterminacion || empleado?.fecha_baja;
+
+        if (inicioLaboral && finLaboral) {
+            const inicio = formatoFechaLarga(inicioLaboral);
+            const fin = formatoFechaLarga(finLaboral);
+            periodoTexto = `del ${inicio} al ${fin}`;
+        }
+
+        // Nombre del puesto del historial del salario, buscando variantes
+        const cargo = historial?.nombrePuesto || historial?.nombre_puesto || historial?.puesto || historial?.cargo || empleado?.puesto || empleado?.cargo || empleado?.puesto_actual?.nombre || "…………………";
+
+        // Salario
+        const salario = historial?.salario || empleado?.salario || empleado?.salario_base || empleado?.sueldo || "…………………";
+
+        // ===== PÁRRAFO PRINCIPAL =====
+        const parrafo1 =
+            `Por este medio se hace CONSTAR que ${nombreCompleto}, ` +
+            `quien se identifica con el documento de Identificación Personal número ${dpi}, ` +
+            `extendido en la ciudad de ${ciudadDocumento}, por el Registro Nacional de Personas (RENAP), ` +
+            `laboró en la Asociación Comunitaria para el desarrollo SERJUS, durante el período ${periodoTexto}, ` +
+            `ocupando el cargo de ${cargo}, con un salario mensual de Q ${salario}.`;
+
+        currentY = justifyText(parrafo1, leftMargin, currentY, maxWidth) + 15;
+
+        // ===== PÁRRAFO FINAL (CIUDAD Y FECHA) =====
+        const fechaRefObj = fechaTerminacion
+            ? new Date(fechaTerminacion)
+            : new Date();
+
+        const dia = fechaRefObj.getDate();
+        const mesLargo = fechaRefObj.toLocaleDateString("es-GT", { month: "long" });
+        const anio = fechaRefObj.getFullYear();
+
+        const ciudadConstancia = "Guatemala";
+
+        const parrafo2 =
+            `Y para los usos legales que correspondan, se extiende la presente, ` +
+            `en la ciudad de ${ciudadConstancia}, el día ${dia}, mes ${mesLargo}, año ${anio}.`;
+
+        currentY = justifyText(parrafo2, leftMargin, currentY, maxWidth) + 30;
+
+        // ========= FIRMA =========
+        const firmaY = currentY + 5;
+        doc.setLineWidth(0.3);
+        doc.line(70, firmaY, 150, firmaY);
+
+        doc.setFont("helvetica", "normal");
+        centerText("Contadora General", firmaY + 8, 11);
+        centerText(
+            "Asociación Comunitaria para el Desarrollo SERJUS",
+            firmaY + 16,
+            11
+        );
+
+        // ========= DATOS DE OFICINAS ABAJO =========
         doc.setFontSize(8);
-        doc.setTextColor(100, 100, 100);
-        centerText("ASOCIACIÓN SERVICIOS JURÍDICOS Y SOCIALES -ASJERJUS-", 280, 8);
-        centerText("Guatemala, Guatemala", 288, 8);
 
-        // Generar nombre del archivo
-        const fileName = `Constancia_Trabajo_${empleado.nombre}_${empleado.apellido}_${fechaTerminacion.toISOString().split('T')[0]}.pdf`;
+        // Columna izquierda: Oficina Central
+        let baseY = 250;
+        let colLeftX = 18;
+        let colRightX = 120;
 
-        // Descargar el PDF
+        doc.setFont("helvetica", "bold");
+        doc.text("OFICINA CENTRAL", colLeftX, baseY);
+        doc.setFont("helvetica", "normal");
+        doc.text("11 avenida 12-62 Zona 2, Ciudad Nueva", colLeftX, baseY + 5);
+        doc.text("Guatemala, Guatemala", colLeftX, baseY + 10);
+        doc.text(
+            "Teléfonos: (502) 22.54.73.57 / (502) 22.11.36.20",
+            colLeftX,
+            baseY + 15
+        );
+        doc.text(
+            "Correo electrónico: serjus@serjus.org.gt",
+            colLeftX,
+            baseY + 20
+        );
+
+        // Columna derecha: Oficina Quetzaltenango
+        doc.setFont("helvetica", "bold");
+        doc.text("OFICINA QUETZALTENANGO", colRightX, baseY);
+        doc.setFont("helvetica", "normal");
+        doc.text("9ª. calle 19-47 Zona 3", colRightX, baseY + 5);
+        doc.text("Quetzaltenango, Guatemala", colRightX, baseY + 10);
+        doc.text(
+            "Teléfonos: (502)77.36.89.86 / (502) 77.67.00.57",
+            colRightX,
+            baseY + 15
+        );
+        doc.text(
+            "Correo electrónico: secretariaxela@serjus.org.gt",
+            colRightX,
+            baseY + 20
+        );
+
+        centerText("Página web: www.serjus.org.gt", baseY + 30, 8);
+
+        // ========= FRANJA DE COLORES INFERIOR =========
+        try {
+            // Franja de colores en el pie de página
+            doc.addImage(lineaSerjus, "PNG", 0, 287, 210, 10);
+        } catch (e) {
+            console.warn("No se pudo cargar la franja inferior:", e);
+        }
+
+        // ========= NOMBRE DEL ARCHIVO =========
+        const nombreParaArchivo =
+            nombreCompleto && nombreCompleto !== "…………………"
+                ? nombreCompleto.replace(/\s+/g, "_")
+                : "Empleado";
+
+        const fechaISO = fechaRefObj.toISOString().split("T")[0];
+        const fileName = `Constancia_Trabajo_${nombreParaArchivo}_${fechaISO}.pdf`;
+
         doc.save(fileName);
-
         return true;
     } catch (error) {
         console.error("Error al generar PDF:", error);
