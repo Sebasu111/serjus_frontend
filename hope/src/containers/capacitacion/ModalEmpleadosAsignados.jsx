@@ -7,10 +7,68 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
   const [modalDocumentoVisible, setModalDocumentoVisible] = useState(false);
   const [actualizandoId, setActualizandoId] = useState(null);
   const [errorAsistencia, setErrorAsistencia] = useState(null);
+  const [empleadosConDocs, setEmpleadosConDocs] = useState([]);
 
   // Obtener rol actual
   const idRol = parseInt(sessionStorage.getItem("idRol"));
   const esCoordinadorOAdmin = [4, 5].includes(idRol);
+
+  // 🔥 Cargar documentos cuando se abra el modal
+  React.useEffect(() => {
+    if (!visible || !empleados || empleados.length === 0 || !evento?.fechainicio || !evento?.fechafin) return;
+
+    const fetchDocs = async () => {
+
+      const res = await fetch(`${API}/documentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const docs = await res.json();
+      const docsArray = docs.results || [];
+
+      // 🔥 Solo tipos 2 y 3
+      const docsValidosTipo = docsArray.filter(
+        d => d.idtipodocumento === 2 || d.idtipodocumento === 3
+      );
+
+
+      // 🗓 Fechas importantes
+      const inicio = new Date(evento.fechainicio);
+      const fin = new Date(evento.fechafin);
+
+      // Fecha límite = fin + 15 días
+      const fechaLimite = new Date(fin);
+      fechaLimite.setDate(fechaLimite.getDate() + 15);
+
+      // 🔥 Condición:
+      // 1) Subido durante el evento (inicio <= subida <= fin)
+      // 2) Subido después de 15 días del fin (subida > fechaLimite)
+      const docsValidos = docsValidosTipo.filter(d => {
+        const subida = new Date(d.fechasubida);
+        const duranteEvento = subida >= inicio && subida <= fin;
+        const despues15 = subida > fechaLimite;
+        return duranteEvento || despues15;
+      });
+
+      // 🔗 Relacionar documento con empleado
+      const empleadosActualizados = empleados.map(emp => {
+        const doc = docsValidos.find(d => d.idempleado === emp.idempleado);
+        if (doc) {
+          return {
+            ...emp,
+            documento: { ...doc, archivo_url: doc.archivo },
+            fechaenvio: doc.fechasubida
+          };
+        }
+        return emp;
+      });
+
+      setEmpleadosConDocs(empleadosActualizados);
+    };
+
+    fetchDocs();
+  }, [visible, empleados, evento]);
+
+
 
   // Actualizar asistencia
   const handleActualizarAsistencia = async (idEmpleado, nuevoEstado) => {
@@ -46,6 +104,7 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
   };
 
   if (!visible || !evento) return null;
+
 
   // Formateo de fecha
   const formatDate = (dateStr) => {
@@ -272,7 +331,7 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
                   </tr>
                 </thead>
                 <tbody>
-                  {empleados.map((emp, idx) => {
+                  {(empleadosConDocs.length > 0 ? empleadosConDocs : empleados).map((emp, idx) => {
                     const asistenciaSi = emp.asistencia?.toLowerCase() === "sí" || emp.asistencia?.toLowerCase() === "si";
                     const asistenciaNo = emp.asistencia?.toLowerCase() === "no";
                     // Usar idempleadocapacitacion para actualizar asistencia

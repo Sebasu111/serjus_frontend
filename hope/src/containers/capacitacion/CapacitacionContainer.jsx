@@ -88,7 +88,6 @@ const CapacitacionContainer = () => {
                 }, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                console.log(`Capacitación "${cap.nombreevento}" finalizada automáticamente`);
             } catch (error) {
                 console.error(`Error al finalizar automáticamente la capacitación ${cap.nombreevento}:`, error);
             }
@@ -221,7 +220,6 @@ const CapacitacionContainer = () => {
                 const asignados = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
                 // Solo considerar asignaciones activas de esta capacitación
                 const asignadosActivos = asignados.filter(a => a.estado === true && Number(a.idcapacitacion) === Number(data.idcapacitacion || data.id));
-                console.log('Asignaciones activas de esta capacitación:', asignadosActivos);
                 if (asignadosActivos.length > 0) {
                     showToast("No se puede desactivar la capacitación porque tiene personas asignadas.", "warning");
                     setModalAccion(null);

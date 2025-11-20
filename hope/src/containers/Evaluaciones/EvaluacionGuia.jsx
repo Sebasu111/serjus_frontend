@@ -18,7 +18,7 @@ import {
 import { useEvaluacionGuia } from "./useEvaluacionGuia.js";
 import { toast } from "react-toastify";
 
-const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
+const EvaluacionGuia = ({ evaluacionSeleccionada, evaluacionesAbiertas }) => {
   const {
     tipos,
     tipoSeleccionado,
@@ -47,27 +47,21 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
   const esCoordinador = usuario?.idrol === 1;
   const esAdmin = usuario?.idrol === 5;
 
-  // 🔥 ADMIN puede evaluar igual que COORDINADOR, pero NO autoevaluarse
-  const esEvaluador = esCoordinador || esAdmin;
-
   const esSoloAuto = esAcompanante || esContador || esSecretaria;
-
-  // 🟢 Corrigiendo (cuando evalúa a un empleado desde la tabla)
+  const esEvaluador = esCoordinador || esAdmin;
   const esCorrigiendo = evaluacionSeleccionada && esEvaluador;
-  const esVistaFinal = esAdmin && evaluacionSeleccionada?.modo === "final";
+  const mostrarAuto = !esCorrigiendo;
+  const mostrarCoord = esCorrigiendo;
 
-  // ---- REGLAS DE VISUALIZACIÓN ----
-  const mostrarAuto = !esCorrigiendo; // si está corrigiendo ya no muestra auto
-  const mostrarCoord = esCorrigiendo; // cuando corrige muestra evaluación del coordinador
-
-  // 🟢 Verificar si todos los criterios de la página actual tienen puntaje
   const paginaActualCompleta = criteriosActuales.every((c) => {
     const ev = evaluaciones[c.idcriterio];
-    if (mostrarAuto) return ev?.auto > 0;     // En autoevaluación
-    if (mostrarCoord) return ev?.coord > 0;   // En evaluación del coordinador
+    if (mostrarAuto) return ev?.auto > 0;
+    if (mostrarCoord) return ev?.coord > 0;
     return true;
   });
 
+  // ⛔ Bloquear edición fuera de fechas
+  const bloqueado = !evaluacionesAbiertas;
 
   return (
     <div style={pageContainer}>
@@ -98,12 +92,13 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
             Tipo de Evaluación:
           </label>
 
-          {/* 🔥 ADMIN puede elegir tipo pero no autoevaluarse */}
+          {/* Selector tipo */}
           {esAdmin ? (
             <select
               value={tipoSeleccionado}
               onChange={(e) => setTipoSeleccionado(e.target.value)}
               style={typeSelectStyle}
+              disabled={bloqueado}
             >
               <option value="">Seleccione un tipo</option>
               {tipos
@@ -130,51 +125,56 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
             </span>
           )}
 
-          {/* ---- BOTONES ---- */}
+          {/* BOTONES GUARDAR */}
 
-          {/* SOLO acompañante y contador pueden guardar autoevaluación */}
           {esSoloAuto && (
             <button
               style={{
                 ...miniButton,
-                opacity: autoevaluacionCompleta() ? 1 : 0.5,
-                cursor: autoevaluacionCompleta() ? "pointer" : "not-allowed",
+                opacity: bloqueado || !autoevaluacionCompleta() ? 0.5 : 1,
+                cursor:
+                  bloqueado || !autoevaluacionCompleta()
+                    ? "not-allowed"
+                    : "pointer",
               }}
               onClick={guardarAutoevaluacion}
-              disabled={!autoevaluacionCompleta()}
+              disabled={bloqueado || !autoevaluacionCompleta()}
             >
               Guardar Autoevaluación
             </button>
           )}
 
-          {/* coordinador puede autoevaluarse solo cuando NO está corrigiendo */}
           {esCoordinador && !esCorrigiendo && (
             <button
               style={{
                 ...miniButton,
-                opacity: autoevaluacionCompleta() ? 1 : 0.5,
-                cursor: autoevaluacionCompleta() ? "pointer" : "not-allowed",
+                opacity: bloqueado || !autoevaluacionCompleta() ? 0.5 : 1,
+                cursor:
+                  bloqueado || !autoevaluacionCompleta()
+                    ? "not-allowed"
+                    : "pointer",
               }}
               onClick={guardarAutoevaluacion}
-              disabled={!autoevaluacionCompleta()}
+              disabled={bloqueado || !autoevaluacionCompleta()}
             >
               Guardar Autoevaluación
             </button>
           )}
 
-          {/* 🔥 ADMIN / COORDINADOR guardan evaluación del supervisor */}
           {esCorrigiendo && (
             <button
               style={{
                 ...miniButton,
                 backgroundColor: "#3B82F6",
-                opacity: evaluacionCoordinadorCompleta() ? 1 : 0.5,
-                cursor: evaluacionCoordinadorCompleta()
-                  ? "pointer"
-                  : "not-allowed",
+                opacity:
+                  bloqueado || !evaluacionCoordinadorCompleta() ? 0.5 : 1,
+                cursor:
+                  bloqueado || !evaluacionCoordinadorCompleta()
+                    ? "not-allowed"
+                    : "pointer",
               }}
               onClick={guardarEvaluacionCoordinador}
-              disabled={!evaluacionCoordinadorCompleta()}
+              disabled={bloqueado || !evaluacionCoordinadorCompleta()}
             >
               Guardar Evaluación
             </button>
@@ -208,7 +208,7 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
               {variableActual?.nombrevariable}
             </h3>
 
-            {/* ---------------- TABLA PRINCIPAL ---------------- */}
+            {/* TABLA */}
             <table
               style={{
                 width: "100%",
@@ -239,7 +239,7 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
                           <td style={{ ...tdStyle, textAlign: "center" }}>
                             <select
                               value={ev.auto || ""}
-                              disabled={!!evaluacionSeleccionada}
+                              disabled={bloqueado}
                               onChange={(e) =>
                                 handleInputChange(
                                   c.idcriterio,
@@ -249,7 +249,7 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
                               }
                               style={{
                                 ...selectStyle,
-                                backgroundColor: evaluacionSeleccionada
+                                backgroundColor: bloqueado
                                   ? "#e5e7eb"
                                   : "white",
                               }}
@@ -264,11 +264,12 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
                           </td>
                         )}
 
-                        {/* COORDINADOR / ADMIN */}
+                        {/* EVALUADOR (COORD/ADMIN) */}
                         {mostrarCoord && (
                           <td style={{ ...tdStyle, textAlign: "center" }}>
                             <select
                               value={ev.coord || ""}
+                              disabled={bloqueado}
                               onChange={(e) =>
                                 handleInputChange(
                                   c.idcriterio,
@@ -276,7 +277,12 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
                                   e.target.value
                                 )
                               }
-                              style={selectStyle}
+                              style={{
+                                ...selectStyle,
+                                backgroundColor: bloqueado
+                                  ? "#e5e7eb"
+                                  : "white",
+                              }}
                             >
                               <option value="">-</option>
                               {[1, 2, 3, 4, 5].map((n) => (
@@ -288,9 +294,11 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
                           </td>
                         )}
 
+                        {/* OBSERVACIONES */}
                         <td style={tdStyle}>
                           <input
                             type="text"
+                            disabled={bloqueado}
                             value={ev.obs || ""}
                             onChange={(e) =>
                               handleInputChange(
@@ -299,7 +307,12 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
                                 e.target.value
                               )
                             }
-                            style={inputTextStyle}
+                            style={{
+                              ...inputTextStyle,
+                              backgroundColor: bloqueado
+                                ? "#e5e7eb"
+                                : "white",
+                            }}
                             placeholder="Escriba aquí..."
                           />
                         </td>
@@ -320,33 +333,43 @@ const EvaluacionGuia = ({ evaluacionSeleccionada }) => {
             <div style={pagerRow}>
               <button
                 onClick={anteriorVariable}
-                disabled={paginaActual === 0}
+                disabled={bloqueado || paginaActual === 0}
                 style={buttonStyle}
               >
                 ⬅ Anterior
               </button>
+
               <span style={pagerInfo}>
                 Página {paginaActual + 1} de {variablesFiltradas.length}
               </span>
+
               <button
                 onClick={() => {
                   if (!paginaActualCompleta) {
-                    toast.warning("Debe asignar puntaje a todos los criterios antes de continuar.");
+                    toast.warning(
+                      "Debe asignar puntaje a todos los criterios antes de continuar."
+                    );
                     return;
                   }
                   siguienteVariable();
                 }}
                 disabled={
-                  paginaActual === variablesFiltradas.length - 1 || !paginaActualCompleta
+                  bloqueado ||
+                  paginaActual === variablesFiltradas.length - 1 ||
+                  !paginaActualCompleta
                 }
                 style={{
                   ...buttonStyle,
                   backgroundColor:
-                    paginaActual === variablesFiltradas.length - 1 || !paginaActualCompleta
+                    bloqueado ||
+                    paginaActual === variablesFiltradas.length - 1 ||
+                    !paginaActualCompleta
                       ? "#9ca3af"
                       : "#2563EB",
                   cursor:
-                    paginaActual === variablesFiltradas.length - 1 || !paginaActualCompleta
+                    bloqueado ||
+                    paginaActual === variablesFiltradas.length - 1 ||
+                    !paginaActualCompleta
                       ? "not-allowed"
                       : "pointer",
                 }}

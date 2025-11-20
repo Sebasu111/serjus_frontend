@@ -132,7 +132,6 @@ useEffect(() => {
 
       // 🔹 Todos los empleados para colaboradores
       setEmpleados(empleadosData);
-       console.log("Empleados (todos):", empleadosData);
 
       // 🔹 Filtrar responsables por roles permitidos
       const responsablesFiltrados = empleadosData.filter((emp) => {
@@ -143,7 +142,6 @@ useEffect(() => {
       });
 
       setResponsables(responsablesFiltrados);
-      console.log("Responsables (según rol):", responsablesFiltrados);
     } catch (error) {
       showToast("Error al cargar empleados o usuarios", "error");
     }

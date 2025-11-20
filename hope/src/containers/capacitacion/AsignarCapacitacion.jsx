@@ -152,7 +152,6 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                   Authorization: `Bearer ${token}`
                 }
               });
-              console.log('Respuesta al desactivar asignación:', resp.data);
               operacionesRealizadas++;
             }
           } catch (error) {
