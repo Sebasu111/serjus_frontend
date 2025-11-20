@@ -38,17 +38,15 @@ const EvaluacionContainer = () => {
   // ⏳ Validación de acceso semestral
   useEffect(() => {
     const hoy = new Date();
-    const mes = hoy.getMonth() + 1; // 1 = Enero, 7 = Julio, 11 = Noviembre
+    const mes = hoy.getMonth() + 1;
     const dia = hoy.getDate();
 
     const habilitado =
-      (mes === 7 && dia >= 1 && dia <= 7) ||         // 1 semana en julio
-      (mes === 11 && dia >= 24 && dia <= 30);        // Última semana de noviembre
+      (mes === 7 && dia >= 1 && dia <= 15) ||
+      (mes === 11 && dia >= 15 && dia <= 30);
 
     setEvaluacionesAbiertas(habilitado);
   }, []);
-
-
 
   // UI responsive
   useEffect(() => {
@@ -103,11 +101,9 @@ const EvaluacionContainer = () => {
               }}
             >
               <div style={{ display: "flex", gap: 0 }}>
-                {/* ⛔ Botón bloqueado si está fuera de fecha */}
                 <button
-                  onClick={() => evaluacionesAbiertas && setVistaActual("evaluar")}
-                  disabled={!evaluacionesAbiertas}
-                  style={navBtn(vistaActual === "evaluar", !evaluacionesAbiertas)}
+                  onClick={() => setVistaActual("evaluar")} // 🔥 siempre se puede abrir
+                  style={navBtn(vistaActual === "evaluar")}
                 >
                   Evaluar
                 </button>
@@ -140,39 +136,45 @@ const EvaluacionContainer = () => {
             </div>
 
             {/* CONTENIDO DINÁMICO */}
-            {vistaActual === "evaluar" && !evaluacionesAbiertas && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "40px",
-                  fontSize: "20px",
-                  fontWeight: "600",
-                  color: "#b91c1c",
-                  backgroundColor: "#fff",
-                }}
-              >
-                La AutoEvaluacion está cerrada actualmente.
-                <br />
-                Próximas fechas habilitadas:
-                <br />
-                1 al 7 de Julio
-                <br />
-                24 al 30 de Noviembre
-              </div>
-            )}
+            {vistaActual === "evaluar" && (
+              <>
+                {!evaluacionesAbiertas && (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "40px",
+                      fontSize: "20px",
+                      fontWeight: "600",
+                      color: "#b91c1c",
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    La AutoEvaluacion está cerrada actualmente.
+                    <br />
+                    Próximas fechas habilitadas:
+                    <br />
+                    1 al 15 de Julio
+                    <br />
+                    15 al 30 de Noviembre
+                  </div>
+                )}
 
-            {vistaActual === "evaluar" && evaluacionesAbiertas && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  width: "100%",
-                  paddingTop: "20px",
-                  backgroundColor: "#EEF2F7",
-                }}
-              >
-                <EvaluacionGuia evaluacionSeleccionada={evaluacionSeleccionada} />
-              </div>
+                {/* 🔥 Evaluación siempre visible */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    width: "100%",
+                    paddingTop: "20px",
+                    backgroundColor: "#EEF2F7",
+                  }}
+                >
+                  <EvaluacionGuia
+                    evaluacionSeleccionada={evaluacionSeleccionada}
+                    evaluacionesAbiertas={evaluacionesAbiertas} // ← para bloquear edición dentro
+                  />
+                </div>
+              </>
             )}
 
             {vistaActual === "listar" && !esRolLimitado && (
@@ -228,17 +230,17 @@ const EvaluacionContainer = () => {
   );
 };
 
-const navBtn = (isActive, disabled) => ({
+const navBtn = (isActive) => ({
   padding: "12px 24px",
   border: "none",
   backgroundColor: isActive ? "#023047" : "transparent",
-  color: disabled ? "#8c8c8c" : isActive ? "white" : "#023047",
-  cursor: disabled ? "not-allowed" : "pointer",
+  color: isActive ? "white" : "#023047",
+  cursor: "pointer",
   borderBottom: isActive ? "2px solid #023047" : "2px solid transparent",
   fontFamily: '"Inter", sans-serif',
   fontWeight: "600",
   transition: "all 0.2s",
-  opacity: disabled ? 0.45 : 1,
 });
 
 export default EvaluacionContainer;
+ 

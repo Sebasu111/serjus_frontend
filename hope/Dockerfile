@@ -1,12 +1,13 @@
-FROM node:18
+FROM nginx:alpine
 
-WORKDIR /app
+WORKDIR /usr/share/nginx/html
 
-COPY package.json yarn.lock ./
-RUN yarn install
+# Copia los archivos construidos
+COPY build .  
 
-COPY . .
+# Copia la configuración correcta de SPA
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 3000
+EXPOSE 80
 
-CMD ["yarn", "start"]
+CMD ["nginx", "-g", "daemon off;"]

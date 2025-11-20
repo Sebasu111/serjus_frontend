@@ -21,10 +21,25 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
     const esCoordinadorOAdmin = [4, 5].includes(idRol);
 
     useEffect(() => {
-        if (visible && empleadosAsignados) {
-            setEmpleados(empleadosAsignados);
-        }
-    }, [visible, empleadosAsignados]);
+        const cargarEmpleados = async () => {
+            if (!visible || !capacitacion) return;
+
+            try {
+                // Obtener lista actualizada desde API
+                const res = await axios.get(`${API}/empleadocapacitacion/capacitacion/${capacitacion.idcapacitacion}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+
+                setEmpleados(res.data); // <- aquí meterá documento y fechaenvio si el backend los devuelve
+            } catch (error) {
+                console.error("❌ Error obteniendo documentos:", error);
+                showToast("Error cargando documentos", "error");
+            }
+        };
+
+        cargarEmpleados();
+    }, [visible, capacitacion]);
 
     if (!visible || !capacitacion) return null;
 
