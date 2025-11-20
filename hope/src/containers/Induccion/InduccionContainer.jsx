@@ -136,7 +136,7 @@ const getFechaLocalISO = () => {
     const handleDelete = async (row) => {
   try {
     // 🔍 Verificar si existen empleados o documentos activos vinculados
-    const res = await axios.get(`${API}/inducciondocumentos/`, {
+    const res = await axios.get(`${API2}/inducciondocumentos/`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     const data = Array.isArray(res.data) ? res.data : res.data.results || [];
@@ -171,7 +171,7 @@ const getFechaLocalISO = () => {
 
   try {
     // 🔍 1️⃣ Verificar si existen documentos o empleados activos en esta inducción
-    const res = await axios.get(`${API}/inducciondocumentos/`, {
+    const res = await axios.get(`${API2}/inducciondocumentos/`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     const data = Array.isArray(res.data) ? res.data : res.data.results || [];
