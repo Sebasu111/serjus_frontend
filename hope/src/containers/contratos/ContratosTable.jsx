@@ -333,7 +333,7 @@ const ContratosTable = () => {
                                 <th style={thStyle}>Tipo Contrato</th>
                                 <th style={thStyle}>Salario</th>
                                 <th style={thStyle}>Estado</th>
-                                <th style={thStyle}>Acciones</th>
+                                {!mostrarInactivos && <th style={thStyle}>Acciones</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -366,94 +366,78 @@ const ContratosTable = () => {
                                                 {contrato.estado ? 'Activo' : 'Inactivo'}
                                             </span>
                                         </td>
-                                        <td style={tdStyle}>
-                                            <div style={{ position: 'relative', display: 'inline-block' }}>
-                                                <button
-                                                    style={{
-                                                        padding: '6px 12px',
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        backgroundColor: '#d1d5db', // gris claro
-                                                        color: '#212529',
-                                                        cursor: 'pointer',
-                                                        fontSize: '15px',
-                                                        fontWeight: '600',
-                                                        minWidth: '120px',
-                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
-                                                    }}
-                                                    onClick={e => {
-                                                        e.stopPropagation();
-                                                        const menu = document.getElementById(`menu-opciones-${contrato.idcontrato}`);
-                                                        if (menu) {
-                                                            if (menu.style.display === 'block') {
-                                                                menu.style.display = 'none';
-                                                            } else {
-                                                                // Obtener posición del botón
-                                                                const rect = e.target.getBoundingClientRect();
-                                                                menu.style.display = 'block';
-                                                                menu.style.position = 'fixed';
-                                                                menu.style.top = `${rect.bottom + 8}px`;
-                                                                menu.style.left = `${rect.left}px`;
-                                                                menu.style.zIndex = 9999;
+                                        {!mostrarInactivos && (
+                                            <td style={tdStyle}>
+                                                <div style={{ position: 'relative', display: 'inline-block' }}>
+                                                    <button
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            backgroundColor: '#d1d5db', // gris claro
+                                                            color: '#212529',
+                                                            cursor: 'pointer',
+                                                            fontSize: '15px',
+                                                            fontWeight: '600',
+                                                            minWidth: '120px',
+                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                                                        }}
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            const menu = document.getElementById(`menu-opciones-${contrato.idcontrato}`);
+                                                            if (menu) {
+                                                                if (menu.style.display === 'block') {
+                                                                    menu.style.display = 'none';
+                                                                } else {
+                                                                    // Obtener posición del botón
+                                                                    const rect = e.target.getBoundingClientRect();
+                                                                    menu.style.display = 'block';
+                                                                    menu.style.position = 'fixed';
+                                                                    menu.style.top = `${rect.bottom + 8}px`;
+                                                                    menu.style.left = `${rect.left}px`;
+                                                                    menu.style.zIndex = 9999;
+                                                                }
                                                             }
-                                                        }
-                                                    }}
-                                                >
-                                                    Opciones
-                                                </button>
-                                                <div
-                                                    id={`menu-opciones-${contrato.idcontrato}`}
-                                                    style={{
-                                                        display: 'none',
-                                                        position: 'fixed',
-                                                        backgroundColor: '#e5e7eb', // gris menú
-                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                                                        borderRadius: '6px',
-                                                        zIndex: 9999,
-                                                        minWidth: '160px',
-                                                        border: '1px solid #d1d5db',
-                                                        padding: '4px 0',
-                                                    }}
-                                                >
-                                                    <button
-                                                        onClick={() => { descargarContrato(contrato); document.getElementById(`menu-opciones-${contrato.idcontrato}`).style.display = 'none'; }}
-                                                        style={{
-                                                            width: '100%',
-                                                            padding: '12px 0',
-                                                            border: 'none',
-                                                            backgroundColor: '#e5e7eb',
-                                                            color: '#212529',
-                                                            textAlign: 'center',
-                                                            cursor: 'pointer',
-                                                            fontSize: '15px',
-                                                            fontWeight: '500',
                                                         }}
-                                                        onMouseOver={e => e.target.style.backgroundColor = '#d1d5db'}
-                                                        onMouseOut={e => e.target.style.backgroundColor = '#e5e7eb'}
                                                     >
-                                                        Descargar
+                                                        Opciones
                                                     </button>
-                                                    <button
-                                                        onClick={() => { descartarContrato(contrato); document.getElementById(`menu-opciones-${contrato.idcontrato}`).style.display = 'none'; }}
+                                                    <div
+                                                        id={`menu-opciones-${contrato.idcontrato}`}
                                                         style={{
-                                                            width: '100%',
-                                                            padding: '12px 0',
-                                                            border: 'none',
-                                                            backgroundColor: '#e5e7eb',
-                                                            color: '#212529',
-                                                            textAlign: 'center',
-                                                            cursor: 'pointer',
-                                                            fontSize: '15px',
-                                                            fontWeight: '500',
+                                                            display: 'none',
+                                                            position: 'fixed',
+                                                            backgroundColor: '#e5e7eb', // gris menú
+                                                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                                            borderRadius: '6px',
+                                                            zIndex: 9999,
+                                                            minWidth: '160px',
+                                                            border: '1px solid #d1d5db',
+                                                            padding: '4px 0',
                                                         }}
-                                                        onMouseOver={e => e.target.style.backgroundColor = '#d1d5db'}
-                                                        onMouseOut={e => e.target.style.backgroundColor = '#e5e7eb'}
                                                     >
-                                                        Descartar
-                                                    </button>
+                                                        <button
+                                                            onClick={() => { descartarContrato(contrato); document.getElementById(`menu-opciones-${contrato.idcontrato}`).style.display = 'none'; }}
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '12px 0',
+                                                                border: 'none',
+                                                                backgroundColor: '#e5e7eb',
+                                                                color: '#212529',
+                                                                textAlign: 'center',
+                                                                cursor: 'pointer',
+                                                                fontSize: '15px',
+                                                                fontWeight: '500',
+                                                            }}
+                                                            onMouseOver={e => e.target.style.backgroundColor = '#d1d5db'}
+                                                            onMouseOut={e => e.target.style.backgroundColor = '#e5e7eb'}
+                                                        >
+                                                            Desactivar
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </td>
+                                            </td>
+                                        )}
                                     </tr>
                                 );
                             })}
@@ -508,7 +492,7 @@ const ContratosTable = () => {
                                 fontFamily: 'Inter, sans-serif',
                             }}
                         />
-                        Mostrar colaboradores inactivos
+                            Mostrar contratos inactivos
                     </label>
                 </div>
                 {historialPuestos.length === 0 && (
