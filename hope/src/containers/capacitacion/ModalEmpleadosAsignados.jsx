@@ -3,6 +3,22 @@ const API = process.env.REACT_APP_API_URL;
 const token = sessionStorage.getItem("token");
 
 const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, loading, offsetRight = 170 }) => {
+    // Lógica para mostrar botones de subir informe/justificación
+    const hoy = new Date();
+    const inicio = new Date(evento?.fechainicio);
+    const fin = new Date(evento?.fechafin);
+    const finMas15 = new Date(fin);
+    finMas15.setDate(finMas15.getDate() + 15);
+
+    // Estado de la capacitación
+    // "en proceso": hoy >= inicio && hoy <= fin
+    // "finalizada" y dentro de 15 días: hoy > fin && hoy <= fin + 15 días
+    // "activa": hoy < inicio
+    // Mostrar botones de asistencia solo si la capacitación está en proceso o finalizada y dentro de 15 días
+    const mostrarBotonesAsistencia = (
+      (hoy >= inicio && hoy <= fin) ||
+      (hoy > fin && hoy <= finMas15)
+    );
   const [documentoVisualizando, setDocumentoVisualizando] = useState(null);
   const [modalDocumentoVisible, setModalDocumentoVisible] = useState(false);
   const [actualizandoId, setActualizandoId] = useState(null);
@@ -341,93 +357,124 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
                       <tr key={idx}>
                         <td style={tdStyle}>{emp.nombre} {emp.apellido}</td>
                         <td style={{ ...tdStyle, fontWeight: 600 }}>
-                          {esCoordinadorOAdmin ? (
-                            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                              <button
-                                disabled={actualizandoId === idCap || idCapAusente}
-                                title={idCapAusente ? "Falta idempleadocapacitacion" : ""}
-                                onClick={() => handleActualizarAsistencia(idCap, "Sí")}
-                                style={{
-                                  padding: "4px 18px",
-                                  borderRadius: 8,
-                                  border: asistenciaSi ? "2px solid #16a34a" : "1px solid #e5e7eb",
-                                  background: asistenciaSi ? "#e6fbe8" : "#f3f4f6",
-                                  color: asistenciaSi ? "#16a34a" : "#374151",
-                                  fontWeight: 700,
-                                  cursor: actualizandoId === idCap || idCapAusente ? "not-allowed" : "pointer",
-                                  boxShadow: asistenciaSi ? "0 2px 8px rgba(22,163,74,.08)" : "none",
-                                  transition: "0.2s",
-                                  outline: "none",
-                                  position: "relative",
-                                  opacity: idCapAusente ? 0.5 : 1
-                                }}
-                                onMouseOver={e => { if (!asistenciaSi && !idCapAusente) e.target.style.background = "#d1fae5"; }}
-                                onMouseOut={e => { if (!asistenciaSi && !idCapAusente) e.target.style.background = "#f3f4f6"; }}
-                              >
-                                {idCapAusente ? "Sin ID" : actualizandoId === idCap ? "Actualizando..." : "Sí"}
-                              </button>
-                              <button
-                                disabled={actualizandoId === idCap || idCapAusente}
-                                title={idCapAusente ? "Falta idempleadocapacitacion" : ""}
-                                onClick={() => handleActualizarAsistencia(idCap, "No")}
-                                style={{
-                                  padding: "4px 18px",
-                                  borderRadius: 8,
-                                  border: asistenciaNo ? "2px solid #dc2626" : "1px solid #e5e7eb",
-                                  background: asistenciaNo ? "#fee2e2" : "#f3f4f6",
-                                  color: asistenciaNo ? "#dc2626" : "#374151",
-                                  fontWeight: 700,
-                                  cursor: actualizandoId === idCap || idCapAusente ? "not-allowed" : "pointer",
-                                  boxShadow: asistenciaNo ? "0 2px 8px rgba(220,38,38,.08)" : "none",
-                                  transition: "0.2s",
-                                  outline: "none",
-                                  position: "relative",
-                                  opacity: idCapAusente ? 0.5 : 1
-                                }}
-                                onMouseOver={e => { if (!asistenciaNo && !idCapAusente) e.target.style.background = "#fecaca"; }}
-                                onMouseOut={e => { if (!asistenciaNo && !idCapAusente) e.target.style.background = "#f3f4f6"; }}
-                              >
-                                {idCapAusente ? "Sin ID" : actualizandoId === idCap ? "Actualizando..." : "No"}
-                              </button>
-                              {idCapAusente && (
-                                <span style={{ color: "#dc2626", fontSize: 12, marginLeft: 8 }}>
-                                  ⚠️ Falta idempleadocapacitacion
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span style={{
-                              color: asistenciaSi ? "#16a34a" : asistenciaNo ? "#dc2626" : "#374151",
-                              background: asistenciaSi ? "#e6fbe8" : asistenciaNo ? "#fee2e2" : "#f3f4f6",
-                              borderRadius: 8,
-                              padding: "4px 18px",
-                              fontWeight: 700,
-                              border: asistenciaSi ? "2px solid #16a34a" : asistenciaNo ? "2px solid #dc2626" : "1px solid #e5e7eb"
-                            }}>
-                              {asistenciaSi ? "Sí" : asistenciaNo ? "No" : emp.asistencia || "-"}
-                            </span>
-                          )}
+                            {/* Si el colaborador tiene documento, solo mostrar el estado como texto */}
+                            {emp.documento ? (
+                              <span style={{
+                                color: asistenciaSi ? "#16a34a" : asistenciaNo ? "#dc2626" : "#374151",
+                                background: asistenciaSi ? "#e6fbe8" : asistenciaNo ? "#fee2e2" : "#f3f4f6",
+                                borderRadius: 8,
+                                padding: "4px 18px",
+                                fontWeight: 700,
+                                border: asistenciaSi ? "2px solid #16a34a" : asistenciaNo ? "2px solid #dc2626" : "1px solid #e5e7eb"
+                              }}>
+                                {asistenciaSi ? "Sí" : asistenciaNo ? "No" : emp.asistencia || "-"}
+                              </span>
+                            ) : esCoordinadorOAdmin ? (
+                                <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                                  <button
+                                    disabled={actualizandoId === idCap || idCapAusente || !mostrarBotonesAsistencia}
+                                    title={idCapAusente ? "Falta idempleadocapacitacion" : !mostrarBotonesAsistencia ? "Solo disponible en proceso o finalizada (15 días)" : ""}
+                                    onClick={() => mostrarBotonesAsistencia ? handleActualizarAsistencia(idCap, "Sí") : null}
+                                    style={{
+                                      padding: "4px 18px",
+                                      borderRadius: 8,
+                                      border: asistenciaSi ? "2px solid #16a34a" : "1px solid #e5e7eb",
+                                      background: asistenciaSi ? "#e6fbe8" : "#f3f4f6",
+                                      color: asistenciaSi ? "#16a34a" : "#374151",
+                                      fontWeight: 700,
+                                      cursor: actualizandoId === idCap || idCapAusente || !mostrarBotonesAsistencia ? "not-allowed" : "pointer",
+                                      boxShadow: asistenciaSi ? "0 2px 8px rgba(22,163,74,.08)" : "none",
+                                      transition: "0.2s",
+                                      outline: "none",
+                                      position: "relative",
+                                      opacity: idCapAusente || !mostrarBotonesAsistencia ? 0.5 : 1
+                                    }}
+                                    onMouseOver={e => { if (!asistenciaSi && !idCapAusente && mostrarBotonesAsistencia) e.target.style.background = "#d1fae5"; }}
+                                    onMouseOut={e => { if (!asistenciaSi && !idCapAusente && mostrarBotonesAsistencia) e.target.style.background = "#f3f4f6"; }}
+                                  >
+                                    {idCapAusente ? "Sin ID" : actualizandoId === idCap ? "Actualizando..." : "Sí"}
+                                  </button>
+                                  <button
+                                    disabled={actualizandoId === idCap || idCapAusente || !mostrarBotonesAsistencia}
+                                    title={idCapAusente ? "Falta idempleadocapacitacion" : !mostrarBotonesAsistencia ? "Solo disponible en proceso o finalizada (15 días)" : ""}
+                                    onClick={() => mostrarBotonesAsistencia ? handleActualizarAsistencia(idCap, "No") : null}
+                                    style={{
+                                      padding: "4px 18px",
+                                      borderRadius: 8,
+                                      border: asistenciaNo ? "2px solid #dc2626" : "1px solid #e5e7eb",
+                                      background: asistenciaNo ? "#fee2e2" : "#f3f4f6",
+                                      color: asistenciaNo ? "#dc2626" : "#374151",
+                                      fontWeight: 700,
+                                      cursor: actualizandoId === idCap || idCapAusente || !mostrarBotonesAsistencia ? "not-allowed" : "pointer",
+                                      boxShadow: asistenciaNo ? "0 2px 8px rgba(220,38,38,.08)" : "none",
+                                      transition: "0.2s",
+                                      outline: "none",
+                                      position: "relative",
+                                      opacity: idCapAusente || !mostrarBotonesAsistencia ? 0.5 : 1
+                                    }}
+                                    onMouseOver={e => { if (!asistenciaNo && !idCapAusente && mostrarBotonesAsistencia) e.target.style.background = "#fecaca"; }}
+                                    onMouseOut={e => { if (!asistenciaNo && !idCapAusente && mostrarBotonesAsistencia) e.target.style.background = "#f3f4f6"; }}
+                                  >
+                                    {idCapAusente ? "Sin ID" : actualizandoId === idCap ? "Actualizando..." : "No"}
+                                  </button>
+                                  {idCapAusente && (
+                                    <span style={{ color: "#dc2626", fontSize: 12, marginLeft: 8 }}>
+                                      ⚠️ Falta idempleadocapacitacion
+                                    </span>
+                                  )}
+                                </div>
+                            ) : (
+                              <span style={{
+                                color: asistenciaSi ? "#16a34a" : asistenciaNo ? "#dc2626" : "#374151",
+                                background: asistenciaSi ? "#e6fbe8" : asistenciaNo ? "#fee2e2" : "#f3f4f6",
+                                borderRadius: 8,
+                                padding: "4px 18px",
+                                fontWeight: 700,
+                                border: asistenciaSi ? "2px solid #16a34a" : asistenciaNo ? "2px solid #dc2626" : "1px solid #e5e7eb"
+                              }}>
+                                {asistenciaSi ? "Sí" : asistenciaNo ? "No" : emp.asistencia || "-"}
+                              </span>
+                            )}
                         </td>
                         <td style={tdStyle}>
-                          {emp.documento ? (
-                            <button
-                              onClick={() => handleVerDocumento(emp)}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                color: "#2563eb",
-                                textDecoration: "underline",
-                                cursor: "pointer",
-                                fontWeight: 600,
-                                fontSize: "12px",
-                                padding: "0"
-                              }}
-                            >
-                              {emp.documento.nombrearchivo}
-                            </button>
-                          ) : (
-                            <span style={{ color: "#6b7280" }}>Sin documento</span>
-                          )}
+                            {emp.documento ? (
+                              <button
+                                onClick={() => handleVerDocumento(emp)}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: "#2563eb",
+                                  textDecoration: "underline",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                  fontSize: "12px",
+                                  padding: "0"
+                                }}
+                              >
+                                {emp.documento.nombrearchivo}
+                              </button>
+                            ) : (
+                              <span style={{ color: "#6b7280" }}>Sin documento</span>
+                            )}
+                            {/* Botón para subir informe/justificación solo si corresponde */}
+                            {!emp.documento && mostrarBotonesAsistencia && (
+                              <button
+                                style={{
+                                  marginLeft: 8,
+                                  padding: "4px 14px",
+                                  borderRadius: 8,
+                                  border: "1px solid #2563eb",
+                                  background: "#eff6ff",
+                                  color: "#2563eb",
+                                  fontWeight: 600,
+                                  fontSize: "12px",
+                                  cursor: "pointer"
+                                }}
+                                onClick={() => {/* lógica para subir documento */}}
+                              >
+                                Subir informe/justificación
+                              </button>
+                            )}
                         </td>
                         <td style={tdStyle}>{emp.fechaenvio ? formatDate(emp.fechaenvio) : "-"}</td>
                       </tr>

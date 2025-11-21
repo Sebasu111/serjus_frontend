@@ -57,7 +57,7 @@ const CapacitacionesSection = ({
                                 botonColor = "#dc2626";
                                 botonModo = "justifico";
                             } else {
-                                botonTexto = "Registrar asistencia";
+                                botonTexto = "No disponible";
                                 botonColor = "#6B7280";
                                 botonModo = null;
                             }
@@ -76,26 +76,39 @@ const CapacitacionesSection = ({
                                     </td>
                                     <td style={{ padding: "14px" }}>{c.observacion || "-"}</td>
                                     <td style={{ padding: "14px", textAlign: "center" }}>
-                                        <button
-                                            onClick={() => {
-                                                setCapacitacionSeleccionada({ ...c, modo: botonModo });
-                                                setShowAsistenciaModal(true);
-                                            }}
-                                            style={{
-                                                padding: "6px 12px",
-                                                background: asistenciaRegistrada ? "#E5E7EB" : botonColor,
-                                                color: asistenciaRegistrada ? "#6B7280" : "#fff",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                fontWeight: "600",
-                                                cursor: asistenciaRegistrada ? "not-allowed" : "pointer",
-                                                fontSize: "14px",
-                                                transition: "0.2s"
-                                            }}
-                                            disabled={asistenciaRegistrada}
-                                        >
-                                            {botonTexto}
-                                        </button>
+                                        {asistenciaRegistrada ? (
+                                            <span style={{
+                                                color: "#059669",
+                                                background: "#e6fbe8",
+                                                borderRadius: "8px",
+                                                padding: "8px 18px",
+                                                fontWeight: 700,
+                                                border: "2px solid #16a34a",
+                                                display: "inline-block"
+                                            }}>
+                                                Registrado
+                                            </span>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    setCapacitacionSeleccionada({ ...c, modo: botonModo });
+                                                    setShowAsistenciaModal(true);
+                                                }}
+                                                style={{
+                                                    padding: "6px 12px",
+                                                    background: botonColor,
+                                                    color: "#fff",
+                                                    border: "none",
+                                                    borderRadius: "6px",
+                                                    fontWeight: "600",
+                                                    cursor: "pointer",
+                                                    fontSize: "14px",
+                                                    transition: "0.2s"
+                                                }}
+                                            >
+                                                {botonTexto}
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             );

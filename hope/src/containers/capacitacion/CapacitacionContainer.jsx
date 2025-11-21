@@ -211,7 +211,7 @@ const CapacitacionContainer = () => {
         if (!modalAccion?.data) return;
         const { tipo, data } = modalAccion;
 
-        // Si es desactivar, primero verificar si tiene personas asignadas
+        // Si es desactivar, desactivar todas las asignaciones de colaboradores relacionadas
         if (tipo === "desactivar") {
             try {
                 const res = await axios.get(`${API}/empleadocapacitacion/?capacitacion=` + (data.idcapacitacion || data.id),{
@@ -220,13 +220,22 @@ const CapacitacionContainer = () => {
                 const asignados = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
                 // Solo considerar asignaciones activas de esta capacitación
                 const asignadosActivos = asignados.filter(a => a.estado === true && Number(a.idcapacitacion) === Number(data.idcapacitacion || data.id));
-                if (asignadosActivos.length > 0) {
-                    showToast("No se puede desactivar la capacitación porque tiene personas asignadas.", "warning");
-                    setModalAccion(null);
-                    return;
+                const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+                // Desactivar cada asignación activa
+                for (const asignacion of asignadosActivos) {
+                    const idAsignacion = asignacion.idempleadocapacitacion || asignacion.id;
+                    if (idAsignacion) {
+                        await axios.put(`${API}/empleadocapacitacion/${idAsignacion}/`, {
+                            ...asignacion,
+                            estado: false,
+                            idusuario: idUsuario
+                        }, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                    }
                 }
             } catch (error) {
-                showToast("Error al verificar personas asignadas", "error");
+                showToast("Error al desactivar colaboradores asignados", "error");
                 setModalAccion(null);
                 return;
             }

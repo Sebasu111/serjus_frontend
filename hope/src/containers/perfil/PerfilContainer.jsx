@@ -86,9 +86,10 @@ const PerfilContainer = () => {
       const resCap = await axios.get(`${API}/empleadocapacitacion/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      // Filtrar solo asignaciones activas
       const capsEmpleado = resCap.data.results
-        ? resCap.data.results.filter((c) => c.idempleado === idEmpleado)
-        : resCap.data.filter((c) => c.idempleado === idEmpleado);
+        ? resCap.data.results.filter((c) => c.idempleado === idEmpleado && c.estado === true)
+        : resCap.data.filter((c) => c.idempleado === idEmpleado && c.estado === true);
 
       const resCapsInfo = await axios.get(`${API}/capacitaciones/`, {
         headers: { Authorization: `Bearer ${token}` }
