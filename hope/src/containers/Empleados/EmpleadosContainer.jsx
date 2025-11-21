@@ -888,6 +888,8 @@ const EmpleadosContainer = () => {
         const newErrors = {};
         // Vacíos -> true (el Form mostrará "Este campo es obligatorio")
         for (const k of required) {
+            // Si es el campo CV y ya existe uno, no lo marques como pendiente
+            if (k === "cvFile" && editingId && cvExistente) continue;
             if (form[k] === "" || form[k] == null) newErrors[k] = true;
         }
         if (form.isCF) delete newErrors.nit;
@@ -945,18 +947,21 @@ const EmpleadosContainer = () => {
         const generos = ["Masculino", "Femenino", "Otros"];
         if (form.genero && !generos.includes(String(form.genero))) newErrors.genero = true;
 
-        // Validación del CV (obligatorio para empleados nuevos)
+        // Validación del CV (obligatorio solo si no hay archivo ni existente)
         console.log("Validando CV:", {
             editingId: editingId,
             cvFile: form.cvFile,
-            isRequired: !editingId
+            cvExistente: cvExistente,
+            isRequired: !editingId && !cvExistente
         });
 
         if (!editingId && !form.cvFile) {
-            console.log("Error: CV es obligatorio para empleados nuevos");
+            // Nuevo colaborador, CV obligatorio
             newErrors.cvFile = true;
-        } else {
-            console.log("CV válido o no requerido");
+        }
+        if (editingId && !form.cvFile && !cvExistente) {
+            // Editando, pero no hay CV ni archivo nuevo
+            newErrors.cvFile = true;
         }
 
         setErrors(newErrors);

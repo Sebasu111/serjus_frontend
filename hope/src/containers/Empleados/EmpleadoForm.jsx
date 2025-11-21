@@ -161,8 +161,13 @@ const EmpleadoForm = ({
         const box = document.querySelector(`[data-step="${step}"]`);
         if (!box) return true;
 
+        // Si ya hay CV existente, no lo pongas como obligatorio en edición
+        let step3Fields = [...STEP3_FIELDS];
+        if (step === 3 && editingId && cvExistente) {
+            step3Fields = step3Fields.filter(f => f !== "cvFile");
+        }
         const requiredNames =
-            step === 1 ? new Set(STEP1_FIELDS) : step === 2 ? new Set(STEP2_FIELDS) : new Set(STEP3_FIELDS);
+            step === 1 ? new Set(STEP1_FIELDS) : step === 2 ? new Set(STEP2_FIELDS) : new Set(step3Fields);
 
         const pageInputs = box.querySelectorAll("input, select, textarea");
 
@@ -172,6 +177,12 @@ const EmpleadoForm = ({
             if (input.disabled) continue;
             if (!requiredNames.has(name)) continue;
             if (name === "nit" && Boolean(form.isCF)) continue;
+
+            // Si es el campo CV y ya hay uno subido, nunca lo marques como pendiente
+            if (name === "cvFile" && editingId && cvExistente) {
+                input.setCustomValidity("");
+                continue;
+            }
 
             if (!String(input.value || "").trim()) {
                 input.setCustomValidity("Este campo es obligatorio");
@@ -759,30 +770,6 @@ const EmpleadoForm = ({
                                                             ✕ Eliminar
                                                         </button>
                                                     </div>
-                                                    {/* Solo mostrar input para subir nuevo CV si el actual fue eliminado */}
-                                                    {!cvExistente && (
-                                                        <>
-                                                            <input
-                                                                type="file"
-                                                                name="cvFile"
-                                                                accept=".pdf"
-                                                                onChange={onCvUpload}
-                                                                required={!editingId && !cvExistente}
-                                                                style={{
-                                                                    ...inputStyle,
-                                                                    padding: "8px 12px"
-                                                                }}
-                                                            />
-                                                            <small style={{
-                                                                color: "#666",
-                                                                fontSize: "13px",
-                                                                display: "block",
-                                                                marginTop: "4px"
-                                                            }}>
-                                                                Selecciona un nuevo CV para reemplazar el actual (Solo PDF, máx. 5MB)
-                                                            </small>
-                                                        </>
-                                                    )}
                                                 </>
                                             ) : (
                                                 <>
@@ -817,7 +804,8 @@ const EmpleadoForm = ({
                                                     ✓ Nuevo archivo seleccionado: {form.cvFile.name}
                                                 </div>
                                             )}
-                                            {errors.cvFile && <span style={warn}>Este campo es obligatorio</span>}
+                                            {/* Solo mostrar el mensaje de error si no hay CV existente y falta el archivo, y no mostrar nada si ya hay uno */}
+                                            {(!cvExistente && !form.cvFile && errors.cvFile) && <span style={warn}>Este campo es obligatorio</span>}
                                         </div>
                                     </div>
                                 </fieldset>
