@@ -33,6 +33,7 @@ const EvaluacionContainer = () => {
   const esAcompanante = usuario?.idrol === 2;
   const esContador = usuario?.idrol === 3;
   const esAdmin = usuario?.idrol === 5;
+  const esSecretaria = usuario?.idrol === 4; // Cambiar si el ID es otro
   const esRolLimitado = esAcompanante || esContador;
 
   // ⏳ Validación de acceso semestral
@@ -64,6 +65,13 @@ const EvaluacionContainer = () => {
     };
   }, []);
 
+  // 🔒 Secretaría no puede navegar fuera de Evaluar o Seguimiento
+  useEffect(() => {
+    if (esSecretaria && vistaActual !== "evaluar" && vistaActual !== "seguimiento") {
+      setVistaActual("seguimiento"); // Si intenta ver otra cosa, la mandamos a seguimiento
+    }
+  }, [vistaActual, esSecretaria]);
+
   return (
     <Layout>
       <SEO title="SERJUS - Evaluaciones" />
@@ -92,7 +100,7 @@ const EvaluacionContainer = () => {
               overflow: "hidden",
             }}
           >
-            {/* NAV VISIBLE PARA TODOS */}
+            {/* NAV */}
             <div
               style={{
                 borderBottom: "2px solid #e0e0e0",
@@ -102,13 +110,14 @@ const EvaluacionContainer = () => {
             >
               <div style={{ display: "flex", gap: 0 }}>
                 <button
-                  onClick={() => setVistaActual("evaluar")} // 🔥 siempre se puede abrir
+                  onClick={() => setVistaActual("evaluar")}
                   style={navBtn(vistaActual === "evaluar")}
                 >
                   Evaluar
                 </button>
 
-                {!esRolLimitado && (
+                {/* NO pueden ver Ver Evaluaciones */}
+                {!esSecretaria && !esRolLimitado && (
                   <button
                     onClick={() => setVistaActual("listar")}
                     style={navBtn(vistaActual === "listar")}
@@ -117,6 +126,7 @@ const EvaluacionContainer = () => {
                   </button>
                 )}
 
+                {/* Solo Admin */}
                 {esAdmin && (
                   <button
                     onClick={() => setVistaActual("finalizadas")}
@@ -126,6 +136,7 @@ const EvaluacionContainer = () => {
                   </button>
                 )}
 
+                {/* Secretaría puede ver Seguimiento */}
                 <button
                   onClick={() => setVistaActual("seguimiento")}
                   style={navBtn(vistaActual === "seguimiento")}
@@ -135,7 +146,7 @@ const EvaluacionContainer = () => {
               </div>
             </div>
 
-            {/* CONTENIDO DINÁMICO */}
+            {/* CONTENIDO */}
             {vistaActual === "evaluar" && (
               <>
                 {!evaluacionesAbiertas && (
@@ -149,7 +160,7 @@ const EvaluacionContainer = () => {
                       backgroundColor: "#fff",
                     }}
                   >
-                    La AutoEvaluacion está cerrada actualmente.
+                    La AutoEvaluación está cerrada actualmente.
                     <br />
                     Próximas fechas habilitadas:
                     <br />
@@ -159,7 +170,6 @@ const EvaluacionContainer = () => {
                   </div>
                 )}
 
-                {/* 🔥 Evaluación siempre visible */}
                 <div
                   style={{
                     display: "flex",
@@ -171,13 +181,13 @@ const EvaluacionContainer = () => {
                 >
                   <EvaluacionGuia
                     evaluacionSeleccionada={evaluacionSeleccionada}
-                    evaluacionesAbiertas={evaluacionesAbiertas} // ← para bloquear edición dentro
+                    evaluacionesAbiertas={evaluacionesAbiertas}
                   />
                 </div>
               </>
             )}
 
-            {vistaActual === "listar" && !esRolLimitado && (
+            {vistaActual === "listar" && !esSecretaria && !esRolLimitado && (
               <div
                 style={{
                   height: "calc(100vh - 130px)",
@@ -243,4 +253,3 @@ const navBtn = (isActive) => ({
 });
 
 export default EvaluacionContainer;
- 

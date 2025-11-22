@@ -1,13 +1,14 @@
 import { useEffect } from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import ProtectedRoute from "./ProtectedRoute";
 
 // Toast notifications
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Estilos globales
+// Estilos
 import "./assets/css/bootstrap.min.css";
 import "./assets/scss/style.scss";
 import "./assets/css/icofont.css";
@@ -15,69 +16,28 @@ import "./assets/css/animate.css";
 import "swiper/swiper-bundle.min.css";
 import "lightgallery.js/dist/css/lightgallery.css";
 
-//formulario
-import FormUsuario from "../src/containers/usuarios/FormUsuario";
-
-// Páginas principales
-import HomePage from "./pages/Inicio";
+// Páginas
 import LoginPage from "./pages/LoginPage";
-
-//Perfil.
+import HomePage from "./pages/Inicio";
 import PerfilContainer from "./containers/perfil/PerfilContainer";
-
-// Componentes generales
-import NavScrollTop from "./components/nav-scroll-top";
-
-// ============================================================
-// ConvocatoriasPublicas
-// ============================================================
+import FormUsuario from "./containers/usuarios/FormUsuario";
 import ConvocatoriasPublicPage from "./ConvocatoriasPublicas/ConvocatoriasPublicPage";
 
-// =============================================================
-//   PERSONAL
-// =============================================================
+// Containers
 import EmpleadosContainer from "./containers/Empleados/EmpleadosContainer";
 import ContratosContainer from "./containers/contratos/ContratosContainer";
 import EquiposContainer from "./containers/Equipo/EquiposContainer";
 import UsuariosContainer from "./containers/usuarios/UsuariosContainer";
-
-// =============================================================
-//   RECLUTAMIENTO
-// =============================================================
 import ConvocatoriasContainer from "./containers/convocatorias/ConvocatoriasContainer";
 import PostulacionesContainer from "./containers/postulaciones/PostulacionesContainer";
-
-// =============================================================
-//   INTEGRACIÓN
-// =============================================================
-import CapacitacionContainer from "./containers/capacitacion/CapacitacionContainer";
+import SeleccionContainer from "./containers/Seleccion/SeleccionContainer";
 import InduccionContainer from "./containers/Induccion";
-
-// =============================================================
-//   DESEMPEÑO
-// =============================================================
+import CapacitacionContainer from "./containers/capacitacion/CapacitacionContainer";
 import CriterioEvaluacionContainer from "./containers/CriterioEvaluacion/CriterioEvaluacionContainer";
-import EvaluacionCriterioContainer from "./containers/EvaluacionCriterio/EvaluacionCriterioContainer";
 import EvaluacionContainer from "./containers/Evaluaciones/EvaluacionContainer";
-
-// =============================================================
-//   CONTROL DISCIPLINARIO
-// =============================================================
+import EvaluacionCriterioContainer from "./containers/EvaluacionCriterio/EvaluacionCriterioContainer";
 import AusenciaContainer from "./containers/Ausencia/AusenciaContainer";
 import AmonestacionContainer from "./containers/Amonestacion/AmonestacionContainer";
-
-// =============================================================
-//   Seleccion/Contratacion
-// =============================================================
-import SeleccionContainer from "./containers/Seleccion/SeleccionContainer";
-// =============================================================
-//   DASHBOARD
-// =============================================================
-import Dashboard from "./containers/Dashboard/Dashboard";
-
-// =============================================================
-//   AUXILIAR (catálogos, tablas de apoyo, etc.)
-// =============================================================
 import IdiomasContainer from "./containers/Idiomas/IdiomasContainer";
 import EstadosContainer from "./containers/Estados/EstadosContainer";
 import PuestoContainer from "./containers/Puesto/PuestoContainer";
@@ -85,30 +45,16 @@ import RolesContainer from "./containers/Roles/RolesContainer";
 import TiposDocContainer from "./containers/TiposDocumento/TiposDocContainer";
 import PuebloCulturaContainer from "./containers/PuebloCultura/PuebloCulturaContainer";
 import TerminacionLaboralContainer from "./containers/TerminacionLaboral/TerminacionLaboralContainer";
-
-// =============================================================
-//   Reportes 
-// =============================================================
 import ReportesContainer from "./containers/Reportes/ReportesContainer";
-
-// =============================================================
-//   DOCUMENTOS
-// =============================================================
 import DocumentosContainer from "./containers/documentos/DocumentosContainer";
+import Dashboard from "./containers/Dashboard/Dashboard";
 
-// =============================================================
-// APP PRINCIPAL
-// =============================================================
+import NavScrollTop from "./components/nav-scroll-top";
 const base = process.env.PUBLIC_URL || "";
 
 const App = () => {
     useEffect(() => {
-        AOS.init({
-            offset: 80,
-            duration: 1000,
-            once: true,
-            easing: "ease"
-        });
+        AOS.init({ offset: 80, duration: 1000, once: true, easing: "ease" });
         AOS.refresh();
     }, []);
 
@@ -116,75 +62,60 @@ const App = () => {
         <Router>
             <NavScrollTop>
                 <Switch>
-                    {/*Publico*/}
-                    <Route exact path={`${base}/Bolsadeempleo`} component={ConvocatoriasPublicPage} />
 
-                    {/*Perfil*/}
-                    <Route exact path={`${base}/perfil`} component={PerfilContainer} />
-
-                    {/*Cambiar Contraseña*/}
-                    <Route exact path={`${base}/cambiar-contrasena`} component={FormUsuario} />
-
-                    {/*PÁGINAS PÚBLICAS*/}
+                    {/* Público */}
                     <Route exact path={`${base}/`} component={LoginPage} />
-                    <Route path={`${base}/home`} component={HomePage} />
+                    <Route exact path={`${base}/Bolsadeempleo`} component={ConvocatoriasPublicPage} />
+                    <ProtectedRoute exact path={`${base}/home`} component={HomePage} rolesPermitidos={[6,5,1,4,3,2]} />
 
-                    {/*PERSONAL*/}
-                    <Route exact path={`${base}/Empleados`} component={EmpleadosContainer} />
-                    <Route exact path={`${base}/Contratos`} component={ContratosContainer} />
-                    <Route exact path={`${base}/Equipos`} component={EquiposContainer} />
-                    <Route exact path={`${base}/Usuarios`} component={UsuariosContainer} />
+                    {/* Perfil / usuario */}
+                    <ProtectedRoute exact path={`${base}/perfil`} component={PerfilContainer} rolesPermitidos={[6,5,1,4,3,2]} />
+                    <ProtectedRoute exact path={`${base}/cambiar-contrasena`} component={FormUsuario} rolesPermitidos={[6,5,1,4,3,2]} />
 
-                    {/*RECLUTAMIENTO*/}
-                    <Route exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} />
-                    <Route exact path={`${base}/Postulaciones`} component={PostulacionesContainer} />
-                    <Route exact path={`${base}/Seleccion`} component={SeleccionContainer} />
+                    {/* Personal */}
+                    <ProtectedRoute exact path={`${base}/Empleados`} component={EmpleadosContainer} rolesPermitidos={[1,6,4,5]} />
+                    <ProtectedRoute exact path={`${base}/Contratos`} component={ContratosContainer} rolesPermitidos={[6,4,5]} />
+                    <ProtectedRoute exact path={`${base}/Equipos`} component={EquiposContainer} rolesPermitidos={[6,1,5]} />
+                    <ProtectedRoute exact path={`${base}/Usuarios`} component={UsuariosContainer} rolesPermitidos={[6,5]} />
 
-                    {/*INTEGRACIÓN*/}
-                    <Route exact path={`${base}/Capacitacion`} component={CapacitacionContainer} />
-                    <Route exact path={`${base}/Induccion`} component={InduccionContainer} />
+                    {/* Reclutamiento */}
+                    <ProtectedRoute exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} rolesPermitidos={[6,4,5]} />
+                    <ProtectedRoute exact path={`${base}/Postulaciones`} component={PostulacionesContainer} rolesPermitidos={[6,1,5]} />
+                    <ProtectedRoute exact path={`${base}/Seleccion`} component={SeleccionContainer} rolesPermitidos={[6,1,5]} />
 
-                    {/*DESEMPEÑO*/}
-                    <Route exact path={`${base}/Criterios`} component={CriterioEvaluacionContainer} />
-                    <Route exact path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} />
-                    <Route exact path={`${base}/Evaluaciones`} component={EvaluacionContainer} />
+                    {/* Integración */}
+                    <ProtectedRoute exact path={`${base}/Induccion`} component={InduccionContainer} rolesPermitidos={[6,4,5]} />
+                    <ProtectedRoute exact path={`${base}/Capacitacion`} component={CapacitacionContainer} rolesPermitidos={[6,1,4,5]} />
 
-                    {/*CONTROL DISCIPLINARIO*/}
-                    <Route exact path={`${base}/Ausencias`} component={AusenciaContainer} />
-                    <Route exact path={`${base}/Amonestaciones`} component={AmonestacionContainer} />
+                    {/* Desempeño */}
+                    <ProtectedRoute exact path={`${base}/Evaluaciones`} component={EvaluacionContainer} rolesPermitidos={[6,1,5,2,4,3]} />
+                    <ProtectedRoute exact path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} rolesPermitidos={[6,1,5,2,4,3]} />
+                    <ProtectedRoute exact path={`${base}/Criterios`} component={CriterioEvaluacionContainer} rolesPermitidos={[6,5]} />
 
-                    {/*AUXILIAR (Catálogos y tablas de apoyo)*/}
-                    <Route exact path={`${base}/Idiomas`} component={IdiomasContainer} />
-                    <Route exact path={`${base}/Estados`} component={EstadosContainer} />
-                    <Route exact path={`${base}/Puesto`} component={PuestoContainer} />
-                    <Route exact path={`${base}/Roles`} component={RolesContainer} />
-                    <Route exact path={`${base}/TiposDocumento`} component={TiposDocContainer} />
-                    <Route exact path={`${base}/PuebloCultura`} component={PuebloCulturaContainer} />
-                    <Route exact path={`${base}/TerminacionLaboral`} component={TerminacionLaboralContainer} />
-                    <Route exact path={`${base}/Reportes`} component={ReportesContainer} />
+                    {/* Control disciplinario */}
+                    <ProtectedRoute exact path={`${base}/Ausencias`} component={AusenciaContainer} rolesPermitidos={[6,1,5,4]} />
+                    <ProtectedRoute exact path={`${base}/Amonestaciones`} component={AmonestacionContainer} rolesPermitidos={[6,1,5]} />
 
-                    {/* DASHBOARD */}
-                    <Route exact path={`${base}/Dashboard`} component={Dashboard} />
+                    {/* Catálogos / auxiliar */}
+                    <ProtectedRoute exact path={`${base}/Idiomas`} component={IdiomasContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/Estados`} component={EstadosContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/Puesto`} component={PuestoContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/Roles`} component={RolesContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/TiposDocumento`} component={TiposDocContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/PuebloCultura`} component={PuebloCulturaContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/TerminacionLaboral`} component={TerminacionLaboralContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/Reportes`} component={ReportesContainer} rolesPermitidos={[6,5]} />
 
+                    {/* Dashboard */}
+                    <ProtectedRoute exact path={`${base}/Dashboard`} component={Dashboard} rolesPermitidos={[6,5]} />
 
-                    {/*DOCUMENTOS*/}
-                    <Route exact path={`${base}/Documentos`} component={DocumentosContainer} />
+                    {/* Documentos */}
+                    <ProtectedRoute exact path={`${base}/Documentos`} component={DocumentosContainer} rolesPermitidos={[6,4,5]} />
+
                 </Switch>
             </NavScrollTop>
 
-            {/* ToastContainer global para todas las notificaciones */}
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-            />
+            <ToastContainer position="top-right" autoClose={3000} theme="light" />
         </Router>
     );
 };

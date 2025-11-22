@@ -82,7 +82,6 @@ const CambiarContrasenaModal = ({ onClose }) => {
                 showToast(errorMsg, "error");
             }
         } catch (error) {
-            console.error("Error:", error);
             showToast("Error de conexión con el servidor", "error");
         } finally {
             setEnviando(false);

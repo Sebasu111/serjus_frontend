@@ -216,7 +216,7 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
             display: "block",
           }}
         >
-          Seleccionar empleado
+          Seleccionar Colaborador
         </label>
 
         <input

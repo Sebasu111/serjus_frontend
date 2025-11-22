@@ -50,11 +50,7 @@ const DocumentosContainer = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
-
-            // Filtrar solo documentos activos (estado != false)
-            const documentosActivos = data.filter(doc => doc.estado !== false);
-
-            setDocumentos(documentosActivos);
+            setDocumentos(data);
         } catch (error) {
             console.error("Error al cargar documentos:", "error");
             showToast("Error al cargar los documentos", "error");
@@ -276,33 +272,27 @@ const DocumentosContainer = () => {
     };
 
     const documentosFiltrados = documentos
-        // Ordenar por ID descendente (último agregado primero)
         .sort((a, b) => (b.iddocumento || 0) - (a.iddocumento || 0))
         .filter(d => {
-            const nombreDocumento = d.nombrearchivo?.toLowerCase() || "";
+            const termino = busqueda.toLowerCase();
             const empleado = empleados.find(emp => emp.idempleado === d.idempleado);
-            const nombreEmpleado = empleado ? empleado.nombre.toLowerCase() : "";
-            const apellidoEmpleado = empleado ? empleado.apellido.toLowerCase() : "";
-            const nombreCompletoEmpleado = `${nombreEmpleado} ${apellidoEmpleado}`;
-            const terminoBusqueda = busqueda.toLowerCase();
-            const coincideTexto = (
-                nombreDocumento.includes(terminoBusqueda) ||
-                nombreEmpleado.includes(terminoBusqueda) ||
-                apellidoEmpleado.includes(terminoBusqueda) ||
-                nombreCompletoEmpleado.includes(terminoBusqueda)
-            );
+            const nombreEmp = `${empleado?.nombre || ""} ${empleado?.apellido || ""}`.toLowerCase();
+            const nombreDoc = d.nombrearchivo?.toLowerCase() || "";
 
-            // Mostrar todos los documentos con archivo_url, incluyendo terminación laboral
-            if (mostrarSinArchivo) {
-                return coincideTexto && !d.archivo_url;
-            } else {
-                return coincideTexto && d.archivo_url && (
-                    d.idtipodocumento === 1 ||
-                    d.idtipodocumento === 2 ||
-                    d.idtipodocumento === 8 // Mostrar también terminación laboral
-                );
-            }
-        });
+            const coincide = nombreDoc.includes(termino) || nombreEmp.includes(termino);
+
+            const esSinArchivo =
+                d.estado === false ||          // 👈 documento eliminado → sin archivo
+                !d.archivo_url ||              // no hay URL
+                d.mimearchivo === "-----" ||   // marcado manualmente sin archivo
+                nombreDoc.includes("(archivo eliminado)"); // renombrado
+
+            if (mostrarSinArchivo) return coincide && esSinArchivo;
+
+            return coincide;
+    });
+
+
 
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;

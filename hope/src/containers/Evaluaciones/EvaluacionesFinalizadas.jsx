@@ -180,7 +180,7 @@ const EvaluacionesFinalizadas = () => {
       {/* 🔍 FILTROS */}
       <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
         <div>
-          <label style={{ fontWeight: 600 }}>Empleado</label>
+          <label style={{ fontWeight: 600 }}>Colaborador</label>
           <input
             type="text"
             placeholder="Buscar empleado..."
@@ -243,11 +243,10 @@ const EvaluacionesFinalizadas = () => {
       <table style={table}>
         <thead>
           <tr style={trHead}>
-            <th style={th}>Empleado</th>
+            <th style={th}>Colaborador</th>
             <th style={th}>Puntaje Auto</th>
-            <th style={th}>Evaluador Auto</th>
-            <th style={th}>Puntaje Supervisor</th>
             <th style={th}>Evaluador Supervisor</th>
+            <th style={th}>Puntaje Supervisor</th>
             <th style={th}>Promedio</th>
             <th style={th}>Acción</th>
           </tr>
@@ -267,9 +266,8 @@ const EvaluacionesFinalizadas = () => {
               <tr key={realIdx}>
                 <td style={td}>{row.empleado}</td>
                 <td style={td}>{row.auto?.puntajetotal ?? "-"}</td>
-                <td style={td}>{row.autoUsuario || "-"}</td>
-                <td style={td}>{row.coord?.puntajetotal ?? "-"}</td>
                 <td style={td}>{row.coordUsuario || "-"}</td>
+                <td style={td}>{row.coord?.puntajetotal ?? "-"}</td>
                 <td style={td}>{promedio}</td>
                 <td style={td}>
                   <button

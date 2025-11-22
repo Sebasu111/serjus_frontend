@@ -20,6 +20,9 @@ const EquipoFormNuevo = ({
     const [busquedaCoordinador, setBusquedaCoordinador] = useState("");
     const [busquedaMiembros, setBusquedaMiembros] = useState("");
     const [showError, setShowError] = useState(false);
+    const usuarioLog = JSON.parse(localStorage.getItem("usuarioLogueado") || "{}");
+    const esCoordinador = Number(usuarioLog?.idrol) === 1;
+
 
     // Filtros para coordinador
     const coordinadoresFiltrados = useMemo(() => {
@@ -120,7 +123,7 @@ const EquipoFormNuevo = ({
                     {editingId ? "Editar Integrantes del Equipo" : "Crear Nuevo Equipo"}
                 </h3>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={esCoordinador ? (e => e.preventDefault()) : handleSubmit}>
                     {/* Selección de Equipo */}
                     <div style={{ marginBottom: "20px" }}>
                         <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold" }}>
@@ -180,6 +183,7 @@ const EquipoFormNuevo = ({
                                 <button
                                     type="button"
                                     onClick={() => setIdCoordinador("")}
+                                    disabled={esCoordinador}
                                     style={{
                                         background: "transparent",
                                         border: "none",
@@ -202,6 +206,7 @@ const EquipoFormNuevo = ({
                                 placeholder="Buscar coordinador por nombre..."
                                 value={busquedaCoordinador}
                                 onChange={e => setBusquedaCoordinador(e.target.value)}
+                                disabled={esCoordinador}
                                 style={{
                                     width: "100%",
                                     padding: "10px",
@@ -216,7 +221,10 @@ const EquipoFormNuevo = ({
                             <div style={{
                                 maxHeight: "120px",
                                 overflowY: "auto",
-                                padding: "8px"
+                                padding: "8px",
+                                opacity: esCoordinador ? 0.5 : 1,            // visual bloqueado
+                                pointerEvents: esCoordinador ? "none" : "auto", // evita clicks
+                                cursor: esCoordinador ? "not-allowed" : "auto"
                             }}>
                                 {coordinadoresFiltrados.length > 0 ? (
                                     coordinadoresFiltrados.map(emp => (
