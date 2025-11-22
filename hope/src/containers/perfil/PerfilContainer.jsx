@@ -7,6 +7,7 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
 import InfoPersonal from "./InfoPersonal.jsx";
+import EmpleadoForm from "../Empleados/EmpleadoForm.jsx";
 import CapacitacionesSection from "./CapacitacionesSection.jsx";
 import InduccionesSection from "./InduccionesSection.jsx";
 import ModalDocumentos from "./ModalDocumentos.jsx";
@@ -27,6 +28,9 @@ const PerfilContainer = () => {
   const [showAusenciaForm, setShowAusenciaForm] = useState(false);
   const [ausenciaData, setAusenciaData] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editandoPerfil, setEditandoPerfil] = useState(false);
+  const [formPerfil, setFormPerfil] = useState(null);
+  const [erroresPerfil, setErroresPerfil] = useState({});
   const [documentosModal, setDocumentosModal] = useState([]);
   const [induccionSeleccionada, setInduccionSeleccionada] = useState(null);
 
@@ -275,50 +279,104 @@ const PerfilContainer = () => {
             }}
           >
             <div style={{ width: "min(1100px, 96vw)" }}>
-              <h2
-                style={{
-                  textAlign: "center",
-                  marginBottom: "30px",
-                  color: "#023047",
-                }}
-              >
-                Perfil de {empleado ? empleado.nombre : "Cargando..."}
-              </h2>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 30 }}>
+                <h2
+                  style={{
+                    margin: 0,
+                    color: "#023047",
+                    fontWeight: 700
+                  }}
+                >
+                  Perfil de {empleado ? empleado.nombre : "Cargando..."}
+                </h2>
+                {!editandoPerfil && empleado && (
+                  <button
+                    style={{
+                      background: "#219ebc",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "10px 22px",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      cursor: "pointer"
+                    }}
+                    onClick={() => {
+                      setFormPerfil({ ...empleado });
+                      setEditandoPerfil(true);
+                    }}
+                  >
+                    Editar información
+                  </button>
+                )}
+              </div>
 
               {empleado && (
                 <>
-                  <InfoPersonal empleado={empleado} formatFecha={formatFecha} />
+                  {!editandoPerfil && (
+                    <InfoPersonal empleado={empleado} formatFecha={formatFecha} />
+                  )}
+                  {editandoPerfil && (
+                    <EmpleadoForm
+                      form={formPerfil}
+                      errors={erroresPerfil}
+                      onChange={e => {
+                        const { name, value } = e.target;
+                        setFormPerfil(f => ({ ...f, [name]: value }));
+                      }}
+                      handleSubmit={async e => {
+                        e.preventDefault();
+                        try {
+                          await axios.put(`${API}/empleados/${formPerfil.idempleado}/`, formPerfil, {
+                            headers: { Authorization: `Bearer ${token}` }
+                          });
+                          showToast("Información actualizada", "success");
+                          setEditandoPerfil(false);
+                          setEmpleado({ ...formPerfil });
+                        } catch (err) {
+                          setErroresPerfil({ general: "Error al guardar cambios" });
+                          showToast("Error al guardar cambios", "error");
+                        }
+                      }}
+                      onClose={() => setEditandoPerfil(false)}
+                      editingId={formPerfil.idempleado}
+                    />
+                  )}
 
                   {/* 📘 Capacitaciones */}
-                  <CapacitacionesSection
-                    capacitacionesInfo={capacitacionesInfo}
-                    formatFecha={formatFecha}
-                    setCapacitacionSeleccionada={(c) => {
-                      if (c.modo === "justifico") {
-                        setAusenciaData({
-                          idempleado: empleado.idempleado,
-                          tipo: "Personal", // o puedes dejar que el usuario seleccione
-                          fechainicio: c.fechaInicio,
-                          fechafin: c.fechaFin,
-                          idcapacitacion: c.idcapacitacion,
-                          observacion: c.observacion,
-                          idusuario: empleado.idusuario,
-                        });
-                        setShowAusenciaForm(true);
-                      } else {
-                        setCapacitacionSeleccionada(c);
-                        setShowAsistenciaModal(true);
-                      }
-                    }}
-                    setShowAsistenciaModal={setShowAsistenciaModal}
-                  />
+                  {!editandoPerfil && (
+                    <>
+                      <CapacitacionesSection
+                        capacitacionesInfo={capacitacionesInfo}
+                        formatFecha={formatFecha}
+                        setCapacitacionSeleccionada={(c) => {
+                          if (c.modo === "justifico") {
+                            setAusenciaData({
+                              idempleado: empleado.idempleado,
+                              tipo: "Personal", // o puedes dejar que el usuario seleccione
+                              fechainicio: c.fechaInicio,
+                              fechafin: c.fechaFin,
+                              idcapacitacion: c.idcapacitacion,
+                              observacion: c.observacion,
+                              idusuario: empleado.idusuario,
+                            });
+                            setShowAusenciaForm(true);
+                          } else {
+                            setCapacitacionSeleccionada(c);
+                            setShowAsistenciaModal(true);
+                          }
+                        }}
+                        setShowAsistenciaModal={setShowAsistenciaModal}
+                      />
 
-                  {/* 📗 Inducciones */}
-                  <InduccionesSection
-                    induccionesAsignadas={induccionesAsignadas}
-                    formatFecha={formatFecha}
-                    onVerDocumentos={handleVerDocumentos}
-                  />
+                      {/* 📗 Inducciones */}
+                      <InduccionesSection
+                        induccionesAsignadas={induccionesAsignadas}
+                        formatFecha={formatFecha}
+                        onVerDocumentos={handleVerDocumentos}
+                      />
+                    </>
+                  )}
                 </>
               )}
             </div>

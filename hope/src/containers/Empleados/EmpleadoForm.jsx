@@ -278,6 +278,7 @@ const EmpleadoForm = ({
     };
 
     const hasCustomLugar = form.lugarnacimiento && !DEPARTAMENTOS_GT.includes(form.lugarnacimiento);
+    const [showCustomLugar, setShowCustomLugar] = useState(hasCustomLugar);
 
     const availableWidth = window.innerWidth - sidebarWidth;
     const isMobile = window.innerWidth <= 991;
@@ -287,6 +288,32 @@ const EmpleadoForm = ({
     const modalWidth = isMobile
         ? Math.min(600, window.innerWidth * 0.95)
         : Math.min(1100, availableWidth * 0.9);
+
+    // Mostrar input personalizado si el valor actual no es un departamento
+    useEffect(() => {
+        if (form.lugarnacimiento && !DEPARTAMENTOS_GT.includes(form.lugarnacimiento)) {
+            setShowCustomLugar(true);
+        } else {
+            setShowCustomLugar(false);
+        }
+    }, [form.lugarnacimiento]);
+
+    // Manejar cambio en lugar de nacimiento
+    const handleLugarNacimientoChange = (e) => {
+        const value = e.target.value;
+        if (value === '__otro__') {
+            setShowCustomLugar(true);
+            onChange({
+                target: {
+                    name: 'lugarnacimiento',
+                    value: ''
+                }
+            });
+        } else {
+            setShowCustomLugar(false);
+            handleFieldChange(e);
+        }
+    };
 
     return (
         <>
@@ -364,8 +391,8 @@ const EmpleadoForm = ({
                                             <label style={labelStyle}>Lugar de nacimiento</label>
                                             <select
                                                 name="lugarnacimiento"
-                                                value={form.lugarnacimiento}
-                                                onChange={handleFieldChange}
+                                                value={DEPARTAMENTOS_GT.includes(form.lugarnacimiento) ? form.lugarnacimiento : (showCustomLugar ? '__otro__' : form.lugarnacimiento)}
+                                                onChange={handleLugarNacimientoChange}
                                                 required
                                                 style={inputStyle}
                                             >
@@ -375,10 +402,19 @@ const EmpleadoForm = ({
                                                         {d}
                                                     </option>
                                                 ))}
-                                                {hasCustomLugar && (
-                                                    <option value={form.lugarnacimiento}>{form.lugarnacimiento}</option>
-                                                )}
+                                                <option value="__otro__">Otro...</option>
                                             </select>
+                                            {showCustomLugar && (
+                                                <input
+                                                    type="text"
+                                                    name="lugarnacimiento"
+                                                    value={form.lugarnacimiento}
+                                                    onChange={handleFieldChange}
+                                                    placeholder="Escriba la opción"
+                                                    style={{ ...inputStyle, marginTop: 8 }}
+                                                    required
+                                                />
+                                            )}
                                             {errors.lugarnacimiento && <span style={warn}>Este campo es obligatorio</span>}
                                         </div>
                                         <div style={field}>
