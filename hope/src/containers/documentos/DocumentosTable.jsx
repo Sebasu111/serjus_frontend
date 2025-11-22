@@ -44,11 +44,13 @@ const DocumentosTable = ({
 
     // Mostrar tipo especial para terminación laboral
     const getTipoDocumento = d => {
-        if (d.idtipodocumento === 2) return "CONTRATO";
-        if (d.idtipodocumento === 1) return "CURRICULUM";
-        if (d.idtipodocumento === 3) return "TERMINACIÓN LABORAL";
-        const tipoDoc = tiposDocumento.find(t => t.idtipodocumento === d.idtipodocumento);
-        return tipoDoc ? tipoDoc.nombretipo : "-";
+        if (!tiposDocumento || tiposDocumento.length === 0) return "-";
+
+        const tipoDoc = tiposDocumento.find(
+            t => Number(t.idtipodocumento) === Number(d.idtipodocumento)
+        );
+
+        return tipoDoc?.nombretipo ?? "-";
     };
 
     return (
@@ -91,51 +93,54 @@ const DocumentosTable = ({
                                 </td>
                                 <td style={tdStyle}>{getTipoDocumento(d)}</td>
                                 <td style={{ ...tdStyle, textAlign: "center" }}>
-                                    {d.archivo_url && (
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                justifyContent: "center",
-                                                position: "relative"
-                                            }}
-                                        >
-                                            {/* Combobox */}
-                                            <div style={comboBoxStyles.container}>
-                                                <button
-                                                    style={comboBoxStyles.button.base}
-                                                    onClick={() =>
-                                                        setOpenComboId(
-                                                            openComboId === d.iddocumento ? null : d.iddocumento
-                                                        )
-                                                    }
-                                                >
-                                                    Opciones ▾
-                                                </button>
-                                                {openComboId === d.iddocumento && (
-                                                    <div ref={menuRef} style={comboBoxStyles.menu.container}>
-                                                        <div
-                                                            style={comboBoxStyles.menu.item.activar.base}
-                                                            onClick={() => {
-                                                                downloadFile(d.archivo_url, d.nombrearchivo);
-                                                                setOpenComboId(null);
-                                                            }}
-                                                        >
-                                                            Descargar
+                                    {d.estado === false ? (
+                                        <span style={{ color: "#d9534f", fontWeight: "bold" }}>Sin archivo</span>
+                                    ) : (
+                                        d.archivo_url && (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    position: "relative"
+                                                }}
+                                            >
+                                                <div style={comboBoxStyles.container}>
+                                                    <button
+                                                        style={comboBoxStyles.button.base}
+                                                        onClick={() =>
+                                                            setOpenComboId(
+                                                                openComboId === d.iddocumento ? null : d.iddocumento
+                                                            )
+                                                        }
+                                                    >
+                                                        Opciones ▾
+                                                    </button>
+                                                    {openComboId === d.iddocumento && (
+                                                        <div ref={menuRef} style={comboBoxStyles.menu.container}>
+                                                            <div
+                                                                style={comboBoxStyles.menu.item.activar.base}
+                                                                onClick={() => {
+                                                                    downloadFile(d.archivo_url, d.nombrearchivo);
+                                                                    setOpenComboId(null);
+                                                                }}
+                                                            >
+                                                                Descargar
+                                                            </div>
+                                                            <div
+                                                                style={comboBoxStyles.menu.item.desactivar.base}
+                                                                onClick={() => {
+                                                                    setDocumentoAEliminar(d.iddocumento);
+                                                                    setMostrarModalEliminar(true);
+                                                                    setOpenComboId(null);
+                                                                }}
+                                                            >
+                                                                Eliminar
+                                                            </div>
                                                         </div>
-                                                        <div
-                                                            style={comboBoxStyles.menu.item.desactivar.base}
-                                                            onClick={() => {
-                                                                setDocumentoAEliminar(d.iddocumento);
-                                                                setMostrarModalEliminar(true);
-                                                                setOpenComboId(null);
-                                                            }}
-                                                        >
-                                                            Eliminar
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )
                                     )}
                                 </td>
                             </tr>

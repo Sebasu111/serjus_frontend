@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 
 import Layout from "../../layouts";
@@ -565,10 +565,32 @@ const EquiposContainer = () => {
         }
     };
 
+    // Obtener usuario logueado
+    const usuarioStr = localStorage.getItem("usuarioLogueado");
+    let usuario = null;
+    try { usuario = usuarioStr ? JSON.parse(usuarioStr) : null; } catch { usuario = null; }
+    /** 🔥 FILTRAR equipos según rol */
+    const equiposPermitidos = useMemo(() => {
+        if (!usuario || !equiposConMiembros?.length) return [];
+
+        // Admin (rol 5) → puede ver todos
+        if (usuario.idrol === 5) return equiposConMiembros;
+
+        // Coordinador (rol 1) → solo su propio equipo
+        if (usuario.idrol === 1) {
+            return equiposConMiembros.filter(
+                eq => Number(eq.idCoordinador) === Number(usuario.idempleado)
+            );
+        }
+
+        // Otros roles → no pueden ver equipos
+        return [];
+    }, [usuario, equiposConMiembros]);
+
     // ====== Búsqueda y paginado (en equiposConMiembros) ======
     const equiposFiltrados = useMemo(() => {
         const texto = busqueda.toLowerCase().trim();
-        const equiposOrdenados = [...equiposConMiembros]
+        const equiposOrdenados = [...equiposPermitidos]
             // Ordenar alfabéticamente por nombre (A-Z)
             .sort((a, b) => {
                 const nombreA = (a.nombreEquipo || "").toLowerCase();

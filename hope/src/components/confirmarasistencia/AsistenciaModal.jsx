@@ -124,7 +124,6 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
       );
       onClose();
     } catch (error) {
-      console.error(error.response?.data || error);
       showToast("Error al registrar asistencia o subir archivo", "error");
     } finally {
       setSubiendo(false);

@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
-//   estilos compartidos como en Idiomas
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { buttonStyles } from "../../stylesGenerales/buttons";
 import { comboBoxStyles } from "../../stylesGenerales/combobox";
 
@@ -21,17 +20,57 @@ const tdBase = { padding: "10px", borderBottom: "1px solid #f0f0f0", verticalAli
 const EmpleadosTable = ({
     empleados,
     handleEdit,
-    handleToggle, // activa/desactiva (con confirm en ambos casos)
+    handleToggle,
     paginaActual,
     totalPaginas,
     setPaginaActual,
     equipos = [],
-    onVerDetalle, // abrir modal detalle con el DPI
-    onTerminacionLaboral, // nueva prop para manejar terminación laboral
-    onSubirContrato // nueva prop para subir contrato
+    onVerDetalle,
+    onTerminacionLaboral,
+    onSubirContrato
 }) => {
+
     const [menuAbierto, setMenuAbierto] = useState(null);
     const containerRef = useRef(null);
+
+    // Obtener usuario logueado desde localStorage
+    const usuarioStr = localStorage.getItem("usuarioLogueado");
+    let usuario = null;
+    try { usuario = usuarioStr ? JSON.parse(usuarioStr) : null; } catch { usuario = null; }
+
+    /** 🔥 FILTRAR EMPLEADOS SEGÚN EL ROL */
+    const empleadosFiltrados = useMemo(() => {
+        if (!usuario || !empleados?.length) return empleados;
+
+        let filtrados = [];
+
+        // 👑 Admin → ve todos
+        if (usuario.idrol === 5) {
+            filtrados = empleados;
+        }
+
+        // 🧑‍💼 Coordinador → solo ve empleados de su equipo (incluyéndose a sí mismo)
+        else if (usuario.idrol === 1) {
+            const equipoAsignado = equipos.find(
+                eq => Number(eq.idcoordinador) === Number(usuario.idempleado)
+            );
+            const idEquipoUsuario = equipoAsignado?.idequipo;
+
+            if (!idEquipoUsuario) return []; // Coordinador sin equipo
+
+            filtrados = empleados.filter(
+                e => Number(e.idequipo) === Number(idEquipoUsuario)
+            );
+        }
+
+        // 🟢 Secretaría u otros roles → ven todo
+        else {
+            filtrados = empleados;
+        }
+
+        return filtrados;
+    }, [usuario, empleados, equipos]);
+
 
     useEffect(() => {
         const handleClickOutside = event => {
@@ -73,13 +112,13 @@ const EmpleadosTable = ({
                 </thead>
 
                 <tbody>
-                    {Array.isArray(empleados) && empleados.length ? (
-                        empleados.map(r => {
+                    {Array.isArray(empleadosFiltrados) && empleadosFiltrados.length ? (
+                        empleadosFiltrados.map(r => {
                             const estado = !!r.estado;
                             const equipoLabel = labelEquipoFrom(r.idequipo, equipos);
+
                             return (
                                 <tr key={r.id || r.idempleado || r.idEmpleado}>
-                                    {/* DPI como link para ver detalle */}
                                     <td style={{ ...tdBase, whiteSpace: "nowrap" }}>
                                         <button
                                             type="button"
@@ -93,7 +132,6 @@ const EmpleadosTable = ({
                                                 fontWeight: 600,
                                                 cursor: "pointer"
                                             }}
-                                            title="Ver detalle"
                                         >
                                             {r.dpi}
                                         </button>
@@ -114,27 +152,17 @@ const EmpleadosTable = ({
                                         {estado ? "Activo" : "Inactivo"}
                                     </td>
 
-                                    {/* Acciones con el mismo combobox de Idiomas */}
                                     <td style={{ ...tdBase, textAlign: "center", position: "relative" }}>
                                         <div style={comboBoxStyles.container}>
                                             <button
                                                 onClick={() => toggleMenu(r.id || r.idempleado || r.idEmpleado)}
                                                 style={comboBoxStyles.button.base}
-                                                onMouseEnter={e =>
-                                                (e.currentTarget.style.background =
-                                                    comboBoxStyles.button.hover.background)
-                                                }
-                                                onMouseLeave={e =>
-                                                (e.currentTarget.style.background =
-                                                    comboBoxStyles.button.base.background)
-                                                }
                                             >
                                                 Opciones ▾
                                             </button>
 
                                             {menuAbierto === (r.id || r.idempleado || r.idEmpleado) && (
                                                 <div style={comboBoxStyles.menu.container}>
-                                                    {/* Editar */}
                                                     <button
                                                         onClick={() => handleEdit(r)}
                                                         disabled={!estado}
@@ -142,69 +170,32 @@ const EmpleadosTable = ({
                                                             ...comboBoxStyles.menu.item.editar.base,
                                                             ...(estado ? {} : comboBoxStyles.menu.item.editar.disabled)
                                                         }}
-                                                        onMouseEnter={e => {
-                                                            if (estado)
-                                                                e.currentTarget.style.background =
-                                                                    comboBoxStyles.menu.item.editar.hover.background;
-                                                        }}
-                                                        onMouseLeave={e => {
-                                                            if (estado)
-                                                                e.currentTarget.style.background =
-                                                                    comboBoxStyles.menu.item.editar.base.background;
-                                                        }}
                                                     >
                                                         Editar
                                                     </button>
 
-                                                    {/* Subir Contrato - solo para empleados activos */}
                                                     {estado && (
                                                         <button
                                                             onClick={() => onSubirContrato && onSubirContrato(r)}
                                                             style={comboBoxStyles.menu.item.editar.base}
-                                                            onMouseEnter={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.editar.hover.background)
-                                                            }
-                                                            onMouseLeave={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.editar.base.background)
-                                                            }
                                                         >
                                                             Subir Contrato
                                                         </button>
                                                     )}
 
-                                                    {/* Terminación Laboral - solo para empleados activos y con contrato */}
                                                     {estado && r.contrato && (
                                                         <button
                                                             onClick={() => onTerminacionLaboral && onTerminacionLaboral(r)}
                                                             style={comboBoxStyles.menu.item.editar.base}
-                                                            onMouseEnter={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.editar.hover.background)
-                                                            }
-                                                            onMouseLeave={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.editar.base.background)
-                                                            }
                                                         >
                                                             Terminación Laboral
                                                         </button>
                                                     )}
 
-                                                    {/* Activar / Desactivar — ambos confirman */}
                                                     {estado ? (
                                                         <button
                                                             onClick={() => handleToggle(r)}
                                                             style={comboBoxStyles.menu.item.desactivar.base}
-                                                            onMouseEnter={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.desactivar.hover.background)
-                                                            }
-                                                            onMouseLeave={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.desactivar.base.background)
-                                                            }
                                                         >
                                                             Desactivar
                                                         </button>
@@ -212,14 +203,6 @@ const EmpleadosTable = ({
                                                         <button
                                                             onClick={() => handleToggle(r)}
                                                             style={comboBoxStyles.menu.item.activar.base}
-                                                            onMouseEnter={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.activar.hover.background)
-                                                            }
-                                                            onMouseLeave={e =>
-                                                            (e.currentTarget.style.background =
-                                                                comboBoxStyles.menu.item.activar.base.background)
-                                                            }
                                                         >
                                                             Activar
                                                         </button>
@@ -241,7 +224,6 @@ const EmpleadosTable = ({
                 </tbody>
             </table>
 
-            {/* Paginación con los mismos estilos */}
             {totalPaginas > 1 && (
                 <div style={{ marginTop: "14px", textAlign: "center" }}>
                     {Array.from({ length: totalPaginas }, (_, i) => (
