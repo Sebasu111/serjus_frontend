@@ -2049,7 +2049,7 @@ const EmpleadosContainer = () => {
                 {/* FICHA */}
                 {showDownload && (
                     <FichaDownloadModal
-                        empleados={data}
+                        empleados={data.filter(e => e.estado)}
                         onClose={() => setShowDownload(false)}
                         onGenerate={handleGeneratePDF}
                         generandoPDF={generandoPDF}

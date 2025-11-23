@@ -181,17 +181,17 @@ const FichaDownloadModal = ({ empleados = [], onClose, onGenerate, generandoPDF 
                         </button>
                         <button
                             onClick={handleGenerate}
-                            style={{ 
-                                ...btn, 
-                                background: generandoPDF ? "#cccccc" : "#198754", 
+                            style={{
+                                ...btn,
+                                background: generandoPDF ? "#cccccc" : "#198754",
                                 color: "#fff",
                                 opacity: generandoPDF || selected.size === 0 ? 0.6 : 1,
                                 cursor: generandoPDF || selected.size === 0 ? "not-allowed" : "pointer"
                             }}
                             disabled={selected.size === 0 || generandoPDF}
                             title={
-                                generandoPDF ? "Generando PDF..." : 
-                                selected.size === 0 ? "Seleccione al menos uno" : "Generar PDF"
+                                generandoPDF ? "Generando PDF..." :
+                                    selected.size === 0 ? "Seleccione al menos uno" : "Generar PDF"
                             }
                         >
                             {generandoPDF ? "Generando PDF..." : "Generar PDF"}
