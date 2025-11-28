@@ -7,13 +7,14 @@ import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
 import InfoPersonal from "./InfoPersonal.jsx";
-import EmpleadoForm from "../Empleados/EmpleadoForm.jsx";
+import Editarinfo from "./Editarinfo.jsx";
 import CapacitacionesSection from "./CapacitacionesSection.jsx";
 import InduccionesSection from "./InduccionesSection.jsx";
 import ModalDocumentos from "./ModalDocumentos.jsx";
 import AsistenciaModal from "../../components/confirmarasistencia/AsistenciaModal.jsx";
 import AusenciaForm from "../Ausencia/AusenciaForm.jsx";
 import axios from "axios";
+import { fetchCVEmpleado } from "./editarinfo";
 
 const API = process.env.REACT_APP_API_URL;
 const API2 = process.env.REACT_APP_API_DOCS;
@@ -287,7 +288,7 @@ const PerfilContainer = () => {
                     fontWeight: 700
                   }}
                 >
-                  Perfil de {empleado ? empleado.nombre : "Cargando..."}
+                  {empleado ? empleado.nombre : "Cargando..."}
                 </h2>
                 {!editandoPerfil && empleado && (
                   <button
@@ -298,11 +299,26 @@ const PerfilContainer = () => {
                       borderRadius: 8,
                       padding: "10px 22px",
                       fontWeight: 700,
-                      fontSize: 16,
                       cursor: "pointer"
                     }}
-                    onClick={() => {
-                      setFormPerfil({ ...empleado });
+                    onClick={async () => {
+                      const cvUrl = await fetchCVEmpleado(empleado.idempleado);
+                      const rawInicioLaboral =
+                      empleado.inicioLaboral || empleado.iniciolaboral || null;
+
+                    const inicioLaboralForm = rawInicioLaboral
+                      ? rawInicioLaboral.split("T")[0]
+                      : "";
+                      setFormPerfil({
+                        ...empleado,
+                        numerohijos:
+                          empleado.numerohijos !== null &&
+                          empleado.numerohijos !== undefined
+                            ? String(empleado.numerohijos)
+                            : "",
+                        inicioLaboral: inicioLaboralForm,
+                        cvUrl
+                      });
                       setEditandoPerfil(true);
                     }}
                   >
@@ -317,32 +333,17 @@ const PerfilContainer = () => {
                     <InfoPersonal empleado={empleado} formatFecha={formatFecha} />
                   )}
                   {editandoPerfil && (
-                    <EmpleadoForm
+                    <Editarinfo
                       form={formPerfil}
-                      errors={erroresPerfil}
                       onChange={e => {
                         const { name, value } = e.target;
                         setFormPerfil(f => ({ ...f, [name]: value }));
                       }}
-                      handleSubmit={async e => {
-                        e.preventDefault();
-                        try {
-                          await axios.put(`${API}/empleados/${formPerfil.idempleado}/`, formPerfil, {
-                            headers: { Authorization: `Bearer ${token}` }
-                          });
-                          showToast("Información actualizada", "success");
-                          setEditandoPerfil(false);
-                          setEmpleado({ ...formPerfil });
-                        } catch (err) {
-                          setErroresPerfil({ general: "Error al guardar cambios" });
-                          showToast("Error al guardar cambios", "error");
-                        }
-                      }}
                       onClose={() => setEditandoPerfil(false)}
-                      editingId={formPerfil.idempleado}
+                      idiomas={[]}     // por ahora sin datos, después lo llenamos
+                      pueblos={[]}     // por ahora sin datos, después lo llenamos
                     />
                   )}
-
                   {/* 📘 Capacitaciones */}
                   {!editandoPerfil && (
                     <>
