@@ -64,8 +64,8 @@ const AusenciaTable = ({
             {ausenciasOrdenadas.some(
               (a) => a.idestado !== 6 && a.idestado?.idestado !== 6
             ) && (
-              <th style={{ padding: "10px", textAlign: "center" }}>Acciones</th>
-            )}
+                <th style={{ padding: "10px", textAlign: "center" }}>Acciones</th>
+              )}
           </tr>
         </thead>
 
@@ -78,20 +78,20 @@ const AusenciaTable = ({
               const estadoTexto = row.idestado
                 ? row.idestado.nombre || "Finalizada"
                 : row.estado
-                ? "Activo"
-                : "Inactivo";
+                  ? "Activo"
+                  : "Inactivo";
 
               const colorEstado = row.idestado
                 ? "#2563eb"
                 : row.estado
-                ? "green"
-                : "red";
+                  ? "green"
+                  : "red";
 
               const fechaInicio = row.fechainicio
                 ? new Date(row.fechainicio)
                 : null;
               const puedeEliminar =
-                fechaInicio && fechaInicio > hoy; 
+                fechaInicio && fechaInicio > hoy;
 
               const esFinalizada =
                 row.idestado === 6 || row.idestado?.idestado === 6;

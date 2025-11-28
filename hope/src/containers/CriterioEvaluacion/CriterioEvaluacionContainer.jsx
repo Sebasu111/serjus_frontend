@@ -38,13 +38,13 @@ const CriterioEvaluacionContainer = () => {
       try {
         const [resCriterios, resVars, resTipos] = await Promise.all([
           axios.get(`${API}/criterio/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${API}/variables/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${API}/tipoevaluacion/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
         ]);
 
@@ -154,31 +154,31 @@ const CriterioEvaluacionContainer = () => {
   };
 
   const solicitarDesactivar = (criterio) => {
-      setModoAccion("desactivar");
-      setCriterioConfirmar(criterio);
-      setMostrarConfirmModal(true);
+    setModoAccion("desactivar");
+    setCriterioConfirmar(criterio);
+    setMostrarConfirmModal(true);
   };
 
   const solicitarActivar = (criterio) => {
-      setModoAccion("activar");
-      setCriterioConfirmar(criterio);
-      setMostrarConfirmModal(true);
+    setModoAccion("activar");
+    setCriterioConfirmar(criterio);
+    setMostrarConfirmModal(true);
   };
 
   const confirmarAccion = async () => {
-      if (modoAccion === "desactivar") {
-          await handleDelete(criterioConfirmar);
-      } else {
-          await handleActivate(criterioConfirmar);
-      }
+    if (modoAccion === "desactivar") {
+      await handleDelete(criterioConfirmar);
+    } else {
+      await handleActivate(criterioConfirmar);
+    }
 
-      setMostrarConfirmModal(false);
-      setCriterioConfirmar(null);
+    setMostrarConfirmModal(false);
+    setCriterioConfirmar(null);
   };
 
   const cancelarAccion = () => {
-      setMostrarConfirmModal(false);
-      setCriterioConfirmar(null);
+    setMostrarConfirmModal(false);
+    setCriterioConfirmar(null);
   };
 
   return (
@@ -200,7 +200,7 @@ const CriterioEvaluacionContainer = () => {
           >
             <div style={{ width: "min(1100px, 96vw)" }}>
               <h2 style={{ marginBottom: "20px", textAlign: "center" }}>
-                Criterios de Evaluación Institucional
+                Criterios Registrados
               </h2>
 
               {/* Buscador y botón nuevo — igual que Idiomas */}
@@ -252,13 +252,13 @@ const CriterioEvaluacionContainer = () => {
                   setFiltroVariable={setFiltroVariable}
                   variables={variables}
                   tipos={tipos}
-              />
+                />
               )}
 
               {/* Config de paginación */}
-              <div 
-                style={{ 
-                  marginTop: "20px", 
+              <div
+                style={{
+                  marginTop: "20px",
                   textAlign: "center",
                   display: "flex",
                   justifyContent: "center",
@@ -321,12 +321,12 @@ const CriterioEvaluacionContainer = () => {
           />
         )}
         {mostrarConfirmModal && (
-            <ConfirmModalCriterio
-                criterio={criterioConfirmar}
-                modo={modoAccion}
-                onConfirm={confirmarAccion}
-                onCancel={cancelarAccion}
-            />
+          <ConfirmModalCriterio
+            criterio={criterioConfirmar}
+            modo={modoAccion}
+            onConfirm={confirmarAccion}
+            onCancel={cancelarAccion}
+          />
         )}
         <ScrollToTop />
       </div>

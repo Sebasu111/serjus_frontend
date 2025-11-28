@@ -20,128 +20,128 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
 
   // 🔹 Cargar evaluaciones
   useEffect(() => {
-  const cargarEvaluaciones = async () => {
-    setCargando(true);
-    try {
-      const evalRes = await fetch(`${API}/evaluacion/`);
-      const evalData = (await evalRes.json()).results || [];
+    const cargarEvaluaciones = async () => {
+      setCargando(true);
+      try {
+        const evalRes = await fetch(`${API}/evaluacion/`);
+        const evalData = (await evalRes.json()).results || [];
 
-      const [postRes, convRes] = await Promise.all([
-        fetch(`${API}/postulaciones/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
-        fetch(`${API}/convocatorias/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-      ]);
+        const [postRes, convRes] = await Promise.all([
+          fetch(`${API}/postulaciones/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`${API}/convocatorias/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
 
-      const postulaciones = (await postRes.json()).results || [];
-      const convocatorias = (await convRes.json()).results || [];
+        const postulaciones = (await postRes.json()).results || [];
+        const convocatorias = (await convRes.json()).results || [];
 
-      const enriquecidas = evalData.map((ev) => {
-        const post = postulaciones.find(
-          (p) => p.idpostulacion === ev.idpostulacion
-        );
-        const conv = post
-          ? convocatorias.find((c) => c.idconvocatoria === post.idconvocatoria)
-          : null;
+        const enriquecidas = evalData.map((ev) => {
+          const post = postulaciones.find(
+            (p) => p.idpostulacion === ev.idpostulacion
+          );
+          const conv = post
+            ? convocatorias.find((c) => c.idconvocatoria === post.idconvocatoria)
+            : null;
 
-        return {
-          ...ev,
-          nombreconvocatoria: conv ? conv.nombreconvocatoria : "—",
+          return {
+            ...ev,
+            nombreconvocatoria: conv ? conv.nombreconvocatoria : "—",
 
-          // 🔹 Guardamos fecha cruda PARA ORDENAR
-          fechaRaw: ev.fechaevaluacion ? new Date(ev.fechaevaluacion) : null,
+            // 🔹 Guardamos fecha cruda PARA ORDENAR
+            fechaRaw: ev.fechaevaluacion ? new Date(ev.fechaevaluacion) : null,
 
-          // 🔹 Formateada SOLO PARA MOSTRAR
-          fechaevaluacion: ev.fechaevaluacion
-            ? new Date(ev.fechaevaluacion).toLocaleDateString("es-GT", {
+            // 🔹 Formateada SOLO PARA MOSTRAR
+            fechaevaluacion: ev.fechaevaluacion
+              ? new Date(ev.fechaevaluacion).toLocaleDateString("es-GT", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric"
               })
-            : "—"
-        };
-      });
+              : "—"
+          };
+        });
 
-      // 🔹 Filtro
-      const filtradas = enriquecidas.filter(
-        (e) =>
-          e.modalidad === "Entrevista" &&
-          e.idpostulacion !== null &&
-          e.idpostulacion !== undefined
-      );
+        // 🔹 Filtro
+        const filtradas = enriquecidas.filter(
+          (e) =>
+            e.modalidad === "Entrevista" &&
+            e.idpostulacion !== null &&
+            e.idpostulacion !== undefined
+        );
 
-      const activas = filtradas.filter((e) => e.estado !== false);
+        const activas = filtradas.filter((e) => e.estado !== false);
 
-      // 🔹 ORDENAR CORRECTO (descendente)
-      const ordenadas = [...activas].sort((a, b) => {
-        return (b.fechaRaw || 0) - (a.fechaRaw || 0);
-      });
+        // 🔹 ORDENAR CORRECTO (descendente)
+        const ordenadas = [...activas].sort((a, b) => {
+          return (b.fechaRaw || 0) - (a.fechaRaw || 0);
+        });
 
-      setEvaluaciones(ordenadas);
-    } catch (err) {
-      console.error("Error cargando evaluaciones:", err);
-      showToast("Error cargando evaluaciones guardadas.", "error");
-    } finally {
-      setCargando(false);
-    }
-  };
+        setEvaluaciones(ordenadas);
+      } catch (err) {
+        console.error("Error cargando evaluaciones:", err);
+        showToast("Error cargando evaluaciones registradas.", "error");
+      } finally {
+        setCargando(false);
+      }
+    };
 
-  cargarEvaluaciones();
-}, []);
+    cargarEvaluaciones();
+  }, []);
 
   // 🔹 PUT → marcar como inactivo y eliminar de la lista
   const eliminarEvaluacion = async (id) => {
-  try {
-    const evaluacion = evaluaciones.find((e) => e.idevaluacion === id);
-    if (!evaluacion) throw new Error("Evaluación no encontrada");
+    try {
+      const evaluacion = evaluaciones.find((e) => e.idevaluacion === id);
+      if (!evaluacion) throw new Error("Evaluación no encontrada");
 
-    // ✅ Usar la fecha cruda (Date) que guardaste en fechaRaw
-    let fechaIso;
-    if (evaluacion.fechaRaw instanceof Date && !isNaN(evaluacion.fechaRaw)) {
-      fechaIso = evaluacion.fechaRaw.toISOString();
-    } else if (
-      evaluacion.fechaevaluacion &&
-      !isNaN(new Date(evaluacion.fechaevaluacion))
-    ) {
-      // fallback por si acaso
-      fechaIso = new Date(evaluacion.fechaevaluacion).toISOString();
-    } else {
-      // último recurso: ahora mismo
-      fechaIso = new Date().toISOString();
+      // ✅ Usar la fecha cruda (Date) que guardaste en fechaRaw
+      let fechaIso;
+      if (evaluacion.fechaRaw instanceof Date && !isNaN(evaluacion.fechaRaw)) {
+        fechaIso = evaluacion.fechaRaw.toISOString();
+      } else if (
+        evaluacion.fechaevaluacion &&
+        !isNaN(new Date(evaluacion.fechaevaluacion))
+      ) {
+        // fallback por si acaso
+        fechaIso = new Date(evaluacion.fechaevaluacion).toISOString();
+      } else {
+        // último recurso: ahora mismo
+        fechaIso = new Date().toISOString();
+      }
+
+      const payload = {
+        modalidad: evaluacion.modalidad || "Presencial",
+        fechaevaluacion: fechaIso,
+        puntajetotal: Number(evaluacion.puntajetotal) || 0,
+        observacion: evaluacion.observacion || "Sin observaciones",
+        estado: false,
+        idusuario: evaluacion.idusuario || 1,
+        idempleado: null,
+        idpostulacion: evaluacion.idpostulacion || 0,
+      };
+
+      const res = await fetch(`${API}/evaluacion/${id}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Respuesta del servidor:", text);
+        throw new Error("Error al actualizar evaluación");
+      }
+
+      showToast("Evaluación eliminada.", "success");
+      setEvaluaciones((prev) => prev.filter((e) => e.idevaluacion !== id));
+    } catch (err) {
+      console.error(err);
+      showToast("Error eliminando evaluación.", "error");
     }
-
-    const payload = {
-      modalidad: evaluacion.modalidad || "Presencial",
-      fechaevaluacion: fechaIso,
-      puntajetotal: Number(evaluacion.puntajetotal) || 0,
-      observacion: evaluacion.observacion || "Sin observaciones",
-      estado: false,
-      idusuario: evaluacion.idusuario || 1,
-      idempleado: null,
-      idpostulacion: evaluacion.idpostulacion || 0,
-    };
-
-    const res = await fetch(`${API}/evaluacion/${id}/`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("Respuesta del servidor:", text);
-      throw new Error("Error al actualizar evaluación");
-    }
-
-    showToast("Evaluación eliminada.", "success");
-    setEvaluaciones((prev) => prev.filter((e) => e.idevaluacion !== id));
-  } catch (err) {
-    console.error(err);
-    showToast("Error eliminando evaluación.", "error");
-  }
-};
+  };
 
 
   // 🔹 Mostrar menú flotante
@@ -166,7 +166,7 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
   return (
     <div style={{ padding: "20px" }} ref={containerRef}>
       <h2 style={{ color: "#023047", marginBottom: "16px" }}>
-        Evaluaciones Guardadas
+        Evaluaciones Registradas
       </h2>
 
       {/* Buscador */}
@@ -217,7 +217,7 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
             ) : evaluaciones.length === 0 ? (
               <tr>
                 <td colSpan="4" style={{ textAlign: "center", padding: "20px" }}>
-                  No se encontraron evaluaciones guardadas.
+                  No se encontraron evaluaciones registradas.
                 </td>
               </tr>
             ) : (
@@ -272,12 +272,12 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
           <div
             style={comboBoxStyles.menu.item.editar.base}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.background =
-                comboBoxStyles.menu.item.editar.hover.background)
+            (e.currentTarget.style.background =
+              comboBoxStyles.menu.item.editar.hover.background)
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.background =
-                comboBoxStyles.menu.item.editar.base.background)
+            (e.currentTarget.style.background =
+              comboBoxStyles.menu.item.editar.base.background)
             }
             onClick={() => {
               const ev = evaluaciones.find(
@@ -302,12 +302,12 @@ const EvaluacionesTable = ({ setEvaluacionSeleccionada }) => {
           <div
             style={comboBoxStyles.menu.item.desactivar.base}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.background =
-                comboBoxStyles.menu.item.desactivar.hover.background)
+            (e.currentTarget.style.background =
+              comboBoxStyles.menu.item.desactivar.hover.background)
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.background =
-                comboBoxStyles.menu.item.desactivar.base.background)
+            (e.currentTarget.style.background =
+              comboBoxStyles.menu.item.desactivar.base.background)
             }
             onClick={() => {
               setEvaluacionAEliminar(menuAbierto);

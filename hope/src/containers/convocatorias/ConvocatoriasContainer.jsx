@@ -45,8 +45,8 @@ const ConvocatoriasContainer = () => {
             const data = Array.isArray(r.data)
                 ? r.data
                 : Array.isArray(r.data?.results)
-                ? r.data.results
-                : [];
+                    ? r.data.results
+                    : [];
 
             const dataOrdenada = data.sort(
                 (a, b) => (b.idconvocatoria || 0) - (a.idconvocatoria || 0)
@@ -71,7 +71,7 @@ const ConvocatoriasContainer = () => {
         }
     };
 
-   const onChange = (e) => {
+    const onChange = (e) => {
         const { name, value } = e.target;
 
         // Si es un campo de fecha, asegurar formato ISO (YYYY-MM-DD)
@@ -85,106 +85,106 @@ const ConvocatoriasContainer = () => {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    // Validaciones básicas
-    if (!form.nombreconvocatoria.trim()) {
-        setMensaje("El nombre de la convocatoria es obligatorio");
-        return;
-    }
-    if (!form.descripcion.trim()) {
-        setMensaje("La descripción es obligatoria");
-        return;
-    }
-    if (!form.fechainicio) {
-        setMensaje("La fecha de inicio es obligatoria");
-        return;
-    }
-    if (!form.fechafin) {
-        setMensaje("La fecha fin es obligatoria");
-        return;
-    }
-    if (!form.idpuesto || Number(form.idpuesto) <= 0) {
-        setMensaje("Debe seleccionar un puesto válido");
-        return;
-    }
+        // Validaciones básicas
+        if (!form.nombreconvocatoria.trim()) {
+            setMensaje("El nombre de la convocatoria es obligatorio");
+            return;
+        }
+        if (!form.descripcion.trim()) {
+            setMensaje("La descripción es obligatoria");
+            return;
+        }
+        if (!form.fechainicio) {
+            setMensaje("La fecha de inicio es obligatoria");
+            return;
+        }
+        if (!form.fechafin) {
+            setMensaje("La fecha fin es obligatoria");
+            return;
+        }
+        if (!form.idpuesto || Number(form.idpuesto) <= 0) {
+            setMensaje("Debe seleccionar un puesto válido");
+            return;
+        }
 
-    // 🚫 Nueva validación: no permitir convocatorias simultáneas para el mismo puesto
-    const hoy = new Date();
-    const existeActiva = rows.some((c) => {
-        // Si estamos editando, ignorar la misma convocatoria
-        if (editingId && c.idconvocatoria === editingId) return false;
+        // 🚫 Nueva validación: no permitir convocatorias simultáneas para el mismo puesto
+        const hoy = new Date();
+        const existeActiva = rows.some((c) => {
+            // Si estamos editando, ignorar la misma convocatoria
+            if (editingId && c.idconvocatoria === editingId) return false;
 
-        const mismoPuesto = Number(c.idpuesto) === Number(form.idpuesto);
-        const fechaFin = c.fechafin ? new Date(c.fechafin) : null;
-        const activa = c.estado === true && (!fechaFin || fechaFin >= hoy);
+            const mismoPuesto = Number(c.idpuesto) === Number(form.idpuesto);
+            const fechaFin = c.fechafin ? new Date(c.fechafin) : null;
+            const activa = c.estado === true && (!fechaFin || fechaFin >= hoy);
 
-        return mismoPuesto && activa;
-    });
+            return mismoPuesto && activa;
+        });
 
-    if (existeActiva) {
-        showToast("Ya existe una convocatoria activa o en curso para este puesto.", "error");
-        return;
-    }
+        if (existeActiva) {
+            showToast("Ya existe una convocatoria activa o en curso para este puesto.", "error");
+            return;
+        }
 
-    // Preparar payload
-    const payload = {
-        nombreconvocatoria: form.nombreconvocatoria.trim(),
-        descripcion: form.descripcion.trim(),
-        fechainicio: form.fechainicio,
-        fechafin: form.fechafin || null,
-        estado: true,
-        idestado_id: 4,
-        idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
-        idpuesto: Number(form.idpuesto)
-    };
+        // Preparar payload
+        const payload = {
+            nombreconvocatoria: form.nombreconvocatoria.trim(),
+            descripcion: form.descripcion.trim(),
+            fechainicio: form.fechainicio,
+            fechafin: form.fechafin || null,
+            estado: true,
+            idestado_id: 4,
+            idusuario: Number(sessionStorage.getItem("idUsuario")) || 1,
+            idpuesto: Number(form.idpuesto)
+        };
 
-    try {
-        if (editingId) {
-            await axios.put(`${API}/convocatorias/${editingId}/`, payload, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            showToast("Convocatoria actualizada correctamente", "success");
-        } else {
-            await axios.post(`${API}/convocatorias/`, payload, {
+        try {
+            if (editingId) {
+                await axios.put(`${API}/convocatorias/${editingId}/`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-            showToast("Convocatoria registrada correctamente", "success");
-        }
+                showToast("Convocatoria actualizada correctamente", "success");
+            } else {
+                await axios.post(`${API}/convocatorias/`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                showToast("Convocatoria registrada correctamente", "success");
+            }
 
-        fetchList();
-        setMostrarFormulario(false);
-        setEditingId(null);
-    } catch (error) {
-        console.error(error);
-        if (error.response?.data) {
-            const errores = Object.entries(error.response.data)
-                .map(([campo, msgs]) => `${campo}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
-                .join(" | ");
-            showToast(`Error al registrar/actualizar: ${errores}`, "error");
-        } else {
-            showToast("Error al registrar/actualizar. Revise la información enviada.", "error");
+            fetchList();
+            setMostrarFormulario(false);
+            setEditingId(null);
+        } catch (error) {
+            console.error(error);
+            if (error.response?.data) {
+                const errores = Object.entries(error.response.data)
+                    .map(([campo, msgs]) => `${campo}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+                    .join(" | ");
+                showToast(`Error al registrar/actualizar: ${errores}`, "error");
+            } else {
+                showToast("Error al registrar/actualizar. Revise la información enviada.", "error");
+            }
         }
-    }
-};
-
-   const handleEdit = (row) => {
-    // Convertir fechas de la API a formato ISO (YYYY-MM-DD)
-    const parseDate = (d) => {
-        if (!d) return "";
-        // Si viene con hora o con "/", convertirlo
-        const date = new Date(d);
-        if (!isNaN(date)) return date.toISOString().split("T")[0];
-        return d;
     };
 
-    setForm({
-        ...row,
-        fechainicio: parseDate(row.fechainicio),
-        fechafin: parseDate(row.fechafin),
-    });
-    setEditingId(row.idconvocatoria);
-    setMostrarFormulario(true);
+    const handleEdit = (row) => {
+        // Convertir fechas de la API a formato ISO (YYYY-MM-DD)
+        const parseDate = (d) => {
+            if (!d) return "";
+            // Si viene con hora o con "/", convertirlo
+            const date = new Date(d);
+            if (!isNaN(date)) return date.toISOString().split("T")[0];
+            return d;
+        };
+
+        setForm({
+            ...row,
+            fechainicio: parseDate(row.fechainicio),
+            fechafin: parseDate(row.fechafin),
+        });
+        setEditingId(row.idconvocatoria);
+        setMostrarFormulario(true);
     };
 
 
@@ -203,7 +203,7 @@ const ConvocatoriasContainer = () => {
     };
 
     const handleCerrarFormulario = () => {
-        setMostrarFormulario(false); 
+        setMostrarFormulario(false);
         setForm({
             nombreconvocatoria: "",
             descripcion: "",
@@ -243,41 +243,41 @@ const ConvocatoriasContainer = () => {
     const textoBusqueda = busqueda.toLowerCase().trim();
 
     const filtradas = rows.filter((r) => {
-    const textoBusqueda = busqueda.toLowerCase().trim();
+        const textoBusqueda = busqueda.toLowerCase().trim();
 
-    // 🔹 Campos a comparar (convertidos a texto plano)
-    const nombre = (r.nombreconvocatoria || "").toLowerCase();
-    const puesto = (r.nombrepuesto || "").toLowerCase();
-    const descripcion = (r.descripcion || "").toLowerCase();
-    const estadoTexto = r.estado ? "activo" : "inactivo";
-    const nombreEstado = (r.idestado?.nombreestado || "").toLowerCase();
-    const fechaInicio = r.fechainicio
-        ? new Date(r.fechainicio).toLocaleDateString("es-ES")
-        : "";
-    const fechaFin = r.fechafin
-        ? new Date(r.fechafin).toLocaleDateString("es-ES")
-        : "";
+        // 🔹 Campos a comparar (convertidos a texto plano)
+        const nombre = (r.nombreconvocatoria || "").toLowerCase();
+        const puesto = (r.nombrepuesto || "").toLowerCase();
+        const descripcion = (r.descripcion || "").toLowerCase();
+        const estadoTexto = r.estado ? "activo" : "inactivo";
+        const nombreEstado = (r.idestado?.nombreestado || "").toLowerCase();
+        const fechaInicio = r.fechainicio
+            ? new Date(r.fechainicio).toLocaleDateString("es-ES")
+            : "";
+        const fechaFin = r.fechafin
+            ? new Date(r.fechafin).toLocaleDateString("es-ES")
+            : "";
 
-    // 🔹 Validaciones: coincidencia con lo que el usuario escribe
-    const nombreCoincide = nombre.includes(textoBusqueda);
-    const puestoCoincide = puesto.includes(textoBusqueda);
-    const descripcionCoincide = descripcion.includes(textoBusqueda);
-    const estadoCoincide =
-        estadoTexto.includes(textoBusqueda) ||
-        nombreEstado.includes(textoBusqueda);
-    const fechaInicioCoincide = fechaInicio.includes(textoBusqueda);
-    const fechaFinCoincide = fechaFin.includes(textoBusqueda);
+        // 🔹 Validaciones: coincidencia con lo que el usuario escribe
+        const nombreCoincide = nombre.includes(textoBusqueda);
+        const puestoCoincide = puesto.includes(textoBusqueda);
+        const descripcionCoincide = descripcion.includes(textoBusqueda);
+        const estadoCoincide =
+            estadoTexto.includes(textoBusqueda) ||
+            nombreEstado.includes(textoBusqueda);
+        const fechaInicioCoincide = fechaInicio.includes(textoBusqueda);
+        const fechaFinCoincide = fechaFin.includes(textoBusqueda);
 
-    // 🔹 Retornar true si alguna coincide
-    return (
-        nombreCoincide ||
-        puestoCoincide ||
-        descripcionCoincide ||
-        estadoCoincide ||
-        fechaInicioCoincide ||
-        fechaFinCoincide
-    );
-});
+        // 🔹 Retornar true si alguna coincide
+        return (
+            nombreCoincide ||
+            puestoCoincide ||
+            descripcionCoincide ||
+            estadoCoincide ||
+            fechaInicioCoincide ||
+            fechaFinCoincide
+        );
+    });
 
 
     const indexOfLast = paginaActual * elementosPorPagina;
@@ -302,7 +302,7 @@ const ConvocatoriasContainer = () => {
                         }}
                     >
                         <div style={{ width: "min(1100px, 96vw)" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Convocatorias</h2>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Convocatorias Registradas</h2>
 
                             <ConvocatoriasTable
                                 mensaje={mensaje}

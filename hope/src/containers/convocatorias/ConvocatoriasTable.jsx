@@ -28,10 +28,10 @@ const ConvocatoriasTable = ({
   const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
 
   const formatDate = dateStr => {
-       if (!dateStr) return "-";
-          const [year, month, day] = dateStr.split("-");
-          return `${day}-${month}-${year}`;
-    };
+    if (!dateStr) return "-";
+    const [year, month, day] = dateStr.split("-");
+    return `${day}-${month}-${year}`;
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -110,7 +110,7 @@ const ConvocatoriasTable = ({
         <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
           <thead>
             <tr>
-              {["Nombre", "Puesto", "Descripción", "Inicio", "Fin", "Estado", "Acciones"].map((h) => (
+              {["Nombre", "Puesto", "Descripción", "Fecha de Inicio", "Fecha de Fin", "Estado", "Acciones"].map((h) => (
                 <th key={h} style={{ borderBottom: "2px solid #eee", padding: 10, textAlign: "left" }}>
                   {h}
                 </th>
@@ -118,8 +118,8 @@ const ConvocatoriasTable = ({
             </tr>
           </thead>
           <tbody>
-              {paginadas.length ? (
-                paginadas
+            {paginadas.length ? (
+              paginadas
                 // 🔹 Filtrar convocatorias: ocultar finalizadas salvo que se marque el checkbox
                 .filter((r) => {
                   const esFinalizada = r.idestado?.idestado === 6 && r.estado === false;
@@ -136,12 +136,12 @@ const ConvocatoriasTable = ({
                     nombreEstado === "Abierta"
                       ? "green"
                       : nombreEstado === "Cerrada"
-                      ? "#f59e0b"
-                      : nombreEstado === "Finalizada"
-                      ? "#ef4444"
-                      : r.estado
-                      ? "green"
-                      : "red";
+                        ? "#f59e0b"
+                        : nombreEstado === "Finalizada"
+                          ? "#ef4444"
+                          : r.estado
+                            ? "green"
+                            : "red";
 
                   return (
                     <tr key={r.idconvocatoria}>
@@ -257,13 +257,13 @@ const ConvocatoriasTable = ({
                     </tr>
                   );
                 })
-              ) : (
-                <tr>
-                  <td colSpan="7" style={{ textAlign: "center", padding: 20 }}>
-                    Sin registros
-                  </td>
-                </tr>
-              )}
+            ) : (
+              <tr>
+                <td colSpan="7" style={{ textAlign: "center", padding: 20 }}>
+                  Sin registros
+                </td>
+              </tr>
+            )}
             {/* 🔹 Checkbox centrado dentro de la tabla */}
             <tr>
               <td colSpan="7" style={{ textAlign: "center", padding: "15px 0" }}>
@@ -287,11 +287,11 @@ const ConvocatoriasTable = ({
                 </label>
               </td>
             </tr>
-            </tbody>
+          </tbody>
         </table>
 
         {/* Paginación centrada */}
-        <div style={{ display:"flex", justifyContent: "center", marginTop: 15, gap: 5 }}>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 15, gap: 5 }}>
           {totalPaginas > 1 &&
             Array.from({ length: totalPaginas }, (_, i) => (
               <button
@@ -320,7 +320,7 @@ const ConvocatoriasTable = ({
           min="1"
           value={elementosPorPagina}
           onChange={(e) => setElementosPorPagina(Math.max(Number(e.target.value), 1))}
-          style={{ width: "80px", padding: "6px", borderRadius: "6px", border: "1px solid #ccc", textAlign:"center" }}
+          style={{ width: "80px", padding: "6px", borderRadius: "6px", border: "1px solid #ccc", textAlign: "center" }}
         />
       </div>
 
@@ -380,38 +380,38 @@ const ConvocatoriasTable = ({
           convocatoria={confirmModal.row}
           modo={confirmModal.modo}
           onConfirm={async () => {
-              try {
-                const { row, modo } = confirmModal;
+            try {
+              const { row, modo } = confirmModal;
 
-                if (modo === "cerrar") {
-                  // Cerrar convocatoria
-                  await toggleEstado(row, false);
-                  showToast("Convocatoria cerrada correctamente", "success");
-                } else if (modo === "reabrir") {
-                  // Reabrir convocatoria
-                  await toggleEstado(row, true);
-                  showToast("Convocatoria reabierta correctamente", "success");
-                } else if (modo === "limpiar") {
-                  try {
-                    await axios.put(`${API}/postulaciones/limpiar/${row.idconvocatoria}/`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    showToast("Postulaciones borradas correctamente", "success");
-                  } catch (error) {
-                    if (error.response && error.response.data && error.response.data.error) {
-                      showToast(error.response.data.error, "error");
-                    } else {
-                      showToast("Error al borrar las postulaciones", "error");
-                    }
+              if (modo === "cerrar") {
+                // Cerrar convocatoria
+                await toggleEstado(row, false);
+                showToast("Convocatoria cerrada correctamente", "success");
+              } else if (modo === "reabrir") {
+                // Reabrir convocatoria
+                await toggleEstado(row, true);
+                showToast("Convocatoria reabierta correctamente", "success");
+              } else if (modo === "limpiar") {
+                try {
+                  await axios.put(`${API}/postulaciones/limpiar/${row.idconvocatoria}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  });
+                  showToast("Postulaciones borradas correctamente", "success");
+                } catch (error) {
+                  if (error.response && error.response.data && error.response.data.error) {
+                    showToast(error.response.data.error, "error");
+                  } else {
+                    showToast("Error al borrar las postulaciones", "error");
                   }
                 }
-
-                setConfirmModal({ open: false, row: null, modo: "" });
-              } catch (error) {
-                console.error(error);
-                showToast("Error al procesar la acción", "error");
               }
-            }}
+
+              setConfirmModal({ open: false, row: null, modo: "" });
+            } catch (error) {
+              console.error(error);
+              showToast("Error al procesar la acción", "error");
+            }
+          }}
           onCancel={() => setConfirmModal({ open: false, row: null, modo: "" })}
         />
       )}

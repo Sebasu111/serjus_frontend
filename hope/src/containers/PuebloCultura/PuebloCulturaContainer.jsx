@@ -7,7 +7,7 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import {  } from "react-toastify";import PuebloCulturaForm from "./PuebloCulturaForm";
+import { } from "react-toastify"; import PuebloCulturaForm from "./PuebloCulturaForm";
 import ConfirmModal from "./ConfirmModal";
 import PuebloCulturaTable from "./PuebloCulturaTable";
 const API2 = process.env.REACT_APP_API_URL;
@@ -191,7 +191,7 @@ const PuebloCulturaContainer = () => {
                         }}
                     >
                         <div style={{ width: "min(1100px, 96vw)" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Pueblo / Cultura</h2>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Pueblo / Cultura Registrados</h2>
 
                             {/* Buscador + Nuevo */}
                             <div

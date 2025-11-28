@@ -206,23 +206,15 @@ const LoginPage = () => {
                     {/* Título elegante */}
                     <div style={{ marginBottom: "40px" }}>
                         <h1 style={{
-                            fontSize: "2.2rem",
+                            fontSize: "1.6rem",
                             fontWeight: "700",
-                            background: "linear-gradient(135deg, #0b347b, #1669c1)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
+                            color: "#0b347b",
                             marginBottom: "8px",
-                            letterSpacing: "-0.5px"
+                            letterSpacing: "-0.5px",
+                            lineHeight: 1.2
                         }}>
-                            ¡Bienvenido!
+                            Bienvenidos/as al Sistema de Gestión de Recursos Humanos <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "#1669c1" }}>SERJUS</span>
                         </h1>
-                        <p style={{
-                            color: "#475569",
-                            fontSize: "1rem",
-                            fontWeight: "400"
-                        }}>
-                            Inicie sesión para acceder a su cuenta
-                        </p>
                     </div>
 
                     {/* Formulario estilizado */}

@@ -42,13 +42,13 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
       try {
         const [resEval, resEmp, resPuestos] = await Promise.all([
           axios.get(`${API_BASE}/evaluacion/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${API_BASE}/empleados/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${API_BASE}/puestos/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
         ]);
 
@@ -169,7 +169,7 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
       ultimoAuto &&
       (!ultimoCoord ||
         new Date(ultimoAuto.fechaevaluacion) >=
-          new Date(ultimoCoord.fechaevaluacion))
+        new Date(ultimoCoord.fechaevaluacion))
     ) {
       // última acción fue autoevaluación → falta evaluación
       puedeEvaluarse = true;
@@ -203,7 +203,7 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
   return (
     <div style={{ padding: "30px" }}>
       <h2 style={{ color: "#023047", fontWeight: 700, marginBottom: "20px" }}>
-        Evaluaciones Guardadas
+        Evaluaciones Registradas
       </h2>
 
       {/* ---- ComboBox ---- */}
@@ -296,8 +296,8 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
 
         <tbody>
           {evaluacionesFiltradas.length === 0 ||
-          (!evaluacionesFiltradas[0].auto &&
-            !evaluacionesFiltradas[0].coord) ? (
+            (!evaluacionesFiltradas[0].auto &&
+              !evaluacionesFiltradas[0].coord) ? (
             <tr>
               <td colSpan="5" style={tdEmpty}>
                 El empleado aún no tiene autoevaluación.
@@ -320,7 +320,7 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
                 </td>
 
                 <td style={td}>
-                 <td style={td}>
+                  <td style={td}>
                     {/* Autoevaluado y NO tiene evaluación final → ADMIN puede evaluar */}
                     {item.puedeEvaluarse && (
                       <button

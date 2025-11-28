@@ -36,44 +36,44 @@ const CriterioTable = ({
 
   // 🔹 Generar botones de paginación (máximo 7 visibles)
   const generarBotones = () => {
-  const botones = [];
-  const maxVisible = 7;
+    const botones = [];
+    const maxVisible = 7;
 
-  // Si la cantidad total de páginas es 7 o menos, mostrar todas
-  if (totalPaginas <= 7) {
-    for (let i = 1; i <= totalPaginas; i++) botones.push(i);
-    return botones;
-  }
+    // Si la cantidad total de páginas es 7 o menos, mostrar todas
+    if (totalPaginas <= 7) {
+      for (let i = 1; i <= totalPaginas; i++) botones.push(i);
+      return botones;
+    }
 
-  // 🔹 Si estamos en las primeras páginas (1–4)
-  if (paginaActual <= 4) {
-    for (let i = 1; i <= 7; i++) botones.push(i);
-    botones.push("...");
-    botones.push(totalPaginas);
-    return botones;
-  }
+    // 🔹 Si estamos en las primeras páginas (1–4)
+    if (paginaActual <= 4) {
+      for (let i = 1; i <= 7; i++) botones.push(i);
+      botones.push("...");
+      botones.push(totalPaginas);
+      return botones;
+    }
 
-  // 🔹 Si estamos en las últimas páginas (total-3 hasta total)
-  if (paginaActual >= totalPaginas - 3) {
+    // 🔹 Si estamos en las últimas páginas (total-3 hasta total)
+    if (paginaActual >= totalPaginas - 3) {
+      botones.push(1);
+      botones.push("...");
+      for (let i = totalPaginas - 6; i <= totalPaginas; i++) botones.push(i);
+      return botones;
+    }
+
+    // 🔹 Si estamos en páginas intermedias
     botones.push(1);
     botones.push("...");
-    for (let i = totalPaginas - 6; i <= totalPaginas; i++) botones.push(i);
+
+    for (let i = paginaActual - 2; i <= paginaActual + 2; i++) {
+      botones.push(i);
+    }
+
+    botones.push("...");
+    botones.push(totalPaginas);
+
     return botones;
-  }
-
-  // 🔹 Si estamos en páginas intermedias
-  botones.push(1);
-  botones.push("...");
-
-  for (let i = paginaActual - 2; i <= paginaActual + 2; i++) {
-    botones.push(i);
-  }
-
-  botones.push("...");
-  botones.push(totalPaginas);
-
-  return botones;
-};
+  };
 
 
 

@@ -31,7 +31,7 @@ const AusenciaContainer = () => {
   const [modalAusenciaVisible, setModalAusenciaVisible] = useState(false);
   const [modalAusenciaData, setModalAusenciaData] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
-  const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false); 
+  const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("usuarioLogueado"));
@@ -55,10 +55,10 @@ const AusenciaContainer = () => {
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
+          ? res.data.results
+          : [];
       setEstados(data);
-      fetchAusencias(data); 
+      fetchAusencias(data);
     } catch (error) {
       console.error(error);
       showToast("Error al cargar los estados", "error");
@@ -74,8 +74,8 @@ const AusenciaContainer = () => {
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
+          ? res.data.results
+          : [];
 
       const hoy = new Date();
       const estadoFinalizada =
@@ -153,8 +153,8 @@ const AusenciaContainer = () => {
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
+          ? res.data.results
+          : [];
       setEmpleados(data);
     } catch (error) {
       console.error(error);
@@ -162,77 +162,77 @@ const AusenciaContainer = () => {
     }
   };
 
-// Guardar o actualizar ausencia
-// Guardar o actualizar ausencia
-const handleSubmit = async (dataAusencia, idAusencia) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Asegurar estado = true
-      dataAusencia.estado = true;
+  // Guardar o actualizar ausencia
+  // Guardar o actualizar ausencia
+  const handleSubmit = async (dataAusencia, idAusencia) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Asegurar estado = true
+        dataAusencia.estado = true;
 
-      if (
-        (!dataAusencia.cantidad_dias || dataAusencia.cantidad_dias <= 0) &&
-        dataAusencia.fechainicio &&
-        dataAusencia.fechafin
-      ) {
-        const fi = new Date(dataAusencia.fechainicio);
-        const ff = new Date(dataAusencia.fechafin);
-        const diff = Math.ceil((ff - fi) / (1000 * 60 * 60 * 24)) + 1;
-        dataAusencia.cantidad_dias = diff > 0 ? diff : 1;
+        if (
+          (!dataAusencia.cantidad_dias || dataAusencia.cantidad_dias <= 0) &&
+          dataAusencia.fechainicio &&
+          dataAusencia.fechafin
+        ) {
+          const fi = new Date(dataAusencia.fechainicio);
+          const ff = new Date(dataAusencia.fechafin);
+          const diff = Math.ceil((ff - fi) / (1000 * 60 * 60 * 24)) + 1;
+          dataAusencia.cantidad_dias = diff > 0 ? diff : 1;
+        }
+
+        const empleadoId = Number(dataAusencia.idempleado);
+        const nuevaInicio = new Date(dataAusencia.fechainicio);
+        const nuevaFin = new Date(dataAusencia.fechafin);
+
+        const conflictos = ausencias.filter((a) => {
+          const activa = a.estado === true || a.estado === 1 || a.estado === "true";
+          if (!activa) return false;
+          if (a.idausencia === idAusencia) return false;
+
+          const idExistente =
+            typeof a.idempleado === "object"
+              ? Number(a.idempleado.idempleado)
+              : Number(a.idempleado);
+
+          if (idExistente !== empleadoId) return false;
+
+          const inicioExistente = new Date(a.fechainicio);
+          const finExistente = new Date(a.fechafin);
+          return nuevaInicio <= finExistente && nuevaFin >= inicioExistente;
+        });
+
+        if (conflictos.length > 0) {
+          showToast(
+            "El colaborador ya tiene una ausencia activa que se solapa con las fechas ingresadas.",
+            "warning"
+          );
+          return reject(new Error("Fechas en conflicto"));
+        }
+
+        if (idAusencia) {
+          await axios.put(`${API}/ausencias/${idAusencia}/`, dataAusencia, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } else {
+          await axios.post(`${API}/ausencias/`, dataAusencia, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+
+        // 🔄 Actualizamos UI
+        setEditingAusencia(null);
+        setMostrarFormulario(false);
+        fetchAusencias();
+
+        resolve(); // ✅ Solo resolvemos si todo fue exitoso
+      } catch (error) {
+        console.error(error);
+        showToast("Error al guardar la ausencia", "error");
+        reject(error); // ❌ Indicamos al form que falló
       }
-
-      const empleadoId = Number(dataAusencia.idempleado);
-      const nuevaInicio = new Date(dataAusencia.fechainicio);
-      const nuevaFin = new Date(dataAusencia.fechafin);
-
-      const conflictos = ausencias.filter((a) => {
-        const activa = a.estado === true || a.estado === 1 || a.estado === "true";
-        if (!activa) return false;
-        if (a.idausencia === idAusencia) return false;
-
-        const idExistente =
-          typeof a.idempleado === "object"
-            ? Number(a.idempleado.idempleado)
-            : Number(a.idempleado);
-
-        if (idExistente !== empleadoId) return false;
-
-        const inicioExistente = new Date(a.fechainicio);
-        const finExistente = new Date(a.fechafin);
-        return nuevaInicio <= finExistente && nuevaFin >= inicioExistente;
-      });
-
-      if (conflictos.length > 0) {
-        showToast(
-          "El colaborador ya tiene una ausencia activa que se solapa con las fechas ingresadas.",
-          "warning"
-        );
-        return reject(new Error("Fechas en conflicto"));
-      }
-
-      if (idAusencia) {
-        await axios.put(`${API}/ausencias/${idAusencia}/`, dataAusencia, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      } else {
-        await axios.post(`${API}/ausencias/`, dataAusencia, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      }
-
-      // 🔄 Actualizamos UI
-      setEditingAusencia(null);
-      setMostrarFormulario(false);
-      fetchAusencias();
-
-      resolve(); // ✅ Solo resolvemos si todo fue exitoso
-    } catch (error) {
-      console.error(error);
-      showToast("Error al guardar la ausencia", "error");
-      reject(error); // ❌ Indicamos al form que falló
-    }
-  });
-};
+    });
+  };
 
 
 
@@ -292,43 +292,43 @@ const handleSubmit = async (dataAusencia, idAusencia) => {
   };
 
   //Filtrado
-const ausenciasFiltradas = ausencias
-  .filter((a) => a.estado === true)
-  .filter((a) => {
-    const estadoFinalizada =
-      estados.find(
-        (e) =>
-          e.nombreestado?.toLowerCase() === "finalizada" ||
-          e.nombre?.toLowerCase() === "finalizada"
-      ) || null;
+  const ausenciasFiltradas = ausencias
+    .filter((a) => a.estado === true)
+    .filter((a) => {
+      const estadoFinalizada =
+        estados.find(
+          (e) =>
+            e.nombreestado?.toLowerCase() === "finalizada" ||
+            e.nombre?.toLowerCase() === "finalizada"
+        ) || null;
 
-    const idEstadoFinalizada = estadoFinalizada?.idestado ?? null;
-    const idEstadoActual =
-      typeof a.idestado === "object"
-        ? a.idestado?.idestado
-        : a.idestado ?? null;
+      const idEstadoFinalizada = estadoFinalizada?.idestado ?? null;
+      const idEstadoActual =
+        typeof a.idestado === "object"
+          ? a.idestado?.idestado
+          : a.idestado ?? null;
 
-    if (mostrarFinalizadas) {
-      if (idEstadoActual !== idEstadoFinalizada) return false;
-    } else {
-      if (idEstadoActual === idEstadoFinalizada) return false;
-    }
+      if (mostrarFinalizadas) {
+        if (idEstadoActual !== idEstadoFinalizada) return false;
+      } else {
+        if (idEstadoActual === idEstadoFinalizada) return false;
+      }
 
-    const t = busqueda.toLowerCase().trim();
-    const empleado =
-      empleados.find((e) => e.idempleado === a.idempleado) || {};
-    const nombreEmpleado = displayName(empleado).toLowerCase();
-    const tipoStr = a.tipo ? a.tipo.toLowerCase() : "";
-    const diasStr = a.cantidad_dias ? a.cantidad_dias.toString() : "";
-    const diagnosticoStr = a.diagnostico ? a.diagnostico.toLowerCase() : "";
+      const t = busqueda.toLowerCase().trim();
+      const empleado =
+        empleados.find((e) => e.idempleado === a.idempleado) || {};
+      const nombreEmpleado = displayName(empleado).toLowerCase();
+      const tipoStr = a.tipo ? a.tipo.toLowerCase() : "";
+      const diasStr = a.cantidad_dias ? a.cantidad_dias.toString() : "";
+      const diagnosticoStr = a.diagnostico ? a.diagnostico.toLowerCase() : "";
 
-    return (
-      nombreEmpleado.includes(t) ||
-      tipoStr.includes(t) ||
-      diasStr.includes(t) ||
-      diagnosticoStr.includes(t)
-    );
-  });
+      return (
+        nombreEmpleado.includes(t) ||
+        tipoStr.includes(t) ||
+        diasStr.includes(t) ||
+        diagnosticoStr.includes(t)
+      );
+    });
 
   const ausenciasOrdenadas = [...ausenciasFiltradas].sort(
     (a, b) => new Date(b.createdat) - new Date(a.createdat)
@@ -357,7 +357,7 @@ const ausenciasFiltradas = ausencias
           >
             <div style={{ width: "min(1100px, 96vw)", margin: "0 auto" }}>
               <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-                Registro de Ausencias
+                Ausencias Registradas
               </h2>
 
               {/* Búsqueda */}

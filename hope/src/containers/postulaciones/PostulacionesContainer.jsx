@@ -24,23 +24,23 @@ const PostulacionesContainer = () => {
   useEffect(() => {
     fetchData();
   }, []);
-  
+
 
   const fetchData = async () => {
     try {
       const [resPost, resAsp, resConv, resDocs] = await Promise.all([
         axios.get(`${API}/postulaciones/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
+          headers: { Authorization: `Bearer ${token}` }
+        }),
         axios.get(`${API}/aspirantes/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
+          headers: { Authorization: `Bearer ${token}` }
+        }),
         axios.get(`${API}/convocatorias/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
+          headers: { Authorization: `Bearer ${token}` }
+        }),
         axios.get(`${API}/documentos/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
+          headers: { Authorization: `Bearer ${token}` }
+        }),
       ]);
 
       setPostulaciones(resPost.data.results || resPost.data || []);
@@ -90,7 +90,7 @@ const PostulacionesContainer = () => {
             }}
           >
             <div style={{ maxWidth: "1300px", width: "100%", margin: "0 auto" }}>
-              <h2 style={{ marginBottom: 20, textAlign: "center" }}>Consulta de Postulaciones</h2>
+              <h2 style={{ marginBottom: 20, textAlign: "center" }}>Postulaciones Registradas</h2>
 
               <input
                 type="text"

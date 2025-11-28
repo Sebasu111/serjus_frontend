@@ -16,20 +16,20 @@ const CriterioModal = ({ onClose, onAdd, criteriosUsados = [] }) => {
     const cargarCriterios = async () => {
       try {
         const res = await fetch(`${API}/criterio/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const data = (await res.json()).results || [];
 
         const filtrados = data.filter((c) =>
           c.idcriterio > 12 &&
           c.idvariable == 1 &&
-          c.estado !== false && 
+          c.estado !== false &&
           !criteriosUsados.some(u => u.id === c.idcriterio), // 🔥 NO MOSTRAR USADOS
         );
 
         setCriterios(filtrados);
       } catch (err) {
-        console.error("Error cargando criterios:", err);
+        // Error silenciado intencionalmente
       }
     };
 

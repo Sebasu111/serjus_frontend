@@ -32,10 +32,8 @@ const HomePage = () => {
                                 {/* HERO */}
                                 <div className="py-5 text-center">
                                     <h1 className="display-5 fw-bold lh-sm">
-                                        <span className="text-primary">Bienvenidos/as</span> al sistema de gestión de
-                                        recursos humanos SERJUS
+                                        <span className="text-primary" style={{ fontSize: "inherit", fontWeight: "inherit" }}>Bienvenidos/as</span> al Sistema de Gestión de Recursos Humanos <span style={{ fontSize: "inherit", fontWeight: "inherit", color: '#111' }}>SERJUS</span>
                                     </h1>
-
                                     <div className="mx-auto mt-4" style={{ maxWidth: "86%" }}>
                                         <hr />
                                     </div>
