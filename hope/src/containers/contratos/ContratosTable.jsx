@@ -65,9 +65,9 @@ const ContratosTable = () => {
         try {
             setLoading(true);
             const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.CONTRATOS);
-            console.log("🔄 Cargando contratos desde:", apiUrl);
+            //console.log("🔄 Cargando contratos desde:", apiUrl);
             const response = await axios.get(apiUrl);
-            console.log("📄 Respuesta contratos:", response.data);
+            //console.log("📄 Respuesta contratos:", response.data);
 
             const contratosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
             setContratos(contratosData);
@@ -118,13 +118,13 @@ const ContratosTable = () => {
 
     const descargarContrato = async (contrato) => {
         try {
-            console.log("🔄 Iniciando descarga de contrato:", contrato);
+            //console.log("🔄 Iniciando descarga de contrato:", contrato);
 
             // Obtener todos los documentos
             const documentosResponse = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.DOCUMENTOS));
             const documentos = Array.isArray(documentosResponse.data) ? documentosResponse.data : documentosResponse.data?.results || [];
 
-            console.log("📄 Documentos disponibles:", documentos);
+            //console.log("📄 Documentos disponibles:", documentos);
 
             // Buscar el empleado relacionado con este contrato
             let empleadoId = null;
@@ -133,7 +133,7 @@ const ContratosTable = () => {
                 // Si tiene historial de puesto, buscar el empleado a través del historial
                 const historial = historialPuestos.find(h => h.idhistorialpuesto === contrato.idhistorialpuesto);
                 empleadoId = historial?.idempleado;
-                console.log("👤 Empleado encontrado via historial:", empleadoId);
+                //console.log("👤 Empleado encontrado via historial:", empleadoId);
             }
 
             if (!empleadoId) {
@@ -146,10 +146,10 @@ const ContratosTable = () => {
                 doc.idempleado == empleadoId && doc.idtipodocumento == 2
             );
 
-            console.log("📋 Documento contrato encontrado:", documentoContrato);
+            //console.log("📋 Documento contrato encontrado:", documentoContrato);
 
             if (!documentoContrato) {
-                showToast("No se encontró documento PDF para este contrato. Puede subir uno desde la gestión de colaboradores.", "info");
+                showToast("No se encontró documento PDF para este contrato. Puede subir uno desde la gestión de Trabajadores.", "info");
                 return;
             }
 
@@ -160,7 +160,7 @@ const ContratosTable = () => {
 
             // Usar la URL del archivo
             const fileUrl = documentoContrato.archivo_url || documentoContrato.archivo;
-            console.log("🔗 Descargando desde URL:", fileUrl);
+            //console.log("🔗 Descargando desde URL:", fileUrl);
 
             // Usar fetch para forzar descarga como blob (igual que funciona con CVs)
             const response = await fetch(fileUrl);
@@ -169,7 +169,7 @@ const ContratosTable = () => {
             }
 
             const blob = await response.blob();
-            console.log("📦 Blob creado:", blob);
+            //console.log("📦 Blob creado:", blob);
 
             // Crear URL del blob y descargar
             const url = window.URL.createObjectURL(blob);
@@ -312,7 +312,7 @@ const ContratosTable = () => {
             <div style={{ padding: '0px 20px', marginBottom: '20px' }}>
                 <input
                     type="text"
-                    placeholder="Buscar por nombre del colaborador, puesto o tipo de contrato..."
+                    placeholder="Buscar por nombre del Trabajador, puesto o tipo de contrato..."
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}
                     style={{ ...inputStyle, width: 'calc(100% - 24px)', borderRadius: '0px' }}
@@ -328,7 +328,7 @@ const ContratosTable = () => {
                     <table style={tableStyle}>
                         <thead>
                             <tr>
-                                <th style={thStyle}>Colaborador</th>
+                                <th style={thStyle}>Trabajador</th>
                                 <th style={thStyle}>Puesto</th>
                                 <th style={thStyle}>Tipo Contrato</th>
                                 <th style={thStyle}>Salario</th>
@@ -492,7 +492,7 @@ const ContratosTable = () => {
                                 fontFamily: 'Inter, sans-serif',
                             }}
                         />
-                            Mostrar contratos inactivos
+                        Mostrar contratos inactivos
                     </label>
                 </div>
                 {historialPuestos.length === 0 && (

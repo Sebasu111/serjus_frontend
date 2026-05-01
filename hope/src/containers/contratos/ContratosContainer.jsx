@@ -113,7 +113,7 @@ const ContratosContainer = () => {
     const fetchContratos = async () => {
         try {
             const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.CONTRATOS);
-            console.log("Cargando contratos desde:", apiUrl);
+            //console.log("Cargando contratos desde:", apiUrl);
             const response = await axios.get(apiUrl);
             const contratosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
             setContratos(contratosData);
@@ -126,7 +126,7 @@ const ContratosContainer = () => {
     const fetchPuestos = async () => {
         try {
             const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.PUESTOS);
-            console.log("Cargando puestos desde:", apiUrl);
+            //console.log("Cargando puestos desde:", apiUrl);
             const response = await axios.get(apiUrl);
             const puestosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
             setPuestos(puestosData);
@@ -139,11 +139,11 @@ const ContratosContainer = () => {
     const fetchEmpleados = async () => {
         try {
             const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.EMPLEADOS);
-            console.log("Cargando empleados desde:", apiUrl);
+            //console.log("Cargando empleados desde:", apiUrl);
             const response = await axios.get(apiUrl);
-            console.log("Respuesta empleados completa:", response.data);
+            //console.log("Respuesta empleados completa:", response.data);
             const empleadosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
-            console.log("Empleados procesados:", empleadosData.length, empleadosData);
+            //console.log("Empleados procesados:", empleadosData.length, empleadosData);
             setEmpleados(empleadosData);
         } catch (error) {
             console.error("Error al cargar empleados:", error.response?.data || error.message);
@@ -154,11 +154,11 @@ const ContratosContainer = () => {
     const fetchHistorialPuestos = async () => {
         try {
             const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.HISTORIALPUESTO);
-            console.log("Cargando historial de puestos desde:", apiUrl);
+            //console.log("Cargando historial de puestos desde:", apiUrl);
             const response = await axios.get(apiUrl);
-            console.log("Respuesta historial completa:", response.data);
+            //console.log("Respuesta historial completa:", response.data);
             const historialData = Array.isArray(response.data) ? response.data : response.data?.results || [];
-            console.log("Historial procesado:", historialData.length, historialData);
+            //console.log("Historial procesado:", historialData.length, historialData);
             setHistorialPuestos(historialData);
         } catch (error) {
             console.error("Error al cargar historial de puestos:", error.response?.data || error.message);
@@ -208,11 +208,11 @@ const ContratosContainer = () => {
     // Función para guardar el contrato en la base de datos
     const guardarContrato = async (contratoData) => {
         try {
-            console.log("💾 Guardando contrato en la base de datos...", contratoData);
+            //console.log("💾 Guardando contrato en la base de datos...", contratoData);
 
             const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.CONTRATOS);
             const response = await axios.post(apiUrl, contratoData);
-            console.log("✅ Contrato guardado exitosamente:", response.data);
+            //console.log("✅ Contrato guardado exitosamente:", response.data);
 
             // Mostrar mensaje de éxito
             showPDFToasts.success("Contrato guardado exitosamente en la base de datos");
@@ -232,7 +232,7 @@ const ContratosContainer = () => {
 
             // Validar que se haya seleccionado un empleado (por historial o directo)
             if (!data.idHistorialPuesto && !data.empleadoSeleccionado) {
-                throw new Error("Debe seleccionar un colaborador");
+                throw new Error("Debe seleccionar un Trabajador");
             }
 
             // Validar otros campos obligatorios

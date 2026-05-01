@@ -428,8 +428,8 @@ const EmpleadosContainer = () => {
             });
             setData(empleadosConContrato);
         } catch (e) {
-            console.error("Error al cargar colaboradores:", e);
-            showToast("Error al cargar los colaboradores", "error");
+            console.error("Error al cargar Trabajadores:", e);
+            showToast("Error al cargar los Trabajadores", "error");
             setData([]);
         }
     };
@@ -494,9 +494,16 @@ const EmpleadosContainer = () => {
             if (!/^\d{8}$/.test(String(value))) msg = "Debe tener 8 dígitos";
         }
         if (name === "nit" && !form.isCF) {
-            const v = String(value).trim().toUpperCase().replace(/\s+/g, "");
-            // Validar formato: 7-8 dígitos, opcionalmente terminado en K
-            if (!/^(\d{7,8}|\d{7}K)$/.test(v)) msg = "Formato inválido";
+            const v = String(value)
+                .trim()
+                .toUpperCase()
+                .replace(/\s+/g, "");
+
+            const regex = /^\d{6,9}(-?[0-9A-Z])?$/;
+
+            if (!regex.test(v)) {
+                msg = "Formato inválido";
+            }
         }
         if (name === "email" && value && !emailRegex.test(String(value))) msg = "Correo inválido";
         if (name === "numerohijos") {
@@ -561,11 +568,11 @@ const EmpleadosContainer = () => {
                     if (!editingId || String(editingId) !== String(idOf)) {
                         // Verificar si el empleado encontrado está activo o inactivo
                         if (found.estado === false) {
-                            setErrors(er => ({ ...er, dpi: "Ya existe un colaborador inactivo con este DPI" }));
-                            showToast("Ya existe un colaborador inactivo con este DPI. Puede reactivarlo desde la lista de colaboradores inactivos.", "warning");
+                            setErrors(er => ({ ...er, dpi: "Ya existe un Trabajador inactivo con este DPI" }));
+                            showToast("Ya existe un Trabajador inactivo con este DPI. Puede reactivarlo desde la lista de Trabajadores inactivos.", "warning");
                         } else {
                             setErrors(er => ({ ...er, dpi: "DPI ya registrado" }));
-                            showToast("El DPI ya existe en un colaborador activo.", "warning");
+                            showToast("El DPI ya existe en un Trabajador activo.", "warning");
                         }
                     } else {
                         setErrors(er => ({ ...er, dpi: false }));
@@ -795,11 +802,6 @@ const EmpleadosContainer = () => {
         console.log("Archivo seleccionado para CV:", file);
 
         if (file) {
-            console.log("Validando archivo CV:", {
-                name: file.name,
-                size: file.size,
-                type: file.type
-            });
 
             // Validar que sea PDF
             if (file.type !== 'application/pdf') {
@@ -830,11 +832,6 @@ const EmpleadosContainer = () => {
         console.log("Archivo seleccionado para Contrato:", file);
 
         if (file) {
-            console.log("Validando archivo Contrato:", {
-                name: file.name,
-                size: file.size,
-                type: file.type
-            });
 
             // Validar que sea PDF
             if (file.type !== 'application/pdf') {
@@ -901,7 +898,15 @@ const EmpleadosContainer = () => {
 
         if (form.dpi && String(form.dpi).length !== 13) put("dpi", "Debe tener 13 dígitos");
         if (form.numeroiggs && String(form.numeroiggs).length !== 13) put("numeroiggs", "Debe tener 13 dígitos");
-        if (!form.isCF && form.nit && !/^(\d{7,8}|\d{7}K)$/.test(String(form.nit).trim().toUpperCase())) put("nit", "Formato inválido (7-8 dígitos o 7 dígitos + K)");
+        if (
+            !form.isCF &&
+            form.nit &&
+            !/^\d{6,9}(-?[0-9A-Z])?$/.test(
+                String(form.nit).trim().toUpperCase().replace(/\s+/g, "")
+            )
+        ) {
+            put("nit", "Formato inválido (6-9 dígitos, opcional guion y verificador)");
+        }
 
         // DPI único (si se ingresa)
         if (form.dpi) {
@@ -948,15 +953,9 @@ const EmpleadosContainer = () => {
         if (form.genero && !generos.includes(String(form.genero))) newErrors.genero = true;
 
         // Validación del CV (obligatorio solo si no hay archivo ni existente)
-        console.log("Validando CV:", {
-            editingId: editingId,
-            cvFile: form.cvFile,
-            cvExistente: cvExistente,
-            isRequired: !editingId && !cvExistente
-        });
 
         if (!editingId && !form.cvFile) {
-            // Nuevo colaborador, CV obligatorio
+            // Nuevo Trabajador, CV obligatorio
             newErrors.cvFile = true;
         }
         if (editingId && !form.cvFile && !cvExistente) {
@@ -1089,13 +1088,13 @@ const EmpleadosContainer = () => {
                     if (!isEditing || String(editingId) !== String(idOf)) {
                         // Verificar si el empleado encontrado está activo o inactivo
                         if (found.estado === false) {
-                            setErrors(p => ({ ...p, dpi: "Ya existe un colaborador inactivo con este DPI" }));
+                            setErrors(p => ({ ...p, dpi: "Ya existe un Trabajador inactivo con este DPI" }));
                             window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
-                            showToast("Ya existe un colaborador inactivo con este DPI. Puede reactivarlo desde la lista de colaboradores inactivos.", "warning");
+                            showToast("Ya existe un Trabajador inactivo con este DPI. Puede reactivarlo desde la lista de Trabajadores inactivos.", "warning");
                         } else {
                             setErrors(p => ({ ...p, dpi: "DPI ya registrado" }));
                             window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
-                            showToast("El DPI ya existe en un colaborador activo.", "warning");
+                            showToast("El DPI ya existe en un Trabajador activo.", "warning");
                         }
                         return;
                     }
@@ -1260,11 +1259,11 @@ const EmpleadosContainer = () => {
                         console.error("Respuesta del servidor:", cvError.response?.data);
                         console.error("Status del error:", cvError.response?.status);
                         console.error("Headers de respuesta:", cvError.response?.headers);
-                        showToast("Colaborador actualizado, pero hubo un error al subir el nuevo CV", "warning");
+                        showToast("Trabajador actualizado, pero hubo un error al subir el nuevo CV", "warning");
                     }
                 }
 
-                showToast("Colaborador actualizado correctamente");
+                showToast("Trabajador actualizado correctamente");
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
             else {
@@ -1314,11 +1313,11 @@ const EmpleadosContainer = () => {
                         console.error("Respuesta del servidor:", cvError.response?.data);
                         console.error("Status del error:", cvError.response?.status);
                         console.error("Headers de respuesta:", cvError.response?.headers);
-                        showToast("Colaborador creado, pero hubo un error al subir el CV", "warning");
+                        showToast("Trabajador creado, pero hubo un error al subir el CV", "warning");
                     }
                 }
 
-                showToast("Colaborador registrado correctamente");
+                showToast("Trabajador registrado correctamente");
 
                 // Crear usuario automáticamente solo si es un nuevo empleado
                 try {
@@ -1327,7 +1326,7 @@ const EmpleadosContainer = () => {
                     setMostrarUsuarioCreado(true);
                 } catch (userError) {
                     console.error("Error al crear usuario automático:", userError);
-                    showToast("Colaborador creado, pero hubo un error al generar el usuario automáticamente", "warning");
+                    showToast("Trabajador creado, pero hubo un error al generar el usuario automáticamente", "warning");
                 }
 
                 // ========================================================
@@ -1391,10 +1390,6 @@ const EmpleadosContainer = () => {
                             await axios.put(`${API}/postulaciones/${post.idpostulacion}/`, payloadPost, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
-                            console.log(
-                                `Postulación ${post.idpostulacion} actualizada a ${payloadPost.idestado === 7 ? "✅ Contratado" : "❌ Rechazado"
-                                }`
-                            );
                         }
 
                         // ========================================================
@@ -1455,13 +1450,13 @@ const EmpleadosContainer = () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
         } catch (err) {
             console.error("Error al guardar:", err.response?.data || err);
-            showToast("Error al registrar/actualizar el colaborador", "error");
+            showToast("Error al registrar/actualizar el Trabajador", "error");
         }
     };
 
     const handleEdit = row => {
         if (row?.estado === false) {
-            showToast("No se puede editar un colaborador inactivo", "warning");
+            showToast("No se puede editar un Trabajador inactivo", "warning");
             return;
         }
         const empleadoId = empId(row);
@@ -1563,10 +1558,10 @@ const EmpleadosContainer = () => {
                 }
             } catch (userError) {
                 console.error("Error al actualizar usuario:", userError);
-                showToast(`Colaborador ${nuevoEstado ? 'activado' : 'desactivado'}, pero hubo un error al actualizar el usuario`, "warning");
+                showToast(`Trabajador ${nuevoEstado ? 'activado' : 'desactivado'}, pero hubo un error al actualizar el usuario`, "warning");
             }
 
-            showToast(nuevoEstado ? "Colaborador y usuario activados correctamente" : "Colaborador y usuario desactivados correctamente");
+            showToast(nuevoEstado ? "Trabajador y usuario activados correctamente" : "Trabajador y usuario desactivados correctamente");
             fetchList();
         } catch {
             showToast("Error al cambiar el estado", "error");
@@ -1645,10 +1640,10 @@ const EmpleadosContainer = () => {
         // Filtrar primero por estado (activos/inactivos)
         let estadoFiltered;
         if (mostrarInactivos) {
-            // Solo mostrar colaboradores inactivos
+            // Solo mostrar Trabajadores inactivos
             estadoFiltered = indexable.filter(({ raw }) => !raw.estado);
         } else {
-            // Solo mostrar colaboradores activos (comportamiento por defecto)
+            // Solo mostrar Trabajadores activos (comportamiento por defecto)
             estadoFiltered = indexable.filter(({ raw }) => !!raw.estado);
         }
 
@@ -1705,7 +1700,7 @@ const EmpleadosContainer = () => {
             });
 
             if (!contratoDocumento) {
-                showToast("No se encontró el contrato para este colaborador", "warning");
+                showToast("No se encontró el contrato para este Trabajador", "warning");
                 return;
             }
 
@@ -1725,7 +1720,7 @@ const EmpleadosContainer = () => {
         } catch (error) {
             console.error("Error al ver contrato:", error);
             if (error.response?.status === 404) {
-                showToast("No se encontró el contrato para este colaborador", "warning");
+                showToast("No se encontró el contrato para este Trabajador", "warning");
             } else {
                 showToast("Error al abrir el contrato", "error");
             }
@@ -1763,7 +1758,7 @@ const EmpleadosContainer = () => {
             });
 
             if (!cvDocumento) {
-                showToast("No se encontró el CV para este colaborador", "warning");
+                showToast("No se encontró el CV para este Trabajador", "warning");
                 return;
             }
 
@@ -1837,7 +1832,7 @@ const EmpleadosContainer = () => {
         } catch (error) {
             console.error("Error al descargar CV:", error);
             if (error.response?.status === 404) {
-                showToast("No se encontró el CV para este colaborador", "warning");
+                showToast("No se encontró el CV para este Trabajador", "warning");
             } else {
                 showToast("Error al descargar el CV", "error");
             }
@@ -1846,7 +1841,7 @@ const EmpleadosContainer = () => {
 
     return (
         <Layout>
-            <SEO title="SERJUS - Colaboradores" />
+            <SEO title="SERJUS - Trabajadores" />
             <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
@@ -1862,7 +1857,7 @@ const EmpleadosContainer = () => {
                         }}
                     >
                         <div style={{ width: "min(1100px, 96vw)" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Colaboradores Registrados</h2>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Trabajadores Registrados</h2>
 
                             <div
                                 style={{
@@ -1891,7 +1886,7 @@ const EmpleadosContainer = () => {
                                         }}
                                         style={buttonStyles.nuevo}
                                     >
-                                        Nuevo Colaborador
+                                        Nuevo Trabajador
                                     </button>
                                     <button
                                         onClick={() => !generandoPDF && setShowDownload(true)}
@@ -2002,7 +1997,7 @@ const EmpleadosContainer = () => {
                                             color: mostrarInactivos ? "#1a73e8" : "#333"
                                         }}
                                     >
-                                        Mostrar colaboradores inactivos
+                                        Mostrar Trabajadores inactivos
                                     </label>
                                 </div>
                             </div>
@@ -2126,7 +2121,7 @@ const EmpleadosContainer = () => {
                             </div>
 
                             <div style={{ marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                <h3 style={{ margin: 0, fontSize: 28, letterSpacing: 0.2 }}>Detalle del Colaborador</h3>
+                                <h3 style={{ margin: 0, fontSize: 28, letterSpacing: 0.2 }}>Detalle del Trabajador</h3>
                                 <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
                                     <button
                                         onClick={() => descargarCV(detalle)}
@@ -2430,7 +2425,7 @@ const EmpleadosContainer = () => {
                             ) : (
                                 <div style={{ marginBottom: 20 }}>
                                     <label style={{ display: "block", fontWeight: 600, marginBottom: 8 }}>
-                                        Contrato del Colaborador
+                                        Contrato del Trabajador
                                     </label>
                                     <input
                                         type="file"

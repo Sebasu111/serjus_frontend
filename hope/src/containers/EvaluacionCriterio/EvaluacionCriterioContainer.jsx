@@ -25,14 +25,35 @@ const EvaluacionCriterioContainer = () => {
     const fetchEvaluaciones = async () => {
         try {
             const res = await axios.get(`${API}/evaluacioncriterio/`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                withCredentials: false // evita problemas si no usas cookies
             });
-            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
+
+            let data = [];
+
+            if (Array.isArray(res.data)) {
+                data = res.data;
+            } else if (Array.isArray(res.data.results)) {
+                data = res.data.results;
+            } else if (res.data.data && Array.isArray(res.data.data)) {
+                data = res.data.data;
+            }
+
             setEvaluaciones(data);
+
         } catch (error) {
-            console.error("Error al cargar evaluaciones:", error);
+            console.error("Error al cargar evaluaciones:", error.response || error.message);
+
             setEvaluaciones([]);
-            setMensaje("Error al cargar evaluaciones");
+
+            if (error.response) {
+                setMensaje(`Error ${error.response.status}: ${error.response.data?.detail || "Error del servidor"}`);
+            } else {
+                setMensaje("Error de conexión con el servidor");
+            }
         }
     };
 

@@ -13,7 +13,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
     const fetchData = async () => {
       try {
         const res = await axios.get(`${API}/inducciondocumentos/`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
         const raw = Array.isArray(res.data) ? res.data : res.data.results || [];
 
@@ -25,7 +25,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
         const documentosIds = [...new Set(filtrados.map(f => Number(f.iddocumento)).filter(Boolean))];
 
         const resEmp = await axios.get(`${API}/empleados/`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
         const allEmps = Array.isArray(resEmp.data) ? resEmp.data : resEmp.data.results || [];
         const empleadosFiltrados = allEmps.filter(e => {
@@ -35,7 +35,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
         setEmpleados(empleadosFiltrados);
 
         const resDocs = await axios.get(`${API}/documentos/`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
         const allDocs = Array.isArray(resDocs.data) ? resDocs.data : resDocs.data.results || [];
         const documentosFiltrados = allDocs.filter(d => {
@@ -257,7 +257,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
                 textAlign: "center",
               }}
             >
-              No hay colaboradores activos asignados.
+              No hay Trabajadores activos asignados.
             </div>
           ) : (
             <div

@@ -161,7 +161,7 @@ const EquiposContainer = () => {
             setEmpleados(activos);
         } catch (error) {
             console.error(error);
-            showToast("Error al cargar los colaboradores", "error");
+            showToast("Error al cargar los Trabajadores", "error");
         }
     };
 
@@ -345,7 +345,7 @@ const EquiposContainer = () => {
                     }, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    console.log(`   Empleado ${empId} removido del equipo`);
+                    //console.log(`   Empleado ${empId} removido del equipo`);
                 }
             }
 
@@ -360,7 +360,7 @@ const EquiposContainer = () => {
                     }, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    console.log(`   Coordinador ${coordinadorId} asignado al equipo ${equipoId}`);
+                    //console.log(`   Coordinador ${coordinadorId} asignado al equipo ${equipoId}`);
                 }
             }
 
@@ -375,14 +375,14 @@ const EquiposContainer = () => {
                     }, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    console.log(`   Miembro ${miembroId} asignado al equipo ${equipoId}`);
+                    //console.log(`   Miembro ${miembroId} asignado al equipo ${equipoId}`);
                 }
             }
 
-            console.log("🎉 Sincronización de empleados completada");
+            //console.log("🎉 Sincronización de empleados completada");
         } catch (error) {
             console.error("  Error al actualizar empleados del equipo:", error);
-            showToast("Equipo actualizado, pero hubo problemas al sincronizar algunos colaboradores", "warning");
+            showToast("Equipo actualizado, pero hubo problemas al sincronizar algunos Trabajadores", "warning");
         }
     };
 
@@ -391,7 +391,7 @@ const EquiposContainer = () => {
         if (!idEquipo || !idCoordinador) return;
 
         if (coordinadoresOcupados.has(toNum(idCoordinador))) {
-            showToast("Este colaborador ya es coordinador en otro equipo.", "error");
+            showToast("Este Trabajador ya es coordinador en otro equipo.", "error");
             return;
         }
 
@@ -436,7 +436,7 @@ const EquiposContainer = () => {
                 estado: true
             };
 
-            console.log("Payload enviado:", payload); // Para debug
+            //console.log("Payload enviado:", payload); // Para debug
 
             await axios.put(`${API_BASE}/equipos/${idEquipo}/`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -504,7 +504,7 @@ const EquiposContainer = () => {
 
     const handleVerDetalle = async equipo => {
         try {
-            console.log("🔍 Ver detalle de equipo:", equipo); // Debug
+            //console.log("🔍 Ver detalle de equipo:", equipo); // Debug
 
             // Intentar obtener miembros desde varias fuentes
             let ids = [];
@@ -512,19 +512,19 @@ const EquiposContainer = () => {
             // 1. Desde cache si existe
             if (miembrosCache.has(equipo.idEquipo)) {
                 ids = miembrosCache.get(equipo.idEquipo);
-                console.log("📋 Miembros desde cache:", ids);
+                //console.log("📋 Miembros desde cache:", ids);
             }
             // 2. Desde equiposConMiembros (fusionado)
             else {
                 const merged = equiposConMiembros.find(e => e.idEquipo === equipo.idEquipo);
                 ids = merged?.miembros || [];
-                console.log("🔄 Miembros desde equiposConMiembros:", ids);
+                //console.log("🔄 Miembros desde equiposConMiembros:", ids);
 
                 // 3. Si no hay miembros, intentar desde API
                 if (!ids.length) {
                     try {
                         ids = (await fetchEquipoDetalle(equipo.idEquipo)) || [];
-                        console.log("🌐 Miembros desde API:", ids);
+                        //console.log("🌐 Miembros desde API:", ids);
                     } catch (apiError) {
                         console.warn("⚠️ No se pudieron cargar miembros desde API:", apiError);
                     }
@@ -544,12 +544,12 @@ const EquiposContainer = () => {
                 .filter(id => !isNaN(id) && id > 0)
                 .map(id => {
                     const nombre = empleadosMap.get(id);
-                    console.log(`👤 Empleado ID ${id} -> ${nombre || 'No encontrado'}`);
+                    //console.log(`👤 Empleado ID ${id} -> ${nombre || 'No encontrado'}`);
                     return nombre || `Empleado #${id}`;
                 })
                 .filter(Boolean);
 
-            console.log("   Miembros nombres finales:", miembrosNombres);
+            //console.log("   Miembros nombres finales:", miembrosNombres);
 
             setDetalle({
                 idEquipo: equipo.idEquipo,

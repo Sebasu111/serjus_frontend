@@ -8,11 +8,16 @@ const InduccionTable = ({
     handleDelete,
     handleActivate,
     handleGestionarDocumentos,
-    handleVerDetalle, 
+    handleVerDetalle,
+    handleAsignarFormulario,
     paginaActual,
     totalPaginas,
     setPaginaActual,
-    formatDateForDisplay
+    formatDateForDisplay,
+    mostrarFormularioModal,
+    setMostrarFormularioModal,
+    formularios,
+    handleVerRespuestas
 }) => {
     const [openMenuId, setOpenMenuId] = useState(null);
     const menuRef = React.useRef(null);
@@ -30,30 +35,30 @@ const InduccionTable = ({
         setModalOpen(true);
     };
     // 🔹 Función para mostrar la fecha correctamente (sin desfase UTC)
-// ✅ Muestra la fecha tal cual viene del backend
-const formatFechaLocal = (dateString) => {
-  if (!dateString) return "-";
-  try {
-    // Si viene con zona (p.ej. "2025-11-11T00:00:00Z"), cortamos antes de la "T"
-    const soloFecha = dateString.split("T")[0];
-    const [anio, mes, dia] = soloFecha.split("-");
-    return `${dia}/${mes}/${anio}`;
-  } catch {
-    return dateString;
-  }
-};
-
-useEffect(() => {
-    function handleClickOutside(event) {
-        if (openMenuId !== null && menuRef.current && !menuRef.current.contains(event.target)) {
-            setOpenMenuId(null);
+    // ✅ Muestra la fecha tal cual viene del backend
+    const formatFechaLocal = (dateString) => {
+        if (!dateString) return "-";
+        try {
+            // Si viene con zona (p.ej. "2025-11-11T00:00:00Z"), cortamos antes de la "T"
+            const soloFecha = dateString.split("T")[0];
+            const [anio, mes, dia] = soloFecha.split("-");
+            return `${dia}/${mes}/${anio}`;
+        } catch {
+            return dateString;
         }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
     };
-}, [openMenuId]);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (openMenuId !== null && menuRef.current && !menuRef.current.contains(event.target)) {
+                setOpenMenuId(null);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openMenuId]);
 
 
 
@@ -79,7 +84,7 @@ useEffect(() => {
                     {items.length > 0 ? (
                         items.map(row => (
                             <tr key={row.idinduccion}>
-                                
+
                                 <td
                                     style={{
                                         padding: "10px",
@@ -144,13 +149,34 @@ useEffect(() => {
                                                 >
                                                     Gestionar Documentos
                                                 </div>
+                                                <div
+                                                    style={{
+                                                        ...comboBoxStyles.menu.item.editar.base,
+                                                        ...(row.estado ? {} : comboBoxStyles.menu.item.editar.disabled)
+                                                    }}
+                                                    onClick={() => {
+                                                        handleAsignarFormulario && handleAsignarFormulario(row);
+                                                    }}
+                                                >
+                                                    {row.formularioAsignado ? "Ver Formulario Asignado" : "Asignar Formulario"}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        ...comboBoxStyles.menu.item.editar.base,
+                                                        ...(row.estado ? {} : comboBoxStyles.menu.item.editar.disabled)
+                                                    }}
+                                                    onClick={() => handleVerRespuestas && handleVerRespuestas(row)}
+                                                >
+                                                    Ver Respuestas
+                                                </div>
+
                                                 {row.estado ? (
                                                     <div
-  style={comboBoxStyles.menu.item.desactivar.base}
-  onClick={() => handleDelete(row)}
->
-  Desactivar
-</div>
+                                                        style={comboBoxStyles.menu.item.desactivar.base}
+                                                        onClick={() => handleDelete(row)}
+                                                    >
+                                                        Desactivar
+                                                    </div>
 
                                                 ) : (
                                                     <div

@@ -67,8 +67,8 @@ const HistorialPuestoContainer = () => {
             const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
             setEmpleados(data);
         } catch (error) {
-            console.error("Error al cargar colaboradores:", error);
-            showToast("Error al cargar colaboradores", "error");
+            console.error("Error al cargar Trabajadores:", error);
+            showToast("Error al cargar Trabajadores", "error");
         }
     };
 
@@ -104,7 +104,7 @@ const HistorialPuestoContainer = () => {
         try {
             // Validaciones
             if (!form.idempleado || !form.idpuesto || !form.fechainicio || !form.salario) {
-                showToast("Colaborador, Puesto, Fecha de Inicio y Salario son campos obligatorios", "warning");
+                showToast("Trabajador, Puesto, Fecha de Inicio y Salario son campos obligatorios", "warning");
                 return;
             }
 
@@ -225,7 +225,7 @@ const HistorialPuestoContainer = () => {
         const empleado = empleados?.find(emp =>
             (emp.id || emp.idempleado || emp.idEmpleado) === idEmpleado
         );
-        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Colaborador no encontrado";
+        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Trabajador no encontrado";
     };
 
     // Función para obtener nombre del puesto

@@ -3,7 +3,7 @@ import React from "react";
 import ConfirmModalStyles from "../../stylesGenerales/ConfirmModalStyles";
 
 /**
- * Modal de confirmación para Colaboradores.
+ * Modal de confirmación para Trabajadores.
  * Soporta activar y desactivar (igual que Idiomas).
  * mode: "activar" | "desactivar"
  */
@@ -17,7 +17,7 @@ const ConfirmModal = ({ empleado, mode = "desactivar", onConfirm, onCancel }) =>
             <div style={ConfirmModalStyles.modal}>
                 <h3 style={ConfirmModalStyles.titulo}>{titulo}</h3>
                 <p style={ConfirmModalStyles.mensaje}>
-                    ¿Seguro que desea {textoAccion} al colaborador{" "}
+                    ¿Seguro que desea {textoAccion} al Trabajador{" "}
                     <strong>
                         {empleado?.nombre} {empleado?.apellido}
                     </strong>

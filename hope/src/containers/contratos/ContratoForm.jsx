@@ -664,7 +664,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                             fontFamily: '"Inter", sans-serif'
                                         }}
                                     >
-                                        Seleccionar Colaborador:
+                                        Seleccionar Trabajador:
                                     </label>
                                     <select
                                         id="empleadoHistorial"
@@ -674,11 +674,11 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                         style={input}
                                         required
                                     >
-                                        <option value="">Seleccione un colaborador...</option>
+                                        <option value="">Seleccione un Trabajador...</option>
                                         {(() => {
                                             // DEBUG: Mostrar datos en consola
-                                            console.log('CONTRATOS:', contratos);
-                                            console.log('HISTORIAL PUESTOS:', historialPuestos);
+                                            //console.log('CONTRATOS:', contratos);
+                                            //console.log('HISTORIAL PUESTOS:', historialPuestos);
                                             // Obtener IDs de historial de puesto con contrato activo (estado: true y fechafin: null)
                                             const historialConContratoActivo = new Set();
                                             if (Array.isArray(contratos)) {
@@ -757,7 +757,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                             fontFamily: '"Inter", sans-serif'
                                         }}
                                     >
-                                        Seleccionar Colaborador (Modo Temporal):
+                                        Seleccionar Trabajador (Modo Temporal):
                                     </label>
                                     <div style={{ fontSize: "12px", color: "#ff6b35", marginBottom: "5px" }}>
                                         ⚠️ Historial de puestos no disponible - usando selección directa
@@ -770,7 +770,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                         style={input}
                                         required
                                     >
-                                        <option value="">Seleccione un colaborador...</option>
+                                        <option value="">Seleccione un Trabajador...</option>
                                         {empleados.map(empleado => {
                                             if (!(empleado.estado === true || empleado.estado === 1)) return null; // Excluir desactivados
                                             const nombreCompleto = `${empleado.nombre || ''} ${empleado.apellido || ''}`.trim();

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
 import Layout from "../../layouts";
 import Header from "../../layouts/header";
 import Footer from "../../layouts/footer";
@@ -12,6 +11,8 @@ import ConfirmModal from "./ConfirmModal";
 import InduccionTable from "./InduccionTable";
 import GestionarDocumentosModal from "./GestionarDocumentosModal";
 import DocumentosAsignadosModal from "./DocumentosAsignadosModal";
+import VerRespuestasModal from "./VerRespuestasModal";
+import FormularioModal from "./FormularioModal";
 const API2 = process.env.REACT_APP_API_URL;
 const API = `${API2}/inducciones/`;
 const token = sessionStorage.getItem("token");
@@ -35,6 +36,19 @@ const InduccionContainer = () => {
   const [mostrarDocumentosAsignados, setMostrarDocumentosAsignados] = useState(false);
   const [induccionParaDocumentos, setInduccionParaDocumentos] = useState(null);
 
+  //INDUCCION FORMULARIO ##################################################################
+  const [mostrarFormularioModal, setMostrarFormularioModal] = useState(false);
+  const [formularios, setFormularios] = useState([]);
+  const [induccionSeleccionadaFormulario, setInduccionSeleccionadaFormulario] = useState(null);
+  const [formularioPrecargado, setFormularioPrecargado] = useState(null);
+
+  const [modalRespuestasOpen, setModalRespuestasOpen] = useState(false);
+
+  const handleVerRespuestas = (ind) => {
+    setInduccionSeleccionada(ind);
+    setModalRespuestasOpen(true);
+  };
+
   useEffect(() => {
     fetchAll();
     setFechaInicio(getFechaLocalISO());
@@ -43,21 +57,47 @@ const InduccionContainer = () => {
 
   const fetchAll = async () => {
     try {
+      // 🔹 1. Traer inducciones
       const res = await axios.get(API, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
       const raw = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
           ? res.data.results
           : [];
-      const data = raw.map(r => ({
-        idinduccion: r.idinduccion ?? r.id,
-        nombre: r.nombre,
-        fechainicio: r.fechainicio ?? r.fechaInicio,
-        estado: r.estado
-      }));
+
+      // 🔹 2. Traer asignaciones
+      const resAsignados = await axios.get(`${API2}/induccion-formulario/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const asignados = Array.isArray(resAsignados.data)
+        ? resAsignados.data
+        : resAsignados.data.results || [];
+
+      // 🔥 3. CRUZAR DATA
+      const data = raw.map(r => {
+        const id = r.idinduccion ?? r.id;
+
+        const tieneFormulario = asignados.some(
+          a =>
+            Number(a.idinduccion) === Number(id) &&
+            a.estado === true
+        );
+
+        return {
+          idinduccion: id,
+          nombre: r.nombre,
+          fechainicio: r.fechainicio ?? r.fechaInicio,
+          estado: r.estado,
+          formularioAsignado: tieneFormulario // 🔥 AQUI ESTÁ LA MAGIA
+        };
+      });
+
       setItems(data);
+
     } catch (e) {
       console.error(e);
       showToast("Error al cargar Inducciones", "error");
@@ -283,6 +323,58 @@ const InduccionContainer = () => {
   const paginados = filtrados.slice(indexFirst, indexLast);
   const totalPaginas = Math.ceil(filtrados.length / elementosPorPagina);
 
+  //Formulario Induccion #######################################################
+  const handleAsignarFormulario = async (induccion) => {
+    try {
+      setInduccionSeleccionadaFormulario(induccion);
+
+      // 🔥 1. Consultar si ya tiene formulario asignado
+      const resAsignados = await axios.get(`${API2}/induccion-formulario/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const asignados = Array.isArray(resAsignados.data)
+        ? resAsignados.data
+        : resAsignados.data.results || [];
+
+      const asignado = asignados.find(
+        a => Number(a.idinduccion) === Number(induccion.idinduccion) && a.estado === true
+      );
+
+      // 🔥 2. Traer formularios
+      const resFormularios = await axios.get(`${API2}/formularios/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const dataFormularios = Array.isArray(resFormularios.data)
+        ? resFormularios.data
+        : resFormularios.data.results || [];
+
+      setFormularios(dataFormularios);
+
+      // 🔥 3. SI YA TIENE → cargar ese formulario
+      if (asignado) {
+        const formularioEncontrado = dataFormularios.find(
+          f => Number(f.idformulario) === Number(asignado.idformulario)
+        );
+
+        setFormularioPrecargado(formularioEncontrado || null);
+      } else {
+        setFormularioPrecargado(null);
+      }
+
+      setMostrarFormularioModal(true);
+
+    } catch (error) {
+      console.error(error);
+      showToast("Error al cargar formularios", "error");
+    }
+  };
+
+  useEffect(() => {
+    //console.log("MODAL STATE:", mostrarFormularioModal);
+  }, [mostrarFormularioModal]);
+
   return (
     <Layout>
       <SEO title="Inducciones" />
@@ -362,6 +454,11 @@ const InduccionContainer = () => {
                 totalPaginas={totalPaginas}
                 setPaginaActual={setPaginaActual}
                 formatDateForDisplay={formatDateForDisplay}
+                handleAsignarFormulario={handleAsignarFormulario}
+                mostrarFormularioModal={mostrarFormularioModal}
+                setMostrarFormularioModal={setMostrarFormularioModal}
+                formularios={formularios}
+                handleVerRespuestas={handleVerRespuestas}
               />
 
               {/* Selector de elementos por página */}
@@ -433,6 +530,23 @@ const InduccionContainer = () => {
           />
         )}
 
+        {mostrarFormularioModal && (
+          <FormularioModal
+            visible={mostrarFormularioModal}
+            onClose={() => setMostrarFormularioModal(false)}
+            formularios={formularios}
+            induccion={induccionSeleccionadaFormulario}
+            formularioPrecargado={formularioPrecargado}
+          />
+        )}
+
+        {modalRespuestasOpen && (
+          <VerRespuestasModal
+            visible={modalRespuestasOpen}
+            onClose={() => setModalRespuestasOpen(false)}
+            induccion={induccionSeleccionada}
+          />
+        )}
         <ScrollToTop />
       </div>
     </Layout>

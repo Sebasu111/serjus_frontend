@@ -47,20 +47,20 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
       try {
         const [resTipos, resVars, resCriterios, resUsuario] = await Promise.all([
           axios.get(`${API}/tipoevaluacion/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${API}/variables/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${API}/criterio/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           }),
           idUsuarioLogueado
             ? axios.get(`${API}/usuarios/${idUsuarioLogueado}/`, {
-                headers: {
-                  Authorization: `Bearer ${sessionStorage.getItem("token")}`
-                }
-              })
+              headers: {
+                Authorization: `Bearer ${sessionStorage.getItem("token")}`
+              }
+            })
             : Promise.resolve({ data: null }),
 
         ]);
@@ -112,9 +112,9 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
 
         const criterioBase = await axios.get(
           `${API}/criterio/${criteriosEval[0].idcriterio}/`
-        , {
+          , {
             headers: { Authorization: `Bearer ${token}` }
-        });
+          });
         const idVariable = criterioBase.data.idvariable;
         const variable = variables.find((v) => v.idvariable === idVariable);
 
@@ -202,7 +202,7 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
       };
 
       const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval, {
-          headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const idevaluacion = evalRes.data.idevaluacion;
 
@@ -218,7 +218,7 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
           estado: true,
           idusuario: usuario.idusuario,
         }, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
       }
 
@@ -252,7 +252,7 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
       };
 
       const evalRes = await axios.post(`${API}/evaluacion/`, payloadEval, {
-          headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const idevaluacion = evalRes.data.idevaluacion;
 
@@ -269,7 +269,7 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
           idusuario: usuario.idusuario,
           estado: true,
         }, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
       }
 
@@ -288,7 +288,7 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
           estado: true,
           idusuario: usuario.idusuario,
         }, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         const idseguimiento = seguimientoRes.data.idseguimiento;
@@ -302,7 +302,7 @@ export const useEvaluacionGuia = (evaluacionSeleccionada) => {
             estado: true,
             idusuario: usuario.idusuario,
           }, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           });
         }
       }

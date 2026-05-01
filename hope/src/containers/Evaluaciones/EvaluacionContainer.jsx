@@ -89,8 +89,8 @@ const EvaluacionContainer = () => {
               marginLeft: isMobile
                 ? "0"
                 : sidebarCollapsed
-                ? "90px"
-                : "300px",
+                  ? "90px"
+                  : "300px",
               transition: "margin-left 0.3s ease",
               width:
                 "calc(100vw - " +

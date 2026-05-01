@@ -41,87 +41,87 @@ const AmonestacionTable = ({
     setEmpleadoSeleccionado(null);
   };
 
- // 🔍 Filtrado de búsqueda global
-const amonestacionesFiltradas = useMemo(() => {
-  // 🔸 Normaliza el término (quita tildes y espacios dobles)
-  const term = busqueda
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
+  // 🔍 Filtrado de búsqueda global
+  const amonestacionesFiltradas = useMemo(() => {
+    // 🔸 Normaliza el término (quita tildes y espacios dobles)
+    const term = busqueda
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
 
-  if (!term)
-    return [...amonestaciones].sort(
-      (a, b) => new Date(b.createdat) - new Date(a.createdat)
-    );
+    if (!term)
+      return [...amonestaciones].sort(
+        (a, b) => new Date(b.createdat) - new Date(a.createdat)
+      );
 
-  return [...amonestaciones]
-    .sort((a, b) => new Date(b.createdat) - new Date(a.createdat))
-    .filter((row) => {
-      const empleado =
-        empleados.find((e) => e.idempleado === row.idempleado) || {};
-      const colaborador = `${empleado.nombre || ""} ${empleado.apellido || ""}`
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      const tipo = (row.tipo || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      const fecha = formatFecha(row.fechaamonestacion)
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      const motivo = (row.motivo || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      const estadoTexto = (row.estado ? "activo" : "inactivo")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+    return [...amonestaciones]
+      .sort((a, b) => new Date(b.createdat) - new Date(a.createdat))
+      .filter((row) => {
+        const empleado =
+          empleados.find((e) => e.idempleado === row.idempleado) || {};
+        const colaborador = `${empleado.nombre || ""} ${empleado.apellido || ""}`
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+        const tipo = (row.tipo || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+        const fecha = formatFecha(row.fechaamonestacion)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+        const motivo = (row.motivo || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+        const estadoTexto = (row.estado ? "activo" : "inactivo")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
 
-      const idDoc = row.iddocumento || row.idDocumento;
-      const tieneCarta = Number(idDoc) > 0;
+        const idDoc = row.iddocumento || row.idDocumento;
+        const tieneCarta = Number(idDoc) > 0;
 
-      // 🟩 Texto base de carta
-      const cartaTexto = tieneCarta ? "subida" : "aun no subida";
+        // 🟩 Texto base de carta
+        const cartaTexto = tieneCarta ? "subida" : "aun no subida";
 
-      // 🧠 Reglas para buscar cartas
-      const buscaSubida =
-        term === "sub" ||
-        term === "subi" ||
-        term === "subid" ||
-        term === "subida" ||
-        term.startsWith("sub");
+        // 🧠 Reglas para buscar cartas
+        const buscaSubida =
+          term === "sub" ||
+          term === "subi" ||
+          term === "subid" ||
+          term === "subida" ||
+          term.startsWith("sub");
 
-      // "no subida", "aun no subida", "aún no subida", "aun subida"
-      const buscaNoSubida =
-        term.includes("no subida") ||
-        term.includes("aun no subida") ||
-        term.includes("aun subida") ||
-        term.includes("aun") && term.includes("subida");
+        // "no subida", "aun no subida", "aún no subida", "aun subida"
+        const buscaNoSubida =
+          term.includes("no subida") ||
+          term.includes("aun no subida") ||
+          term.includes("aun subida") ||
+          term.includes("aun") && term.includes("subida");
 
-      // 🧩 Coincidencia general
-      const coincideGeneral =
-        colaborador.includes(term) ||
-        tipo.includes(term) ||
-        fecha.includes(term) ||
-        motivo.includes(term) ||
-        estadoTexto.includes(term);
+        // 🧩 Coincidencia general
+        const coincideGeneral =
+          colaborador.includes(term) ||
+          tipo.includes(term) ||
+          fecha.includes(term) ||
+          motivo.includes(term) ||
+          estadoTexto.includes(term);
 
-      // 🧩 Coincidencia específica por carta
-      let coincideCarta = false;
-      if (buscaSubida) {
-        coincideCarta = tieneCarta; // solo las subidas
-      } else if (buscaNoSubida) {
-        coincideCarta = !tieneCarta; // solo las no subidas
-      } else {
-        coincideCarta = cartaTexto.includes(term); // búsqueda general
-      }
+        // 🧩 Coincidencia específica por carta
+        let coincideCarta = false;
+        if (buscaSubida) {
+          coincideCarta = tieneCarta; // solo las subidas
+        } else if (buscaNoSubida) {
+          coincideCarta = !tieneCarta; // solo las no subidas
+        } else {
+          coincideCarta = cartaTexto.includes(term); // búsqueda general
+        }
 
-      return coincideGeneral || coincideCarta;
-    });
-}, [busqueda, amonestaciones, empleados]);
+        return coincideGeneral || coincideCarta;
+      });
+  }, [busqueda, amonestaciones, empleados]);
 
 
 
@@ -140,7 +140,7 @@ const amonestacionesFiltradas = useMemo(() => {
       <div style={{ marginBottom: "15px" }}>
         <input
           type="text"
-          placeholder="Buscar por colaborador, tipo, fecha, motivo, carta o estado..."
+          placeholder="Buscar por Trabajador, tipo, fecha, motivo, carta o estado..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           style={{
@@ -157,7 +157,7 @@ const amonestacionesFiltradas = useMemo(() => {
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#023047", color: "white" }}>
-            <th style={{ padding: "10px", textAlign: "left" }}>Colaborador/a</th>
+            <th style={{ padding: "10px", textAlign: "left" }}>Trabajador</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Tipo</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Fecha</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Motivo</th>

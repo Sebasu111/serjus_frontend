@@ -17,12 +17,12 @@ const FormUsuario = ({
     handleSubmit,
     setMostrarFormulario
 }) => {
-    // Función para obtener nombre del colaborador
+    // Función para obtener nombre del Trabajador
     const obtenerNombreEmpleado = (idEmpleado) => {
         const empleado = empleados?.find(emp =>
             (emp.id || emp.idempleado || emp.idEmpleado) === idEmpleado
         );
-        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Colaborador no encontrado";
+        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Trabajador no encontrado";
     };
 
     // Función para obtener nombre del rol
@@ -82,7 +82,7 @@ const FormUsuario = ({
 
                     <div>
                         <strong style={{ color: "#1e40af", fontSize: "14px" }}>
-                            Colaborador:
+                            Trabajador:
                         </strong>
                         <div style={{ color: "#1f2937", fontSize: "16px", marginTop: "2px" }}>
                             {obtenerNombreEmpleado(form.idempleado)}

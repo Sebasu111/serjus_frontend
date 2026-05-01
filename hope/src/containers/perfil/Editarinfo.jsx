@@ -101,7 +101,7 @@ const Editarinfo = ({ form, onChange, onClose }) => {
         }}
       >
         <div className="empleado-form-container">
-          <h3 style={{ marginBottom: 4, textAlign: "center" }}>Editar información del colaborador</h3>
+          <h3 style={{ marginBottom: 4, textAlign: "center" }}>Editar información del Trabajador</h3>
           <div style={{ textAlign: "center", marginBottom: 18, fontWeight: 700 }}>Paso {step} de 3</div>
 
           {/* paso 1 */}
@@ -261,97 +261,97 @@ const Editarinfo = ({ form, onChange, onClose }) => {
           )}
 
           {step === 3 && (
-          <div data-step="3">
-            <fieldset style={fs}>
-              <legend style={lg}>Estado & Formación</legend>
+            <div data-step="3">
+              <fieldset style={fs}>
+                <legend style={lg}>Estado & Formación</legend>
 
-              <div style={grid3}>
-                <div style={field}>
-                  <label style={labelStyle}>Número de hijos</label>
-                  <input
-                    name="numerohijos"
-                    value={form.numerohijos ?? ""}
-                    onChange={onChange}
-                    style={inputStyle}
-                  />
+                <div style={grid3}>
+                  <div style={field}>
+                    <label style={labelStyle}>Número de hijos</label>
+                    <input
+                      name="numerohijos"
+                      value={form.numerohijos ?? ""}
+                      onChange={onChange}
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <div style={field}>
+                    <label style={labelStyle}>Título nivel medio</label>
+                    <input
+                      name="titulonivelmedio"
+                      value={form.titulonivelmedio || ""}
+                      onChange={onChange}
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <div style={field}>
+                    <label style={labelStyle}>Estudios universitarios</label>
+                    <input
+                      name="estudiosuniversitarios"
+                      value={form.estudiosuniversitarios || ""}
+                      onChange={onChange}
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <div style={field}>
+                    <label style={labelStyle}>Fecha de inicio laboral</label>
+                    <input
+                      type="date"
+                      name="inicioLaboral"           // 👈 ojo aquí
+                      value={form.inicioLaboral || ""} // 👈 y aquí
+                      onChange={onChange}
+                      style={inputStyle}
+                    />
+                  </div>
                 </div>
 
-                <div style={field}>
-                  <label style={labelStyle}>Título nivel medio</label>
+                {/* CV igual que ya lo tienes */}
+                <div style={{ ...field, gridColumn: "1 / -1" }}>
+                  <label style={labelStyle}>CV del Trabajador</label>
+
+                  {form.cvUrl && (
+                    <a
+                      href={form.cvUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-block",
+                        marginBottom: 10,
+                        padding: "10px 14px",
+                        background: "#0a9396",
+                        color: "white",
+                        borderRadius: 8,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Ver CV actual
+                    </a>
+                  )}
+
                   <input
-                    name="titulonivelmedio"
-                    value={form.titulonivelmedio || ""}
-                    onChange={onChange}
                     style={inputStyle}
+                    type="file"
+                    name="cvFile"
+                    accept=".pdf"
+                    onChange={(e) =>
+                      onChange({
+                        target: {
+                          name: "cvFile",
+                          value: e.target.files[0] || null,
+                        },
+                      })
+                    }
                   />
+                  <small style={{ marginTop: 4, fontSize: 13, color: "#555" }}>
+                    Solo PDF, máximo 5MB
+                  </small>
                 </div>
-
-                <div style={field}>
-                  <label style={labelStyle}>Estudios universitarios</label>
-                  <input
-                    name="estudiosuniversitarios"
-                    value={form.estudiosuniversitarios || ""}
-                    onChange={onChange}
-                    style={inputStyle}
-                  />
-                </div>
-
-                <div style={field}>
-                  <label style={labelStyle}>Fecha de inicio laboral</label>
-                  <input
-                    type="date"
-                    name="inicioLaboral"           // 👈 ojo aquí
-                    value={form.inicioLaboral || ""} // 👈 y aquí
-                    onChange={onChange}
-                    style={inputStyle}
-                  />
-                </div>
-              </div>
-
-              {/* CV igual que ya lo tienes */}
-              <div style={{ ...field, gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>CV del colaborador</label>
-
-                {form.cvUrl && (
-                  <a
-                    href={form.cvUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "inline-block",
-                      marginBottom: 10,
-                      padding: "10px 14px",
-                      background: "#0a9396",
-                      color: "white",
-                      borderRadius: 8,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Ver CV actual
-                  </a>
-                )}
-
-                <input
-                  style={inputStyle}
-                  type="file"
-                  name="cvFile"
-                  accept=".pdf"
-                  onChange={(e) =>
-                    onChange({
-                      target: {
-                        name: "cvFile",
-                        value: e.target.files[0] || null,
-                      },
-                    })
-                  }
-                />
-                <small style={{ marginTop: 4, fontSize: 13, color: "#555" }}>
-                  Solo PDF, máximo 5MB
-                </small>
-              </div>
-            </fieldset>
-          </div>
-        )}
+              </fieldset>
+            </div>
+          )}
 
           {/* navegación */}
           <div

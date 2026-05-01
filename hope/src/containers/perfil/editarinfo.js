@@ -27,7 +27,7 @@ export const fetchIdiomasYPueblos = async () => {
   }
 };
 
-// 🔹 Traer CV actual del colaborador (último activo)
+// 🔹 Traer CV actual del Trabajador (último activo)
 export const fetchCVEmpleado = async (idempleado) => {
   try {
     if (!idempleado) return null;
@@ -50,7 +50,7 @@ export const fetchCVEmpleado = async (idempleado) => {
 
     return cvs.length > 0 ? cvs[0].archivo_url : null;
   } catch (error) {
-    console.error("Error cargando CV del colaborador:", error);
+    console.error("Error cargando CV del Trabajador:", error);
     return null;
   }
 };
@@ -96,7 +96,7 @@ export const updateEmpleado = async (idempleado, data) => {
   });
 };
 
-// 🔹 Guardar CV del colaborador (POST nuevo archivo)
+// 🔹 Guardar CV del Trabajador (POST nuevo archivo)
 export const saveCVEmpleado = async (idempleado, file) => {
   try {
     if (!file || !idempleado) return null;

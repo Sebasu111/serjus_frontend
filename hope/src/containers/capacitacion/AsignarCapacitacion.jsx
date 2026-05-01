@@ -30,8 +30,8 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
       });
       setEmpleados(res.data.results || res.data);
     } catch (error) {
-      console.error("Error al cargar colaboradores:", error);
-      showToast("Error al cargar colaboradores", "error");
+      console.error("Error al cargar Trabajadores:", error);
+      showToast("Error al cargar Trabajadores", "error");
     }
   };
 
@@ -59,7 +59,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         .map(a => Number(a.idempleado));
       setEmpleadosSeleccionados(empleadosIdsAsignados);
     } catch (error) {
-      console.error("Error al cargar colaboradores asignados:", error);
+      console.error("Error al cargar Trabajadores asignados:", error);
     }
   };
 
@@ -121,7 +121,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 (fechaInicioActual <= fechaFinOtra && fechaFinActual >= fechaInicioOtra)
               ) {
                 const empleado = empleados.find(emp => (emp.idempleado || emp.id) === idEmpleado);
-                showToast(`El colaborador ${empleado?.nombre || ''} ${empleado?.apellido || ''} ya está asignado a otra capacitación en las mismas fechas.`, "warning");
+                showToast(`El Trabajador ${empleado?.nombre || ''} ${empleado?.apellido || ''} ya está asignado a otra capacitación en las mismas fechas.`, "warning");
                 return;
               }
             }
@@ -219,7 +219,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         // Cerrar el modal inmediatamente después del guardado exitoso
         onClose();
       } else if (empleadosSeleccionados.length === 0 && asignacionesActuales.length === 0) {
-        showToast("No hay colaboradores asignados a esta capacitación", "info");
+        showToast("No hay Trabajadores asignados a esta capacitación", "info");
         // También cerrar inmediatamente en este caso
         onClose();
       } else {
@@ -227,7 +227,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         // En este caso no cerrar porque no hubo cambios reales
       }
 
-      // Refrescar colaboradores asignados
+      // Refrescar Trabajadores asignados
       fetchEmpleadosAsignados(capacitacionSeleccionada);
     } catch (error) {
       console.error(error);
@@ -260,7 +260,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         flexDirection: "column"
       }}
     >
-      <h3 style={{ textAlign: "center", marginBottom: "20px" }}>Asignar Colaboradores</h3>
+      <h3 style={{ textAlign: "center", marginBottom: "20px" }}>Asignar Trabajadores</h3>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
         {/* Capacitación */}
@@ -302,7 +302,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
           </div>
         )}
 
-        {/* Colaboradores seleccionados */}
+        {/* Trabajadores seleccionados */}
         {empleadosSeleccionados.length > 0 && (
           <div style={{
             marginBottom: "20px"
@@ -318,7 +318,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 color: "#6b7280",
                 fontWeight: "400"
               }}>
-                Colaboradores seleccionados ({empleadosSeleccionados.length}):
+                Trabajadores seleccionados ({empleadosSeleccionados.length}):
               </div>
               <button
                 type="button"
@@ -344,7 +344,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                   e.target.style.color = "#6b7280";
                   e.target.style.borderColor = "#d1d5db";
                 }}
-                title="Quitar todos los colaboradores"
+                title="Quitar todos los Trabajadores"
               >
                 Limpiar selección
               </button>
@@ -388,7 +388,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                         fontWeight: "normal",
                         lineHeight: "1"
                       }}
-                      title="Quitar colaborador"
+                      title="Quitar Trabajador"
                     >
                       ×
                     </button>
@@ -399,10 +399,10 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
           </div>
         )}
 
-        {/* Colaboradores */}
+        {/* Trabajadores */}
         <div>
           <label style={{ display: "block", marginBottom: "6px" }}>
-            Seleccione colaboradores
+            Seleccione Trabajadores
           </label>
 
           <div
@@ -458,7 +458,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 ))
               ) : (
                 <div style={{ padding: "20px", textAlign: "center", color: "#777", fontSize: "14px" }}>
-                  {busqueda ? "No se encontraron colaboradores con ese nombre" : "No hay colaboradores disponibles"}
+                  {busqueda ? "No se encontraron Trabajadores con ese nombre" : "No hay Trabajadores disponibles"}
                 </div>
               )}
             </div>

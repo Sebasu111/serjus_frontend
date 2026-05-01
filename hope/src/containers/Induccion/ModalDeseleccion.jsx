@@ -2,7 +2,7 @@ import React from "react";
 import ConfirmModalStyles from "../../stylesGenerales/ConfirmModalStyles";
 
 const ModalDeseleccion = ({ empleado, onConfirm, onCancel }) => {
-    if (!empleado) return null; 
+    if (!empleado) return null;
 
     const nombreEmpleado =
         empleado.nombre ||
@@ -18,7 +18,7 @@ const ModalDeseleccion = ({ empleado, onConfirm, onCancel }) => {
                 <h3 style={ConfirmModalStyles.titulo}>Confirmar desasignación</h3>
 
                 <p style={ConfirmModalStyles.mensaje}>
-                    ¿Seguro que desea <strong>desasignar</strong> al colaborador{" "}
+                    ¿Seguro que desea <strong>desasignar</strong> al Trabajador{" "}
                     <strong>{nombreEmpleado}</strong> de esta inducción?
                 </p>
 

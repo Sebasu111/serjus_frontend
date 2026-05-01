@@ -90,7 +90,7 @@ export const FiltroEmpleadoSearch = ({
   empleados,
   value,
   onChange,
-  label = "Colaborador/a",
+  label = "Trabajador/a",
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -140,7 +140,7 @@ export const FiltroEmpleadoSearch = ({
       <div ref={inputRef}>
         <input
           type="text"
-          placeholder="Buscar colaborador..."
+          placeholder="Buscar Trabajador..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);

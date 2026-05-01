@@ -1,0 +1,134 @@
+.encuesta-container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    font-family: Arial, sans-serif;
+}
+
+.encuesta-titulo {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #023047;
+    margin-bottom: 25px;
+}
+
+/* 📌 DATOS */
+.datos-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.dato {
+    background: #f1f5f9;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+/* 📊 TABLA */
+.tabla-container {
+    overflow-x: auto;
+}
+
+.fila {
+    display: grid;
+    grid-template-columns: 260px repeat(6, minmax(120px, 1fr));
+    align-items: stretch;
+}
+
+/* ENCABEZADO */
+.encabezado {
+    background: #219ebc;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.encabezado div {
+    padding: 10px;
+    text-align: center;
+}
+
+/* PREGUNTAS */
+.pregunta {
+    font-weight: bold;
+    color: #023047;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+/* CELDAS */
+.celda {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+}
+
+/* Radios mejor alineados */
+.radio-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Inputs */
+.input-text {
+    width: 90%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* Select */
+.select {
+    width: 95%;
+    padding: 5px;
+    border-radius: 6px;
+}
+
+/* BLOQUES */
+.bloque {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    background: #f8fafc;
+}
+
+/* FILAS INTERNAS */
+.fila+.fila {
+    border-top: 1px solid #e2e8f0;
+}
+
+/* FINAL */
+.final {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+/* BOTÓN */
+.boton-container {
+    text-align: right;
+    margin-top: 25px;
+}
+
+.boton {
+    background: #219ebc;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.boton:hover {
+    background: #1b8aa5;
+}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { X } from "lucide-react";
 import axios from "axios";
 import { showToast } from "../../utils/toast.js";
-import ModalDeseleccion from "../Induccion/ModalDeseleccion.jsx"; 
+import ModalDeseleccion from "../Induccion/ModalDeseleccion.jsx";
 const API = process.env.REACT_APP_API_URL;
 const token = sessionStorage.getItem("token");
 
@@ -53,13 +53,13 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
     [empleados]
   );
   // ✅ Fecha local correcta
-const getFechaLocalISO = () => {
-  const hoy = new Date();
-  const anio = hoy.getFullYear();
-  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
-  const dia = String(hoy.getDate()).padStart(2, "0");
-  return `${anio}-${mes}-${dia}`;
-};
+  const getFechaLocalISO = () => {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+    const dia = String(hoy.getDate()).padStart(2, "0");
+    return `${anio}-${mes}-${dia}`;
+  };
 
 
   const empleadosFiltrados = useMemo(() => {
@@ -93,7 +93,7 @@ const getFechaLocalISO = () => {
 
     try {
       const res = await axios.get(`${API}/inducciondocumentos/`, {
-          headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const raw = Array.isArray(res.data) ? res.data : res.data.results || [];
 
@@ -149,9 +149,9 @@ const getFechaLocalISO = () => {
     try {
       const resInduccionDocs = await axios.get(
         `${API}/inducciondocumentos/`
-      , {
+        , {
           headers: { Authorization: `Bearer ${token}` }
-      });
+        });
       const induccionDocsRaw = Array.isArray(resInduccionDocs.data)
         ? resInduccionDocs.data
         : resInduccionDocs.data.results || [];
@@ -174,7 +174,7 @@ const getFechaLocalISO = () => {
 
         if (documentosIds.length > 0) {
           const resDocumentos = await axios.get(`${API}/documentos/`, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           });
           const todosDocumentos = Array.isArray(resDocumentos.data)
             ? resDocumentos.data
@@ -203,12 +203,12 @@ const getFechaLocalISO = () => {
   const fetchEmpleados = async () => {
     try {
       const res = await axios.get(`${API}/empleados/`, {
-          headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setEmpleados(data.filter((item) => item.estado));
     } catch (e) {
-      console.error("Error al cargar colaboradores:", e);
+      console.error("Error al cargar Trabajadores:", e);
     }
   };
 
@@ -216,40 +216,40 @@ const getFechaLocalISO = () => {
     e.preventDefault();
     try {
       // ✅ Si no hay documentos ni empleados, desactiva todos los registros existentes
-if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
-  try {
-    const res = await axios.get(`${API}/inducciondocumentos/`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    const todos = Array.isArray(res.data) ? res.data : res.data.results || [];
-    const activos = todos.filter(
-      (r) =>
-        Number(r.idinduccion) === Number(induccion.idinduccion) &&
-        r.estado === true
-    );
+      if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
+        try {
+          const res = await axios.get(`${API}/inducciondocumentos/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const todos = Array.isArray(res.data) ? res.data : res.data.results || [];
+          const activos = todos.filter(
+            (r) =>
+              Number(r.idinduccion) === Number(induccion.idinduccion) &&
+              r.estado === true
+          );
 
-    for (const reg of activos) {
-      await axios.put(
-        `${API}/inducciondocumentos/${reg.idinducciondocumento}/`,
-        { ...reg, estado: false },
-        {
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`
+          for (const reg of activos) {
+            await axios.put(
+              `${API}/inducciondocumentos/${reg.idinducciondocumento}/`,
+              { ...reg, estado: false },
+              {
+                headers: {
+                  Authorization: `Bearer ${sessionStorage.getItem("token")}`
+                }
+              }
+            );
           }
+
+
+          showToast("Inducción sin asignaciones, registros desactivados", "info");
+          onClose(); // ✅ Cierra modal
+          return;
+        } catch (e) {
+          console.error("Error desactivando registros vacíos:", e);
+          showToast("Error al limpiar asignaciones", "error");
+          return;
         }
-      );
-    }
-
-
-    showToast("Inducción sin asignaciones, registros desactivados", "info");
-    onClose(); // ✅ Cierra modal
-    return;
-  } catch (e) {
-    console.error("Error desactivando registros vacíos:", e);
-    showToast("Error al limpiar asignaciones", "error");
-    return;
-  }
-}
+      }
 
 
       const idUsuario = Number(sessionStorage.getItem("idUsuario"));
@@ -290,7 +290,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
           return axios.post(
             `${API}/inducciondocumentos/`,
             asignacionData, {
-              headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
           });
         });
 
@@ -303,9 +303,9 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
 
           const resAsignaciones = await axios.get(
             `${API}/inducciondocumentos/?idinduccion=${induccion.idinduccion}`
-          , {
+            , {
               headers: { Authorization: `Bearer ${token}` }
-          });
+            });
           const existentes = Array.isArray(resAsignaciones.data)
             ? resAsignaciones.data
             : resAsignaciones.data.results || [];
@@ -330,7 +330,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
             await axios.post(
               `${API}/inducciondocumentos/`,
               asignacionData, {
-                headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` }
             });
           }
         }
@@ -432,7 +432,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
           }}
         >
           <h3 style={{ marginBottom: "15px" }}>
-            Asignar Documentos a Colaboradores
+            Asignar Documentos a Trabajadores
           </h3>
 
           <form onSubmit={handleSubmit}>
@@ -601,7 +601,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
               </div>
             </div>
 
-            {/* Colaboradores */}
+            {/* Trabajadores */}
             <div style={{ marginBottom: "25px" }}>
               <label
                 style={{
@@ -610,7 +610,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
                   fontWeight: "600",
                 }}
               >
-                Colaboradores *
+                Trabajadores *
               </label>
 
               {empleadosSeleccionados.length > 0 && (
@@ -669,7 +669,7 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
               >
                 <input
                   type="text"
-                  placeholder="Buscar colaboradores por nombre..."
+                  placeholder="Buscar Trabajadores por nombre..."
                   value={busquedaEmpleados}
                   onChange={(e) => setBusquedaEmpleados(e.target.value)}
                   style={{
@@ -731,8 +731,8 @@ if (documentosPDF.length === 0 || empleadosSeleccionados.length === 0) {
                       }}
                     >
                       {busquedaEmpleados
-                        ? "No se encontraron colaboradores disponibles con ese nombre"
-                        : "No hay colaboradores disponibles"}
+                        ? "No se encontraron Trabajadores disponibles con ese nombre"
+                        : "No hay Trabajadores disponibles"}
                     </div>
                   )}
                 </div>

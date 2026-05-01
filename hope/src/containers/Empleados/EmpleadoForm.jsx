@@ -333,7 +333,7 @@ const EmpleadoForm = ({
             >
                 <div className="empleado-form-container">
                     <h3 style={{ marginBottom: 4, textAlign: "center", letterSpacing: 0.2 }}>
-                        {editingId ? "Editar colaborador" : "Registrar colaborador"}
+                        {editingId ? "Editar Trabajador" : "Registrar Trabajador"}
                     </h3>
                     <div style={{ textAlign: "center", marginBottom: 18, color: "#374151", fontWeight: 700 }}>
                         Paso {step} de 3
@@ -739,7 +739,7 @@ const EmpleadoForm = ({
                                         </div>
                                         <div style={{ ...field, gridColumn: "1 / -1" }}>
                                             <label style={labelStyle}>
-                                                CV del Colaborador
+                                                CV del Trabajador
                                                 {!editingId && <span style={{ color: '#dc3545' }}>*</span>}
                                                 {editingId && <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 'normal' }}></span>}
                                             </label>
@@ -826,7 +826,7 @@ const EmpleadoForm = ({
                                                         display: "block",
                                                         marginTop: "4px"
                                                     }}>
-                                                        Sube el CV del colaborador (Solo PDF, máx. 5MB)
+                                                        Sube el CV del Trabajador (Solo PDF, máx. 5MB)
                                                     </small>
                                                 </>
                                             )}
@@ -867,7 +867,7 @@ const EmpleadoForm = ({
                                 </button>
                             ) : (
                                 <button type="submit" style={btnPrimary}>
-                                    {editingId ? "Actualizar Colaborador" : "Guardar Colaborador"}
+                                    {editingId ? "Actualizar Trabajador" : "Guardar Trabajador"}
                                 </button>
                             )}
                         </div>

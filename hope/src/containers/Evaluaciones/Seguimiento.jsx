@@ -30,19 +30,19 @@ const Seguimiento = () => {
     try {
       const [resSeg, resSegVar, resUsers, resEmp, resEval] = await Promise.all([
         axios.get(`${API}/seguimientos/`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API}/seguimientovariable/`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API}/usuarios/`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API}/empleados/`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API}/evaluacion/`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         }),
       ]);
 
@@ -91,8 +91,8 @@ const Seguimiento = () => {
     const payload = { ...seg, fechaproximarev: nuevaFecha };
     try {
       await axios.put(`${API}/seguimientos/${seg.idseguimiento}/`, payload, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        headers: { Authorization: `Bearer ${token}` }
+      });
       await cargarTodo();
       showToast("Fecha actualizada", "success");
     } catch (err) {
@@ -109,8 +109,8 @@ const Seguimiento = () => {
     const payload = { ...accion, estado: false };
     try {
       await axios.put(`${API}/seguimientovariable/${accion.idseguimientovariable}/`, payload, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setAcciones((prev) =>
         prev.filter((a) => a.idseguimientovariable !== accion.idseguimientovariable)
       );
@@ -133,8 +133,8 @@ const Seguimiento = () => {
     const payload = { ...seg, estado: false };
     try {
       await axios.put(`${API}/seguimientos/${idSeguimiento}/`, payload, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        headers: { Authorization: `Bearer ${token}` }
+      });
       await cargarTodo();
       showToast("Seguimiento finalizado", "success");
     } catch (err) {

@@ -31,22 +31,22 @@ const EvaluacionesFinalizadas = () => {
         const [resEval, resEmp, resUsers, resCritEval, resCrit, resVars] =
           await Promise.all([
             axios.get(`${API_BASE}/evaluacion/`, {
-                headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` }
             }),
             axios.get(`${API_BASE}/empleados/`, {
-                headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` }
             }),
             axios.get(`${API_BASE}/usuarios/`, {
-                headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` }
             }),
             axios.get(`${API_BASE}/evaluacioncriterio/`, {
-                headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` }
             }),
             axios.get(`${API_BASE}/criterio/`, {
-                headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` }
             }),
             axios.get(`${API_BASE}/variables/`, {
-                headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` }
             })
           ]);
 

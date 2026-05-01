@@ -58,7 +58,7 @@ const TerminacionLaboralContainer = () => {
             const empleadosData = Array.isArray(response.data) ? response.data : response.data?.results || [];
             setEmpleados(empleadosData);
         } catch (error) {
-            console.error("Error al cargar colaboradores:", error);
+            console.error("Error al cargar Trabajadores:", error);
             setEmpleados([]);
         }
     };
@@ -80,28 +80,28 @@ const TerminacionLaboralContainer = () => {
 
     const handleSubmit = async e => {
         e.preventDefault();
-        
+
         // Validar campos obligatorios
         if (!empleadoSeleccionado) {
-            showToast("Debe seleccionar un colaborador", "error");
+            showToast("Debe seleccionar un Trabajador", "error");
             return;
         }
         if (!causa.trim()) {
             showToast("La causa es obligatoria", "error");
             return;
         }
-        
+
         try {
             // Buscar el contrato activo del empleado seleccionado
             const contratoEmpleado = contratos.find(contrato => {
                 // Aquí asumimos que el contrato tiene un campo que lo relaciona con el empleado
                 // Esto puede variar según tu estructura de BD
-                return contrato.idempleado === empleadoSeleccionado || 
-                       contrato.empleado_id === empleadoSeleccionado;
+                return contrato.idempleado === empleadoSeleccionado ||
+                    contrato.empleado_id === empleadoSeleccionado;
             });
 
             if (!contratoEmpleado && !editingId) {
-                showToast("No se encontró un contrato activo para este colaborador", "error");
+                showToast("No se encontró un contrato activo para este Trabajador", "error");
                 return;
             }
 
@@ -128,8 +128,8 @@ const TerminacionLaboralContainer = () => {
             } else {
                 const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.TERMINACIONLABORAL || 'terminacionlaboral');
                 const response = await axios.post(apiUrl, terminacionData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 terminacionCreada = response.data;
                 showToast("Terminación registrada correctamente", "success");
 
@@ -138,9 +138,9 @@ const TerminacionLaboralContainer = () => {
                     try {
                         const contratoApiUrl = buildApiUrlWithId(API_CONFIG.ENDPOINTS.CONTRATOS, contratoEmpleado.idcontrato);
                         await axios.patch(contratoApiUrl, { estado: false }, {
-                        headers: {
-                            Authorization: `Bearer ${sessionStorage.getItem("token")}`
-                        }
+                            headers: {
+                                Authorization: `Bearer ${sessionStorage.getItem("token")}`
+                            }
                         });
 
                         showToast("Contrato finalizado automáticamente", "info");
@@ -246,24 +246,24 @@ const TerminacionLaboralContainer = () => {
                             <h2 style={{ textAlign: "center", marginBottom: "30px", color: "#023047", fontFamily: '"Inter", sans-serif' }}>
                                 {editingId ? "Editar Terminación Laboral" : "Registrar Terminación Laboral"}
                             </h2>
-                            
+
                             <form onSubmit={handleSubmit}>
-                                {/* Selección de Colaborador */}
+                                {/* Selección de Trabajador */}
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label style={{ 
-                                        display: "block", 
-                                        marginBottom: "8px", 
+                                    <label style={{
+                                        display: "block",
+                                        marginBottom: "8px",
                                         fontWeight: "bold",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
-                                        Colaborador <span style={{ color: "red" }}>*</span>
+                                        Trabajador <span style={{ color: "red" }}>*</span>
                                     </label>
                                     <select
                                         value={empleadoSeleccionado}
                                         onChange={e => setEmpleadoSeleccionado(e.target.value)}
                                         required
-                                        style={{ 
-                                            width: "100%", 
+                                        style={{
+                                            width: "100%",
                                             padding: "12px",
                                             border: "1px solid #ddd",
                                             borderRadius: "6px",
@@ -271,7 +271,7 @@ const TerminacionLaboralContainer = () => {
                                             fontFamily: '"Inter", sans-serif'
                                         }}
                                     >
-                                        <option value="">Seleccionar colaborador...</option>
+                                        <option value="">Seleccionar Trabajador...</option>
                                         {empleados.map(empleado => {
                                             const nombreCompleto = `${empleado.nombre || empleado.primernombre || ''} ${empleado.apellido || empleado.primerapellido || ''}`.trim();
                                             return (
@@ -285,9 +285,9 @@ const TerminacionLaboralContainer = () => {
 
                                 {/* Fecha de Terminación (automática, estilo azul) */}
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label style={{ 
-                                        display: "block", 
-                                        marginBottom: "8px", 
+                                    <label style={{
+                                        display: "block",
+                                        marginBottom: "8px",
                                         fontWeight: "bold",
                                         fontFamily: '"Inter", sans-serif',
                                         color: "#1976d2"
@@ -313,9 +313,9 @@ const TerminacionLaboralContainer = () => {
 
                                 {/* Tipo de Terminación */}
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label style={{ 
-                                        display: "block", 
-                                        marginBottom: "8px", 
+                                    <label style={{
+                                        display: "block",
+                                        marginBottom: "8px",
                                         fontWeight: "bold",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
@@ -325,8 +325,8 @@ const TerminacionLaboralContainer = () => {
                                         value={tipoTerminacion}
                                         onChange={e => setTipoTerminacion(e.target.value)}
                                         required
-                                        style={{ 
-                                            width: "100%", 
+                                        style={{
+                                            width: "100%",
                                             padding: "12px",
                                             border: "1px solid #ddd",
                                             borderRadius: "6px",
@@ -346,9 +346,9 @@ const TerminacionLaboralContainer = () => {
 
                                 {/* Causa (obligatoria) */}
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label style={{ 
-                                        display: "block", 
-                                        marginBottom: "8px", 
+                                    <label style={{
+                                        display: "block",
+                                        marginBottom: "8px",
                                         fontWeight: "bold",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
@@ -359,8 +359,8 @@ const TerminacionLaboralContainer = () => {
                                         onChange={e => setCausa(e.target.value)}
                                         required
                                         placeholder="Describa la causa de la terminación laboral..."
-                                        style={{ 
-                                            width: "100%", 
+                                        style={{
+                                            width: "100%",
                                             padding: "12px",
                                             border: "1px solid #ddd",
                                             borderRadius: "6px",
@@ -374,9 +374,9 @@ const TerminacionLaboralContainer = () => {
 
                                 {/* Observación (opcional) */}
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label style={{ 
-                                        display: "block", 
-                                        marginBottom: "8px", 
+                                    <label style={{
+                                        display: "block",
+                                        marginBottom: "8px",
                                         fontWeight: "bold",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
@@ -386,8 +386,8 @@ const TerminacionLaboralContainer = () => {
                                         value={observacion}
                                         onChange={e => setObservacion(e.target.value)}
                                         placeholder="Observaciones adicionales..."
-                                        style={{ 
-                                            width: "100%", 
+                                        style={{
+                                            width: "100%",
                                             padding: "12px",
                                             border: "1px solid #ddd",
                                             borderRadius: "6px",
@@ -401,9 +401,9 @@ const TerminacionLaboralContainer = () => {
 
                                 {/* Documento PDF */}
                                 <div style={{ marginBottom: "20px" }}>
-                                    <label style={{ 
-                                        display: "block", 
-                                        marginBottom: "8px", 
+                                    <label style={{
+                                        display: "block",
+                                        marginBottom: "8px",
                                         fontWeight: "bold",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
@@ -413,8 +413,8 @@ const TerminacionLaboralContainer = () => {
                                         type="file"
                                         accept=".pdf"
                                         onChange={e => setDocumentoPdf(e.target.files[0])}
-                                        style={{ 
-                                            width: "100%", 
+                                        style={{
+                                            width: "100%",
                                             padding: "12px",
                                             border: "1px solid #ddd",
                                             borderRadius: "6px",
@@ -422,8 +422,8 @@ const TerminacionLaboralContainer = () => {
                                             fontFamily: '"Inter", sans-serif'
                                         }}
                                     />
-                                    <small style={{ 
-                                        color: "#666", 
+                                    <small style={{
+                                        color: "#666",
                                         fontSize: "12px",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
@@ -452,7 +452,7 @@ const TerminacionLaboralContainer = () => {
                                 >
                                     {editingId ? "Actualizar Terminación" : "Finalizar Contrato y Registrar"}
                                 </button>
-                                
+
                                 {!editingId && (
                                     <p style={{
                                         marginTop: "10px",
@@ -461,7 +461,7 @@ const TerminacionLaboralContainer = () => {
                                         textAlign: "center",
                                         fontFamily: '"Inter", sans-serif'
                                     }}>
-                                        Al registrar la terminación, el contrato del colaborador se finalizará automáticamente
+                                        Al registrar la terminación, el contrato del Trabajador se finalizará automáticamente
                                     </p>
                                 )}
                             </form>
@@ -482,57 +482,57 @@ const TerminacionLaboralContainer = () => {
                                 Terminaciones Laborales Registradas
                             </h3>
                             <div style={{ overflowX: "auto" }}>
-                                <table style={{ 
-                                    width: "100%", 
+                                <table style={{
+                                    width: "100%",
                                     borderCollapse: "collapse",
                                     fontFamily: '"Inter", sans-serif',
                                     fontSize: "14px"
                                 }}>
                                     <thead>
                                         <tr>
-                                            <th style={{ 
-                                                borderBottom: "2px solid #023047", 
-                                                padding: "12px 8px", 
+                                            <th style={{
+                                                borderBottom: "2px solid #023047",
+                                                padding: "12px 8px",
                                                 backgroundColor: "#023047",
                                                 color: "white",
                                                 textAlign: "left",
                                                 fontWeight: "600"
-                                            }}>Colaborador</th>
-                                            <th style={{ 
-                                                borderBottom: "2px solid #023047", 
-                                                padding: "12px 8px", 
+                                            }}>Trabajador</th>
+                                            <th style={{
+                                                borderBottom: "2px solid #023047",
+                                                padding: "12px 8px",
                                                 backgroundColor: "#023047",
                                                 color: "white",
                                                 textAlign: "left",
                                                 fontWeight: "600"
                                             }}>Tipo</th>
-                                            <th style={{ 
-                                                borderBottom: "2px solid #023047", 
-                                                padding: "12px 8px", 
+                                            <th style={{
+                                                borderBottom: "2px solid #023047",
+                                                padding: "12px 8px",
                                                 backgroundColor: "#023047",
                                                 color: "white",
                                                 textAlign: "left",
                                                 fontWeight: "600"
                                             }}>Fecha</th>
-                                            <th style={{ 
-                                                borderBottom: "2px solid #023047", 
-                                                padding: "12px 8px", 
+                                            <th style={{
+                                                borderBottom: "2px solid #023047",
+                                                padding: "12px 8px",
                                                 backgroundColor: "#023047",
                                                 color: "white",
                                                 textAlign: "left",
                                                 fontWeight: "600"
                                             }}>Causa</th>
-                                            <th style={{ 
-                                                borderBottom: "2px solid #023047", 
-                                                padding: "12px 8px", 
+                                            <th style={{
+                                                borderBottom: "2px solid #023047",
+                                                padding: "12px 8px",
                                                 backgroundColor: "#023047",
                                                 color: "white",
                                                 textAlign: "left",
                                                 fontWeight: "600"
                                             }}>Estado</th>
-                                            <th style={{ 
-                                                borderBottom: "2px solid #023047", 
-                                                padding: "12px 8px", 
+                                            <th style={{
+                                                borderBottom: "2px solid #023047",
+                                                padding: "12px 8px",
                                                 backgroundColor: "#023047",
                                                 color: "white",
                                                 textAlign: "center",
@@ -544,51 +544,51 @@ const TerminacionLaboralContainer = () => {
                                         {terminaciones.length > 0 ? (
                                             terminaciones.map(t => {
                                                 const empleado = empleados.find(emp => emp.idempleado === t.idempleado);
-                                                const nombreEmpleado = empleado ? 
-                                                    `${empleado.nombre || empleado.primernombre || ''} ${empleado.apellido || empleado.primerapellido || ''}`.trim() 
+                                                const nombreEmpleado = empleado ?
+                                                    `${empleado.nombre || empleado.primernombre || ''} ${empleado.apellido || empleado.primerapellido || ''}`.trim()
                                                     : 'N/A';
-                                                
+
                                                 return (
-                                                    <tr key={t.idterminacionlaboral} style={{ 
-                                                        backgroundColor: t.estado ? 'white' : '#f8f9fa' 
+                                                    <tr key={t.idterminacionlaboral} style={{
+                                                        backgroundColor: t.estado ? 'white' : '#f8f9fa'
                                                     }}>
-                                                        <td style={{ 
-                                                            padding: "10px 8px", 
+                                                        <td style={{
+                                                            padding: "10px 8px",
                                                             borderBottom: "1px solid #eee",
                                                             verticalAlign: "top"
                                                         }}>
                                                             {nombreEmpleado}
                                                         </td>
-                                                        <td style={{ 
-                                                            padding: "10px 8px", 
+                                                        <td style={{
+                                                            padding: "10px 8px",
                                                             borderBottom: "1px solid #eee",
                                                             verticalAlign: "top"
                                                         }}>
                                                             {t.tipoterminacion}
                                                         </td>
-                                                        <td style={{ 
-                                                            padding: "10px 8px", 
+                                                        <td style={{
+                                                            padding: "10px 8px",
                                                             borderBottom: "1px solid #eee",
                                                             verticalAlign: "top"
                                                         }}>
                                                             {new Date(t.fechaterminacion).toLocaleDateString('es-GT')}
                                                         </td>
-                                                        <td style={{ 
-                                                            padding: "10px 8px", 
+                                                        <td style={{
+                                                            padding: "10px 8px",
                                                             borderBottom: "1px solid #eee",
                                                             verticalAlign: "top",
                                                             maxWidth: "200px"
                                                         }}>
-                                                            <div style={{ 
-                                                                overflow: "hidden", 
+                                                            <div style={{
+                                                                overflow: "hidden",
                                                                 textOverflow: "ellipsis",
                                                                 whiteSpace: "nowrap"
                                                             }} title={t.causa}>
                                                                 {t.causa}
                                                             </div>
                                                         </td>
-                                                        <td style={{ 
-                                                            padding: "10px 8px", 
+                                                        <td style={{
+                                                            padding: "10px 8px",
                                                             borderBottom: "1px solid #eee",
                                                             verticalAlign: "top"
                                                         }}>
@@ -602,8 +602,8 @@ const TerminacionLaboralContainer = () => {
                                                                 {t.estado ? 'Activo' : 'Inactivo'}
                                                             </span>
                                                         </td>
-                                                        <td style={{ 
-                                                            padding: "10px 8px", 
+                                                        <td style={{
+                                                            padding: "10px 8px",
                                                             textAlign: "center",
                                                             borderBottom: "1px solid #eee",
                                                             verticalAlign: "top"
@@ -663,8 +663,8 @@ const TerminacionLaboralContainer = () => {
                                             })
                                         ) : (
                                             <tr>
-                                                <td colSpan="6" style={{ 
-                                                    textAlign: "center", 
+                                                <td colSpan="6" style={{
+                                                    textAlign: "center",
                                                     padding: "40px",
                                                     color: "#666",
                                                     fontStyle: "italic"

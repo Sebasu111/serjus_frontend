@@ -30,29 +30,29 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
 
   // --- Inicialización ---
   useEffect(() => {
-  if (editingAusencia) {
-    setTipo(editingAusencia.tipo || "");
-    setDiagnostico(editingAusencia.diagnostico || "");
-    setEsIGSS(editingAusencia.es_iggs || false);
-    setOtro(editingAusencia.otro || "");
-    setPrevOtro(editingAusencia.otro || "");
-    setFechaInicio(editingAusencia.fechainicio || "");
-    setFechaFin(editingAusencia.fechafin || "");
-    setCantidadDias(editingAusencia.cantidad_dias || 0);
-    setIdEmpleado(editingAusencia.idempleado || "");
+    if (editingAusencia) {
+      setTipo(editingAusencia.tipo || "");
+      setDiagnostico(editingAusencia.diagnostico || "");
+      setEsIGSS(editingAusencia.es_iggs || false);
+      setOtro(editingAusencia.otro || "");
+      setPrevOtro(editingAusencia.otro || "");
+      setFechaInicio(editingAusencia.fechainicio || "");
+      setFechaFin(editingAusencia.fechafin || "");
+      setCantidadDias(editingAusencia.cantidad_dias || 0);
+      setIdEmpleado(editingAusencia.idempleado || "");
 
-    if (editingAusencia.iddocumento) {
-      axios
-      .get(`${API}/documentos/${editingAusencia.iddocumento}/`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      .then((res) => setArchivoActual(res.data.nombrearchivo || ""))
-      .catch(() => setArchivoActual("Sin archivo"));
-        }
-  }
-}, [editingAusencia, empleados]);
+      if (editingAusencia.iddocumento) {
+        axios
+          .get(`${API}/documentos/${editingAusencia.iddocumento}/`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          .then((res) => setArchivoActual(res.data.nombrearchivo || ""))
+          .catch(() => setArchivoActual("Sin archivo"));
+      }
+    }
+  }, [editingAusencia, empleados]);
 
 
   // --- Calcular cantidad de días ---
@@ -181,11 +181,11 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
 
   // --- Filtrado de empleados ---
   const empleadosFiltrados = useMemo(() => {
-  const t = qEmpleado.toLowerCase().trim();
-  return empleados
-    .filter((e) => e.estado === true) // 🔥 solo empleados activos
-    .filter((e) => displayName(e).toLowerCase().includes(t));
-}, [qEmpleado, empleados]);
+    const t = qEmpleado.toLowerCase().trim();
+    return empleados
+      .filter((e) => e.estado === true) // 🔥 solo empleados activos
+      .filter((e) => displayName(e).toLowerCase().includes(t));
+  }, [qEmpleado, empleados]);
 
 
   const seleccionarEmpleado = (emp) => {
@@ -217,12 +217,12 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
       </h3>
 
       <form onSubmit={handleSubmit}>
-        {/* --- Colaborador --- */}
+        {/* --- Trabajador --- */}
         <div style={{ marginBottom: "15px", position: "relative" }}>
-          <label>Colaborador/a</label>
+          <label>Trabajador/a</label>
           <input
             type="text"
-            placeholder="Buscar colaborador/a por nombre o apellido..."
+            placeholder="Buscar Trabajador/a por nombre o apellido..."
             value={
               editingAusencia
                 ? displayName(empleados.find((e) => empId(e) === editingAusencia.idempleado))

@@ -367,7 +367,7 @@ const CapacitacionesTable = ({
                                                                             setOpenMenuId(null);
                                                                         }}
                                                                     >
-                                                                        Asignar Colaboradores
+                                                                        Asignar Trabajadores
                                                                     </div>
                                                                     <div
                                                                         style={comboBoxStyles.menu.item.editar.base}

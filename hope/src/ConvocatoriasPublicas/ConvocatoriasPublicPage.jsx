@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
 import "./ConvocatoriasCSS.css";
 import PostularModal from "./PostularModal";
+import EstadoPostulacionModal from "./EstadoPostulacionModal";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import DescripcionModal from "./DescripcionModal";
 const API = process.env.REACT_APP_API_URL;
 
 const ConvocatoriasPublicPage = () => {
   const [convocatorias, setConvocatorias] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedConvocatoria, setSelectedConvocatoria] = useState(null);
+  const [modalEstadoOpen, setModalEstadoOpen] = useState(false);
+  const [modalDescripcionOpen, setModalDescripcionOpen] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/convocatorias/`)
@@ -74,8 +78,8 @@ const ConvocatoriasPublicPage = () => {
           src="/img/logo.png"
           alt="Logo SERJUS"
           className="header-logo"
-          />
-          <h1>Bolsa de Empleo SERJUS</h1>
+        />
+        <h1>Bolsa de Empleo SERJUS</h1>
       </header>
       <div className="main-layout">
         {/* ===== SIDEBAR ===== */}
@@ -125,6 +129,12 @@ const ConvocatoriasPublicPage = () => {
         <div className="content-layout">
           <main className="content">
             <div className="convocatorias-container">
+              <button
+                className="btn-consultar-estado"
+                onClick={() => setModalEstadoOpen(true)}
+              >
+                Consultar estado de postulación
+              </button>
               <h2 className="section-title">Convocatorias Disponibles</h2>
 
               {convocatorias.length === 0 ? (
@@ -138,16 +148,23 @@ const ConvocatoriasPublicPage = () => {
                       <div className="convocatoria-info">
                         <h4>{conv.nombrepuesto}</h4>
                         <h6>{conv.nombreconvocatoria}</h6>
-                        <div
-                          style={{
-                            maxHeight: "150px",       // alto máximo visible
-                            overflowY: "auto",        // agrega scroll vertical
-                            paddingRight: "6px",
-                            textAlign: "justify"
-                          }}
-                        >
-                          <p style={{ whiteSpace: "pre-wrap" }}>
-                            {conv.descripcion || "Sin descripción disponible."}
+                        <div className="descripcion-container">
+                          <p className="descripcion-texto">
+                            {(conv.descripcion || "Sin descripción disponible.").slice(0, 75)}
+                            {conv.descripcion && conv.descripcion.length > 75 && (
+                              <>
+                                ...{" "}
+                                <span
+                                  className="ver-mas-inline"
+                                  onClick={() => {
+                                    setSelectedConvocatoria(conv);
+                                    setModalDescripcionOpen(true);
+                                  }}
+                                >
+                                  Ver más
+                                </span>
+                              </>
+                            )}
                           </p>
                         </div>
                         <small>
@@ -172,6 +189,17 @@ const ConvocatoriasPublicPage = () => {
               show={modalOpen}
               onClose={() => setModalOpen(false)}
               convocatoria={selectedConvocatoria}
+            />
+
+            <DescripcionModal
+              show={modalDescripcionOpen}
+              onClose={() => setModalDescripcionOpen(false)}
+              convocatoria={selectedConvocatoria}
+            />
+
+            <EstadoPostulacionModal
+              show={modalEstadoOpen}
+              onClose={() => setModalEstadoOpen(false)}
             />
           </main>
         </div>

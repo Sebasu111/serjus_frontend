@@ -80,8 +80,8 @@ const DocumentosContainer = () => {
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setEmpleados(data);
         } catch (error) {
-            console.error("Error al cargar colaboradores:", error);
-            showToast("Error al cargar colaboradores:", "error");
+            console.error("Error al cargar Trabajadores:", error);
+            showToast("Error al cargar Trabajadores:", "error");
             setEmpleados([]);
         }
     };
@@ -290,7 +290,7 @@ const DocumentosContainer = () => {
             if (mostrarSinArchivo) return coincide && esSinArchivo;
 
             return coincide;
-    });
+        });
 
 
 

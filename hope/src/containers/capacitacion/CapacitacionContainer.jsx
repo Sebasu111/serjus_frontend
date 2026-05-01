@@ -131,12 +131,12 @@ const CapacitacionContainer = () => {
             };
 
             if (editingId) {
-                await axios.put(`${API}/capacitaciones/${editingId}/`, payload,{
+                await axios.put(`${API}/capacitaciones/${editingId}/`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 showToast("Capacitación actualizada correctamente", "success");
             } else {
-                await axios.post(`${API}/capacitaciones/`, payload,{
+                await axios.post(`${API}/capacitaciones/`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 showToast("Capacitación registrada correctamente", "success");
@@ -198,7 +198,7 @@ const CapacitacionContainer = () => {
         setModalAccion({ tipo, data: cap });
     };
 
-    // Función para manejar la asignación de colaboradores
+    // Función para manejar la asignación de Trabajadores
     const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
 
     const handleAsignarCapacitacion = (capacitacion) => {
@@ -211,10 +211,10 @@ const CapacitacionContainer = () => {
         if (!modalAccion?.data) return;
         const { tipo, data } = modalAccion;
 
-        // Si es desactivar, desactivar todas las asignaciones de colaboradores relacionadas
+        // Si es desactivar, desactivar todas las asignaciones de Trabajadores relacionadas
         if (tipo === "desactivar") {
             try {
-                const res = await axios.get(`${API}/empleadocapacitacion/?capacitacion=` + (data.idcapacitacion || data.id),{
+                const res = await axios.get(`${API}/empleadocapacitacion/?capacitacion=` + (data.idcapacitacion || data.id), {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const asignados = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
@@ -235,7 +235,7 @@ const CapacitacionContainer = () => {
                     }
                 }
             } catch (error) {
-                showToast("Error al desactivar colaboradores asignados", "error");
+                showToast("Error al desactivar Trabajadores asignados", "error");
                 setModalAccion(null);
                 return;
             }
@@ -265,7 +265,7 @@ const CapacitacionContainer = () => {
                 estado: nuevoEstado,
                 idestado_id: nuevoEstadoId,
                 idusuario: idUsuario
-            },{
+            }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

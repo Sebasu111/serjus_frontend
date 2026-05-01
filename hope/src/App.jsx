@@ -66,51 +66,51 @@ const App = () => {
                     {/* Público */}
                     <Route exact path={`${base}/`} component={LoginPage} />
                     <Route exact path={`${base}/Bolsadeempleo`} component={ConvocatoriasPublicPage} />
-                    <ProtectedRoute exact path={`${base}/home`} component={HomePage} rolesPermitidos={[6,5,1,4,3,2]} />
+                    <ProtectedRoute exact path={`${base}/home`} component={HomePage} rolesPermitidos={[5, 1, 4, 3, 2]} />
 
                     {/* Perfil / usuario */}
-                    <ProtectedRoute exact path={`${base}/perfil`} component={PerfilContainer} rolesPermitidos={[6,5,1,4,3,2]} />
-                    <ProtectedRoute exact path={`${base}/cambiar-contrasena`} component={FormUsuario} rolesPermitidos={[6,5,1,4,3,2]} />
+                    <ProtectedRoute exact path={`${base}/perfil`} component={PerfilContainer} rolesPermitidos={[5, 1, 4, 3, 2]} />
+                    <ProtectedRoute exact path={`${base}/cambiar-contrasena`} component={FormUsuario} rolesPermitidos={[5, 1, 4, 3, 2]} />
 
                     {/* Personal */}
-                    <ProtectedRoute exact path={`${base}/Empleados`} component={EmpleadosContainer} rolesPermitidos={[1,6,4,5]} />
-                    <ProtectedRoute exact path={`${base}/Contratos`} component={ContratosContainer} rolesPermitidos={[6,4,5]} />
-                    <ProtectedRoute exact path={`${base}/Equipos`} component={EquiposContainer} rolesPermitidos={[6,1,5]} />
-                    <ProtectedRoute exact path={`${base}/Usuarios`} component={UsuariosContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/Empleados`} component={EmpleadosContainer} rolesPermitidos={[1, 4, 5]} />
+                    <ProtectedRoute exact path={`${base}/Contratos`} component={ContratosContainer} rolesPermitidos={[4, 5]} />
+                    <ProtectedRoute exact path={`${base}/Equipos`} component={EquiposContainer} rolesPermitidos={[1, 5]} />
+                    <ProtectedRoute exact path={`${base}/Usuarios`} component={UsuariosContainer} rolesPermitidos={[5]} />
 
                     {/* Reclutamiento */}
-                    <ProtectedRoute exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} rolesPermitidos={[6,4,5]} />
-                    <ProtectedRoute exact path={`${base}/Postulaciones`} component={PostulacionesContainer} rolesPermitidos={[6,1,5]} />
-                    <ProtectedRoute exact path={`${base}/Seleccion`} component={SeleccionContainer} rolesPermitidos={[6,1,5]} />
+                    <ProtectedRoute exact path={`${base}/Convocatorias`} component={ConvocatoriasContainer} rolesPermitidos={[4, 5]} />
+                    <ProtectedRoute exact path={`${base}/Postulaciones`} component={PostulacionesContainer} rolesPermitidos={[1, 5, 4]} />
+                    <ProtectedRoute exact path={`${base}/Seleccion`} component={SeleccionContainer} rolesPermitidos={[1, 5]} />
 
                     {/* Integración */}
-                    <ProtectedRoute exact path={`${base}/Induccion`} component={InduccionContainer} rolesPermitidos={[6,4,5]} />
-                    <ProtectedRoute exact path={`${base}/Capacitacion`} component={CapacitacionContainer} rolesPermitidos={[6,1,4,5]} />
+                    <ProtectedRoute exact path={`${base}/Induccion`} component={InduccionContainer} rolesPermitidos={[4, 5]} />
+                    <ProtectedRoute exact path={`${base}/Capacitacion`} component={CapacitacionContainer} rolesPermitidos={[4, 5]} />
 
                     {/* Desempeño */}
-                    <ProtectedRoute exact path={`${base}/Evaluaciones`} component={EvaluacionContainer} rolesPermitidos={[6,1,5,2,4,3]} />
-                    <ProtectedRoute exact path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} rolesPermitidos={[6,1,5,2,4,3]} />
-                    <ProtectedRoute exact path={`${base}/Criterios`} component={CriterioEvaluacionContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/Evaluaciones`} component={EvaluacionContainer} rolesPermitidos={[1, 5, 2, 4, 3]} />
+                    <ProtectedRoute exact path={`${base}/EvaluacionCriterio`} component={EvaluacionCriterioContainer} rolesPermitidos={[1, 5, 2, 4, 3]} />
+                    <ProtectedRoute exact path={`${base}/Criterios`} component={CriterioEvaluacionContainer} rolesPermitidos={[5]} />
 
                     {/* Control disciplinario */}
-                    <ProtectedRoute exact path={`${base}/Ausencias`} component={AusenciaContainer} rolesPermitidos={[6,1,5,4]} />
-                    <ProtectedRoute exact path={`${base}/Amonestaciones`} component={AmonestacionContainer} rolesPermitidos={[6,1,5]} />
+                    <ProtectedRoute exact path={`${base}/Ausencias`} component={AusenciaContainer} rolesPermitidos={[1, 5, 4]} />
+                    <ProtectedRoute exact path={`${base}/Amonestaciones`} component={AmonestacionContainer} rolesPermitidos={[1, 5]} />
 
                     {/* Catálogos / auxiliar */}
-                    <ProtectedRoute exact path={`${base}/Idiomas`} component={IdiomasContainer} rolesPermitidos={[6,5]} />
-                    <ProtectedRoute exact path={`${base}/Estados`} component={EstadosContainer} rolesPermitidos={[6,5]} />
-                    <ProtectedRoute exact path={`${base}/Puesto`} component={PuestoContainer} rolesPermitidos={[6,5]} />
-                    <ProtectedRoute exact path={`${base}/Roles`} component={RolesContainer} rolesPermitidos={[6,5]} />
-                    <ProtectedRoute exact path={`${base}/TiposDocumento`} component={TiposDocContainer} rolesPermitidos={[6,5]} />
-                    <ProtectedRoute exact path={`${base}/PuebloCultura`} component={PuebloCulturaContainer} rolesPermitidos={[6,5]} />
-                    <ProtectedRoute exact path={`${base}/TerminacionLaboral`} component={TerminacionLaboralContainer} rolesPermitidos={[6,5]} />
-                    <ProtectedRoute exact path={`${base}/Reportes`} component={ReportesContainer} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/Idiomas`} component={IdiomasContainer} rolesPermitidos={[5]} />
+                    <ProtectedRoute exact path={`${base}/Estados`} component={EstadosContainer} rolesPermitidos={[5]} />
+                    <ProtectedRoute exact path={`${base}/Puesto`} component={PuestoContainer} rolesPermitidos={[5]} />
+                    <ProtectedRoute exact path={`${base}/Roles`} component={RolesContainer} rolesPermitidos={[5]} />
+                    <ProtectedRoute exact path={`${base}/TiposDocumento`} component={TiposDocContainer} rolesPermitidos={[5]} />
+                    <ProtectedRoute exact path={`${base}/PuebloCultura`} component={PuebloCulturaContainer} rolesPermitidos={[5]} />
+                    <ProtectedRoute exact path={`${base}/TerminacionLaboral`} component={TerminacionLaboralContainer} rolesPermitidos={[5]} />
+                    <ProtectedRoute exact path={`${base}/Reportes`} component={ReportesContainer} rolesPermitidos={[5]} />
 
                     {/* Dashboard */}
-                    <ProtectedRoute exact path={`${base}/Dashboard`} component={Dashboard} rolesPermitidos={[6,5]} />
+                    <ProtectedRoute exact path={`${base}/Dashboard`} component={Dashboard} rolesPermitidos={[5]} />
 
                     {/* Documentos */}
-                    <ProtectedRoute exact path={`${base}/Documentos`} component={DocumentosContainer} rolesPermitidos={[6,4,5]} />
+                    <ProtectedRoute exact path={`${base}/Documentos`} component={DocumentosContainer} rolesPermitidos={[4, 5]} />
 
                 </Switch>
             </NavScrollTop>

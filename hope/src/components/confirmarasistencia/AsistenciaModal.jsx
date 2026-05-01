@@ -51,6 +51,14 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
   const [observacion, setObservacion] = useState("");
   const [subiendo, setSubiendo] = useState(false);
   const [modo, setModo] = useState(modoInicial); // "asistio" | "justifico" | null
+  const [diplomas, setDiplomas] = useState([]);
+  const handleDiplomas = (files) => {
+    const valid = files.filter(f =>
+      f.type.includes("pdf") || f.type.includes("image")
+    );
+
+    setDiplomas(prev => [...prev, ...valid]);
+  };
 
   useEffect(() => {
     // Si el modo viene definido desde el perfil, abrir directamente en ese modo
@@ -99,6 +107,12 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
   const handleGuardar = async (asistio) => {
     setSubiendo(true);
     try {
+      if (asistio && diplomas.length === 0) {
+        showToast("Debe subir al menos un diploma", "warning");
+        setSubiendo(false);
+        return;
+      }
+
       const idDocumento = await subirDocumento();
       if (!idDocumento) {
         setSubiendo(false);
@@ -116,17 +130,49 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
         idDocumento
       );
 
+      // 🔥 AQUÍ SUBES LOS DIPLOMAS
+      await subirDiplomas();
+
       showToast(
         asistio
           ? "Asistencia registrada correctamente"
           : "Inasistencia justificada correctamente",
         "success"
       );
+
+      setDiplomas([]); // limpiar
       onClose();
     } catch (error) {
+      console.error(error.response?.data);
       showToast("Error al registrar asistencia o subir archivo", "error");
     } finally {
       setSubiendo(false);
+    }
+  };
+
+  const subirDiplomas = async () => {
+    if (!diplomas.length) return;
+
+    const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+
+    for (const file of diplomas) {
+      const formData = new FormData();
+      formData.append("archivo", file);
+      formData.append("nombrearchivo", file.name);
+      formData.append("mimearchivo", "pdf");
+      formData.append("fechasubida", new Date().toISOString().slice(0, 10));
+      formData.append("estado", true);
+      formData.append("idusuario", idUsuario);
+      formData.append("idtipodocumento", 10);
+
+      formData.append("idempleado", capacitacion.idempleado);
+
+      await axios.post(`${API}/documentos/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
     }
   };
 
@@ -244,6 +290,51 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
                     fontSize: "14px"
                   }}
                 />
+                {/* 📄 DIPLOMAS */}
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleDiplomas(Array.from(e.dataTransfer.files));
+                  }}
+                  onClick={() => document.getElementById("inputDiplomasModal").click()}
+                  style={{
+                    border: "2px dashed #93c5fd",
+                    borderRadius: "10px",
+                    padding: "16px",
+                    textAlign: "center",
+                    background: "#f8fbff",
+                    cursor: "pointer"
+                  }}
+                >
+                  <p style={{ margin: 0, fontWeight: "600", color: "#1e40af" }}>
+                    Arrastra diplomas aquí o haz clic
+                  </p>
+                  <p style={{ margin: 0, fontSize: "12px", color: "#6b7280" }}>
+                    PDF
+                  </p>
+                </div>
+
+                <input
+                  id="inputDiplomasModal"
+                  type="file"
+                  multiple
+                  accept="application/pdf"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    handleDiplomas(Array.from(e.target.files));
+                    e.target.value = null;
+                  }}
+                />
+
+                {/* Lista */}
+                {diplomas.length > 0 && (
+                  <div style={{ marginTop: "10px", fontSize: "13px" }}>
+                    {diplomas.map((f, i) => (
+                      <div key={i}>📄 {f.name}</div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <button

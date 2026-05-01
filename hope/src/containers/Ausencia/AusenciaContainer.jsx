@@ -158,7 +158,7 @@ const AusenciaContainer = () => {
       setEmpleados(data);
     } catch (error) {
       console.error(error);
-      showToast("Error al cargar colaboradores", "error");
+      showToast("Error al cargar Trabajadores", "error");
     }
   };
 
@@ -204,7 +204,7 @@ const AusenciaContainer = () => {
 
         if (conflictos.length > 0) {
           showToast(
-            "El colaborador ya tiene una ausencia activa que se solapa con las fechas ingresadas.",
+            "El Trabajador ya tiene una ausencia activa que se solapa con las fechas ingresadas.",
             "warning"
           );
           return reject(new Error("Fechas en conflicto"));

@@ -125,7 +125,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                 showToast("Terminación registrada, pero hubo un error al finalizar los contratos", "warning");
             }
 
-            // 4. Desactivar al colaborador (empleado)
+            // 4. Desactivar al Trabajador (empleado)
             try {
                 if (empleado && (empleado.id || empleado.idempleado || empleado.idEmpleado)) {
                     const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
@@ -135,8 +135,8 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                     });
                 }
             } catch (empleadoError) {
-                console.error("Error al desactivar colaborador:", empleadoError);
-                showToast("Terminación registrada, pero hubo un error al desactivar el colaborador", "warning");
+                console.error("Error al desactivar Trabajador:", empleadoError);
+                showToast("Terminación registrada, pero hubo un error al desactivar el Trabajador", "warning");
             }
 
             showToast("Terminación laboral registrada correctamente", "success");
@@ -259,7 +259,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                             fontWeight: "bold",
                             color: "#1976d2"
                         }}>
-                            Colaborador Seleccionado:
+                            Trabajador Seleccionado:
                         </label>
                         <div style={{
                             padding: "12px",

@@ -1,0 +1,107 @@
+/* ===== MODAL ===== */
+.modal-estado {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+/* ===== INPUT ===== */
+.modal-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+}
+
+/* ===== BOTÓN ===== */
+.modal-btn {
+    width: 100%;
+    padding: 12px;
+    marginTop: 10px;
+    background: #219ebc;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.modal-btn:hover {
+    background: #1b7fa0;
+}
+
+/* ===== RESULTADOS ===== */
+.modal-resultados {
+    margin-top: 20px;
+}
+
+/* ===== TARJETAS ===== */
+.modal-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #fafafa;
+}
+
+/* ===== BOTÓN CERRAR ===== */
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* ===== ESTADOS ===== */
+.estado-postulado {
+    color: orange;
+    font-weight: bold;
+}
+
+.estado-rechazado {
+    color: red;
+    font-weight: bold;
+}
+
+.estado-entrevista {
+    color: blue;
+    font-weight: bold;
+}
+
+.estado-contratado {
+    color: green;
+    font-weight: bold;
+}
+
+/* ===== NAVEGACIÓN ===== */
+.modal-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.modal-nav button {
+    background: #219ebc;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-nav button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}

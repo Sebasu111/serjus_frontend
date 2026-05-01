@@ -8,13 +8,13 @@ const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo,
   useEffect(() => generarPDF(), []);
 
   const formatearFecha = (fecha) => {
-  if (!fecha) return "";
-  const partes = fecha.split("-"); // yyyy-mm-dd
-  return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
+    if (!fecha) return "";
+    const partes = fecha.split("-"); // yyyy-mm-dd
+    return `${partes[2]}-${partes[1]}-${partes[0]}`; // dd-mm-yyyy
   };
   const nombreEmpleadoPDF = ausencias.length > 0
-  ? `${ausencias[0]?.empleado?.nombre ?? ""} ${ausencias[0]?.empleado?.apellido ?? ""}`
-  : "";
+    ? `${ausencias[0]?.empleado?.nombre ?? ""} ${ausencias[0]?.empleado?.apellido ?? ""}`
+    : "";
 
   const generarPDF = () => {
     // 🔔 Notificación de inicio
@@ -27,7 +27,7 @@ const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo,
     /* ─────────── ENCABEZADO ─────────── */
     try {
       doc.addImage(serjusHeader, "PNG", 0, 0, 297, 45);
-    } catch {}
+    } catch { }
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(15);
@@ -41,16 +41,16 @@ const ReporteAusenciasPDF = ({ ausencias, onClose, fechaDesde, fechaHasta, tipo,
 
     let contexto = "";
 
-if (fechaDesde || fechaHasta || tipo || empleado) {
-  contexto = "Filtros aplicados:";
+    if (fechaDesde || fechaHasta || tipo || empleado) {
+      contexto = "Filtros aplicados:";
 
-  if (fechaDesde) contexto += ` desde ${formatearFecha(fechaDesde)}`;
-  if (fechaHasta) contexto += ` hasta ${formatearFecha(fechaHasta)}`;
-  if (tipo) contexto += ` | Tipo: ${tipo}`;
-  if (empleado && nombreEmpleadoPDF) contexto += ` | Empleado: ${nombreEmpleadoPDF}`;
-}
+      if (fechaDesde) contexto += ` desde ${formatearFecha(fechaDesde)}`;
+      if (fechaHasta) contexto += ` hasta ${formatearFecha(fechaHasta)}`;
+      if (tipo) contexto += ` | Tipo: ${tipo}`;
+      if (empleado && nombreEmpleadoPDF) contexto += ` | Empleado: ${nombreEmpleadoPDF}`;
+    }
 
-if (contexto) doc.text(contexto, 14, 72);
+    if (contexto) doc.text(contexto, 14, 72);
 
 
     doc.text(`Total de casos incluidos: ${total}`, 14, 80);
@@ -83,18 +83,18 @@ if (contexto) doc.text(contexto, 14, 72);
     /* ─────────── TABLA DETALLADA ─────────── */
     const columnas = [];
 
-if (!empleado) {
-  columnas.push({ header: "Colaborador", dataKey: "empleado" });
-}
+    if (!empleado) {
+      columnas.push({ header: "Trabajador", dataKey: "empleado" });
+    }
 
-columnas.push(
-  { header: "Tipo", dataKey: "tipo" },
-  { header: "Diagnóstico", dataKey: "diagnostico" },
-  { header: "Días", dataKey: "dias" },
-  { header: "Lugar", dataKey: "lugar" },
-  { header: "Inicio", dataKey: "inicio" },
-  { header: "Fin", dataKey: "fin" },
-);
+    columnas.push(
+      { header: "Tipo", dataKey: "tipo" },
+      { header: "Diagnóstico", dataKey: "diagnostico" },
+      { header: "Días", dataKey: "dias" },
+      { header: "Lugar", dataKey: "lugar" },
+      { header: "Inicio", dataKey: "inicio" },
+      { header: "Fin", dataKey: "fin" },
+    );
 
 
     const filas = ausencias.map(a => ({

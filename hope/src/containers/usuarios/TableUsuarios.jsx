@@ -54,12 +54,12 @@ const TableUsuarios = ({
         setMostrarConfirmacion(false);
     };
 
-    // Función para obtener nombre del colaborador
+    // Función para obtener nombre del Trabajador
     const obtenerNombreEmpleado = (idEmpleado) => {
         const empleado = empleados?.find(emp =>
             (emp.id || emp.idempleado || emp.idEmpleado) === idEmpleado
         );
-        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Colaborador no encontrado";
+        return empleado ? `${empleado.nombre} ${empleado.apellido}` : "Trabajador no encontrado";
     };
 
     // Función para obtener nombre del rol
@@ -82,7 +82,7 @@ const TableUsuarios = ({
                 <thead>
                     <tr>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Usuario</th>
-                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Colaborador</th>
+                        <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "left" }}>Trabajador</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Rol</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Estado</th>
                         <th style={{ borderBottom: "2px solid #eee", padding: "10px", textAlign: "center" }}>Acciones</th>
@@ -160,7 +160,7 @@ const TableUsuarios = ({
                                                 </button>
 
                                                 {/* Activar o Desactivar */}
-                                                {/* Opción de desactivar usuario eliminada. El usuario se desactiva automáticamente con el colaborador. */}
+                                                {/* Opción de desactivar usuario eliminada. El usuario se desactiva automáticamente con el Trabajador. */}
                                             </div>
                                         )}
                                     </div>

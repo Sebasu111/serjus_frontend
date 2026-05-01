@@ -112,7 +112,7 @@ const AusenciaModal = ({ visible, onClose, ausencia, loading, offsetRight = 170 
           >
             <div style={infoBoxStyle}>
               <div style={{ fontSize: 12.5, textTransform: "uppercase", color: "#6b7280", marginBottom: 6 }}>
-                Colaborador
+                Trabajador
               </div>
               <div style={{ fontWeight: 700, fontSize: 16 }}>
                 {ausencia.empleado ? `${ausencia.empleado.nombre} ${ausencia.empleado.apellido}` : "-"}

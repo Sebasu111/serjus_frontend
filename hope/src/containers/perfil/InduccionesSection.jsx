@@ -1,9 +1,14 @@
 import React from "react";
+const idRol = Number(sessionStorage.getItem("idRol"));
+const esAdmin = idRol === 5;
 
 const InduccionesSection = ({
   induccionesAsignadas,
   formatFecha,
   onVerDocumentos,
+  onPlanInduccion,
+  onRealizarFormulario,
+  onVerComentarios
 }) => {
   return (
     <div
@@ -20,9 +25,27 @@ const InduccionesSection = ({
           marginBottom: "20px",
           color: "#219ebc",
           fontWeight: "600",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        Inducciones asignadas
+        <span>Inducciones asignadas</span>
+
+        <span
+          onClick={onPlanInduccion}
+          style={{
+            color: "#219ebc",
+            fontSize: "13px",
+            cursor: "pointer",
+            textDecoration: "underline",
+            fontWeight: "500",
+          }}
+        >
+          {esAdmin
+            ? "Subir plan de inducción"
+            : "Descargar plan de inducción"}
+        </span>
       </h4>
 
       {induccionesAsignadas.length === 0 ? (
@@ -58,6 +81,13 @@ const InduccionesSection = ({
               >
                 Fecha de inicio
               </th>
+
+              <th style={{ padding: "14px", background: "#f8f9fa", fontWeight: "600", width: "180px" }}>
+                Formulario
+              </th>
+              <th style={{ padding: "14px", background: "#f8f9fa", fontWeight: "600", width: "180px" }}>
+                Ver Comentarios
+              </th>
               <th
                 style={{
                   padding: "14px",
@@ -74,9 +104,51 @@ const InduccionesSection = ({
             {induccionesAsignadas.map((ind) => (
               <tr key={ind.idinduccion} style={{ borderBottom: "1px solid #eee" }}>
                 <td style={{ padding: "14px" }}>{ind.nombre}</td>
+
                 <td style={{ padding: "14px" }}>
                   {formatFecha(ind.fechainicio)}
                 </td>
+
+                {/* 👇 BOTÓN FORMULARIO */}
+                <td style={{ padding: "14px" }}>
+                  <button
+                    onClick={() => !ind.formulario_respondido && onRealizarFormulario(ind)}
+                    disabled={ind.formulario_respondido}
+                    style={{
+                      padding: "8px 14px",
+                      background: ind.formulario_respondido ? "#ccc" : "#219ebc",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: ind.formulario_respondido ? "not-allowed" : "pointer",
+                      fontWeight: "600",
+                      fontSize: "14px",
+                      opacity: ind.formulario_respondido ? 0.7 : 1,
+                    }}
+                  >
+                    {ind.formulario_respondido ? "Ya respondido" : "Realizar formulario"}
+                  </button>
+                </td>
+
+                <td style={{ padding: "14px" }}>
+                  <button
+                    onClick={() => onVerComentarios(ind)}
+                    disabled={!ind.formulario_respondido}
+                    style={{
+                      padding: "8px 14px",
+                      background: ind.formulario_respondido ? "#8ecae6" : "#ccc",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: ind.formulario_respondido ? "pointer" : "not-allowed",
+                      fontWeight: "600",
+                      fontSize: "14px"
+                    }}
+                  >
+                    Ver comentarios
+                  </button>
+                </td>
+
                 <td style={{ padding: "14px" }}>
                   <button
                     onClick={() => onVerDocumentos(ind)}

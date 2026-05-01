@@ -362,14 +362,14 @@ const EvaluacionGuia = ({ evaluacionSeleccionada, evaluacionesAbiertas }) => {
                   ...buttonStyle,
                   backgroundColor:
                     bloqueado ||
-                    paginaActual === variablesFiltradas.length - 1 ||
-                    !paginaActualCompleta
+                      paginaActual === variablesFiltradas.length - 1 ||
+                      !paginaActualCompleta
                       ? "#9ca3af"
                       : "#2563EB",
                   cursor:
                     bloqueado ||
-                    paginaActual === variablesFiltradas.length - 1 ||
-                    !paginaActualCompleta
+                      paginaActual === variablesFiltradas.length - 1 ||
+                      !paginaActualCompleta
                       ? "not-allowed"
                       : "pointer",
                 }}

@@ -18,7 +18,7 @@ const AmonestacionModal = ({
       try {
         const resAmonestacion = await axios.get(
           `${API}/amonestaciones/${amonestacion.idamonestacion}/`
-        , {
+          , {
             headers: { Authorization: `Bearer ${token}` }
           });
         const amonestacionActualizada = resAmonestacion.data;
@@ -162,7 +162,7 @@ const AmonestacionModal = ({
                   marginBottom: 6,
                 }}
               >
-                Colaborador
+                Trabajador
               </div>
               <div style={{ fontWeight: 700, fontSize: 16 }}>
                 {empleado

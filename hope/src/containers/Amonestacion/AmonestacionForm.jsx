@@ -38,11 +38,11 @@ const AmonestacionForm = ({
       const empleadosData = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
+          ? res.data.results
+          : [];
       setEmpleados(empleadosData);
     } catch (error) {
-      showToast("Error al cargar colaboradores", "error");
+      showToast("Error al cargar Trabajadores", "error");
     }
   };
 
@@ -54,8 +54,8 @@ const AmonestacionForm = ({
       const puestosData = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
+          ? res.data.results
+          : [];
       setPuestos(puestosData);
     } catch (error) {
       showToast("Error al cargar puestos", "error");
@@ -65,8 +65,8 @@ const AmonestacionForm = ({
   const setFechaActual = () => {
     const fecha = new Date();
     const meses = [
-      "enero","febrero","marzo","abril","mayo","junio",
-      "julio","agosto","septiembre","octubre","noviembre","diciembre"
+      "enero", "febrero", "marzo", "abril", "mayo", "junio",
+      "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
     ];
     onChange({ target: { name: "dia", value: fecha.getDate() } });
     onChange({ target: { name: "mes", value: meses[fecha.getMonth()] } });
@@ -92,35 +92,33 @@ const AmonestacionForm = ({
 
   // Filtrado de empleados
   const empleadosFiltrados = useMemo(() => {
-  const term = qEmpleado.toLowerCase().trim();
-  return empleados
-    .filter((emp) => emp.estado === true || emp.estado === 1) 
-    .filter((emp) => {
-      const nombre = `${emp.nombre || emp.primernombre || ""} ${
-        emp.apellido || emp.primerapellido || ""
-      }`.toLowerCase();
-      return nombre.includes(term);
-    });
-}, [qEmpleado, empleados]);
+    const term = qEmpleado.toLowerCase().trim();
+    return empleados
+      .filter((emp) => emp.estado === true || emp.estado === 1)
+      .filter((emp) => {
+        const nombre = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""
+          }`.toLowerCase();
+        return nombre.includes(term);
+      });
+  }, [qEmpleado, empleados]);
 
-const responsablesFiltrados = useMemo(() => {
-  const term = qResponsable.toLowerCase().trim();
+  const responsablesFiltrados = useMemo(() => {
+    const term = qResponsable.toLowerCase().trim();
 
-  return responsables
-    .filter((emp) => emp.estado === true || emp.estado === 1) 
-    .filter((emp) => {
-      const nombre = `${emp.nombre || emp.primernombre || ""} ${
-        emp.apellido || emp.primerapellido || ""
-      }`.toLowerCase();
-      const idEmp = emp.idempleado || emp.id;
+    return responsables
+      .filter((emp) => emp.estado === true || emp.estado === 1)
+      .filter((emp) => {
+        const nombre = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""
+          }`.toLowerCase();
+        const idEmp = emp.idempleado || emp.id;
 
-      if (data.idEmpleado && Number(idEmp) === Number(data.idEmpleado)) {
-        return false;
-      }
+        if (data.idEmpleado && Number(idEmp) === Number(data.idEmpleado)) {
+          return false;
+        }
 
-      return nombre.includes(term);
-    });
-}, [qResponsable, responsables, data.idEmpleado]);
+        return nombre.includes(term);
+      });
+  }, [qResponsable, responsables, data.idEmpleado]);
 
   const seleccionarEmpleado = (emp) => {
     const nombreCompleto = `${emp.nombre || emp.primernombre || ""} ${emp.apellido || emp.primerapellido || ""}`.trim();
@@ -180,11 +178,11 @@ const responsablesFiltrados = useMemo(() => {
 
       {/* Buscador de empleado */}
       <div style={{ marginBottom: "12px", position: "relative" }}>
-        <label style={labelStyle}>Nombre del Colaborador</label>
+        <label style={labelStyle}>Nombre del Trabajador</label>
         <input
           type="text"
           name="nombreTrabajador"
-          placeholder="Buscar colaborador..."
+          placeholder="Buscar Trabajador..."
           value={qEmpleado || data.nombreTrabajador || ""}
           onChange={(e) => {
             setQEmpleado(e.target.value);
@@ -216,7 +214,7 @@ const responsablesFiltrados = useMemo(() => {
         )}
       </div>
 
-      {/* Puesto del colaborador */}
+      {/* Puesto del Trabajador */}
       <div style={{ marginBottom: "12px" }}>
         <label style={labelStyle}>Puesto</label>
         <input
@@ -355,45 +353,45 @@ const responsablesFiltrados = useMemo(() => {
       </div>
 
       {/* Botón imprimir */}
-<button
-  type="button"
-  disabled={generandoPDF}
-  onClick={(e) => {
-    e.preventDefault();
-    const form = e.target.closest("form");
+      <button
+        type="button"
+        disabled={generandoPDF}
+        onClick={(e) => {
+          e.preventDefault();
+          const form = e.target.closest("form");
 
-    
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      showToast(
-        "Por favor, complete todos los campos requeridos antes de continuar.",
-        "warning"
-      );
-      return;
-    }
 
-    
-    const nombreEmpleado = (data.nombreTrabajador || "").trim().toLowerCase();
-    const nombreResponsable = (data.nombreResponsable || "").trim().toLowerCase();
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            showToast(
+              "Por favor, complete todos los campos requeridos antes de continuar.",
+              "warning"
+            );
+            return;
+          }
 
-    if (
-      nombreEmpleado &&
-      nombreResponsable &&
-      nombreEmpleado === nombreResponsable
-    ) {
-      showToast(
-        "El responsable no puede ser la misma persona que el colaborador.",
-        "error"
-      );
-      return; 
-    }
 
-    onPrint(); 
-  }}
-  style={buttonPrimary}
->
-  {generandoPDF ? "Generando PDF..." : "Imprimir Carta"}
-</button>
+          const nombreEmpleado = (data.nombreTrabajador || "").trim().toLowerCase();
+          const nombreResponsable = (data.nombreResponsable || "").trim().toLowerCase();
+
+          if (
+            nombreEmpleado &&
+            nombreResponsable &&
+            nombreEmpleado === nombreResponsable
+          ) {
+            showToast(
+              "El responsable no puede ser la misma persona que el Trabajador.",
+              "error"
+            );
+            return;
+          }
+
+          onPrint();
+        }}
+        style={buttonPrimary}
+      >
+        {generandoPDF ? "Generando PDF..." : "Imprimir Carta"}
+      </button>
 
     </form>
   );

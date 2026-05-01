@@ -47,27 +47,16 @@ const PuestosContainer = () => {
             const salarioAnterior = Number(puestoAnterior?.salariobase || 0);
             const salarioNuevo = Number(payload.salariobase || 0);
 
-            console.log("🔍 Comparando salarios:", {
-                idPuesto: idpuesto,
-                salarioAnterior,
-                salarioNuevo,
-                hayDiferencia: salarioAnterior !== salarioNuevo,
-                salarioValido: salarioNuevo > 0
-            });
 
             // Actualizar el puesto
             await axios.put(`${API}/puestos/${idpuesto}/`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            // Si el salario cambió, crear registros de historial para colaboradores con este puesto
+            // Si el salario cambió, crear registros de historial para Trabajadores con este puesto
             if (salarioAnterior !== salarioNuevo && salarioNuevo > 0) {
                 console.log("   Creando historial por cambio de salario");
                 await crearHistorialCambioSalario(idpuesto, salarioNuevo);
-            } else {
-                console.log("  No se creará historial:", {
-                    razon: salarioAnterior === salarioNuevo ? "Salario no cambió" : "Salario nuevo es 0 o inválido"
-                });
             }
 
             showToast("Salario asignado correctamente");
@@ -84,12 +73,12 @@ const PuestosContainer = () => {
         try {
             console.log("🔄 Iniciando crearHistorialCambioSalario para puesto:", idPuesto, "con salario:", nuevoSalario);
 
-            // Obtener todos los colaboradores
+            // Obtener todos los Trabajadores
             const resEmpleados = await axios.get(`${API}/empleados/`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const empleados = Array.isArray(resEmpleados.data) ? resEmpleados.data : resEmpleados.data?.results || [];
-            console.log("👥 Colaboradores encontrados:", empleados.length);
+            console.log("👥 Trabajadores encontrados:", empleados.length);
 
             // Obtener historial actual
             const resHistorial = await axios.get(`${API}/historialpuestos/`, {
@@ -98,19 +87,19 @@ const PuestosContainer = () => {
             const historiales = Array.isArray(resHistorial.data) ? resHistorial.data : resHistorial.data?.results || [];
             console.log("📋 Registros de historial encontrados:", historiales.length);
 
-            // Filtrar colaboradores que actualmente tienen este puesto
+            // Filtrar Trabajadores que actualmente tienen este puesto
             const empleadosConEsePuesto = empleados.filter(emp => {
                 const idPuestoEmp = emp.idpuesto || emp.idPuesto;
                 const tieneEsePuesto = Number(idPuestoEmp) === Number(idPuesto);
                 const estaActivo = emp.estado === true;
-                console.log(`👤 Colaborador ${emp.nombre} ${emp.apellido}: puesto=${idPuestoEmp}, coincide=${tieneEsePuesto}, activo=${estaActivo}`);
+                console.log(`👤 Trabajador ${emp.nombre} ${emp.apellido}: puesto=${idPuestoEmp}, coincide=${tieneEsePuesto}, activo=${estaActivo}`);
                 return tieneEsePuesto && estaActivo;
             });
 
-            console.log("   Colaboradores con el puesto modificado:", empleadosConEsePuesto.length);
+            console.log("   Trabajadores con el puesto modificado:", empleadosConEsePuesto.length);
 
             if (empleadosConEsePuesto.length === 0) {
-                console.log("ℹ️ No hay colaboradores activos con este puesto");
+                console.log("ℹ️ No hay Trabajadores activos con este puesto");
                 return;
             }
 
@@ -119,9 +108,9 @@ const PuestosContainer = () => {
 
             for (const empleado of empleadosConEsePuesto) {
                 const empleadoId = empleado.id || empleado.idempleado || empleado.idEmpleado;
-                console.log(`🔄 Procesando colaborador ${empleado.nombre} ${empleado.apellido} (ID: ${empleadoId})`);
+                console.log(`🔄 Procesando Trabajador ${empleado.nombre} ${empleado.apellido} (ID: ${empleadoId})`);
 
-                // Buscar el historial activo más reciente (sin fecha fin) de este colaborador para este puesto
+                // Buscar el historial activo más reciente (sin fecha fin) de este Trabajador para este puesto
                 const historialesActivos = historiales
                     .filter(h =>
                         h.idempleado === empleadoId &&
@@ -152,8 +141,8 @@ const PuestosContainer = () => {
                         fechafin: fechaActual,
                         idusuario: idUsuario
                     }, {
-                            headers: { Authorization: `Bearer ${token}` }
-                        });
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
                 }
 
                 // Crear nuevo registro con el nuevo salario
@@ -172,10 +161,10 @@ const PuestosContainer = () => {
                 await axios.post(`${API}/historialpuestos/`, nuevoHistorial, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                console.log("   Historial creado exitosamente para colaborador:", empleadoId);
+                console.log("   Historial creado exitosamente para Trabajador:", empleadoId);
             }
 
-            console.log(`🎉 Historial actualizado para ${empleadosConEsePuesto.length} colaborador(es) con el nuevo salario`);
+            console.log(`🎉 Historial actualizado para ${empleadosConEsePuesto.length} Trabajador(es) con el nuevo salario`);
         } catch (error) {
             console.error("  Error al actualizar historial por cambio de salario:", error);
             // No mostramos error al usuario para no interrumpir el flujo principal
@@ -187,11 +176,11 @@ const PuestosContainer = () => {
         if (!registroSeleccionado) return;
         try {
             await axios.put(
-            `${API}/puestos/${registroSeleccionado.idpuesto}/`,
+                `${API}/puestos/${registroSeleccionado.idpuesto}/`,
                 { ...registroSeleccionado, estado: false },
                 {
                     headers: {
-                    Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
                     },
                 }
             );

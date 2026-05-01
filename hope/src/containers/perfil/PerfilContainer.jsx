@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// import axios from "axios"; // Eliminado duplicado
 import Layout from "../../layouts/index.jsx";
 import Header from "../../layouts/header/index.jsx";
 import Footer from "../../layouts/footer/index.jsx";
@@ -9,12 +8,16 @@ import { showToast } from "../../utils/toast.js";
 import InfoPersonal from "./InfoPersonal.jsx";
 import Editarinfo from "./Editarinfo.jsx";
 import CapacitacionesSection from "./CapacitacionesSection.jsx";
+import FormularioResponderModal from "./FormularioResponderModal.jsx";
 import InduccionesSection from "./InduccionesSection.jsx";
 import ModalDocumentos from "./ModalDocumentos.jsx";
 import AsistenciaModal from "../../components/confirmarasistencia/AsistenciaModal.jsx";
 import AusenciaForm from "../Ausencia/AusenciaForm.jsx";
 import axios from "axios";
 import { fetchCVEmpleado } from "./editarinfo";
+import VerComentariosModal from "./VerComentariosModal.jsx";
+import EncuestaMusculoesqueletica from "./EncuestaMusculoesqueletica.jsx";
+import RegistroEnfermedades from "./RegistroEnfermedades.jsx";
 
 const API = process.env.REACT_APP_API_URL;
 const API2 = process.env.REACT_APP_API_DOCS;
@@ -34,6 +37,182 @@ const PerfilContainer = () => {
   const [erroresPerfil, setErroresPerfil] = useState({});
   const [documentosModal, setDocumentosModal] = useState([]);
   const [induccionSeleccionada, setInduccionSeleccionada] = useState(null);
+  const [archivoPlan, setArchivoPlan] = useState(null);
+  const [modalFormularioVisible, setModalFormularioVisible] = useState(false);
+  const [formularioActual, setFormularioActual] = useState(null);
+  const [comentariosModal, setComentariosModal] = useState(null);
+  const [modalComentariosVisible, setModalComentariosVisible] = useState(false);
+  const [encuestaVisible, setEncuestaVisible] = useState(false);
+  const [respuestasEncuesta, setRespuestasEncuesta] = useState(null);
+  const [pasoEncuesta, setPasoEncuesta] = useState(1);
+
+  const handleVerComentarios = async (induccion) => {
+    try {
+      const res = await axios.get(
+        `${API}/mi-respuesta/${induccion.idinduccion}/${empleado.idempleado}/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setComentariosModal(res.data);
+      setModalComentariosVisible(true);
+
+    } catch (error) {
+      showToast("Aún no tienes comentarios", "info");
+    }
+  };
+
+  //Formulario
+  const handleRealizarFormulario = async (induccion) => {
+    try {
+      // 🔹 1. Obtener asignación inducción-formulario
+      const resAsignacion = await axios.get(`${API}/induccion-formulario/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const asignaciones = resAsignacion.data.results || resAsignacion.data;
+
+      const asignado = asignaciones.find(
+        a =>
+          Number(a.idinduccion) === Number(induccion.idinduccion) &&
+          a.estado === true
+      );
+
+      if (!asignado) {
+        showToast("Esta inducción no tiene formulario asignado", "info");
+        return;
+      }
+
+      // 🔹 2. Obtener formulario completo
+      const resFormulario = await axios.get(
+        `${API}/formularios/${asignado.idformulario}/`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const formulario = resFormulario.data;
+
+      //console.log("FORMULARIO:", formulario);
+
+      // 🔥 AQUÍ luego abriremos el modal
+      showToast("Formulario cargado correctamente", "success");
+
+      setFormularioActual(formulario);
+      setModalFormularioVisible(true);
+
+    } catch (error) {
+      console.error(error);
+      showToast("Error al cargar el formulario", "error");
+    }
+  };
+
+  //PLAN INDUCCION
+  const handleSubirPlan = async (file) => {
+    if (!file) return;
+
+    try {
+      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+
+      // 🔍 1. Buscar si ya existe plan
+      const res = await axios.get(`${API}/documentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const documentos = res.data.results || res.data;
+
+      const planExistente = documentos.find(
+        (d) => Number(d.idtipodocumento) === 9 && d.estado === true
+      );
+
+      // 📦 FormData
+      const formData = new FormData();
+      formData.append("archivo", file);
+      formData.append("nombrearchivo", file.name.replace(/\.pdf$/i, ""));
+      formData.append("mimearchivo", "pdf");
+      formData.append("fechasubida", new Date().toISOString().split("T")[0]);
+      formData.append("estado", true);
+      formData.append("idusuario", idUsuario);
+      formData.append("idtipodocumento", 9);
+
+      if (planExistente) {
+        // 🔁 ACTUALIZAR
+        await axios.put(
+          `${API}/documentos/${planExistente.iddocumento}/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        showToast("Plan de inducción actualizado correctamente", "success");
+      } else {
+        // 🆕 CREAR
+        await axios.post(`${API}/documentos/`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        showToast("Plan de inducción subido correctamente", "success");
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("Error al guardar el plan", "error");
+    }
+  };
+
+  const handleDescargarPlan = async () => {
+    try {
+      const res = await axios.get(`${API}/documentos/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const documentos = res.data.results || res.data;
+
+      // 🔥 buscar el plan de inducción
+      const plan = documentos.find(
+        (d) => Number(d.idtipodocumento) === 9 && d.estado === true
+      );
+
+      if (!plan) {
+        showToast("No hay plan de inducción disponible", "info");
+        return;
+      }
+
+      const response = await fetch(`${plan.archivo}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error("Error al descargar");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = plan.nombrearchivo || "plan_induccion.pdf";
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      showToast("Error al descargar el plan", "error");
+    }
+  };
+
+  const handlePlanInduccion = () => {
+    const idRol = Number(sessionStorage.getItem("idRol"));
+
+    if (idRol === 5) {
+      document.getElementById("inputPlan").click();
+    } else {
+      handleDescargarPlan();
+    }
+  };
 
   useEffect(() => {
     const fetchPerfil = async () => {
@@ -67,7 +246,7 @@ const PerfilContainer = () => {
           );
 
         if (!empleadoActual) {
-          showToast("No se encontró el colaborador asociado al usuario", "error");
+          showToast("No se encontró el Trabajador asociado al usuario", "error");
           return;
         }
 
@@ -267,6 +446,23 @@ const PerfilContainer = () => {
       <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <Header />
+          <input
+            id="inputPlan"
+            type="file"
+            accept="application/pdf"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+
+              if (file.type !== "application/pdf") {
+                showToast("Solo PDF", "warning");
+                return;
+              }
+
+              handleSubirPlan(file);
+            }}
+          />
 
           <main
             className="main-content site-wrapper-reveal"
@@ -291,39 +487,65 @@ const PerfilContainer = () => {
                   {empleado ? empleado.nombre : "Cargando..."}
                 </h2>
                 {!editandoPerfil && empleado && (
-                  <button
-                    style={{
-                      background: "#219ebc",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 8,
-                      padding: "10px 22px",
-                      fontWeight: 700,
-                      cursor: "pointer"
-                    }}
-                    onClick={async () => {
-                      const cvUrl = await fetchCVEmpleado(empleado.idempleado);
-                      const rawInicioLaboral =
-                      empleado.inicioLaboral || empleado.iniciolaboral || null;
+                  <div style={{ display: "flex", gap: "10px" }}>
 
-                    const inicioLaboralForm = rawInicioLaboral
-                      ? rawInicioLaboral.split("T")[0]
-                      : "";
-                      setFormPerfil({
-                        ...empleado,
-                        numerohijos:
-                          empleado.numerohijos !== null &&
-                          empleado.numerohijos !== undefined
-                            ? String(empleado.numerohijos)
-                            : "",
-                        inicioLaboral: inicioLaboralForm,
-                        cvUrl
-                      });
-                      setEditandoPerfil(true);
-                    }}
-                  >
-                    Editar información
-                  </button>
+                    {/* Botón Editar */}
+                    <button
+                      style={{
+                        background: "#219ebc",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 8,
+                        padding: "10px 22px",
+                        fontWeight: 700,
+                        cursor: "pointer"
+                      }}
+                      onClick={async () => {
+                        const cvUrl = await fetchCVEmpleado(empleado.idempleado);
+                        const rawInicioLaboral =
+                          empleado.inicioLaboral || empleado.iniciolaboral || null;
+
+                        const inicioLaboralForm = rawInicioLaboral
+                          ? rawInicioLaboral.split("T")[0]
+                          : "";
+
+                        setFormPerfil({
+                          ...empleado,
+                          numerohijos:
+                            empleado.numerohijos !== null &&
+                              empleado.numerohijos !== undefined
+                              ? String(empleado.numerohijos)
+                              : "",
+                          inicioLaboral: inicioLaboralForm,
+                          cvUrl
+                        });
+
+                        setEditandoPerfil(true);
+                      }}
+                    >
+                      Editar información
+                    </button>
+
+                    {/* Nuevo botón */}
+                    <button
+                      style={{
+                        background: "#219ebc",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 8,
+                        padding: "10px 22px",
+                        fontWeight: 700,
+                        cursor: "pointer"
+                      }}
+                      onClick={() => {
+                        setPasoEncuesta(1);
+                        setEncuestaVisible(true);
+                      }}
+                    >
+                      Encuesta Anual de Salud
+                    </button>
+
+                  </div>
                 )}
               </div>
 
@@ -375,6 +597,9 @@ const PerfilContainer = () => {
                         induccionesAsignadas={induccionesAsignadas}
                         formatFecha={formatFecha}
                         onVerDocumentos={handleVerDocumentos}
+                        onPlanInduccion={handlePlanInduccion}
+                        onRealizarFormulario={handleRealizarFormulario}
+                        onVerComentarios={handleVerComentarios}
                       />
                     </>
                   )}
@@ -402,6 +627,17 @@ const PerfilContainer = () => {
           capacitacion={capacitacionSeleccionada}
           onGuardar={() => { }}
         />
+        <FormularioResponderModal
+          visible={modalFormularioVisible}
+          onClose={() => setModalFormularioVisible(false)}
+          formulario={formularioActual}
+          empleado={empleado}
+        />
+        <VerComentariosModal
+          visible={modalComentariosVisible}
+          onClose={() => setModalComentariosVisible(false)}
+          data={comentariosModal}
+        />
         {showAusenciaForm && (
           <AusenciaForm
             usuario={empleado}
@@ -410,6 +646,133 @@ const PerfilContainer = () => {
             onSubmit={guardarAusencia}
             onClose={() => setShowAusenciaForm(false)}
           />
+        )}
+
+        {encuestaVisible && (
+          <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999
+          }}>
+
+            <div style={{
+              width: "95vw",              // 🔥 usa casi toda la pantalla
+              maxWidth: "1400px",        // 🔥 límite elegante
+              height: "90vh",            // 🔥 altura controlada
+              background: "#fff",
+              borderRadius: "14px",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+            }}>
+
+              {/* 🔹 HEADER */}
+              <div style={{
+                padding: "15px 20px",
+                borderBottom: "1px solid #e5e7eb",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "#f8fafc"
+              }}>
+                <h3 style={{ margin: 0, color: "#023047" }}>
+                  Encuesta Anual de Salud
+                </h3>
+
+                <button
+                  onClick={() => setEncuestaVisible(false)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    fontSize: "20px",
+                    cursor: "pointer"
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 🔹 CONTENIDO SCROLL */}
+              <div style={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "20px",
+                background: "#EEF2F7"
+              }}>
+
+                {/* PASO 1 */}
+                {pasoEncuesta === 1 && (
+                  <EncuestaMusculoesqueletica
+                    empleado={empleado}
+                    onNext={(data) => {
+                      console.log("Respuestas paso 1:", data);
+
+                      setRespuestasEncuesta(data);
+
+                      // 🔥 ir al segundo formulario
+                      setPasoEncuesta(2);
+                    }}
+                  />
+                )}
+
+                {/* PASO 2 */}
+                {pasoEncuesta === 2 && (
+                  <RegistroEnfermedades
+                    empleado={empleado}
+                    onBack={() => {
+                      setPasoEncuesta(1);
+                    }}
+                    onNext={(data2) => {
+
+                      // aquí puedes unir todo
+                      const encuestaCompleta = {
+                        musculoesqueletica: respuestasEncuesta,
+                        enfermedades: data2
+                      };
+
+                      // 🔥 cerrar modal
+                      setEncuestaVisible(false);
+
+                      // opcional reiniciar
+                      setPasoEncuesta(1);
+                    }}
+                  />
+                )}
+
+              </div>
+
+              {/* 🔹 FOOTER */}
+              <div style={{
+                padding: "10px 20px",
+                borderTop: "1px solid #e5e7eb",
+                display: "flex",
+                justifyContent: "flex-end",
+                background: "#f8fafc"
+              }}>
+                <button
+                  onClick={() => setEncuestaVisible(false)}
+                  style={{
+                    background: "#ccc",
+                    border: "none",
+                    padding: "8px 15px",
+                    borderRadius: 6,
+                    cursor: "pointer"
+                  }}
+                >
+                  Cerrar
+                </button>
+              </div>
+
+            </div>
+          </div>
         )}
       </div>
     </Layout>

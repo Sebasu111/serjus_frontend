@@ -43,8 +43,8 @@ const ReportesAusencias = () => {
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
+          ? res.data.results
+          : [];
       setAusencias(data);
     } catch (error) {
       showToast("Error al cargar ausencias", "error");
@@ -57,11 +57,11 @@ const ReportesAusencias = () => {
       const data = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
+          ? res.data.results
+          : [];
       setEmpleados(data);
     } catch (error) {
-      showToast("Error al cargar colaboradores", "error");
+      showToast("Error al cargar Trabajadores", "error");
     }
   };
 
@@ -200,7 +200,7 @@ const ReportesAusencias = () => {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={{ padding: "10px" }}>Colaborador</th>
+              <th style={{ padding: "10px" }}>Trabajador</th>
               <th style={{ padding: "10px", textAlign: "center" }}>Tipo</th>
               <th style={{ padding: "10px", textAlign: "center" }}>Diagnóstico</th>
               <th style={{ padding: "10px", textAlign: "center" }}>Días</th>
@@ -273,12 +273,12 @@ const ReportesAusencias = () => {
           }}
           onFocus={(e) => e.target.select()}
           style={{
-  width: "80px",
-  padding: "6px",
-  borderRadius: "6px",
-  border: "1px solid #ced4da",   // 🔥 FIX
-  textAlign: "center",
-}}
+            width: "80px",
+            padding: "6px",
+            borderRadius: "6px",
+            border: "1px solid #ced4da",   // 🔥 FIX
+            textAlign: "center",
+          }}
 
         />
       </div>

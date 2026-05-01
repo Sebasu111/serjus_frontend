@@ -54,8 +54,6 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
       .then((res) => res.json())
       .then((data) => setPueblos(data.results))
       .catch((err) => console.error("Error cargando pueblos:", err));
-
-    localStorage.removeItem("idaspirante");
   }, []);
 
   if (!show) return null;
@@ -106,7 +104,7 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
       return false;
     }
     if (step === 3 && !cvFile) {
-       showToast("Debe adjuntar su CV en formato PDF.", "warning");
+      showToast("Debe adjuntar su CV en formato PDF.", "warning");
       return false;
     }
     return true;
@@ -135,11 +133,38 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
         const resAspi = await fetch(
           `${API}/aspirantes/?dpi=${formData.dpi}`
         );
-        const aspirantes = await resAspi.json();
+        const dataAspi = await resAspi.json();
 
-        if (aspirantes.length > 0) {
-          idAspirante = aspirantes[0].idaspirante;
+        const aspiranteExistente = dataAspi.results?.find(
+          (a) => a.dpi === formData.dpi
+        );
+
+        if (aspiranteExistente) {
+          idAspirante = aspiranteExistente.idaspirante;
+
+          // 🔄 OPCIONAL: actualizar datos si ya existe
+          await fetch(`${API}/aspirantes/${idAspirante}/`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              nombreaspirante: formData.nombre,
+              apellidoaspirante: formData.apellido,
+              nit: formData.nit,
+              dpi: formData.dpi,
+              genero: formData.genero,
+              email: formData.email,
+              fechanacimiento: formData.fechanacimiento,
+              telefono: formData.telefono,
+              direccion: formData.direccion,
+              ididioma: Number(formData.ididioma) || null,
+              idpueblocultura: Number(formData.idpueblocultura) || null,
+              estado: true,
+              idusuario: 1,
+            }),
+          });
+
         } else {
+          // 🔵 CREAR NUEVO (igual que ya tienes)
           const resCreate = await fetch(`${API}/aspirantes/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -163,7 +188,6 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
           if (!resCreate.ok) throw new Error("Error al crear el aspirante");
           const creado = await resCreate.json();
           idAspirante = creado.idaspirante;
-          localStorage.setItem("idaspirante", idAspirante);
         }
       }
 

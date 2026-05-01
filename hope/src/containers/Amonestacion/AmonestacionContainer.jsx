@@ -24,7 +24,7 @@ const AmonestacionesContainer = () => {
     document.body.classList.contains("sidebar-collapsed")
   );
 
-  const [empleados, setEmpleados] = useState([]); // Todos los empleados (colaboradores)
+  const [empleados, setEmpleados] = useState([]); // Todos los empleados (Trabajadores)
   const [responsables, setResponsables] = useState([]); // Solo los que tienen ciertos roles
   const [amonestaciones, setAmonestaciones] = useState([]);
 
@@ -73,22 +73,22 @@ const AmonestacionesContainer = () => {
 
   // 🔹 Cuando se entra a la vista de listar, carga datos
   // 🔹 Cuando se entra a la vista de crear o listar, carga empleados y responsables
-useEffect(() => {
-  if (vistaActual === "crear" || vistaActual === "listar") {
-    fetchEmpleadosPorRol(); // Carga empleados y responsables
-  }
+  useEffect(() => {
+    if (vistaActual === "crear" || vistaActual === "listar") {
+      fetchEmpleadosPorRol(); // Carga empleados y responsables
+    }
 
-  if (vistaActual === "listar") {
-    fetchAmonestaciones(); // Solo carga amonestaciones en listar
-  }
-}, [vistaActual]);
+    if (vistaActual === "listar") {
+      fetchAmonestaciones(); // Solo carga amonestaciones en listar
+    }
+  }, [vistaActual]);
 
 
   // 🔹 Obtener amonestaciones
   const fetchAmonestaciones = async () => {
     try {
       const res = await axios.get(`${API}/amonestaciones/`, {
-          headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setAmonestaciones(data);
@@ -98,23 +98,23 @@ useEffect(() => {
   };
 
   const handleCartaActualizada = async () => {
-  await fetchAmonestaciones(); // refresca la lista
-  if (amonestacionSeleccionada) {
-    // vuelve a abrir el modal actualizado para ver el nuevo archivo
-    const actualizada = await axios.get(
-      `${API}/amonestaciones/${amonestacionSeleccionada.idamonestacion}/`
-    , {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    setAmonestacionSeleccionada(actualizada.data);
-  }
-};
+    await fetchAmonestaciones(); // refresca la lista
+    if (amonestacionSeleccionada) {
+      // vuelve a abrir el modal actualizado para ver el nuevo archivo
+      const actualizada = await axios.get(
+        `${API}/amonestaciones/${amonestacionSeleccionada.idamonestacion}/`
+        , {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      setAmonestacionSeleccionada(actualizada.data);
+    }
+  };
 
   // 🔹 Un solo método para obtener empleados y filtrar responsables
   const fetchEmpleadosPorRol = async (rolesPermitidos = [1, 5]) => {
     try {
       const [resEmpleados, resUsuarios] = await Promise.all([
-          axios.get(`${API}/empleados/`, {
+        axios.get(`${API}/empleados/`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API}/usuarios/`, {
@@ -130,7 +130,7 @@ useEffect(() => {
         ? resUsuarios.data.results
         : resUsuarios.data;
 
-      // 🔹 Todos los empleados para colaboradores
+      // 🔹 Todos los empleados para Trabajadores
       setEmpleados(empleadosData);
 
       // 🔹 Filtrar responsables por roles permitidos
@@ -262,9 +262,8 @@ useEffect(() => {
               minHeight: "calc(100vh - 80px)",
               marginLeft: isMobile ? "0" : sidebarCollapsed ? "90px" : "300px",
               transition: "margin-left 0.3s ease",
-              width: `calc(100vw - ${
-                isMobile ? "0px" : sidebarCollapsed ? "90px" : "300px"
-              })`,
+              width: `calc(100vw - ${isMobile ? "0px" : sidebarCollapsed ? "90px" : "300px"
+                })`,
               overflow: "hidden",
             }}
           >
@@ -335,8 +334,8 @@ useEffect(() => {
                       transform: isMobile
                         ? "scale(0.88)"
                         : sidebarCollapsed
-                        ? "scale(1.05)"
-                        : "scale(1)",
+                          ? "scale(1.05)"
+                          : "scale(1)",
                       transformOrigin: "top left",
                       width: isMobile ? "114%" : sidebarCollapsed ? "95%" : "100%",
                     }}

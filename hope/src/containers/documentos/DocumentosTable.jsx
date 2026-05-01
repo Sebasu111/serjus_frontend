@@ -73,7 +73,7 @@ const DocumentosTable = ({
                     <tr>
                         <th style={thStyle}>Nombre</th>
                         <th style={thStyle}>Fecha</th>
-                        <th style={thStyle}>Colaborador</th>
+                        <th style={thStyle}>Trabajador</th>
                         <th style={thStyle}>Tipo</th>
                         <th style={{ ...thStyle, textAlign: "center" }}>Acciones</th>
                     </tr>

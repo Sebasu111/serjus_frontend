@@ -63,7 +63,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
                 asistencia: asistio ? "Sí" : "No",
                 confirmadopor: idUsuario,
                 fechaconfirmacion: new Date().toISOString().slice(0, 10)
-            } , {
+            }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -250,7 +250,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
                     <p><strong>Fechas:</strong> {formatearFecha(capacitacion.fechainicio)} - {formatearFecha(capacitacion.fechafin)}</p>
                     {esCoordinadorOAdmin && (
                         <p style={{ color: "#059669", fontWeight: "600", fontSize: "14px" }}>
-                            📋 Como coordinador/administrador, puede marcar la asistencia de los colaboradores
+                            📋 Como coordinador/administrador, puede marcar la asistencia de los Trabajadores
                         </p>
                     )}
                 </div>
@@ -376,7 +376,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
                         <thead>
                             <tr style={{ background: "#f3f4f6" }}>
                                 <th style={{ padding: "12px", textAlign: "left", border: "1px solid #e5e7eb" }}>
-                                    Colaborador
+                                    Trabajador
                                 </th>
                                 <th style={{ padding: "12px", textAlign: "center", border: "1px solid #e5e7eb" }}>
                                     Asistencia
@@ -574,7 +574,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
                                         {documentoVisualizando.tipoDocumento}
                                     </h3>
                                     <p style={{ margin: "4px 0 0 0", fontSize: "14px", color: "#6b7280" }}>
-                                        Colaborador: <strong>{documentoVisualizando.empleado}</strong>
+                                        Trabajador: <strong>{documentoVisualizando.empleado}</strong>
                                     </p>
                                     <p style={{ margin: "2px 0 0 0", fontSize: "13px", color: "#6b7280" }}>
                                         Archivo: {documentoVisualizando.nombrearchivo}

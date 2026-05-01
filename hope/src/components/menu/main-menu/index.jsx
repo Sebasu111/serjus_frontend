@@ -64,17 +64,17 @@ const SidebarMenu = () => {
             label: "Dashboard",
             icon: <FaTachometerAlt className="menu-icon" />,
             path: "/Dashboard",
-            roles: [6,5] 
+            roles: [6, 5]
         },
         {
             id: "personal",
             label: "Personal",
             icon: <FaUsers className="menu-icon" />,
             submenus: [
-                { path: "/Empleados", label: "Colaboradores/as", roles: [1, 6, 4, 5] },
-                { path: "/Contratos", label: "Contrato", roles: [6, 4, 5] },
-                { path: "/Usuarios", label: "Usuarios", roles: [6, 5] },
-                { path: "/Equipos", label: "Equipos", roles: [6, 1, 5] }
+                { path: "/Empleados", label: "Trabajadores", roles: [1, 4, 5] },
+                { path: "/Contratos", label: "Contrato", roles: [4, 5] },
+                { path: "/Usuarios", label: "Usuarios", roles: [5] },
+                { path: "/Equipos", label: "Equipos", roles: [1, 5] }
             ]
         },
         {
@@ -82,9 +82,9 @@ const SidebarMenu = () => {
             label: "Reclutamiento",
             icon: <FaClipboardList className="menu-icon" />,
             submenus: [
-                { path: "/Convocatorias", label: "Convocatorias", roles: [6, 4, 5] },
-                { path: "/Postulaciones", label: "Postulaciones", roles: [6, 1, 5] },
-                { path: "/Seleccion", label: "Selección / Contratación", roles: [6, 1, 5] }
+                { path: "/Convocatorias", label: "Convocatorias", roles: [4, 5] },
+                { path: "/Postulaciones", label: "Postulaciones", roles: [1, 5, 4] },
+                { path: "/Seleccion", label: "Selección / Contratación", roles: [1, 5] }
             ]
         },
         {
@@ -92,8 +92,8 @@ const SidebarMenu = () => {
             label: "Integración",
             icon: <FaBook className="menu-icon" />,
             submenus: [
-                { path: "/Induccion", label: "Inducción", roles: [6, 4, 5] },
-                { path: "/Capacitacion", label: "Capacitación", roles: [6, 1, 4, 5] }
+                { path: "/Induccion", label: "Inducción", roles: [4, 5] },
+                { path: "/Capacitacion", label: "Capacitación", roles: [4, 5] }
             ]
         },
         {
@@ -101,7 +101,7 @@ const SidebarMenu = () => {
             label: "Desempeño",
             icon: <FaClipboardList className="menu-icon" />,
             submenus: [
-                { path: "/Evaluaciones", label: "Evaluaciones", roles: [6, 1, 5, 2, 4, 3] },
+                { path: "/Evaluaciones", label: "Evaluaciones", roles: [1, 5, 2, 4, 3] },
                 { path: "/Criterios", label: "Criterios", roles: [6, 5] }
             ]
         },
@@ -110,8 +110,8 @@ const SidebarMenu = () => {
             label: "Control Disciplinario",
             icon: <FaUserTie className="menu-icon" />,
             submenus: [
-                { path: "/Ausencias", label: "Ausencias", roles: [6, 1, 5, 4] },
-                { path: "/Amonestaciones", label: "Amonestaciones", roles: [6, 1, 5] }
+                { path: "/Ausencias", label: "Ausencias", roles: [1, 5, 4] },
+                { path: "/Amonestaciones", label: "Amonestaciones", roles: [1, 5] }
             ]
         },
         {
@@ -119,9 +119,9 @@ const SidebarMenu = () => {
             label: "Catálogo",
             icon: <FaBook className="menu-icon" />,
             submenus: [
-                { path: "/PuebloCultura", label: "Pueblo/Cultura", roles: [6, 5] },
-                { path: "/Idiomas", label: "Idiomas", roles: [6, 5] },
-                { path: "/Puesto", label: "Puesto", roles: [6, 5] }
+                { path: "/PuebloCultura", label: "Pueblo/Cultura", roles: [5] },
+                { path: "/Idiomas", label: "Idiomas", roles: [5] },
+                { path: "/Puesto", label: "Puesto", roles: [5] }
             ]
         },
         {
@@ -129,16 +129,16 @@ const SidebarMenu = () => {
             label: "Documentos",
             icon: <FaFileAlt className="menu-icon" />,
             path: "/Documentos",
-            roles: [6, 4, 5]
+            roles: [4, 5]
         },
         {
             id: "reportes",
             label: "Reportes",
             icon: <FaFileAlt className="menu-icon" />,
             path: "/Reportes",
-            roles: [6, 5]
+            roles: [5]
         }
-        
+
     ];
 
     // --- AUTO-ABRIR SUBMENÚ ACTUAL ---

@@ -103,7 +103,7 @@ async function drawHeader(pdf, logoDataUrl) {
     if (logoDataUrl) {
         try {
             pdf.addImage(logoDataUrl, "PNG", L + 2, T + 2, 24, 20);
-        } catch {}
+        } catch { }
     }
 
     pdf.setFont("helvetica", "bold");
@@ -211,7 +211,7 @@ export async function generarFichasPDF(empleados, cat, logoSrc) {
     return new Promise(async (resolve, reject) => {
         try {
             if (!Array.isArray(empleados) || empleados.length === 0) {
-                reject(new Error("No hay colaboradores para generar el PDF"));
+                reject(new Error("No hay Trabajadores para generar el PDF"));
                 return;
             }
 
