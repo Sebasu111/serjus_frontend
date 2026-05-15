@@ -230,7 +230,7 @@ const PostularModal = ({ show, onClose, convocatoria }) => {
       fd.append("fechasubida", new Date().toISOString().split("T")[0]);
       fd.append("estado", true);
       fd.append("idusuario", 1);
-      fd.append("idtipodocumento", 1);
+      fd.append("idtipodocumento", 3);
       fd.append("idaspirante", Number(idAspirante));
 
       const docRes = await fetch(`${API}/documentos/`, {

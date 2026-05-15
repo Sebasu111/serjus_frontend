@@ -9,12 +9,6 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
   const fin = new Date(evento?.fechafin);
   const finMas15 = new Date(fin);
   finMas15.setDate(finMas15.getDate() + 15);
-
-  // Estado de la capacitación
-  // "en proceso": hoy >= inicio && hoy <= fin
-  // "finalizada" y dentro de 15 días: hoy > fin && hoy <= fin + 15 días
-  // "activa": hoy < inicio
-  // Mostrar botones de asistencia solo si la capacitación está en proceso o finalizada y dentro de 15 días
   const mostrarBotonesAsistencia = (
     (hoy >= inicio && hoy <= fin) ||
     (hoy > fin && hoy <= finMas15)
@@ -27,7 +21,103 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
 
   // Obtener rol actual
   const idRol = parseInt(sessionStorage.getItem("idRol"));
-  const esCoordinadorOAdmin = [4, 5].includes(idRol);
+  const esCoordinadorOAdmin = [1, 4, 5].includes(idRol);
+  const usuarioActual = JSON.parse(sessionStorage.getItem("usuario"));
+  const [empleadosFiltrados, setEmpleadosFiltrados] = useState([]);
+
+  React.useEffect(() => {
+
+    const filtrarEmpleados = async () => {
+
+      // Admin -> ve todo
+      if (idRol !== 1) {
+        setEmpleadosFiltrados(
+          empleadosConDocs.length > 0
+            ? empleadosConDocs
+            : empleados
+        );
+        return;
+      }
+
+      try {
+
+        const [equiposRes, empleadosRes] = await Promise.all([
+          fetch(`${API}/equipos/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`${API}/empleados/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        const equiposData = await equiposRes.json();
+        const empleadosData = await empleadosRes.json();
+
+        const equipos =
+          equiposData.results || equiposData;
+
+        const empleadosSistema =
+          empleadosData.results || empleadosData;
+
+        // Buscar equipo del coordinador
+        const miEquipo = equipos.find(
+          eq =>
+            Number(eq.idcoordinador) ===
+            Number(usuarioActual?.idempleado)
+        );
+
+        // Si no tiene equipo -> vacío
+        if (!miEquipo) {
+          setEmpleadosFiltrados([]);
+          return;
+        }
+
+        // IDs del equipo
+        const idsEquipo = empleadosSistema
+          .filter(
+            emp =>
+              Number(emp.idequipo) ===
+              Number(miEquipo.idequipo)
+          )
+          .map(emp => Number(emp.idempleado));
+
+        // incluir coordinador
+        idsEquipo.push(
+          Number(usuarioActual?.idempleado)
+        );
+
+        // Filtrar SOLO empleados del equipo
+        const listaBase =
+          empleadosConDocs.length > 0
+            ? empleadosConDocs
+            : empleados;
+
+        const filtrados = listaBase.filter(emp =>
+          idsEquipo.includes(Number(emp.idempleado))
+        );
+
+        setEmpleadosFiltrados(filtrados);
+
+      } catch (error) {
+        console.error(
+          "Error filtrando empleados:",
+          error
+        );
+
+        setEmpleadosFiltrados([]);
+      }
+    };
+
+    if (visible) {
+      filtrarEmpleados();
+    }
+
+  }, [
+    visible,
+    empleados,
+    empleadosConDocs,
+    idRol
+  ]);
 
   // 🔥 Cargar documentos cuando se abra el modal
   React.useEffect(() => {
@@ -41,9 +131,9 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
       const docs = await res.json();
       const docsArray = docs.results || [];
 
-      // 🔥 Solo tipos 2 y 3
+      // 🔥 Solo tipos 4 y 5
       const docsValidosTipo = docsArray.filter(
-        d => d.idtipodocumento === 2 || d.idtipodocumento === 3
+        d => d.idtipodocumento === 4 || d.idtipodocumento === 5
       );
 
 
@@ -347,7 +437,7 @@ const ModalColaboradoresAsignados = ({ visible, onClose, empleados, evento, load
                   </tr>
                 </thead>
                 <tbody>
-                  {(empleadosConDocs.length > 0 ? empleadosConDocs : empleados).map((emp, idx) => {
+                  {empleadosFiltrados.map((emp, idx) => {
                     const asistenciaSi = emp.asistencia?.toLowerCase() === "sí" || emp.asistencia?.toLowerCase() === "si";
                     const asistenciaNo = emp.asistencia?.toLowerCase() === "no";
                     // Usar idempleadocapacitacion para actualizar asistencia

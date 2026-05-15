@@ -140,7 +140,7 @@ const AmonestacionTable = ({
       <div style={{ marginBottom: "15px" }}>
         <input
           type="text"
-          placeholder="Buscar por Trabajador, tipo, fecha, motivo, carta o estado..."
+          placeholder="Buscar por Trabajador/a, tipo, fecha, motivo, carta o estado..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           style={{
@@ -157,7 +157,7 @@ const AmonestacionTable = ({
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#023047", color: "white" }}>
-            <th style={{ padding: "10px", textAlign: "left" }}>Trabajador</th>
+            <th style={{ padding: "10px", textAlign: "left" }}>Trabajador/a</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Tipo</th>
             <th style={{ padding: "10px", textAlign: "center" }}>Fecha</th>
             <th style={{ padding: "10px", textAlign: "left" }}>Motivo</th>

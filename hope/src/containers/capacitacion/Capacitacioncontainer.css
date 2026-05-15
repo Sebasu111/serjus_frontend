@@ -1,0 +1,101 @@
+/* ===================== LAYOUT WRAPPER ===================== */
+.capacitacion-container__wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.capacitacion-container__inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===================== MAIN CONTENT ===================== */
+.capacitacion-container__main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #eef2f7;
+    padding: 48px 20px 8rem;
+}
+
+.capacitacion-container__content {
+    width: min(1100px, 96vw);
+}
+
+.capacitacion-container__title {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* ===================== TOOLBAR (buscar + botón) ===================== */
+.capacitacion-container__toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ===================== FOOTER CONTROLS ===================== */
+.capacitacion-container__controls {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.capacitacion-container__controls-label {
+    margin-right: 10px;
+    font-weight: 600;
+}
+
+.capacitacion-container__per-page-input {
+    width: 80px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+/* ===================== MOSTRAR FINALIZADAS ===================== */
+.capacitacion-container__finalizadas {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 20px;
+    gap: 8px;
+}
+
+.capacitacion-container__finalizadas-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.capacitacion-container__finalizadas-label {
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.capacitacion-container__finalizadas-label--active {
+    color: #1a73e8;
+}
+
+.capacitacion-container__finalizadas-label--inactive {
+    color: #333;
+}
+
+/* ===================== VISTA EXTERNAS ===================== */
+.capacitacion-container__externas {
+    width: 100%;
+}
+
+.capacitacion-container__externas-empty {
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    font-size: 16px;
+    color: #5b6470;
+    border: 1px dashed #c7d0db;
+}

@@ -92,11 +92,26 @@ const InduccionContainer = () => {
           nombre: r.nombre,
           fechainicio: r.fechainicio ?? r.fechaInicio,
           estado: r.estado,
-          formularioAsignado: tieneFormulario // 🔥 AQUI ESTÁ LA MAGIA
+          idusuario: r.idusuario, // 🔥 IMPORTANTE
+          formularioAsignado: tieneFormulario
         };
       });
 
-      setItems(data);
+      // 🔥 FILTRAR INDUCCIONES POR USUARIO
+      let induccionesPermitidas = data;
+
+      const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+      const idRol = Number(sessionStorage.getItem("idRol"));
+
+      // 🔥 SI ES COORDINADOR → SOLO VE LAS SUYAS
+      if (idRol === 1) {
+
+        induccionesPermitidas = data.filter(
+          (ind) => Number(ind.idusuario) === idUsuario
+        );
+      }
+
+      setItems(induccionesPermitidas);
 
     } catch (e) {
       console.error(e);
@@ -233,7 +248,6 @@ const InduccionContainer = () => {
         return;
       }
 
-      // ✅ 2️⃣ Si no hay relaciones activas, permitir desactivación
       const idUsuario = Number(sessionStorage.getItem("idUsuario"));
       await axios.put(`${API}${seleccionado.idinduccion}/`, {
         nombre: seleccionado.nombre,

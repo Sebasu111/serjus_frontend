@@ -257,7 +257,7 @@ const DocumentosAsignadosModal = ({ induccion, onClose, visible }) => {
                 textAlign: "center",
               }}
             >
-              No hay Trabajadores activos asignados.
+              No hay Trabajadores/as activos asignados.
             </div>
           ) : (
             <div

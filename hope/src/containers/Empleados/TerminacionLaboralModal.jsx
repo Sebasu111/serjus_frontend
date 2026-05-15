@@ -55,7 +55,7 @@ const TerminacionLaboralModal = ({ empleado, isOpen, onClose, onSuccess }) => {
                 formDataDoc.append('mimearchivo', 'pdf');
                 formDataDoc.append('fechasubida', new Date().toISOString().split('T')[0]);
                 formDataDoc.append('idusuario', 1); // TODO: Usuario logueado
-                formDataDoc.append('idtipodocumento', 8); // 8 = Terminación laboral según tu BD
+                formDataDoc.append('idtipodocumento', 10); // 8 = Terminación laboral según tu BD
                 formDataDoc.append('idempleado', empleado.id || empleado.idempleado || empleado.idEmpleado);
                 formDataDoc.append('estado', true); // Asegura que el documento esté activo
 

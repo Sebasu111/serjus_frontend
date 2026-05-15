@@ -22,14 +22,24 @@ const ReportesAusencias = () => {
   const [fechaHasta, setFechaHasta] = useState("");
   const [tipo, setTipo] = useState("");
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState("");
+  const idRol = parseInt(sessionStorage.getItem("idRol"));
+  const idUsuario = parseInt(sessionStorage.getItem("idUsuario"));
+  const usuarioActual = JSON.parse(sessionStorage.getItem("usuario"));
+
+  const esCoordinador = idRol === 1;
 
   const [paginaActual, setPaginaActual] = useState(1);
   const [elementosPorPagina, setElementosPorPagina] = useState(5);
 
   useEffect(() => {
-    fetchAusencias();
     fetchEmpleados();
   }, []);
+
+  useEffect(() => {
+    if (empleados.length > 0) {
+      fetchAusencias();
+    }
+  }, [empleados]);
 
   const formatearFecha = (fecha) => {
     if (!fecha) return "";
@@ -39,28 +49,156 @@ const ReportesAusencias = () => {
 
   const fetchAusencias = async () => {
     try {
-      const res = await axios.get(`${API}/ausencias/`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.results)
-          ? res.data.results
+
+      const [
+        resAusencias,
+        resEquipos,
+        resEmpleados
+      ] = await Promise.all([
+
+        axios.get(`${API}/ausencias/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+
+        axios.get(`${API}/equipos/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+
+        axios.get(`${API}/empleados/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+      ]);
+
+      const ausenciasData = Array.isArray(resAusencias.data)
+        ? resAusencias.data
+        : Array.isArray(resAusencias.data.results)
+          ? resAusencias.data.results
           : [];
-      setAusencias(data);
+
+      const equiposData = Array.isArray(resEquipos.data)
+        ? resEquipos.data
+        : resEquipos.data.results || [];
+
+      const empleadosData = Array.isArray(resEmpleados.data)
+        ? resEmpleados.data
+        : resEmpleados.data.results || [];
+
+      let ausenciasFiltradas = ausenciasData;
+
+      // 🔥 SOLO PARA COORDINADOR
+      if (
+        usuarioActual &&
+        Number(usuarioActual.idrol) === 1
+      ) {
+
+        // buscar equipo del coordinador
+        const miEquipo = equiposData.find(
+          (eq) =>
+            Number(eq.idcoordinador) ===
+            Number(usuarioActual.idempleado)
+        );
+
+        if (miEquipo) {
+
+          // ids de empleados del equipo
+          const idsEquipo = empleadosData
+            .filter(
+              (emp) =>
+                Number(emp.idequipo) ===
+                Number(miEquipo.idequipo)
+            )
+            .map((emp) =>
+              Number(emp.idempleado)
+            );
+
+          // agregar coordinador
+          idsEquipo.push(
+            Number(usuarioActual.idempleado)
+          );
+
+          // filtrar ausencias
+          ausenciasFiltradas = ausenciasData.filter(
+            (ausencia) =>
+              idsEquipo.includes(
+                Number(ausencia.idempleado)
+              )
+          );
+
+        } else {
+
+          // si no tiene equipo → vacío
+          ausenciasFiltradas = [];
+        }
+      }
+
+      setAusencias(ausenciasFiltradas);
+
     } catch (error) {
+      console.error(error);
       showToast("Error al cargar ausencias", "error");
     }
   };
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get(`${API}/empleados/`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.results)
-          ? res.data.results
+
+      const [
+        resEmpleados,
+        resEquipos
+      ] = await Promise.all([
+
+        axios.get(`${API}/empleados/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+
+        axios.get(`${API}/equipos/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+      ]);
+
+      const empleadosData = Array.isArray(resEmpleados.data)
+        ? resEmpleados.data
+        : Array.isArray(resEmpleados.data.results)
+          ? resEmpleados.data.results
           : [];
-      setEmpleados(data);
+
+      const equiposData = Array.isArray(resEquipos.data)
+        ? resEquipos.data
+        : resEquipos.data.results || [];
+
+      let empleadosFiltrados = empleadosData;
+
+      // 🔥 SOLO PARA COORDINADOR
+      if (
+        usuarioActual &&
+        Number(usuarioActual.idrol) === 1
+      ) {
+
+        // buscar equipo del coordinador
+        const miEquipo = equiposData.find(
+          (eq) =>
+            Number(eq.idcoordinador) ===
+            Number(usuarioActual.idempleado)
+        );
+
+        if (miEquipo) {
+
+          empleadosFiltrados = empleadosData.filter(
+            (emp) =>
+              Number(emp.idequipo) ===
+              Number(miEquipo.idequipo)
+          );
+
+        } else {
+
+          empleadosFiltrados = [];
+        }
+      }
+
+      setEmpleados(empleadosFiltrados);
+
     } catch (error) {
+      console.error(error);
       showToast("Error al cargar Trabajadores", "error");
     }
   };

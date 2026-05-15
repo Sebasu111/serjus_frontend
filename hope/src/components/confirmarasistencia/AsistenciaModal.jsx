@@ -1,67 +1,185 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { X, ArrowLeft } from "lucide-react";
+import { X } from "lucide-react";
 import { showToast } from "../../utils/toast";
+import "./AsistenciaModal.css";
 
 const API = process.env.REACT_APP_API_URL;
 const token = sessionStorage.getItem("token");
-
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundColor: "rgba(0,0,0,0.4)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalStyle = {
-  position: "fixed",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "500px",
-  maxWidth: "95%",
-  background: "#fff",
-  padding: "30px",
-  boxShadow: "0 0 20px rgba(0,0,0,0.2)",
-  borderRadius: "12px",
-  zIndex: 1000,
-  display: "flex",
-  flexDirection: "column",
-};
-
-const buttonStyle = {
-  flex: 1,
-  padding: "10px",
-  border: "none",
-  borderRadius: "6px",
-  fontWeight: "600",
-  cursor: "pointer",
-  color: "#fff",
-  transition: "0.2s",
-};
 
 const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial = null }) => {
   const [archivo, setArchivo] = useState(null);
   const [observacion, setObservacion] = useState("");
   const [subiendo, setSubiendo] = useState(false);
-  const [modo, setModo] = useState(modoInicial); // "asistio" | "justifico" | null
+  const [modo, setModo] = useState(modoInicial);
   const [diplomas, setDiplomas] = useState([]);
-  const handleDiplomas = (files) => {
-    const valid = files.filter(f =>
-      f.type.includes("pdf") || f.type.includes("image")
+  const [requiereInforme, setRequiereInforme] = useState(false);
+  const [informe, setInforme] = useState(null);
+  const [objetivos, setObjetivos] = useState("");
+  const [tematicas, setTematicas] = useState("");
+  const [metodologia, setMetodologia] = useState("");
+  const [conclusiones, setConclusiones] = useState("");
+  const [aciertos, setAciertos] = useState("");
+  const [utilidad, setUtilidad] = useState("");
+  const [resultadoInstitucion, setResultadoInstitucion] = useState("");
+  const [resultadoParticipante, setResultadoParticipante] = useState("");
+  const [compromiso, setCompromiso] = useState("");
+  const [seguimiento, setSeguimiento] = useState("");
+  const [anexos, setAnexos] = useState([]);
+
+  const handleAnexos = (files) => {
+
+    const valid = files.filter(
+      (f) =>
+        f.type.includes("pdf")
     );
 
-    setDiplomas(prev => [...prev, ...valid]);
+    setAnexos((prev) => [...prev, ...valid]);
+  };
+
+  const subirAnexosInforme = async () => {
+
+    if (!anexos.length || !informe) return;
+
+    const idUsuario = Number(
+      sessionStorage.getItem("idUsuario")
+    );
+
+    for (const file of anexos) {
+
+      const formData = new FormData();
+
+      formData.append("archivo", file);
+
+      formData.append(
+        "nombrearchivo",
+        file.name
+      );
+
+      formData.append(
+        "mimearchivo",
+        "pdf"
+      );
+
+      formData.append(
+        "fechasubida",
+        new Date().toISOString().slice(0, 10)
+      );
+
+      formData.append("estado", true);
+
+      formData.append("idusuario", idUsuario);
+
+      formData.append("idtipodocumento", 4);
+
+      formData.append(
+        "idempleado",
+        capacitacion.idempleado
+      );
+
+      const resDoc = await axios.post(
+        `${API}/documentos/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const idDocumento =
+        resDoc.data.iddocumento;
+
+      await axios.post(
+        `${API}/informecapacitaciondocumento/`,
+        {
+          idinformecapacitacion:
+            informe.idinformecapacitacion,
+
+          iddocumento: idDocumento,
+
+          estado: true
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+    }
   };
 
   useEffect(() => {
-    // Si el modo viene definido desde el perfil, abrir directamente en ese modo
+    if (show && capacitacion?.idempleadocapacitacion) {
+      cargarInforme();
+    }
+  }, [show, capacitacion]);
+
+  const cargarInforme = async () => {
+    try {
+
+      const res = await axios.get(
+        `${API}/informes-capacitacion/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const informes = res.data.results || res.data;
+
+      const informeEncontrado = informes.find(
+        inf =>
+          Number(inf.idempleadocapacitacion) ===
+          Number(capacitacion.idempleadocapacitacion)
+      );
+
+      if (informeEncontrado) {
+
+        setRequiereInforme(true);
+
+        setInforme(informeEncontrado);
+
+        setObjetivos(informeEncontrado.objetivos || "");
+        setTematicas(informeEncontrado.tematicas_contenidos || "");
+        setMetodologia(informeEncontrado.metodologia || "");
+        setConclusiones(informeEncontrado.conclusiones || "");
+
+        setAciertos(informeEncontrado.aciertos_dificultades || "");
+        setUtilidad(informeEncontrado.utilidad_formacion || "");
+
+        setResultadoInstitucion(
+          informeEncontrado.resultados_institucion || ""
+        );
+
+        setResultadoParticipante(
+          informeEncontrado.resultados_participante || ""
+        );
+
+        setCompromiso(
+          informeEncontrado.compromiso_aplicacion || ""
+        );
+
+        setSeguimiento(
+          informeEncontrado.propuesta_seguimiento || ""
+        );
+      }
+
+    } catch (error) {
+      console.error("Error cargando informe:", error);
+    }
+  };
+
+  const handleDiplomas = (files) => {
+    const valid = files.filter(
+      (f) => f.type.includes("pdf") || f.type.includes("image")
+    );
+    setDiplomas((prev) => [...prev, ...valid]);
+  };
+
+  useEffect(() => {
     if (capacitacion && capacitacion.modo) {
       setModo(capacitacion.modo);
     } else {
@@ -94,14 +212,48 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
     formData.append("mimearchivo", "pdf");
     formData.append("fechasubida", new Date().toISOString().slice(0, 10));
     formData.append("idusuario", idUsuario);
-    formData.append("idtipodocumento", 2);
+    formData.append("idtipodocumento", 4);
     formData.append("idempleado", capacitacion.idempleado);
 
     const resDoc = await axios.post(`${API}/documentos/`, formData, {
-      headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${sessionStorage.getItem("token")}` },
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
     });
 
     return resDoc.data.iddocumento;
+  };
+
+  const subirDiplomas = async () => {
+    if (!diplomas.length) return;
+
+    const idUsuario = Number(sessionStorage.getItem("idUsuario"));
+
+    for (const file of diplomas) {
+      const formData = new FormData();
+      const mime =
+        file.type === "application/pdf"
+          ? "pdf"
+          : file.type.includes("image")
+            ? "img"
+            : "file";
+      formData.append("archivo", file);
+      formData.append("nombrearchivo", file.name);
+      formData.append("mimearchivo", mime);
+      formData.append("fechasubida", new Date().toISOString().slice(0, 10));
+      formData.append("estado", true);
+      formData.append("idusuario", idUsuario);
+      formData.append("idtipodocumento", 12);
+      formData.append("idempleado", capacitacion.idempleado);
+
+      await axios.post(`${API}/documentos/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
   };
 
   const handleGuardar = async (asistio) => {
@@ -119,6 +271,55 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
         return;
       }
 
+      if (requiereInforme && informe) {
+
+        await axios.put(
+          `${API}/informes-capacitacion/${informe.idinformecapacitacion}/`,
+          {
+            ...informe,
+
+            objetivos,
+            tematicas_contenidos: tematicas,
+            metodologia,
+            conclusiones,
+
+            aciertos_dificultades: aciertos,
+            utilidad_formacion: utilidad,
+
+            resultados_institucion: resultadoInstitucion,
+            resultados_participante: resultadoParticipante,
+
+            compromiso_aplicacion: compromiso,
+            propuesta_seguimiento: seguimiento,
+
+            estado_informe: "ENTREGADO"
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        await axios.post(
+          `${API}/informecapacitaciondocumento/`,
+          {
+            idinformecapacitacion:
+              informe.idinformecapacitacion,
+
+            iddocumento: idDocumento,
+
+            estado: true
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        await subirAnexosInforme();
+      }
+
       const mensaje = asistio
         ? "Asistió y subió archivo"
         : observacion || "Inasistencia justificada";
@@ -130,7 +331,6 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
         idDocumento
       );
 
-      // 🔥 AQUÍ SUBES LOS DIPLOMAS
       await subirDiplomas();
 
       showToast(
@@ -140,7 +340,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
         "success"
       );
 
-      setDiplomas([]); // limpiar
+      setDiplomas([]);
       onClose();
     } catch (error) {
       console.error(error.response?.data);
@@ -150,57 +350,22 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
     }
   };
 
-  const subirDiplomas = async () => {
-    if (!diplomas.length) return;
-
-    const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-
-    for (const file of diplomas) {
-      const formData = new FormData();
-      formData.append("archivo", file);
-      formData.append("nombrearchivo", file.name);
-      formData.append("mimearchivo", "pdf");
-      formData.append("fechasubida", new Date().toISOString().slice(0, 10));
-      formData.append("estado", true);
-      formData.append("idusuario", idUsuario);
-      formData.append("idtipodocumento", 10);
-
-      formData.append("idempleado", capacitacion.idempleado);
-
-      await axios.post(`${API}/documentos/`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    }
-  };
+  const infoCardClass = `asistencia-modal__info-card asistencia-modal__info-card--${modo === "justifico" ? "justifico" : "asistio"}`;
+  const btnDisabled = subiendo ? "asistencia-modal__btn--disabled" : "";
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        {/* Botón de cerrar */}
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button
-            onClick={onClose}
-            style={{
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-            }}
-            title="Cerrar"
-          >
+    <div className="asistencia-overlay">
+      <div className="asistencia-modal">
+
+        {/* Botón cerrar */}
+        <div className="asistencia-modal__close-row">
+          <button className="asistencia-modal__close-btn" onClick={onClose} title="Cerrar">
             <X size={24} color="#555" />
           </button>
         </div>
 
-        <h3
-          style={{
-            textAlign: "center",
-            marginBottom: "20px",
-            color: modo === "justifico" ? "#FCA5A5" : "#219ebc",
-          }}
-        >
+        {/* Título */}
+        <h3 className={`asistencia-modal__title asistencia-modal__title--${modo === "justifico" ? "justifico" : "asistio"}`}>
           {modo === "justifico"
             ? "Justificar inasistencia"
             : modo === "asistio"
@@ -208,71 +373,180 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
               : "Registro de asistencia"}
         </h3>
 
-        {/* Cuadro de información de la capacitación */}
-        <div style={{
-          backgroundColor: modo === "justifico" ? "#fee2e2" : "#dbeafe",
-          border: `2px solid ${modo === "justifico" ? "#fca5a5" : "#60a5fa"}`,
-          borderRadius: "12px",
-          padding: "20px",
-          marginBottom: "20px"
-        }}>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "auto 1fr",
-            gap: "12px 20px",
-            fontSize: "14px"
-          }}>
-            <div style={{ fontWeight: "600", color: "#374151" }}>Capacitación:</div>
-            <div style={{ color: "#1f2937" }}>{capacitacion.nombre}</div>
+        {/* Info de la capacitación */}
+        <div className={infoCardClass}>
+          <div className="asistencia-modal__info-grid">
+            <div className="asistencia-modal__info-label">Capacitación:</div>
+            <div className="asistencia-modal__info-value">{capacitacion.nombre}</div>
 
-            <div style={{ fontWeight: "600", color: "#374151" }}>Lugar:</div>
-            <div style={{ color: "#1f2937" }}>{capacitacion.lugar}</div>
+            <div className="asistencia-modal__info-label">Lugar:</div>
+            <div className="asistencia-modal__info-value">{capacitacion.lugar}</div>
 
-            <div style={{ fontWeight: "600", color: "#374151" }}>Inicio:</div>
-            <div style={{ color: "#1f2937" }}>{formatearFecha(capacitacion.fechaInicio)}</div>
+            <div className="asistencia-modal__info-label">Inicio:</div>
+            <div className="asistencia-modal__info-value">{formatearFecha(capacitacion.fechaInicio)}</div>
 
-            <div style={{ fontWeight: "600", color: "#374151" }}>Fin:</div>
-            <div style={{ color: "#1f2937" }}>{formatearFecha(capacitacion.fechaFin)}</div>
+            <div className="asistencia-modal__info-label">Fin:</div>
+            <div className="asistencia-modal__info-value">{formatearFecha(capacitacion.fechaFin)}</div>
 
-            <div style={{ fontWeight: "600", color: "#374151" }}>Observaciones:</div>
-            <div style={{ color: "#1f2937" }}>{capacitacion.observacion || "Sin observaciones"}</div>
+            <div className="asistencia-modal__info-label">Observaciones:</div>
+            <div className="asistencia-modal__info-value asistencia-modal__observacion">
+              {capacitacion.observacion || "Sin observaciones"}
+            </div>
           </div>
         </div>
+        {requiereInforme && (
+          <div className="asistencia-modal__informe">
 
-        {/* El modal de selección de modo ha sido eliminado. */}
+            <h4 className="asistencia-modal__section-title">
+              Informe de capacitación
+            </h4>
+
+            <textarea
+              placeholder="Objetivos"
+              value={objetivos}
+              onChange={(e) => setObjetivos(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Temáticas y contenidos"
+              value={tematicas}
+              onChange={(e) => setTematicas(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Metodología"
+              value={metodologia}
+              onChange={(e) => setMetodologia(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Conclusiones"
+              value={conclusiones}
+              onChange={(e) => setConclusiones(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Aciertos y dificultades"
+              value={aciertos}
+              onChange={(e) => setAciertos(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Utilidad de la formación"
+              value={utilidad}
+              onChange={(e) => setUtilidad(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Resultados para la institución"
+              value={resultadoInstitucion}
+              onChange={(e) => setResultadoInstitucion(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Resultados para el participante"
+              value={resultadoParticipante}
+              onChange={(e) => setResultadoParticipante(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Compromiso de aplicación"
+              value={compromiso}
+              onChange={(e) => setCompromiso(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <textarea
+              placeholder="Propuesta de seguimiento"
+              value={seguimiento}
+              onChange={(e) => setSeguimiento(e.target.value)}
+              className="asistencia-modal__textarea"
+            />
+
+            <div style={{ marginTop: "10px" }}>
+
+              <label className="asistencia-modal__field-label">
+                Anexos / Material proporcionado
+              </label>
+
+              <div
+                className="asistencia-modal__drop-zone"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleAnexos(
+                    Array.from(e.dataTransfer.files)
+                  );
+                }}
+                onClick={() =>
+                  document
+                    .getElementById("inputAnexosInforme")
+                    .click()
+                }
+              >
+                <p className="asistencia-modal__drop-zone-title">
+                  Arrastra archivos aquí o haz clic
+                </p>
+
+                <p className="asistencia-modal__drop-zone-subtitle">
+                  Solo archivos PDF
+                </p>
+              </div>
+
+              <input
+                id="inputAnexosInforme"
+                type="file"
+                multiple
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
+                style={{ display: "none" }}
+                onChange={(e) => {
+
+                  handleAnexos(
+                    Array.from(e.target.files)
+                  );
+
+                  e.target.value = null;
+                }}
+              />
+
+              {anexos.length > 0 && (
+                <div className="asistencia-modal__diploma-list">
+
+                  {anexos.map((f, i) => (
+                    <div key={i}>
+                      📎 {f.name}
+                    </div>
+                  ))}
+
+                </div>
+              )}
+
+            </div>
+
+          </div>
+        )}
 
         {/* Modo Asistió */}
         {modo === "asistio" && (
-          <div style={{
-            backgroundColor: "#dbeafe",
-            border: "2px solid #60a5fa",
-            borderRadius: "12px",
-            padding: "20px",
-            marginTop: "15px"
-          }}>
-            <h4 style={{
-              margin: "0 0 15px 0",
-              color: "#1e40af",
-              fontSize: "16px",
-              fontWeight: "600"
-            }}>
+          <div className="asistencia-modal__section asistencia-modal__section--asistio">
+            <h4 className="asistencia-modal__section-title asistencia-modal__section-title--asistio">
               Confirmar Asistencia
             </h4>
 
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleGuardar(true);
-              }}
-              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+              className="asistencia-modal__form"
+              onSubmit={(e) => { e.preventDefault(); handleGuardar(true); }}
             >
               <div>
-                <label htmlFor="archivoAsistencia" style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: "600",
-                  color: "#374151"
-                }}>
+                <label htmlFor="archivoAsistencia" className="asistencia-modal__field-label">
                   Adjuntar informe en PDF:
                 </label>
                 <input
@@ -281,38 +555,20 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
                   required
                   accept="application/pdf"
                   onChange={(e) => setArchivo(e.target.files[0])}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: "2px solid #93c5fd",
-                    backgroundColor: "#ffffff",
-                    fontSize: "14px"
-                  }}
+                  className="asistencia-modal__file-input asistencia-modal__file-input--asistio"
                 />
-                {/* 📄 DIPLOMAS */}
+
+                {/* Drop zone diplomas */}
                 <div
+                  className="asistencia-modal__drop-zone"
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    handleDiplomas(Array.from(e.dataTransfer.files));
-                  }}
+                  onDrop={(e) => { e.preventDefault(); handleDiplomas(Array.from(e.dataTransfer.files)); }}
                   onClick={() => document.getElementById("inputDiplomasModal").click()}
-                  style={{
-                    border: "2px dashed #93c5fd",
-                    borderRadius: "10px",
-                    padding: "16px",
-                    textAlign: "center",
-                    background: "#f8fbff",
-                    cursor: "pointer"
-                  }}
                 >
-                  <p style={{ margin: 0, fontWeight: "600", color: "#1e40af" }}>
+                  <p className="asistencia-modal__drop-zone-title">
                     Arrastra diplomas aquí o haz clic
                   </p>
-                  <p style={{ margin: 0, fontSize: "12px", color: "#6b7280" }}>
-                    PDF
-                  </p>
+                  <p className="asistencia-modal__drop-zone-subtitle">PDF</p>
                 </div>
 
                 <input
@@ -321,15 +577,11 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
                   multiple
                   accept="application/pdf"
                   style={{ display: "none" }}
-                  onChange={(e) => {
-                    handleDiplomas(Array.from(e.target.files));
-                    e.target.value = null;
-                  }}
+                  onChange={(e) => { handleDiplomas(Array.from(e.target.files)); e.target.value = null; }}
                 />
 
-                {/* Lista */}
                 {diplomas.length > 0 && (
-                  <div style={{ marginTop: "10px", fontSize: "13px" }}>
+                  <div className="asistencia-modal__diploma-list">
                     {diplomas.map((f, i) => (
                       <div key={i}>📄 {f.name}</div>
                     ))}
@@ -340,15 +592,7 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
               <button
                 type="submit"
                 disabled={subiendo}
-                style={{
-                  ...buttonStyle,
-                  background: subiendo ? "#9ca3af" : "#2563eb",
-                  cursor: subiendo ? "not-allowed" : "pointer",
-                  padding: "12px 20px",
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  boxShadow: subiendo ? "none" : "0 4px 6px rgba(37, 99, 235, 0.3)"
-                }}
+                className={`asistencia-modal__btn asistencia-modal__btn--asistio ${btnDisabled}`}
               >
                 {subiendo ? "Subiendo..." : "Confirmar asistencia"}
               </button>
@@ -358,36 +602,17 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
 
         {/* Modo Justificar */}
         {modo === "justifico" && (
-          <div style={{
-            backgroundColor: "#fee2e2",
-            border: "2px solid #fca5a5",
-            borderRadius: "12px",
-            padding: "20px",
-            marginTop: "15px"
-          }}>
-            <h4 style={{
-              margin: "0 0 15px 0",
-              color: "#dc2626",
-              fontSize: "16px",
-              fontWeight: "600"
-            }}>
+          <div className="asistencia-modal__section asistencia-modal__section--justifico">
+            <h4 className="asistencia-modal__section-title asistencia-modal__section-title--justifico">
               Justificar Inasistencia
             </h4>
 
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleGuardar(false);
-              }}
-              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+              className="asistencia-modal__form"
+              onSubmit={(e) => { e.preventDefault(); handleGuardar(false); }}
             >
               <div>
-                <label htmlFor="archivoJustificacion" style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: "600",
-                  color: "#374151"
-                }}>
+                <label htmlFor="archivoJustificacion" className="asistencia-modal__field-label">
                   Adjuntar documento justificativo (PDF):
                 </label>
                 <input
@@ -396,35 +621,21 @@ const AsistenciaModal = ({ show, onClose, capacitacion, onGuardar, modoInicial =
                   required
                   accept="application/pdf"
                   onChange={(e) => setArchivo(e.target.files[0])}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: "2px solid #fca5a5",
-                    backgroundColor: "#ffffff",
-                    fontSize: "14px"
-                  }}
+                  className="asistencia-modal__file-input asistencia-modal__file-input--justifico"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={subiendo}
-                style={{
-                  ...buttonStyle,
-                  background: subiendo ? "#9ca3af" : "#dc2626",
-                  cursor: subiendo ? "not-allowed" : "pointer",
-                  padding: "12px 20px",
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  boxShadow: subiendo ? "none" : "0 4px 6px rgba(220, 38, 38, 0.3)"
-                }}
+                className={`asistencia-modal__btn asistencia-modal__btn--justifico ${btnDisabled}`}
               >
                 {subiendo ? "Subiendo..." : "Confirmar justificación"}
               </button>
             </form>
           </div>
         )}
+
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ const FichaDownloadModal = ({ empleados = [], onClose, onGenerate, generandoPDF 
                     boxShadow: "0 10px 30px rgba(0,0,0,.2)"
                 }}
             >
-                <h3 style={{ marginTop: 0 }}>Seleccione Trabajadores para descargar la ficha</h3>
+                <h3 style={{ marginTop: 0 }}>Seleccione Trabajadores/as para descargar la ficha</h3>
 
                 {/* Barra de búsqueda (se quitaron los botones "Marcar todo" y "Limpiar") */}
                 <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>

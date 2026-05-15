@@ -162,7 +162,7 @@ const AmonestacionModal = ({
                   marginBottom: 6,
                 }}
               >
-                Trabajador
+                Trabajador/a
               </div>
               <div style={{ fontWeight: 700, fontSize: 16 }}>
                 {empleado

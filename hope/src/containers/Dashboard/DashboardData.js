@@ -3,10 +3,34 @@ import axios from "axios";
 const API = process.env.REACT_APP_API_URL;
 const token = sessionStorage.getItem("token");
 
+export const fetchEnfermedadesStats = async (genero = "TODOS") => {
+  try {
+
+    let url = `${API}/estadisticas-enfermedades`;
+
+    // Solo enviar filtro si no es TODOS
+    if (genero !== "TODOS") {
+      url += `?genero=${genero}`;
+    }
+
+    const res = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    return res.data.map(e => ({
+      name: e.nombre,
+      value: e.total
+    }));
+
+  } catch {
+    return [];
+  }
+};
+
 const fetchList = async (endpoint) => {
   try {
     const res = await axios.get(`${API}/${endpoint}/`, {
-        headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` }
     });
     const data = Array.isArray(res.data)
       ? res.data
@@ -16,6 +40,7 @@ const fetchList = async (endpoint) => {
     return [];
   }
 };
+
 /* Capacitaciones */
 export const fetchCapacitaciones = async () => {
   const capacitaciones = await fetchList("capacitaciones");
@@ -67,7 +92,7 @@ export const fetchCatalogos = async () => {
   const [puestos, idiomas, pueblos] = await Promise.all([
     fetchList("puestos"),
     fetchList("idiomas"),
-    fetchList("pueblocultura"), 
+    fetchList("pueblocultura"),
   ]);
 
   const mapPuestos = {};
@@ -106,7 +131,7 @@ export const getDataCapacitaciones = (capacitaciones, asignaciones) => {
     const inicio = new Date(cap.fechainicio);
     const fin = new Date(cap.fechafin);
     // excluir finalizadas
-    return fin >= hoy; 
+    return fin >= hoy;
   });
 
   // Agrupar para el gráfico

@@ -1,12 +1,5 @@
 // src/containers/Reportes/ReportesFiltros.jsx
 import React, { useState, useRef, useEffect } from "react";
-/**
- * Contenedor general para la barra de filtros.
- * Lo usas como:
- * <BarraFiltros>
- *   ...aquí van FiltroFechasRango, FiltroSelect, etc...
- * </BarraFiltros>
- */
 export const BarraFiltros = ({ children }) => {
   return (
     <div

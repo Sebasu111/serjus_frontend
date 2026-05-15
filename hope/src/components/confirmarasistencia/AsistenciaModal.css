@@ -1,0 +1,251 @@
+/* ===================== OVERLAY & MODAL ===================== */
+.asistencia-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.asistencia-modal {
+    width: 460px;
+    max-width: 92%;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    background: #fff;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ===================== HEADER ===================== */
+.asistencia-modal__close-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: -8px;
+}
+
+.asistencia-modal__close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.asistencia-modal__title {
+    text-align: center;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.asistencia-modal__title--asistio {
+    color: #219ebc;
+}
+
+.asistencia-modal__title--justifico {
+    color: #ef4444;
+}
+
+/* ===================== INFO CARD ===================== */
+.asistencia-modal__info-card {
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid;
+}
+
+.asistencia-modal__info-card--asistio {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.asistencia-modal__info-card--justifico {
+    background: #fef2f2;
+    border-color: #fca5a5;
+}
+
+.asistencia-modal__info-grid {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 10px 14px;
+    font-size: 13px;
+}
+
+.asistencia-modal__info-label {
+    font-weight: 700;
+    color: #374151;
+}
+
+.asistencia-modal__info-value {
+    color: #1f2937;
+    line-height: 1.4;
+}
+
+/* ===================== OBSERVACIONES ===================== */
+.asistencia-modal__observacion {
+    max-height: 85px;
+    overflow-y: auto;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    padding-right: 5px;
+}
+
+/* ===================== SECTION ===================== */
+.asistencia-modal__section {
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid;
+}
+
+.asistencia-modal__section--asistio {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.asistencia-modal__section--justifico {
+    background: #fef2f2;
+    border-color: #fca5a5;
+}
+
+.asistencia-modal__section-title {
+    margin: 0 0 14px;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.asistencia-modal__section-title--asistio {
+    color: #1d4ed8;
+}
+
+.asistencia-modal__section-title--justifico {
+    color: #dc2626;
+}
+
+/* ===================== FORM ===================== */
+.asistencia-modal__form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.asistencia-modal__field-label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.asistencia-modal__file-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    font-size: 13px;
+}
+
+/* ===================== DROPZONE ===================== */
+.asistencia-modal__drop-zone {
+    margin-top: 12px;
+    border: 2px dashed #93c5fd;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    background: #f8fbff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.asistencia-modal__drop-zone:hover {
+    background: #eef6ff;
+}
+
+.asistencia-modal__drop-zone-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.asistencia-modal__drop-zone-subtitle {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* ===================== LISTA DIPLOMAS ===================== */
+.asistencia-modal__diploma-list {
+    margin-top: 10px;
+    max-height: 90px;
+    overflow-y: auto;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* ===================== BUTTON ===================== */
+.asistencia-modal__btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.asistencia-modal__btn--asistio {
+    background: #2563eb;
+}
+
+.asistencia-modal__btn--asistio:hover {
+    background: #1d4ed8;
+}
+
+.asistencia-modal__btn--justifico {
+    background: #dc2626;
+}
+
+.asistencia-modal__btn--justifico:hover {
+    background: #b91c1c;
+}
+
+.asistencia-modal__btn--disabled {
+    background: #9ca3af !important;
+    cursor: not-allowed;
+}
+
+/*#####################Nuevo Informes##############################*/
+.asistencia-modal__informe {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.asistencia-modal__textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    padding: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+}
+
+.asistencia-modal__textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}

@@ -782,7 +782,7 @@ const ContratoForm = ({ data, onChange, imprimirContrato, generandoPDF = false, 
                                                     style={{
                                                         padding: "4px 8px",
                                                         fontSize: "10px",
-                                                        backgroundColor: "#007bff",
+                                                        backgroundColor: "#219ebc",
                                                         color: "white",
                                                         border: "none",
                                                         borderRadius: "3px",

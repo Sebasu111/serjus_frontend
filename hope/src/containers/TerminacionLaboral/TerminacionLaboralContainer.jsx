@@ -612,7 +612,7 @@ const TerminacionLaboralContainer = () => {
                                                                 onClick={() => handleEdit(t)}
                                                                 style={{
                                                                     padding: "6px 12px",
-                                                                    background: "#007bff",
+                                                                    background: "#219ebc",
                                                                     color: "#fff",
                                                                     border: "none",
                                                                     borderRadius: "4px",

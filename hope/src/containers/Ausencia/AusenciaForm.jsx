@@ -122,7 +122,7 @@ const AusenciaForm = ({ usuario, editingAusencia, onSubmit, onClose, empleados }
         formData.append("mimearchivo", archivo.name.split(".").pop().toLowerCase());
         formData.append("fechasubida", new Date().toISOString().slice(0, 10));
         formData.append("idusuario", usuario.idusuario);
-        formData.append("idtipodocumento", 3);
+        formData.append("idtipodocumento", 5);
         formData.append("idempleado", idEmpleado);
         formData.append("estado", true);
 

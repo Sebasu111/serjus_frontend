@@ -6,11 +6,15 @@ import Footer from "../../layouts/footer";
 import ScrollToTop from "../../components/scroll-to-top";
 import SEO from "../../components/seo";
 import { showToast } from "../../utils/toast.js";
-import { } from "react-toastify"; import { buttonStyles } from "../../stylesGenerales/buttons.js";
+import { buttonStyles } from "../../stylesGenerales/buttons.js";
 import CapacitacionForm from "./CapacitacionForm";
 import CapacitacionesTable from "./CapacitacionTable.jsx";
 import AsignarCapacitacion from "./AsignarCapacitacion.jsx";
 import ConfirmModal from "./ConfirmModal";
+import TopTabs from "../../components/Toptabs/TopTabs.jsx";
+import "./Capacitacioncontainer.css";
+import CapacitacionesExternas from "./CapacitacionesExternas";
+
 const API = process.env.REACT_APP_API_URL;
 const token = sessionStorage.getItem("token");
 
@@ -20,11 +24,13 @@ const CapacitacionContainer = () => {
     const [capacitacionActivaEditando, setCapacitacionActivaEditando] = useState(true);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [mostrarAsignacion, setMostrarAsignacion] = useState(false);
-    const [modalAccion, setModalAccion] = useState(null); // { tipo: "activar" | "desactivar", data: {...} }
+    const [modalAccion, setModalAccion] = useState(null);
     const [busqueda, setBusqueda] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const [elementosPorPagina, setElementosPorPagina] = useState(5);
     const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
+    const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
+    const [vistaActiva, setVistaActiva] = useState("registradas");
 
     const [formData, setFormData] = useState({
         nombreEvento: "",
@@ -33,85 +39,225 @@ const CapacitacionContainer = () => {
         fechaFin: "",
         institucion: "",
         monto: "",
-        observacion: ""
+        observacion: "",
     });
 
     useEffect(() => {
         fetchCapacitaciones();
     }, []);
 
-    // Resetear paginación cuando cambie el filtro de finalizadas
     useEffect(() => {
         setPaginaActual(1);
     }, [mostrarFinalizadas]);
 
     const fetchCapacitaciones = async () => {
         try {
-            const res = await axios.get(`${API}/capacitaciones/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
 
-            // Verificar capacitaciones que deberían estar finalizadas automáticamente
-            await verificarCapacitacionesFinalizadas(data);
+            const usuarioActual = JSON.parse(
+                sessionStorage.getItem("usuario")
+            );
 
-            setCapacitaciones(data);
+            const [
+                resCapacitaciones,
+                resEquipos,
+                resEmpleados,
+                resAsignaciones
+            ] = await Promise.all([
+
+                axios.get(`${API}/capacitaciones/`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+
+                axios.get(`${API}/equipos/`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+
+                axios.get(`${API}/empleados/`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+
+                axios.get(`${API}/empleadocapacitacion/`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+            ]);
+
+            const capacitacionesData = Array.isArray(resCapacitaciones.data)
+                ? resCapacitaciones.data
+                : Array.isArray(resCapacitaciones.data.results)
+                    ? resCapacitaciones.data.results
+                    : [];
+
+            const equiposData = Array.isArray(resEquipos.data)
+                ? resEquipos.data
+                : resEquipos.data.results || [];
+
+            const empleadosData = Array.isArray(resEmpleados.data)
+                ? resEmpleados.data
+                : resEmpleados.data.results || [];
+
+            const asignacionesData = Array.isArray(resAsignaciones.data)
+                ? resAsignaciones.data
+                : resAsignaciones.data.results || [];
+
+            await verificarCapacitacionesFinalizadas(
+                capacitacionesData
+            );
+
+            let capacitacionesFiltradas =
+                capacitacionesData;
+
+            // 🔥 SOLO PARA COORDINADORES
+            if (
+                usuarioActual &&
+                Number(usuarioActual.idrol) === 1
+            ) {
+
+                // buscar equipo del coordinador
+                const miEquipo = equiposData.find(
+                    (eq) =>
+                        Number(eq.idcoordinador) ===
+                        Number(usuarioActual.idempleado)
+                );
+
+                if (miEquipo) {
+
+                    // ids empleados del equipo
+                    const idsEquipo = empleadosData
+                        .filter(
+                            (emp) =>
+                                Number(emp.idequipo) ===
+                                Number(miEquipo.idequipo)
+                        )
+                        .map((emp) =>
+                            Number(emp.idempleado)
+                        );
+
+                    // agregar coordinador
+                    idsEquipo.push(
+                        Number(usuarioActual.idempleado)
+                    );
+
+                    const hoy = new Date();
+
+                    // ids capacitaciones donde participa el equipo
+                    const idsCapacitacionesPermitidas =
+                        asignacionesData
+                            .filter(
+                                (asig) =>
+                                    asig.estado === true &&
+                                    idsEquipo.includes(
+                                        Number(asig.idempleado)
+                                    )
+                            )
+                            .map((asig) =>
+                                Number(asig.idcapacitacion)
+                            );
+
+                    capacitacionesFiltradas =
+                        capacitacionesData.filter((cap) => {
+
+                            const idCap =
+                                Number(
+                                    cap.idcapacitacion || cap.id
+                                );
+
+                            const fechaInicio =
+                                new Date(cap.fechainicio);
+
+                            const fechaFin =
+                                new Date(cap.fechafin);
+
+                            // 🔥 SOLO EN CURSO
+                            const enCurso =
+                                cap.estado === true &&
+                                fechaInicio <= hoy &&
+                                hoy <= fechaFin;
+
+                            // 🔥 SOLO SI PARTICIPA SU EQUIPO
+                            const perteneceEquipo =
+                                idsCapacitacionesPermitidas.includes(
+                                    idCap
+                                );
+
+                            return (
+                                enCurso &&
+                                perteneceEquipo
+                            );
+                        });
+                } else {
+
+                    // si no tiene equipo -> vacío
+                    capacitacionesFiltradas = [];
+                }
+            }
+
+            setCapacitaciones(
+                capacitacionesFiltradas
+            );
+
         } catch (error) {
             console.error(error);
-            showToast("Error al cargar capacitaciones", "error");
+            showToast(
+                "Error al cargar capacitaciones",
+                "error"
+            );
         }
     };
 
-    // Función para verificar y finalizar automáticamente capacitaciones vencidas
     const verificarCapacitacionesFinalizadas = async (capacitaciones) => {
         const hoy = new Date();
-        hoy.setHours(23, 59, 59, 999); // Final del día actual
+        hoy.setHours(23, 59, 59, 999);
 
-        const capacitacionesAFinalizar = capacitaciones.filter(cap => {
-            // Solo verificar capacitaciones activas (estado: true)
+        const capacitacionesAFinalizar = capacitaciones.filter((cap) => {
             if (!cap.estado) return false;
-
             const fechaFin = new Date(cap.fechafin);
-            // Si la fecha fin ya pasó, debe finalizarse automáticamente
             return fechaFin < hoy;
         });
 
-        // Finalizar automáticamente las capacitaciones vencidas
         for (const cap of capacitacionesAFinalizar) {
             try {
                 const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-                await axios.put(`${API}/capacitaciones/${cap.idcapacitacion || cap.id}/`, {
-                    ...cap,
-                    estado: true, // Mantener como true, el estado se determina por fechas
-                    idestado_id: 3, // Finalizada
-                    idusuario: idUsuario
-                }, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await axios.put(
+                    `${API}/capacitaciones/${cap.idcapacitacion || cap.id}/`,
+                    { ...cap, estado: true, idestado_id: 3, idusuario: idUsuario },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
             } catch (error) {
-                console.error(`Error al finalizar automáticamente la capacitación ${cap.nombreevento}:`, error);
+                console.error(
+                    `Error al finalizar automáticamente la capacitación ${cap.nombreevento}:`,
+                    error
+                );
             }
         }
     };
 
     const handleSubmit = async () => {
-        if (!formData.nombreEvento.trim()) return showToast("El nombre del evento es obligatorio", "warning");
-        if (!formData.lugar.trim()) return showToast("El lugar es obligatorio", "warning");
-        if (!formData.fechaInicio) return showToast("La fecha de inicio es obligatoria", "warning");
-        if (!formData.fechaFin) return showToast("La fecha de fin es obligatoria", "warning");
+        if (!formData.nombreEvento.trim())
+            return showToast("El nombre del evento es obligatorio", "warning");
+        if (!formData.lugar.trim())
+            return showToast("El lugar es obligatorio", "warning");
+        if (!formData.fechaInicio)
+            return showToast("La fecha de inicio es obligatoria", "warning");
+        if (!formData.fechaFin)
+            return showToast("La fecha de fin es obligatoria", "warning");
         if (new Date(formData.fechaInicio) > new Date(formData.fechaFin))
-            return showToast("La fecha de fin no puede ser menor a la fecha de inicio", "warning");
+            return showToast(
+                "La fecha de fin no puede ser menor a la fecha de inicio",
+                "warning"
+            );
 
-        // Validar fechas pasadas para nuevas capacitaciones y al editar
         const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+        hoy.setHours(0, 0, 0, 0);
         const fechaInicio = new Date(formData.fechaInicio);
 
-        if (fechaInicio < hoy) {
-            return showToast("No se pueden programar capacitaciones en fechas pasadas", "warning");
-        }
+        if (fechaInicio < hoy)
+            return showToast(
+                "No se pueden programar capacitaciones en fechas pasadas",
+                "warning"
+            );
 
-        if (!formData.institucion.trim()) return showToast("La institución facilitadora es obligatoria", "warning");
+        if (!formData.institucion.trim())
+            return showToast("La institución facilitadora es obligatoria", "warning");
         if (isNaN(formData.monto) || Number(formData.monto) <= 0)
             return showToast("El monto debe ser mayor a 0", "warning");
 
@@ -126,18 +272,18 @@ const CapacitacionContainer = () => {
                 montoejecutado: formData.monto,
                 observacion: formData.observacion,
                 estado: Boolean(capacitacionActivaEditando),
-                idestado_id: Boolean(capacitacionActivaEditando) ? 1 : 2, // 1 = Activa, 2 = Inactiva
-                idusuario: idUsuario
+                idestado_id: Boolean(capacitacionActivaEditando) ? 1 : 2,
+                idusuario: idUsuario,
             };
 
             if (editingId) {
                 await axios.put(`${API}/capacitaciones/${editingId}/`, payload, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` },
                 });
                 showToast("Capacitación actualizada correctamente", "success");
             } else {
                 await axios.post(`${API}/capacitaciones/`, payload, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` },
                 });
                 showToast("Capacitación registrada correctamente", "success");
             }
@@ -149,7 +295,7 @@ const CapacitacionContainer = () => {
                 fechaFin: "",
                 institucion: "",
                 monto: "",
-                observacion: ""
+                observacion: "",
             });
             setEditingId(null);
             setCapacitacionActivaEditando(true);
@@ -157,27 +303,25 @@ const CapacitacionContainer = () => {
             fetchCapacitaciones();
         } catch (error) {
             const apiErr = error.response?.data;
-            const detalle = (apiErr && (apiErr.detail || JSON.stringify(apiErr))) || "desconocido";
+            const detalle =
+                (apiErr && (apiErr.detail || JSON.stringify(apiErr))) || "desconocido";
             console.error("POST/PUT /capacitaciones error:", apiErr || error);
             showToast(`Error al guardar capacitación: ${detalle}`, "error");
         }
     };
 
-    const handleEdit = cap => {
-        if (!cap.estado) return showToast("No se puede editar una capacitación inactiva", "warning");
+    const handleEdit = (cap) => {
+        if (!cap.estado)
+            return showToast("No se puede editar una capacitación inactiva", "warning");
 
-        // Verificar si ya finalizó o está en proceso
         const hoy = new Date();
         const fechaInicio = new Date(cap.fechainicio);
         const fechaFin = new Date(cap.fechafin);
 
-        if (fechaFin < hoy) {
+        if (fechaFin < hoy)
             return showToast("No se puede editar una capacitación que ya finalizó", "warning");
-        }
-
-        if (fechaInicio <= hoy && hoy <= fechaFin) {
+        if (fechaInicio <= hoy && hoy <= fechaFin)
             return showToast("No se puede editar una capacitación que está en proceso", "warning");
-        }
 
         setFormData({
             nombreEvento: cap.nombreevento,
@@ -186,56 +330,56 @@ const CapacitacionContainer = () => {
             fechaFin: cap.fechafin,
             institucion: cap.institucionfacilitadora,
             monto: cap.montoejecutado,
-            observacion: cap.observacion || ""
+            observacion: cap.observacion || "",
         });
         setEditingId(cap.idcapacitacion || cap.id);
         setCapacitacionActivaEditando(cap.estado);
         setMostrarFormulario(true);
     };
 
-    // Abre el modal de confirmación para activar o desactivar
     const handleToggleEstado = (cap, tipo) => {
         setModalAccion({ tipo, data: cap });
     };
-
-    // Función para manejar la asignación de Trabajadores
-    const [capacitacionSeleccionada, setCapacitacionSeleccionada] = useState(null);
 
     const handleAsignarCapacitacion = (capacitacion) => {
         setCapacitacionSeleccionada(capacitacion);
         setMostrarAsignacion(true);
     };
 
-    // Confirma la acción (activar o desactivar)
     const confirmarAccion = async () => {
         if (!modalAccion?.data) return;
         const { tipo, data } = modalAccion;
 
-        // Si es desactivar, desactivar todas las asignaciones de Trabajadores relacionadas
         if (tipo === "desactivar") {
             try {
-                const res = await axios.get(`${API}/empleadocapacitacion/?capacitacion=` + (data.idcapacitacion || data.id), {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const asignados = Array.isArray(res.data) ? res.data : Array.isArray(res.data.results) ? res.data.results : [];
-                // Solo considerar asignaciones activas de esta capacitación
-                const asignadosActivos = asignados.filter(a => a.estado === true && Number(a.idcapacitacion) === Number(data.idcapacitacion || data.id));
+                const res = await axios.get(
+                    `${API}/empleadocapacitacion/?capacitacion=` + (data.idcapacitacion || data.id),
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                const asignados = Array.isArray(res.data)
+                    ? res.data
+                    : Array.isArray(res.data.results)
+                        ? res.data.results
+                        : [];
+                const asignadosActivos = asignados.filter(
+                    (a) =>
+                        a.estado === true &&
+                        Number(a.idcapacitacion) === Number(data.idcapacitacion || data.id)
+                );
                 const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-                // Desactivar cada asignación activa
+
                 for (const asignacion of asignadosActivos) {
                     const idAsignacion = asignacion.idempleadocapacitacion || asignacion.id;
                     if (idAsignacion) {
-                        await axios.put(`${API}/empleadocapacitacion/${idAsignacion}/`, {
-                            ...asignacion,
-                            estado: false,
-                            idusuario: idUsuario
-                        }, {
-                            headers: { Authorization: `Bearer ${token}` }
-                        });
+                        await axios.put(
+                            `${API}/empleadocapacitacion/${idAsignacion}/`,
+                            { ...asignacion, estado: false, idusuario: idUsuario },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
                     }
                 }
             } catch (error) {
-                showToast("Error al desactivar Trabajadores asignados", "error");
+                showToast("Error al desactivar Trabajadores/as asignados", "error");
                 setModalAccion(null);
                 return;
             }
@@ -243,31 +387,26 @@ const CapacitacionContainer = () => {
 
         try {
             const idUsuario = Number(sessionStorage.getItem("idUsuario"));
-
             let nuevoEstado, nuevoEstadoId;
 
-            // Determinar el estado y estado_id según el tipo de acción
             switch (tipo) {
                 case "activar":
                     nuevoEstado = true;
-                    nuevoEstadoId = 1; // Activa
+                    nuevoEstadoId = 1;
                     break;
                 case "desactivar":
                     nuevoEstado = false;
-                    nuevoEstadoId = 2; // Inactiva
+                    nuevoEstadoId = 2;
                     break;
                 default:
                     return;
             }
 
-            await axios.put(`${API}/capacitaciones/${data.idcapacitacion || data.id}/`, {
-                ...data,
-                estado: nuevoEstado,
-                idestado_id: nuevoEstadoId,
-                idusuario: idUsuario
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await axios.put(
+                `${API}/capacitaciones/${data.idcapacitacion || data.id}/`,
+                { ...data, estado: nuevoEstado, idestado_id: nuevoEstadoId, idusuario: idUsuario },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
 
             const mensaje = tipo === "activar" ? "activada" : "desactivada";
             showToast(`Capacitación ${mensaje} correctamente`, "success");
@@ -289,24 +428,26 @@ const CapacitacionContainer = () => {
             fechaInicio: "",
             fechaFin: "",
             institucion: "",
-            monto: ""
+            monto: "",
         });
         setEditingId(null);
         setCapacitacionActivaEditando(true);
     };
 
-    // Función helper para determinar el estado de una capacitación
     const determinarEstadoCapacitacion = (capacitacion) => {
         const hoy = new Date();
         const fechaInicio = new Date(capacitacion.fechainicio);
         const fechaFin = new Date(capacitacion.fechafin);
 
-        const esInactivo = !capacitacion.estado; // Desactivado manualmente
-        const esFinalizado = capacitacion.estado && fechaFin < hoy; // Ya terminó
-        const enProceso = capacitacion.estado && fechaInicio <= hoy && hoy <= fechaFin; // Entre fechas
-        const esActivo = capacitacion.estado && fechaInicio > hoy; // Aún no empieza
-
-        return { esInactivo, esFinalizado, enProceso, esActivo, hoy, fechaInicio, fechaFin };
+        return {
+            esInactivo: !capacitacion.estado,
+            esFinalizado: capacitacion.estado && fechaFin < hoy,
+            enProceso: capacitacion.estado && fechaInicio <= hoy && hoy <= fechaFin,
+            esActivo: capacitacion.estado && fechaInicio > hoy,
+            hoy,
+            fechaInicio,
+            fechaFin,
+        };
     };
 
     const capacitacionesFiltradas = capacitaciones
@@ -315,17 +456,15 @@ const CapacitacionContainer = () => {
             const idB = b.idcapacitacion || b.id || 0;
             return idB - idA;
         })
-        .filter(c => {
+        .filter((c) => {
             const textoBusqueda = busqueda.toLowerCase().trim();
-            // Mostrar inactivas solo si hay búsqueda
             if (!c.estado && !textoBusqueda) return false;
             return true;
         })
-        .filter(c => {
-            const { esInactivo, esFinalizado, enProceso, esActivo } = determinarEstadoCapacitacion(c);
+        .filter((c) => {
+            const { esFinalizado } = determinarEstadoCapacitacion(c);
             const textoBusqueda = busqueda.toLowerCase().trim();
 
-            // Filtrar primero por estado (finalizadas o no)
             if (mostrarFinalizadas) {
                 if (!esFinalizado) return false;
             } else {
@@ -334,16 +473,10 @@ const CapacitacionContainer = () => {
 
             if (!textoBusqueda) return c.estado === true;
 
-            // Búsqueda especial por estado
-            if (/^ac(t(i(v(o)?)?)?)?$/.test(textoBusqueda)) {
-                return c.estado === true;
-            }
-            if (/^in(a(c(t(i(v(o)?)?)?)?)?)?$/.test(textoBusqueda)) {
-                return c.estado === false;
-            }
+            if (/^ac(t(i(v(o)?)?)?)?$/.test(textoBusqueda)) return c.estado === true;
+            if (/^in(a(c(t(i(v(o)?)?)?)?)?)?$/.test(textoBusqueda)) return c.estado === false;
 
-            // Búsqueda por todos los campos relevantes
-            const formatFecha = dateStr => {
+            const formatFecha = (dateStr) => {
                 if (!dateStr) return "";
                 const date = new Date(dateStr);
                 const day = String(date.getDate()).padStart(2, "0");
@@ -351,10 +484,12 @@ const CapacitacionContainer = () => {
                 const year = String(date.getFullYear()).slice(-2);
                 return `${day}-${month}-${year}`;
             };
+
             const fechaInicio = formatFecha(c.fechainicio);
             const fechaFin = formatFecha(c.fechafin);
             const montoStr = String(c.montoejecutado || "").toLowerCase();
             const estadoStr = c.estado ? "activo" : "inactivo";
+
             return (
                 c.nombreevento?.toLowerCase().includes(textoBusqueda) ||
                 c.lugar?.toLowerCase().includes(textoBusqueda) ||
@@ -366,8 +501,6 @@ const CapacitacionContainer = () => {
             );
         });
 
-
-
     const indexOfLast = paginaActual * elementosPorPagina;
     const indexOfFirst = indexOfLast - elementosPorPagina;
     const capacitacionesPaginadas = capacitacionesFiltradas.slice(indexOfFirst, indexOfLast);
@@ -376,124 +509,131 @@ const CapacitacionContainer = () => {
     return (
         <Layout>
             <SEO title="Capacitaciones" />
-            <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+
+            {/* Wrapper principal */}
+            <div className="wrapper capacitacion-container__wrapper">
+
+                {/* Columna de contenido */}
+                <div className="capacitacion-container__inner">
                     <Header />
-                    <main
-                        className="main-content site-wrapper-reveal"
-                        style={{
-                            flex: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: "#EEF2F7",
-                            padding: "48px 20px 8rem"
-                        }}
-                    >
-                        <div style={{ width: "min(1100px, 96vw)" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Capacitaciones Registradas</h2>
 
-                            <div
-                                style={{
-                                    display: "flex",
-                                    gap: "10px",
-                                    marginBottom: "15px",
-                                    alignItems: "center",
-                                    flexWrap: "wrap"
-                                }}
-                            >
-                                <input
-                                    type="text"
-                                    placeholder="Buscar capacitación..."
-                                    value={busqueda}
-                                    onChange={e => {
-                                        setBusqueda(e.target.value);
-                                        setPaginaActual(1);
-                                    }}
-                                    style={buttonStyles.buscador}
-                                />
-                                <button onClick={() => setMostrarFormulario(true)} style={buttonStyles.nuevo}>
-                                    Nueva Capacitación
-                                </button>
-                            </div>
+                    <main className="main-content site-wrapper-reveal capacitacion-container__main">
+                        <div className="capacitacion-container__content">
 
-                            <CapacitacionesTable
-                                capacitaciones={capacitacionesPaginadas}
-                                handleEdit={handleEdit}
-                                handleDelete={cap => handleToggleEstado(cap, "desactivar")}
-                                handleActivate={id => {
-                                    const cap = capacitaciones.find(c => (c.idcapacitacion || c.id) === id);
-                                    handleToggleEstado(cap, "activar");
-                                }}
-                                handleAsignarCapacitacion={handleAsignarCapacitacion}
-                                mostrarFinalizadas={mostrarFinalizadas}
-                                paginaActual={paginaActual}
-                                totalPaginas={totalPaginas}
-                                setPaginaActual={setPaginaActual}
+                            {/* Tabs de navegación */}
+                            <TopTabs
+                                active={vistaActiva}
+                                onChange={setVistaActiva}
+                                options={[
+                                    { label: "Capacitaciones Registradas", value: "registradas" },
+                                    { label: "Capacitaciones con Informe Externo", value: "externas" },
+                                ]}
                             />
 
-                            <div style={{ marginTop: "20px", textAlign: "center" }}>
-                                <label style={{ marginRight: "10px", fontWeight: "600" }}>Mostrar:</label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={elementosPorPagina}
-                                    onChange={e => {
-                                        const val = e.target.value.replace(/\D/g, "");
-                                        const numero = val === "" ? "" : Number(val);
-                                        setElementosPorPagina(numero > 0 ? numero : 1);
-                                        setPaginaActual(1);
-                                    }}
-                                    onFocus={e => e.target.select()}
-                                    style={{
-                                        width: "80px",
-                                        padding: "10px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #ccc",
-                                        textAlign: "center"
-                                    }}
-                                />
+                            {/* ===================== VISTA: CAPACITACIONES REGISTRADAS ===================== */}
+                            {vistaActiva === "registradas" && (
+                                <>
+                                    <h2 className="capacitacion-container__title">
+                                        Capacitaciones Registradas
+                                    </h2>
 
-                                {/* Checkbox para mostrar finalizadas */}
-                                <div style={{
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    marginLeft: "20px",
-                                    gap: "8px"
-                                }}>
-                                    <input
-                                        type="checkbox"
-                                        id="mostrarFinalizadas"
-                                        checked={mostrarFinalizadas}
-                                        onChange={(e) => {
-                                            setMostrarFinalizadas(e.target.checked);
-                                            setPaginaActual(1); // Resetear a la primera página
+                                    {/* Buscador + botón nueva capacitación */}
+                                    <div className="capacitacion-container__toolbar">
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar capacitación..."
+                                            value={busqueda}
+                                            onChange={(e) => {
+                                                setBusqueda(e.target.value);
+                                                setPaginaActual(1);
+                                            }}
+                                            style={buttonStyles.buscador}
+                                        />
+
+                                        <button
+                                            onClick={() => setMostrarFormulario(true)}
+                                            style={buttonStyles.nuevo}
+                                        >
+                                            Nueva Capacitación
+                                        </button>
+                                    </div>
+
+                                    {/* Tabla */}
+                                    <CapacitacionesTable
+                                        capacitaciones={capacitacionesPaginadas}
+                                        handleEdit={handleEdit}
+                                        handleDelete={(cap) => handleToggleEstado(cap, "desactivar")}
+                                        handleActivate={(id) => {
+                                            const cap = capacitaciones.find(
+                                                (c) => (c.idcapacitacion || c.id) === id
+                                            );
+                                            handleToggleEstado(cap, "activar");
                                         }}
-                                        style={{
-                                            width: "18px",
-                                            height: "18px",
-                                            cursor: "pointer"
-                                        }}
+                                        handleAsignarCapacitacion={handleAsignarCapacitacion}
+                                        mostrarFinalizadas={mostrarFinalizadas}
+                                        paginaActual={paginaActual}
+                                        totalPaginas={totalPaginas}
+                                        setPaginaActual={setPaginaActual}
                                     />
-                                    <label
-                                        htmlFor="mostrarFinalizadas"
-                                        style={{
-                                            fontWeight: "600",
-                                            cursor: "pointer",
-                                            color: mostrarFinalizadas ? "#1a73e8" : "#333",
-                                            fontSize: "14px"
-                                        }}
-                                    >
-                                        Mostrar capacitaciones finalizadas
-                                    </label>
-                                </div>
-                            </div>
+
+                                    {/* Controles inferiores */}
+                                    <div className="capacitacion-container__controls">
+                                        <label className="capacitacion-container__controls-label">
+                                            Mostrar:
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={elementosPorPagina}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, "");
+                                                const numero = val === "" ? "" : Number(val);
+
+                                                setElementosPorPagina(numero > 0 ? numero : 1);
+                                                setPaginaActual(1);
+                                            }}
+                                            onFocus={(e) => e.target.select()}
+                                            className="capacitacion-container__per-page-input"
+                                        />
+
+                                        <div className="capacitacion-container__finalizadas">
+                                            <input
+                                                type="checkbox"
+                                                id="mostrarFinalizadas"
+                                                checked={mostrarFinalizadas}
+                                                onChange={(e) => {
+                                                    setMostrarFinalizadas(e.target.checked);
+                                                    setPaginaActual(1);
+                                                }}
+                                                className="capacitacion-container__finalizadas-checkbox"
+                                            />
+
+                                            <label
+                                                htmlFor="mostrarFinalizadas"
+                                                className={`capacitacion-container__finalizadas-label capacitacion-container__finalizadas-label--${mostrarFinalizadas ? "active" : "inactive"
+                                                    }`}
+                                            >
+                                                Mostrar capacitaciones finalizadas
+                                            </label>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* ===================== VISTA: CAPACITACIONES EXTERNAS ===================== */}
+                            {vistaActiva === "externas" && (
+                                <CapacitacionesExternas />
+                            )}
+
                         </div>
                     </main>
+
                     <Footer />
                     <ScrollToTop />
                 </div>
 
+                {/* Panel: Formulario de creación / edición */}
                 {mostrarFormulario && (
                     <CapacitacionForm
                         formData={formData}
@@ -507,18 +647,19 @@ const CapacitacionContainer = () => {
                     />
                 )}
 
+                {/* Panel: Asignación de trabajadores */}
                 {mostrarAsignacion && (
                     <AsignarCapacitacion
                         capacitacionInicial={capacitacionSeleccionada}
                         onClose={() => {
                             setMostrarAsignacion(false);
                             setCapacitacionSeleccionada(null);
-                            fetchCapacitaciones(); // Refresca la lista y los detalles
+                            fetchCapacitaciones();
                         }}
                     />
                 )}
 
-                {/*   Modal de confirmación genérico */}
+                {/* Modal: Confirmar activar / desactivar */}
                 {modalAccion && (
                     <ConfirmModal
                         title={modalAccion.tipo === "activar" ? "Activar Capacitación" : "Desactivar Capacitación"}
@@ -536,4 +677,3 @@ const CapacitacionContainer = () => {
 };
 
 export default CapacitacionContainer;
-

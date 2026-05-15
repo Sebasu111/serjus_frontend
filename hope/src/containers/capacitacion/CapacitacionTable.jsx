@@ -213,7 +213,7 @@ const CapacitacionesTable = ({
                                         style={{
                                             padding: "10px",
                                             borderBottom: "1px solid #f0f0f0",
-                                            color: "#007bff",
+                                            color: "#219ebc",
                                             cursor: "pointer",
                                             fontWeight: "500"
                                         }}
@@ -367,7 +367,7 @@ const CapacitacionesTable = ({
                                                                             setOpenMenuId(null);
                                                                         }}
                                                                     >
-                                                                        Asignar Trabajadores
+                                                                        Asignar Trabajadores/as
                                                                     </div>
                                                                     <div
                                                                         style={comboBoxStyles.menu.item.editar.base}
@@ -418,9 +418,9 @@ const CapacitacionesTable = ({
                             style={{
                                 margin: "0 5px",
                                 padding: "6px 12px",
-                                border: "1px solid #007bff",
-                                background: paginaActual === i + 1 ? "#007bff" : "#fff",
-                                color: paginaActual === i + 1 ? "#fff" : "#007bff",
+                                border: "1px solid #219ebc",
+                                background: paginaActual === i + 1 ? "#219ebc" : "#fff",
+                                color: paginaActual === i + 1 ? "#fff" : "#219ebc",
                                 borderRadius: "5px",
                                 cursor: "pointer"
                             }}

@@ -43,7 +43,7 @@ export const fetchCVEmpleado = async (idempleado) => {
         (d) =>
           d.idempleado === idempleado &&
           d.estado === true &&
-          d.idtipodocumento === 1 && // 1 = CV
+          d.idtipodocumento === 3 && // 1 = CV
           d.archivo_url
       )
       .sort((a, b) => new Date(b.createdat) - new Date(a.createdat));
@@ -117,7 +117,7 @@ export const saveCVEmpleado = async (idempleado, file) => {
 
     formData.append("estado", "true");
     formData.append("idusuario", String(idUsuario));
-    formData.append("idtipodocumento", "1"); // 1 = CV (según tu catálogo)
+    formData.append("idtipodocumento", "3"); // 1 = CV (según tu catálogo)
     formData.append("idempleado", String(idempleado));
     // No mandamos idaspirante para que quede null
 

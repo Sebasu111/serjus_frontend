@@ -65,7 +65,7 @@ const ConvocatoriasTable = ({
     overflow: "hidden",
     textOverflow: "ellipsis",
     cursor: "pointer",
-    color: "#007bff"
+    color: "#219ebc"
   };
 
   const btnPrimary = {

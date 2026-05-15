@@ -44,13 +44,13 @@ const RolesContainer = () => {
             };
             if (editingId) {
                 await axios.put(`${API}/roles/${editingId}/`, data, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 setMensaje("Rol actualizado correctamente");
             } else {
                 await axios.post(`${API}/roles/`, data, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 setMensaje("Rol registrado correctamente");
             }
             setNombreRol("");
@@ -256,7 +256,7 @@ const RolesContainer = () => {
                                     style={{
                                         width: "100%",
                                         padding: "12px 0",
-                                        background: "#007bff",
+                                        background: "#219ebc",
                                         color: "#fff",
                                         border: "none",
                                         borderRadius: "8px",

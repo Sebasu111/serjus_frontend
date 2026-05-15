@@ -202,11 +202,63 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
 
   const fetchEmpleados = async () => {
     try {
-      const res = await axios.get(`${API}/empleados/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
-      setEmpleados(data.filter((item) => item.estado));
+      const usuarioActual = JSON.parse(
+        sessionStorage.getItem("usuario")
+      );
+
+      const [resEmp, resEquipos] = await Promise.all([
+        axios.get(`${API}/empleados/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+
+        axios.get(`${API}/equipos/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+      ]);
+
+      const empleadosData = Array.isArray(resEmp.data)
+        ? resEmp.data
+        : resEmp.data.results || [];
+
+      const equiposData = Array.isArray(resEquipos.data)
+        ? resEquipos.data
+        : resEquipos.data.results || [];
+
+      // 🔥 SOLO ACTIVOS
+      let empleadosFiltrados = empleadosData.filter(
+        (item) => item.estado
+      );
+
+      // 🔥 SI ES COORDINADOR
+      if (
+        usuarioActual &&
+        Number(usuarioActual.idrol) === 1
+      ) {
+
+        // buscar su equipo
+        const miEquipo = equiposData.find(
+          (eq) =>
+            Number(eq.idcoordinador) ===
+            Number(usuarioActual.idempleado)
+        );
+
+        // si tiene equipo
+        if (miEquipo) {
+
+          empleadosFiltrados = empleadosFiltrados.filter(
+            (emp) =>
+              Number(emp.idequipo) ===
+              Number(miEquipo.idequipo)
+          );
+        } else {
+
+          // si no tiene equipo -> no mostrar empleados
+          empleadosFiltrados = [];
+        }
+      }
+
+      setEmpleados(empleadosFiltrados);
+
     } catch (e) {
       console.error("Error al cargar Trabajadores:", e);
     }
@@ -265,7 +317,7 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
         formDataDocumento.append("fechasubida", fechaasignado);
         formDataDocumento.append("estado", true);
         formDataDocumento.append("idusuario", idUsuario);
-        formDataDocumento.append("idtipodocumento", 5);
+        formDataDocumento.append("idtipodocumento", 11);
 
         const responseDocumento = await axios.post(
           `${API}/documentos/`,
@@ -432,7 +484,7 @@ const GestionarDocumentosModal = ({ induccion, onClose }) => {
           }}
         >
           <h3 style={{ marginBottom: "15px" }}>
-            Asignar Documentos a Trabajadores
+            Asignar Documentos a Trabajadores/as
           </h3>
 
           <form onSubmit={handleSubmit}>

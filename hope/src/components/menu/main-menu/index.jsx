@@ -64,17 +64,17 @@ const SidebarMenu = () => {
             label: "Dashboard",
             icon: <FaTachometerAlt className="menu-icon" />,
             path: "/Dashboard",
-            roles: [6, 5]
+            roles: [1, 2, 3, 4, 5]
         },
         {
             id: "personal",
             label: "Personal",
             icon: <FaUsers className="menu-icon" />,
             submenus: [
-                { path: "/Empleados", label: "Trabajadores", roles: [1, 4, 5] },
+                { path: "/Empleados", label: "Trabajadores/as", roles: [1, 4, 5] },
                 { path: "/Contratos", label: "Contrato", roles: [4, 5] },
                 { path: "/Usuarios", label: "Usuarios", roles: [5] },
-                { path: "/Equipos", label: "Equipos", roles: [1, 5] }
+                { path: "/Equipos", label: "Equipos", roles: [1, 5, 4] }
             ]
         },
         {
@@ -92,8 +92,8 @@ const SidebarMenu = () => {
             label: "Integración",
             icon: <FaBook className="menu-icon" />,
             submenus: [
-                { path: "/Induccion", label: "Inducción", roles: [4, 5] },
-                { path: "/Capacitacion", label: "Capacitación", roles: [4, 5] }
+                { path: "/Induccion", label: "Inducción", roles: [4, 5, 1] },
+                { path: "/Capacitacion", label: "Capacitación", roles: [1, 4, 5] }
             ]
         },
         {
@@ -102,7 +102,8 @@ const SidebarMenu = () => {
             icon: <FaClipboardList className="menu-icon" />,
             submenus: [
                 { path: "/Evaluaciones", label: "Evaluaciones", roles: [1, 5, 2, 4, 3] },
-                { path: "/Criterios", label: "Criterios", roles: [6, 5] }
+                { path: "/Criterios", label: "Criterios", roles: [5] },
+                { path: "/EvaluacionesDePrueba", label: "Periodo De Prueba", roles: [1, 2, 4, 5] }
             ]
         },
         {
@@ -136,7 +137,7 @@ const SidebarMenu = () => {
             label: "Reportes",
             icon: <FaFileAlt className="menu-icon" />,
             path: "/Reportes",
-            roles: [5]
+            roles: [1, 4, 5]
         }
 
     ];

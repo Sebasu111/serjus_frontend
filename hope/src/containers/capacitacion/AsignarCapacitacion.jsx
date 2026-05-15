@@ -14,12 +14,77 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
   );
   const [showError, setShowError] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [esExterna, setEsExterna] = useState(false);
+  const [fechaEntrega, setFechaEntrega] = useState("");
+
+  const fetchEstadoInformeExterno = async (idCapacitacion) => {
+    try {
+
+      // Obtener asignaciones
+      const resAsignaciones = await axios.get(
+        `${API}/empleadocapacitacion/`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const asignaciones = resAsignaciones.data.results || resAsignaciones.data;
+
+      // IDs de asignaciones de esta capacitación
+      const idsAsignaciones = asignaciones
+        .filter(
+          a =>
+            Number(a.idcapacitacion) === Number(idCapacitacion) &&
+            a.estado === true
+        )
+        .map(a => Number(a.idempleadocapacitacion || a.id));
+
+      // Obtener informes
+      const resInformes = await axios.get(
+        `${API}/informes-capacitacion/`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const informes = resInformes.data.results || resInformes.data;
+
+      // Buscar informe relacionado
+      const informe = informes.find(inf =>
+        idsAsignaciones.includes(
+          Number(inf.idempleadocapacitacion)
+        )
+      );
+
+      if (informe) {
+        setEsExterna(true);
+
+        if (informe.fecha_entrega) {
+          setFechaEntrega(informe.fecha_entrega);
+        }
+      } else {
+        setEsExterna(false);
+        setFechaEntrega("");
+      }
+
+    } catch (error) {
+      console.error("Error obteniendo estado de informe:", error);
+    }
+  };
 
   useEffect(() => {
     fetchEmpleados();
     fetchCapacitaciones();
+
     if (capacitacionInicial) {
-      fetchEmpleadosAsignados(capacitacionInicial.idcapacitacion || capacitacionInicial.id);
+
+      const idCap =
+        capacitacionInicial.idcapacitacion ||
+        capacitacionInicial.id;
+
+      fetchEmpleadosAsignados(idCap);
+
+      fetchEstadoInformeExterno(idCap);
     }
   }, []);
 
@@ -30,8 +95,8 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
       });
       setEmpleados(res.data.results || res.data);
     } catch (error) {
-      console.error("Error al cargar Trabajadores:", error);
-      showToast("Error al cargar Trabajadores", "error");
+      console.error("Error al cargar Trabajadores/as:", error);
+      showToast("Error al cargar Trabajadores/as", "error");
     }
   };
 
@@ -59,7 +124,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         .map(a => Number(a.idempleado));
       setEmpleadosSeleccionados(empleadosIdsAsignados);
     } catch (error) {
-      console.error("Error al cargar Trabajadores asignados:", error);
+      console.error("Error al cargar Trabajadores/as asignados:", error);
     }
   };
 
@@ -121,7 +186,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 (fechaInicioActual <= fechaFinOtra && fechaFinActual >= fechaInicioOtra)
               ) {
                 const empleado = empleados.find(emp => (emp.idempleado || emp.id) === idEmpleado);
-                showToast(`El Trabajador ${empleado?.nombre || ''} ${empleado?.apellido || ''} ya está asignado a otra capacitación en las mismas fechas.`, "warning");
+                showToast(`El Trabajador/a ${empleado?.nombre || ''} ${empleado?.apellido || ''} ya está asignado a otra capacitación en las mismas fechas.`, "warning");
                 return;
               }
             }
@@ -184,6 +249,87 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 }
               });
               operacionesRealizadas++;
+
+              // SI ES EXTERNA, CREAR INFORME SI NO EXISTE
+              if (esExterna) {
+
+                console.log("Validando informe existente...");
+
+                try {
+
+                  // Obtener informes existentes
+                  const resInformes = await axios.get(
+                    `${API}/informes-capacitacion/`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`
+                      }
+                    }
+                  );
+
+                  const informes = resInformes.data.results || resInformes.data;
+
+                  // Verificar si ya existe informe
+                  const informeExistente = informes.find(
+                    inf =>
+                      Number(inf.idempleadocapacitacion) ===
+                      Number(
+                        asignacionExistente.idempleadocapacitacion ||
+                        asignacionExistente.id
+                      )
+                  );
+
+                  if (!informeExistente) {
+
+                    console.log("Creando informe nuevo...");
+
+                    const responseInforme = await axios.post(
+                      `${API}/informes-capacitacion/`,
+                      {
+                        idempleadocapacitacion:
+                          asignacionExistente.idempleadocapacitacion ||
+                          asignacionExistente.id,
+
+                        fecha_entrega: fechaEntrega,
+
+                        estado_informe: "PENDIENTE",
+
+                        objetivos: "",
+                        tematicas_contenidos: "",
+                        metodologia: "",
+                        conclusiones: "",
+
+                        aciertos_dificultades: "",
+                        utilidad_formacion: "",
+
+                        resultados_institucion: "",
+                        resultados_participante: "",
+
+                        compromiso_aplicacion: "",
+                        propuesta_seguimiento: "",
+
+                        estado: true,
+                        idusuario: idUsuario
+                      },
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`
+                        }
+                      }
+                    );
+
+
+                  }
+
+                } catch (error) {
+
+                  console.error(
+                    "Error validando/creando informe:",
+                    error.response?.data || error
+                  );
+
+                }
+              }
             } catch (error) {
               console.error("Error al reactivar asignación:", error);
             }
@@ -201,17 +347,82 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
               estado: true
             };
 
-            await axios.post(`${API}/empleadocapacitacion/`, payload, {
-              headers: {
-                Authorization: `Bearer ${token}`
+            // SOLO UN POST
+            const responseAsignacion = await axios.post(
+              `${API}/empleadocapacitacion/`,
+              payload,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
               }
-            });
+            );
+
+            const nuevaAsignacion = responseAsignacion.data;
+
             operacionesRealizadas++;
+
+            // VALIDAR FECHA
+            if (esExterna && !fechaEntrega) {
+              showToast("Debe ingresar fecha límite de entrega", "warning");
+              return;
+            }
+
+            // CREAR INFORME SOLO SI ES EXTERNA
+            if (esExterna) {
+              try {
+
+                const responseInforme = await axios.post(
+                  `${API}/informes-capacitacion/`,
+                  {
+                    idempleadocapacitacion:
+                      nuevaAsignacion.idempleadocapacitacion ||
+                      nuevaAsignacion.id,
+
+                    fecha_entrega: fechaEntrega,
+
+                    estado_informe: "PENDIENTE",
+
+                    objetivos: "",
+                    tematicas_contenidos: "",
+                    metodologia: "",
+                    conclusiones: "",
+
+                    aciertos_dificultades: "",
+                    utilidad_formacion: "",
+
+                    resultados_institucion: "",
+                    resultados_participante: "",
+
+                    compromiso_aplicacion: "",
+                    propuesta_seguimiento: "",
+
+                    estado: true,
+                    idusuario: idUsuario
+                  },
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`
+                    }
+                  }
+                );
+
+              } catch (error) {
+
+                console.error(
+                  "Error creando informe:",
+                  error.response?.data || error
+                );
+
+              }
+            }
+
           } catch (error) {
             console.error("Error al crear asignación:", error);
           }
         }
       }
+
 
       // Mostrar mensaje según el resultado
       if (operacionesRealizadas > 0) {
@@ -219,7 +430,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         // Cerrar el modal inmediatamente después del guardado exitoso
         onClose();
       } else if (empleadosSeleccionados.length === 0 && asignacionesActuales.length === 0) {
-        showToast("No hay Trabajadores asignados a esta capacitación", "info");
+        showToast("No hay Trabajadores/as asignados a esta capacitación", "info");
         // También cerrar inmediatamente en este caso
         onClose();
       } else {
@@ -260,7 +471,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         flexDirection: "column"
       }}
     >
-      <h3 style={{ textAlign: "center", marginBottom: "20px" }}>Asignar Trabajadores</h3>
+      <h3 style={{ textAlign: "center", marginBottom: "20px" }}>Asignar Trabajadores/as</h3>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
         {/* Capacitación */}
@@ -302,6 +513,63 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
           </div>
         )}
 
+        {/* Capacitación Externa */}
+        <div
+          style={{
+            padding: "12px",
+            border: "1px solid #d1d5db",
+            borderRadius: "6px",
+            backgroundColor: "#f9fafb"
+          }}
+        >
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              cursor: "pointer",
+              fontWeight: "500"
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={esExterna}
+              onChange={(e) => setEsExterna(e.target.checked)}
+              style={{
+                width: "16px",
+                height: "16px"
+              }}
+            />
+
+            Esta capacitación requiere informe externo
+          </label>
+
+          {esExterna && (
+            <div style={{ marginTop: "15px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "6px"
+                }}
+              >
+                Fecha límite de entrega
+              </label>
+
+              <input
+                type="date"
+                value={fechaEntrega}
+                onChange={(e) => setFechaEntrega(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc"
+                }}
+              />
+            </div>
+          )}
+        </div>
+
         {/* Trabajadores seleccionados */}
         {empleadosSeleccionados.length > 0 && (
           <div style={{
@@ -318,7 +586,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 color: "#6b7280",
                 fontWeight: "400"
               }}>
-                Trabajadores seleccionados ({empleadosSeleccionados.length}):
+                Trabajadores/as seleccionados ({empleadosSeleccionados.length}):
               </div>
               <button
                 type="button"
@@ -344,7 +612,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                   e.target.style.color = "#6b7280";
                   e.target.style.borderColor = "#d1d5db";
                 }}
-                title="Quitar todos los Trabajadores"
+                title="Quitar todos los Trabajadores/as"
               >
                 Limpiar selección
               </button>
@@ -388,7 +656,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                         fontWeight: "normal",
                         lineHeight: "1"
                       }}
-                      title="Quitar Trabajador"
+                      title="Quitar Trabajador/a"
                     >
                       ×
                     </button>
@@ -402,7 +670,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
         {/* Trabajadores */}
         <div>
           <label style={{ display: "block", marginBottom: "6px" }}>
-            Seleccione Trabajadores
+            Seleccione Trabajadores/as
           </label>
 
           <div
@@ -458,7 +726,7 @@ const AsignarCapacitacion = ({ capacitacionInicial = null, onClose }) => {
                 ))
               ) : (
                 <div style={{ padding: "20px", textAlign: "center", color: "#777", fontSize: "14px" }}>
-                  {busqueda ? "No se encontraron Trabajadores con ese nombre" : "No hay Trabajadores disponibles"}
+                  {busqueda ? "No se encontraron Trabajadores/as con ese nombre" : "No hay Trabajadores/as disponibles"}
                 </div>
               )}
             </div>

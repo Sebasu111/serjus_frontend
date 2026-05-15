@@ -54,7 +54,11 @@ const EvaluacionesFinalizadas = () => {
         const evalData = evalDataRaw.filter(
           (ev) =>
             ev.idempleado !== null &&
-            (ev.modalidad === "Autoevaluación" || ev.modalidad === "Evaluacion")
+            (ev.modalidad === "Autoevaluación" ||
+              ev.modalidad === "Evaluacion") &&
+
+            // ❌ EXCLUIR período de prueba
+            ev.observacion !== "Evaluación período de prueba"
         );
         const empData = resEmp.data.results || resEmp.data || [];
         const usersData = resUsers.data.results || resUsers.data || [];

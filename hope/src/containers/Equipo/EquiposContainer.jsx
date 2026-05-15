@@ -573,8 +573,10 @@ const EquiposContainer = () => {
     const equiposPermitidos = useMemo(() => {
         if (!usuario || !equiposConMiembros?.length) return [];
 
-        // Admin (rol 5) → puede ver todos
-        if (usuario.idrol === 5) return equiposConMiembros;
+        // Admin y rol 4 → puede ver todos
+        if (usuario.idrol === 5 || usuario.idrol === 4) {
+            return equiposConMiembros;
+        }
 
         // Coordinador (rol 1) → solo su propio equipo
         if (usuario.idrol === 1) {

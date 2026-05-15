@@ -18,7 +18,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
 
     const idRol = parseInt(sessionStorage.getItem("idRol"));
     const idUsuario = parseInt(sessionStorage.getItem("idUsuario"));
-    const esCoordinadorOAdmin = [4, 5].includes(idRol);
+    const esCoordinadorOAdmin = [1, 4, 5].includes(idRol);
 
     useEffect(() => {
         const cargarEmpleados = async () => {
@@ -154,7 +154,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
             formData.append("mimearchivo", "pdf");
             formData.append("fechasubida", new Date().toISOString().slice(0, 10));
             formData.append("idusuario", idUsuario);
-            formData.append("idtipodocumento", 2);
+            formData.append("idtipodocumento", 4);
             formData.append("idempleado", empleadoSeleccionado.idempleado);
 
             const resDoc = await axios.post(`${API}/documentos/`, formData, {
@@ -250,7 +250,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
                     <p><strong>Fechas:</strong> {formatearFecha(capacitacion.fechainicio)} - {formatearFecha(capacitacion.fechafin)}</p>
                     {esCoordinadorOAdmin && (
                         <p style={{ color: "#059669", fontWeight: "600", fontSize: "14px" }}>
-                            📋 Como coordinador/administrador, puede marcar la asistencia de los Trabajadores
+                            📋 Como coordinador/administrador, puede marcar la asistencia de los Trabajadores/as
                         </p>
                     )}
                 </div>
@@ -376,7 +376,7 @@ const GestionAsistenciaModal = ({ visible, onClose, capacitacion, empleadosAsign
                         <thead>
                             <tr style={{ background: "#f3f4f6" }}>
                                 <th style={{ padding: "12px", textAlign: "left", border: "1px solid #e5e7eb" }}>
-                                    Trabajador
+                                    Trabajador/as
                                 </th>
                                 <th style={{ padding: "12px", textAlign: "center", border: "1px solid #e5e7eb" }}>
                                     Asistencia

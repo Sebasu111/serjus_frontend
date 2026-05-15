@@ -260,7 +260,7 @@ const EstadosContainer = () => {
                                     style={{
                                         width: "100%",
                                         padding: "12px 0",
-                                        background: "#007bff",
+                                        background: "#219ebc",
                                         color: "#fff",
                                         border: "none",
                                         borderRadius: "8px",

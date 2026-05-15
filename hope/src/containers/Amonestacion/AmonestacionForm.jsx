@@ -42,7 +42,7 @@ const AmonestacionForm = ({
           : [];
       setEmpleados(empleadosData);
     } catch (error) {
-      showToast("Error al cargar Trabajadores", "error");
+      showToast("Error al cargar Trabajadores/as", "error");
     }
   };
 
@@ -178,11 +178,11 @@ const AmonestacionForm = ({
 
       {/* Buscador de empleado */}
       <div style={{ marginBottom: "12px", position: "relative" }}>
-        <label style={labelStyle}>Nombre del Trabajador</label>
+        <label style={labelStyle}>Nombre del Trabajador/a</label>
         <input
           type="text"
           name="nombreTrabajador"
-          placeholder="Buscar Trabajador..."
+          placeholder="Buscar Trabajador/a..."
           value={qEmpleado || data.nombreTrabajador || ""}
           onChange={(e) => {
             setQEmpleado(e.target.value);
@@ -380,7 +380,7 @@ const AmonestacionForm = ({
             nombreEmpleado === nombreResponsable
           ) {
             showToast(
-              "El responsable no puede ser la misma persona que el Trabajador.",
+              "El responsable no puede ser la misma persona que el Trabajador/a.",
               "error"
             );
             return;

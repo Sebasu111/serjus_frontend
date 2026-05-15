@@ -8,6 +8,7 @@ import EvaluacionGuia from "./EvaluacionGuia";
 import EvaluacionesTable from "./EvaluacionesTable";
 import EvaluacionesFinalizadas from "./EvaluacionesFinalizadas";
 import Seguimiento from "./Seguimiento";
+import TopTabs from "../../components/Toptabs/TopTabs.jsx";
 
 const EvaluacionContainer = () => {
   const [vistaActual, setVistaActual] = useState("evaluar");
@@ -101,50 +102,35 @@ const EvaluacionContainer = () => {
             }}
           >
             {/* NAV */}
-            <div
-              style={{
-                borderBottom: "2px solid #e0e0e0",
-                backgroundColor: "#f8f9fa",
-                padding: "0 20px",
-              }}
-            >
-              <div style={{ display: "flex", gap: 0 }}>
-                <button
-                  onClick={() => setVistaActual("evaluar")}
-                  style={navBtn(vistaActual === "evaluar")}
-                >
-                  Evaluar
-                </button>
+            <TopTabs
+              active={vistaActual}
+              onChange={setVistaActual}
+              options={[
+                {
+                  label: "Evaluar",
+                  value: "evaluar"
+                },
 
-                {/* NO pueden ver Ver Evaluaciones */}
-                {!esSecretaria && !esRolLimitado && (
-                  <button
-                    onClick={() => setVistaActual("listar")}
-                    style={navBtn(vistaActual === "listar")}
-                  >
-                    Ver Evaluaciones
-                  </button>
-                )}
+                ...(!esSecretaria && !esRolLimitado
+                  ? [{
+                    label: "Ver Evaluaciones",
+                    value: "listar"
+                  }]
+                  : []),
 
-                {/* Solo Admin */}
-                {esAdmin && (
-                  <button
-                    onClick={() => setVistaActual("finalizadas")}
-                    style={navBtn(vistaActual === "finalizadas")}
-                  >
-                    Evaluaciones Finalizadas
-                  </button>
-                )}
+                ...(esAdmin
+                  ? [{
+                    label: "Evaluaciones Finalizadas",
+                    value: "finalizadas"
+                  }]
+                  : []),
 
-                {/* Secretaría puede ver Seguimiento */}
-                <button
-                  onClick={() => setVistaActual("seguimiento")}
-                  style={navBtn(vistaActual === "seguimiento")}
-                >
-                  Seguimiento
-                </button>
-              </div>
-            </div>
+                {
+                  label: "Seguimiento",
+                  value: "seguimiento"
+                }
+              ]}
+            />
 
             {/* CONTENIDO */}
             {vistaActual === "evaluar" && (

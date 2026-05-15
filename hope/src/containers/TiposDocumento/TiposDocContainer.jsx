@@ -49,13 +49,13 @@ const TiposDocumentoContainer = () => {
 
             if (editingId) {
                 await axios.put(`${API}/tipodocumento/${editingId}/`, data, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 setMensaje("Tipo de documento actualizado correctamente");
             } else {
                 await axios.post(`${API}/tipodocumento/`, data, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 setMensaje("Tipo de documento registrado correctamente");
             }
 
@@ -292,7 +292,7 @@ const TiposDocumentoContainer = () => {
                                     style={{
                                         width: "100%",
                                         padding: "12px 0",
-                                        background: "#007bff",
+                                        background: "#219ebc",
                                         color: "#fff",
                                         border: "none",
                                         borderRadius: "8px",

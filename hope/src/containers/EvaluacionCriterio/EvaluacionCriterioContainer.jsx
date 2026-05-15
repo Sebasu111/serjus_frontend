@@ -250,7 +250,7 @@ const EvaluacionCriterioContainer = () => {
                                     style={{
                                         width: "100%",
                                         padding: "12px",
-                                        background: "#007bff",
+                                        background: "#219ebc",
                                         color: "#fff",
                                         border: "none",
                                         borderRadius: "8px",

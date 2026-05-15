@@ -110,7 +110,9 @@ const EstadoPostulacionModal = ({ show, onClose }) => {
                         <p>
                             <strong>Estado:</strong>{" "}
                             <span className={getEstadoClass(resultados[indexActual].estado)}>
-                                {resultados[indexActual].estado}
+                                {resultados[indexActual].estado === "Rechazado"
+                                    ? "No Seleccionado"
+                                    : resultados[indexActual].estado}
                             </span>
                         </p>
 

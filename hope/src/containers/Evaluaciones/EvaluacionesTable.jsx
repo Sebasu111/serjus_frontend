@@ -63,9 +63,13 @@ const EvaluacionesTable = ({ onSeleccionarEvaluacion }) => {
         );
 
         let filtradas = evalData.filter(
-          (ev) => ev.modalidad !== "Entrevista" && ev.idpostulacion === null
-        );
+          (ev) =>
+            ev.modalidad !== "Entrevista" &&
+            ev.idpostulacion === null &&
 
+            // ❌ Excluir evaluaciones de período de prueba
+            ev.observacion !== "Evaluación período de prueba"
+        );
         filtradas.sort(
           (a, b) => new Date(b.fechaevaluacion) - new Date(a.fechaevaluacion)
         );

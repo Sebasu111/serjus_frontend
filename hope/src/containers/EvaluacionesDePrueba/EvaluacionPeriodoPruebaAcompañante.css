@@ -1,0 +1,122 @@
+.page-container {
+    min-height: 100vh;
+    background: #f3f4f6;
+    padding: 30px;
+}
+
+.card-container {
+    max-width: 1400px;
+    margin: auto;
+    background: white;
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title {
+    text-align: center;
+    color: #023047;
+    margin-bottom: 25px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.info-grid input {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+}
+
+.escala-box {
+    margin-bottom: 20px;
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.escala-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.tabla-evaluacion {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.tabla-evaluacion th {
+    background: #023047;
+    color: white;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+}
+
+.tabla-evaluacion td {
+    border: 1px solid #d1d5db;
+    padding: 10px;
+}
+
+.tabla-evaluacion select,
+.tabla-evaluacion input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+
+.grupo-row td {
+    background: #e0f2fe;
+    font-weight: bold;
+    color: #0f172a;
+}
+
+.total-row td {
+    background: #f1f5f9;
+    font-size: 16px;
+}
+
+.valoracion-box,
+.decision-box {
+    margin-top: 30px;
+}
+
+.valoracion-box textarea,
+.decision-box textarea {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    resize: vertical;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.button-container button {
+    background: #023047;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.button-container button:hover {
+    background: #023047;
+}

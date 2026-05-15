@@ -423,13 +423,13 @@ const EmpleadosContainer = () => {
 
             // Asociar contrato a cada empleado
             const empleadosConContrato = rows.map(emp => {
-                const contrato = documentos.find(doc => doc.idempleado == (emp.id || emp.idempleado || emp.idEmpleado) && doc.idtipodocumento == 2 && doc.estado !== false);
+                const contrato = documentos.find(doc => doc.idempleado == (emp.id || emp.idempleado || emp.idEmpleado) && doc.idtipodocumento == 8 && doc.estado !== false);
                 return { ...emp, contrato: contrato ? contrato : null };
             });
             setData(empleadosConContrato);
         } catch (e) {
-            console.error("Error al cargar Trabajadores:", e);
-            showToast("Error al cargar los Trabajadores", "error");
+            console.error("Error al cargar Trabajadores/as:", e);
+            showToast("Error al cargar los Trabajadores/as", "error");
             setData([]);
         }
     };
@@ -569,7 +569,7 @@ const EmpleadosContainer = () => {
                         // Verificar si el empleado encontrado está activo o inactivo
                         if (found.estado === false) {
                             setErrors(er => ({ ...er, dpi: "Ya existe un Trabajador inactivo con este DPI" }));
-                            showToast("Ya existe un Trabajador inactivo con este DPI. Puede reactivarlo desde la lista de Trabajadores inactivos.", "warning");
+                            showToast("Ya existe un Trabajador inactivo con este DPI. Puede reactivarlo desde la lista de Trabajadores/as inactivos.", "warning");
                         } else {
                             setErrors(er => ({ ...er, dpi: "DPI ya registrado" }));
                             showToast("El DPI ya existe en un Trabajador activo.", "warning");
@@ -647,7 +647,7 @@ const EmpleadosContainer = () => {
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
 
             const cvDocumento = documentos.find(doc => {
-                return doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 1;
+                return doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 3;
             });
 
             if (cvDocumento) {
@@ -695,7 +695,7 @@ const EmpleadosContainer = () => {
             const documentos = Array.isArray(response.data) ? response.data : response.data?.results || [];
 
             const contratoDocumento = documentos.find(doc => {
-                return doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 2; // Asumimos tipo 2 para contratos
+                return doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 8; // Asumimos tipo 2 para contratos
             });
 
             if (contratoDocumento) {
@@ -768,7 +768,7 @@ const EmpleadosContainer = () => {
             formDataContrato.append('fechasubida', new Date().toISOString().split('T')[0]);
             formDataContrato.append('estado', 'true');
             formDataContrato.append('idusuario', getIdUsuario().toString());
-            formDataContrato.append('idtipodocumento', '2'); // Tipo 2 para contratos
+            formDataContrato.append('idtipodocumento', '8'); // Tipo 2 para contratos
             formDataContrato.append('idempleado', empleadoId.toString());
 
             if (contratoExistente) {
@@ -1090,7 +1090,7 @@ const EmpleadosContainer = () => {
                         if (found.estado === false) {
                             setErrors(p => ({ ...p, dpi: "Ya existe un Trabajador inactivo con este DPI" }));
                             window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
-                            showToast("Ya existe un Trabajador inactivo con este DPI. Puede reactivarlo desde la lista de Trabajadores inactivos.", "warning");
+                            showToast("Ya existe un Trabajador inactivo con este DPI. Puede reactivarlo desde la lista de Trabajadores/as inactivos.", "warning");
                         } else {
                             setErrors(p => ({ ...p, dpi: "DPI ya registrado" }));
                             window.dispatchEvent(new CustomEvent("empleadoForm:goToStep", { detail: 1 }));
@@ -1221,7 +1221,7 @@ const EmpleadosContainer = () => {
                             formDataCV.append('fechasubida', new Date().toISOString().split('T')[0]);
                             formDataCV.append('estado', 'true');
                             formDataCV.append('idusuario', getIdUsuario().toString());
-                            formDataCV.append('idtipodocumento', '1');
+                            formDataCV.append('idtipodocumento', '3');
                             formDataCV.append('idempleado', editingId.toString());
 
                             // Actualizar el documento existente (PUT)
@@ -1242,7 +1242,7 @@ const EmpleadosContainer = () => {
                             formDataCV.append('fechasubida', new Date().toISOString().split('T')[0]);
                             formDataCV.append('estado', 'true');
                             formDataCV.append('idusuario', getIdUsuario().toString());
-                            formDataCV.append('idtipodocumento', '1');
+                            formDataCV.append('idtipodocumento', '3');
                             formDataCV.append('idempleado', editingId.toString());
 
                             // Crear nuevo documento (POST)
@@ -1292,7 +1292,7 @@ const EmpleadosContainer = () => {
                         formDataCV.append('fechasubida', new Date().toISOString().split('T')[0]);
                         formDataCV.append('estado', 'true');
                         formDataCV.append('idusuario', getIdUsuario().toString());
-                        formDataCV.append('idtipodocumento', '1'); // Asumimos tipo 1 para CV
+                        formDataCV.append('idtipodocumento', '3'); // Asumimos tipo 1 para CV
                         formDataCV.append('idempleado', empleadoId.toString());
 
                         // Log para ver qué estamos enviando
@@ -1686,7 +1686,7 @@ const EmpleadosContainer = () => {
 
             const contratoDocumento = documentos.find(doc => {
                 // Priorizar búsqueda por idempleado y tipo de documento 2 (contrato)
-                if (doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 2) {
+                if (doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 8) {
                     return true;
                 }
 
@@ -1744,7 +1744,7 @@ const EmpleadosContainer = () => {
 
             const cvDocumento = documentos.find(doc => {
                 // Priorizar búsqueda por idempleado y tipo de documento
-                if (doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 1) {
+                if (doc.idempleado && doc.idempleado == empleadoId && doc.idtipodocumento == 3) {
                     return true;
                 }
 
@@ -1841,7 +1841,7 @@ const EmpleadosContainer = () => {
 
     return (
         <Layout>
-            <SEO title="SERJUS - Trabajadores" />
+            <SEO title="SERJUS - Trabajadores/as" />
             <div className="wrapper" style={{ display: "flex", minHeight: "100vh" }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Header />
@@ -1857,7 +1857,7 @@ const EmpleadosContainer = () => {
                         }}
                     >
                         <div style={{ width: "min(1100px, 96vw)" }}>
-                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Trabajadores Registrados</h2>
+                            <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Trabajadores/as Registrados</h2>
 
                             <div
                                 style={{

@@ -121,7 +121,7 @@ const PerfilContainer = () => {
       const documentos = res.data.results || res.data;
 
       const planExistente = documentos.find(
-        (d) => Number(d.idtipodocumento) === 9 && d.estado === true
+        (d) => Number(d.idtipodocumento) === 11 && d.estado === true
       );
 
       // 📦 FormData
@@ -132,7 +132,7 @@ const PerfilContainer = () => {
       formData.append("fechasubida", new Date().toISOString().split("T")[0]);
       formData.append("estado", true);
       formData.append("idusuario", idUsuario);
-      formData.append("idtipodocumento", 9);
+      formData.append("idtipodocumento", 11);
 
       if (planExistente) {
         // 🔁 ACTUALIZAR
@@ -175,7 +175,7 @@ const PerfilContainer = () => {
 
       // 🔥 buscar el plan de inducción
       const plan = documentos.find(
-        (d) => Number(d.idtipodocumento) === 9 && d.estado === true
+        (d) => Number(d.idtipodocumento) === 11 && d.estado === true
       );
 
       if (!plan) {

@@ -217,7 +217,7 @@ const EmpleadosTable = ({
                     ) : (
                         <tr>
                             <td colSpan={7} style={{ textAlign: "center", padding: 20 }}>
-                                No hay Trabajadores
+                                No hay Trabajadores/as
                             </td>
                         </tr>
                     )}

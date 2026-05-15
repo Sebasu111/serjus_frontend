@@ -22,6 +22,7 @@ import {
   getDataCapacitaciones,
   fetchEquipos,
   fetchConvocatorias,
+  fetchEnfermedadesStats
 } from "./DashboardData";
 
 import {
@@ -63,17 +64,29 @@ const Dashboard = () => {
   const [porIdioma, setPorIdioma] = useState([]);
   const [porPueblo, setPorPueblo] = useState([]);
   const [ausencias, setAusencias] = useState([]);
-
   const [totalActivos, setTotalActivos] = useState(0);
   const [totalHombres, setTotalHombres] = useState(0);
   const [totalMujeres, setTotalMujeres] = useState(0);
   const [dataCapacitaciones, setDataCapacitaciones] = useState([]);
-
   const [equiposActivos, setEquiposActivos] = useState(0);
   const [convocatoriasActivas, setConvocatoriasActivas] = useState(0);
-
   const [filtroDemografico, setFiltroDemografico] = useState("idiomas");
   const dataset = filtroDemografico === "idiomas" ? porIdioma : porPueblo;
+  const [enfermedadesStats, setEnfermedadesStats] = useState([]);
+  const [filtroGenero, setFiltroGenero] = useState("TODOS");
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const enfermedades = await fetchEnfermedadesStats(filtroGenero);
+        setEnfermedadesStats(enfermedades);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadData();
+  }, [filtroGenero]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -243,7 +256,7 @@ const Dashboard = () => {
                           marginBottom: "10px",
                         }}
                       >
-                        Trabajadores Activos
+                        Trabajadores/as Activos
                       </h4>
 
                       <FaUser
@@ -495,7 +508,7 @@ const Dashboard = () => {
                               <Bar dataKey="value" fill="#ee853aff" barSize={28} />
                             </BarChart>
                           </ResponsiveContainer>
-                          <ChartDescription text="Cantidad de Trabajadores agrupados por edad." />
+                          <ChartDescription text="Cantidad de Trabajadores/as agrupados por edad." />
                         </>
                       )}
                     </Card>
@@ -685,7 +698,7 @@ const Dashboard = () => {
                               ))}
                           </div>
 
-                          <ChartDescription text="Últimas capacitaciones activas y cantidad de Trabajadores asignados." />
+                          <ChartDescription text="Últimas capacitaciones activas y cantidad de Trabajadores/as asignados." />
                         </>
                       )}
                     </Card>
@@ -772,6 +785,43 @@ const Dashboard = () => {
                       )}
                     </Card>
 
+                    <Card title="Enfermedades más comunes" color="#ef4444">
+
+                      {/* FILTRO */}
+                      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+                        <select
+                          value={filtroGenero}
+                          onChange={(e) => setFiltroGenero(e.target.value)}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                            border: "1px solid #cccc",
+                            fontSize: "0.9rem",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="TODOS">TODOS</option>
+                          <option value="M">Hombres</option>
+                          <option value="F">Mujeres</option>
+                        </select>
+                      </div>
+
+                      {renderDataOrEmpty(
+                        enfermedadesStats,
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={enfermedadesStats.slice(0, 10)}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" hide />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#ef4444" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+
+                      <ChartDescription text="Cantidad de empleados que padecen cada enfermedad." />
+                    </Card>
+
                     {/* 🔹 Segunda card disponible */}
                     <Card title="Idiomas / Pueblos" color="#d6526fff">
                       {/* Selector */}
@@ -847,7 +897,7 @@ const Dashboard = () => {
                           fontStyle: "italic",
                         }}
                       >
-                        Distribución de Trabajadores por {filtroDemografico === "idiomas" ? "idioma" : "pueblo / cultura"}.
+                        Distribución de Trabajadores/as por {filtroDemografico === "idiomas" ? "idioma" : "pueblo / cultura"}.
                       </p>
                     </Card>
 

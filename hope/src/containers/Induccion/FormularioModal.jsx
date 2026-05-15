@@ -14,9 +14,11 @@ const FormularioModal = ({ visible, onClose, formularios, induccion, formularioP
     const [busqueda, setBusqueda] = useState("");
     const [openSelect, setOpenSelect] = useState(false);
 
-    const formulariosFiltrados = formularios.filter(f =>
-        f.titulo.toLowerCase().includes(busqueda.toLowerCase())
-    );
+    const formulariosFiltrados = formularios
+        .filter(f => f.tipo !== "medico") // 🔥 aquí
+        .filter(f =>
+            f.titulo.toLowerCase().includes(busqueda.toLowerCase())
+        );
 
     useEffect(() => {
         if (formularioPrecargado) {

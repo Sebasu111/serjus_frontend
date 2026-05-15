@@ -143,13 +143,13 @@ const ContratosTable = () => {
 
             // Buscar el documento del contrato (tipo 2) para este empleado
             const documentoContrato = documentos.find(doc =>
-                doc.idempleado == empleadoId && doc.idtipodocumento == 2
+                doc.idempleado == empleadoId && doc.idtipodocumento == 6
             );
 
             //console.log("📋 Documento contrato encontrado:", documentoContrato);
 
             if (!documentoContrato) {
-                showToast("No se encontró documento PDF para este contrato. Puede subir uno desde la gestión de Trabajadores.", "info");
+                showToast("No se encontró documento PDF para este contrato. Puede subir uno desde la gestión de Trabajadores/as.", "info");
                 return;
             }
 

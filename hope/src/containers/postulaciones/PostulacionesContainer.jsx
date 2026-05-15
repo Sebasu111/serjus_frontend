@@ -47,7 +47,7 @@ const PostulacionesContainer = () => {
       setAspirantes(
         (resAsp.data.results || []).map((a) => {
           const cvs = (resDocs.data.results || []).filter(
-            (d) => d.idaspirante === a.idaspirante && d.idtipodocumento === 1
+            (d) => d.idaspirante === a.idaspirante && d.idtipodocumento === 3
           );
           return { ...a, cvs };
         })

@@ -80,8 +80,8 @@ const DocumentosContainer = () => {
             const data = Array.isArray(r.data) ? r.data : Array.isArray(r.data?.results) ? r.data.results : [];
             setEmpleados(data);
         } catch (error) {
-            console.error("Error al cargar Trabajadores:", error);
-            showToast("Error al cargar Trabajadores:", "error");
+            console.error("Error al cargar Trabajadores/as:", error);
+            showToast("Error al cargar Trabajadores/as:", "error");
             setEmpleados([]);
         }
     };

@@ -12,13 +12,13 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
 
   // 🔹 Cargar documento existente si la amonestación tiene idDocumento > 0
   useEffect(() => {
-  const idDoc = amonestacion?.idDocumento || amonestacion?.iddocumento;
-  if (idDoc && idDoc > 0) {
-    fetchDocumento(idDoc);
-  } else {
-    setDocumentoExistente(null);
-  }
-}, [amonestacion?.idDocumento, amonestacion?.iddocumento]);
+    const idDoc = amonestacion?.idDocumento || amonestacion?.iddocumento;
+    if (idDoc && idDoc > 0) {
+      fetchDocumento(idDoc);
+    } else {
+      setDocumentoExistente(null);
+    }
+  }, [amonestacion?.idDocumento, amonestacion?.iddocumento]);
 
 
   const fetchDocumento = async (idDocumento) => {
@@ -49,57 +49,57 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
   };
 
   const subirCarta = async () => {
-  if (!archivo) return;
-  setSubiendo(true);
+    if (!archivo) return;
+    setSubiendo(true);
 
-  try {
-    const idUsuario = localStorage.getItem("idUsuario") || 1;
-    const idEmpleado = amonestacion?.idempleado;
-    const idTipoDocumento = 4;
+    try {
+      const idUsuario = localStorage.getItem("idUsuario") || 1;
+      const idEmpleado = amonestacion?.idempleado;
+      const idTipoDocumento = 6;
 
-    const formData = new FormData();
-    formData.append("archivo", archivo);
-    formData.append("nombrearchivo", archivo.name);
-    formData.append("mimearchivo", archivo.name.split(".").pop());
-    formData.append("fechasubida", new Date().toISOString().split("T")[0]);
-    formData.append("estado", true);
-    formData.append("idusuario", idUsuario);
-    formData.append("idtipodocumento", idTipoDocumento);
-    formData.append("idempleado", idEmpleado);
+      const formData = new FormData();
+      formData.append("archivo", archivo);
+      formData.append("nombrearchivo", archivo.name);
+      formData.append("mimearchivo", archivo.name.split(".").pop());
+      formData.append("fechasubida", new Date().toISOString().split("T")[0]);
+      formData.append("estado", true);
+      formData.append("idusuario", idUsuario);
+      formData.append("idtipodocumento", idTipoDocumento);
+      formData.append("idempleado", idEmpleado);
 
-    // Crear documento
-    const resDoc = await axios.post(`${API}/documentos/`, formData, {
-      headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
-    });
-    const idDocumento = resDoc.data.idDocumento || resDoc.data.iddocumento;
+      // Crear documento
+      const resDoc = await axios.post(`${API}/documentos/`, formData, {
+        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
+      });
+      const idDocumento = resDoc.data.idDocumento || resDoc.data.iddocumento;
 
-    // Actualizar amonestación con ese documento
-    await axios.put(`${API}/amonestaciones/${amonestacion.idamonestacion}/`, {
-      tipo: amonestacion.tipo,
-      motivo: amonestacion.motivo,
-      fechaamonestacion: amonestacion.fechaamonestacion,
-      idusuario: idUsuario,
-      iddocumento: idDocumento,
-    },{
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    // 🔹 Refrescar documento actual automáticamente
-    const resDocFinal = await axios.get(`${API}/documentos/${idDocumento}/`, {
+      // Actualizar amonestación con ese documento
+      await axios.put(`${API}/amonestaciones/${amonestacion.idamonestacion}/`, {
+        tipo: amonestacion.tipo,
+        motivo: amonestacion.motivo,
+        fechaamonestacion: amonestacion.fechaamonestacion,
+        idusuario: idUsuario,
+        iddocumento: idDocumento,
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-    setDocumentoExistente(resDocFinal.data);
 
-    showToast("Carta subida y actualizada correctamente", "success");
-    onActualizado?.();
-    onClose();
+      // 🔹 Refrescar documento actual automáticamente
+      const resDocFinal = await axios.get(`${API}/documentos/${idDocumento}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDocumentoExistente(resDocFinal.data);
 
-  } catch (error) {
-    showToast("Error al subir o refrescar la carta", "error");
-  } finally {
-    setSubiendo(false);
-  }
-};
+      showToast("Carta subida y actualizada correctamente", "success");
+      onActualizado?.();
+      onClose();
+
+    } catch (error) {
+      showToast("Error al subir o refrescar la carta", "error");
+    } finally {
+      setSubiendo(false);
+    }
+  };
 
 
   // 🔹 Descargar carta (basado en la función descargarCV)
@@ -119,7 +119,7 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
       const cartaDoc = documentos.find(
         (doc) =>
           (doc.iddocumento && doc.iddocumento === idDoc) ||
-          (doc.idempleado && doc.idempleado === idEmpleado && doc.idtipodocumento === 4)
+          (doc.idempleado && doc.idempleado === idEmpleado && doc.idtipodocumento === 6)
       );
 
       if (!cartaDoc) {
@@ -153,9 +153,11 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
         // Fallback: descarga por endpoint del backend
         const fileResponse = await axios.get(
           `${API}/documentos/${cartaDoc.iddocumento}/archivo/`,
-          { responseType: "blob", headers: {
-            Authorization: `Bearer ${token}`,
-          }, }
+          {
+            responseType: "blob", headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         const blob = new Blob([fileResponse.data], { type: "application/pdf" });
         const url = window.URL.createObjectURL(blob);
@@ -356,8 +358,8 @@ const SubirCartaModal = ({ amonestacion, onClose, onActualizado }) => {
             {subiendo
               ? "Subiendo..."
               : documentoExistente
-              ? "Actualizar Carta"
-              : "Subir Carta"}
+                ? "Actualizar Carta"
+                : "Subir Carta"}
           </button>
         </div>
       </div>
